@@ -3,6 +3,12 @@ build/bin
 node_modules
 frontend/dist
 
+# Wails generated files
+frontend/wailsjs/*
+!frontend/wailsjs/go/
+!frontend/wailsjs/go/**
+wailsjs/
+
 # Logs
 logs
 *.log
