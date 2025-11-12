@@ -1,4 +1,4 @@
-module MyDesktopApp
+module ppll-native-client
 
 go 1.23
 

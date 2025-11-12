@@ -1,7 +1,9 @@
 {
-  "name": "frontend",
+  "name": "ppll-native-client",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "PPLL量化交易专业桌面客户端 - 为量化交易者提供高性能、安全可靠的跨平台桌面交易体验",
+  "author": "PPLL Team <team@ppll.com>",
   "type": "module",
   "scripts": {
     "dev": "vite",

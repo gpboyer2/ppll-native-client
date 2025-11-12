@@ -1,13 +1,19 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "MyDesktopApp",
-  "outputfilename": "MyDesktopApp",
+  "name": "ppll-native-client",
+  "outputfilename": "ppll-native-client",
   "frontend:install": "npm install",
   "frontend:build": "npm run build",
   "frontend:dev:watcher": "npm run dev",
   "frontend:dev:serverUrl": "auto",
   "author": {
-    "name": "Raymond",
-    "email": "773561801@qq.com"
+    "name": "PPLL Team",
+    "email": "team@ppll.com"
+  },
+  "info": {
+    "productName": "PPLL Native Client",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright © 2025 PPLL Team",
+    "comments": "专业量化交易桌面客户端 - 为量化交易者提供高性能、安全可靠的跨平台桌面交易体验"
   }
 }

@@ -11,19 +11,22 @@ import (
 //go:embed all:frontend/dist
 var assets embed.FS
 
+// PPLL Native Client - 专业量化交易桌面客户端
+// 为量化交易者提供高性能、安全可靠的跨平台桌面交易体验
+
 func main() {
-	// Create an instance of the app structure
+	// 创建应用实例
 	app := NewApp()
 
-	// Create application with options
+	// 配置并运行应用
 	err := wails.Run(&options.App{
-		Title:  "MyDesktopApp",
-		Width:  1024,
-		Height: 768,
+		Title:  "PPLL Native Client",
+		Width:  1200,
+		Height: 800,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
-		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
+		BackgroundColour: &options.RGBA{R: 24, G: 26, B: 34, A: 1},
 		OnStartup:        app.startup,
 		Bind: []interface{}{
 			app,
