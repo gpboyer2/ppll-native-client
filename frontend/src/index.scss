@@ -2,32 +2,81 @@
 
 /* ========== 重置 Reset ========== */
 /* 采用现代浏览器友好的基础重置，尽量不破坏表单与原生元素可用性 */
-*, *::before, *::after { box-sizing: border-box; }
-html, body, #root { height: 100%; }
-html:focus-within { scroll-behavior: smooth; }
-body { margin: 0; text-rendering: optimizeLegibility; -webkit-font-smoothing: antialiased; }
-img, picture, video, canvas, svg { display: block; max-width: 100%; }
-input, button, textarea, select { font: inherit; }
-button { cursor: pointer; border: none; background: none; }
-:root { color-scheme: light dark; }
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+html:focus-within {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+:root {
+  color-scheme: light dark;
+}
 
 /* ========== CSS 变量 Theme Variables ========== */
 :root {
   /* 色板 - 币安主题风格 */
-  --color-primary: #f0b90b; /* 币安黄-主色 */
+  --color-primary: #f0b90b;
+  /* 币安黄-主色 */
   --color-primary-600: #f0b90b;
   --color-primary-700: #d9a00a;
   --color-primary-50: #fef9e7;
 
-  --color-bg: #0b0e11; /* 币安深色背景 */
-  --color-bg-muted: #1e2329; /* 深灰背景 */
-  --color-text: #eaecef; /* 浅色文字 */
-  --color-text-muted: #848e9c; /* 次要文字 */
-  --color-border: #2b3139; /* 边框色 */
-  --color-surface: #181a20; /* 卡片表面色 */
-  --color-danger: #f6465d; /* 币安红色 */
-  --color-warning: #fcd535; /* 币安警告黄 */
-  --color-success: #0ecb81; /* 币安绿色 */
+  --color-bg: #0b0e11;
+  /* 币安深色背景 */
+  --color-bg-muted: #1e2329;
+  /* 深灰背景 */
+  --color-text: #eaecef;
+  /* 浅色文字 */
+  --color-text-muted: #848e9c;
+  /* 次要文字 */
+  --color-border: #2b3139;
+  /* 边框色 */
+  --color-surface: #181a20;
+  /* 卡片表面色 */
+  --color-danger: #f6465d;
+  /* 币安红色 */
+  --color-warning: #fcd535;
+  /* 币安警告黄 */
+  --color-success: #0ecb81;
+  /* 币安绿色 */
 
   /* 尺寸与圆角 */
   --radius-sm: 6px;
@@ -35,9 +84,9 @@ button { cursor: pointer; border: none; background: none; }
   --radius-lg: 14px;
 
   /* 阴影 - 适配深色主题 */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.4);
-  --shadow-md: 0 6px 16px rgba(0,0,0,0.6);
-  --shadow-lg: 0 16px 40px rgba(0,0,0,0.8);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.8);
 
   /* 排版 */
   --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
@@ -51,114 +100,409 @@ button { cursor: pointer; border: none; background: none; }
   --leading-normal: 1.5;
 }
 
-/* 暗色模式变量 - 统一使用币安深色主题 */
-@media (prefers-color-scheme: dark) {
-  :root {
-    /* 币安深色主题为默认主题，无需切换 */
-  }
-}
 
 /* ========== 基础排版 Typography ========== */
-body { font-family: var(--font-sans); color: var(--color-text); background: var(--color-bg); font-size: var(--text-md); line-height: var(--leading-normal); }
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+}
 
-h1, h2, h3, h4, h5, h6 { margin: 0 0 8px; font-weight: 600; line-height: var(--leading-tight); color: var(--color-text); }
-h1 { font-size: 28px; }
-h2 { font-size: 24px; }
-h3 { font-size: 20px; }
-h4 { font-size: 18px; }
-h5 { font-size: 16px; }
-h6 { font-size: 14px; }
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0 0 8px;
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  color: var(--color-text);
+}
 
-p { margin: 0 0 12px; color: var(--color-text-muted); }
-small { font-size: var(--text-sm); color: var(--color-text-muted); }
+h1 {
+  font-size: 28px;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 20px;
+}
+
+h4 {
+  font-size: 18px;
+}
+
+h5 {
+  font-size: 16px;
+}
+
+h6 {
+  font-size: 14px;
+}
+
+p {
+  margin: 0 0 12px;
+  color: var(--color-text-muted);
+}
+
+small {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
 
 /* 链接 - 币安黄色链接 */
-a { color: var(--color-primary); text-decoration: none; }
-a:hover { color: var(--color-primary-700); text-decoration: underline; }
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-primary-700);
+  text-decoration: underline;
+}
 
 /* ========== 布局容器 Layout ========== */
-.container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 16px; }
-.section { padding: 16px; }
-.surface { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.section {
+  padding: 16px;
+}
+
+.surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
 
 /* ========== 基础组件 Components ========== */
 /* 按钮 - 币安风格按钮 */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: var(--radius-sm); font-weight: 600; font-size: var(--text-sm); border: 1px solid transparent; transition: all .15s ease; }
-.btn:disabled { opacity: .6; cursor: not-allowed; }
-.btn-primary { color: #000; background: var(--color-primary); border-color: var(--color-primary); box-shadow: var(--shadow-sm); }
-.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: var(--shadow-md); background: var(--color-primary-700); border-color: var(--color-primary-700); }
-.btn-outline { color: var(--color-text); background: transparent; border-color: var(--color-border); }
-.btn-outline:hover { border-color: var(--color-primary); color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 10%, transparent); }
-.btn-ghost { color: var(--color-text); background: transparent; }
-.btn-ghost:hover { background: var(--color-bg-muted); color: var(--color-primary); }
-.btn-danger { color: #fff; background: var(--color-danger); border-color: var(--color-danger); }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  border: 1px solid transparent;
+  transition: all .15s ease;
+}
+
+.btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  color: #000;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  background: var(--color-primary-700);
+  border-color: var(--color-primary-700);
+}
+
+.btn-outline {
+  color: var(--color-text);
+  background: transparent;
+  border-color: var(--color-border);
+}
+
+.btn-outline:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+.btn-ghost {
+  color: var(--color-text);
+  background: transparent;
+}
+
+.btn-ghost:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-primary);
+}
+
+.btn-danger {
+  color: #fff;
+  background: var(--color-danger);
+  border-color: var(--color-danger);
+}
 
 /* 禁用状态 */
-.btn:disabled { opacity: .6; cursor: not-allowed; }
-.btn:disabled:hover { transform: none; box-shadow: var(--shadow-sm); }
+.btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
 
 /* 卡片 */
-.card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
-.card-header { padding: 12px 16px; border-bottom: 1px solid var(--color-border); font-weight: 600; }
-.card-content { padding: 16px; }
-.card-footer { padding: 12px 16px; border-top: 1px solid var(--color-border); text-align: right; }
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 600;
+}
+
+.card-content {
+  padding: 16px;
+}
+
+.card-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
+  text-align: right;
+}
 
 /* 表单 - 币安风格表单 */
-.form-row { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
-.label { font-size: var(--text-sm); color: var(--color-text-muted); }
-.input, .select, .textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-sm); background: var(--color-surface); color: var(--color-text); outline: none; transition: border-color .15s ease, box-shadow .15s ease; }
-.input:focus, .select:focus, .textarea:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent); }
-.help { font-size: var(--text-xs); color: var(--color-text-muted); }
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.help {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
 
 /* 标签 Tag */
-.tag { display: inline-flex; align-items: center; height: 24px; padding: 0 8px; border-radius: 999px; border: 1px solid var(--color-border); background: var(--color-bg-muted); font-size: var(--text-xs); color: var(--color-text); }
-.tag.success { background: color-mix(in srgb, var(--color-success) 10%, var(--color-bg)); border-color: color-mix(in srgb, var(--color-success) 30%, var(--color-border)); }
-.tag.warn { background: color-mix(in srgb, var(--color-warning) 10%, var(--color-bg)); border-color: color-mix(in srgb, var(--color-warning) 30%, var(--color-border)); }
-.tag.danger { background: color-mix(in srgb, var(--color-danger) 10%, var(--color-bg)); border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border)); }
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-muted);
+  font-size: var(--text-xs);
+  color: var(--color-text);
+}
+
+.tag.success {
+  background: color-mix(in srgb, var(--color-success) 10%, var(--color-bg));
+  border-color: color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+}
+
+.tag.warn {
+  background: color-mix(in srgb, var(--color-warning) 10%, var(--color-bg));
+  border-color: color-mix(in srgb, var(--color-warning) 30%, var(--color-border));
+}
+
+.tag.danger {
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-bg));
+  border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+}
 
 /* ========== 工具类 Utilities ========== */
-.mt-8 { margin-top: 8px; }
-.mt-12 { margin-top: 12px; }
-.mt-16 { margin-top: 16px; }
-.mb-8 { margin-bottom: 8px; }
-.mb-12 { margin-bottom: 12px; }
-.mb-16 { margin-bottom: 16px; }
-.p-8 { padding: 8px; }
-.p-12 { padding: 12px; }
-.p-16 { padding: 16px; }
-.gap-8 { gap: 8px; }
-.gap-12 { gap: 12px; }
-.gap-16 { gap: 16px; }
-.flex { display: flex; }
-.flex-col { flex-direction: column; }
-.items-center { align-items: center; }
-.justify-center { justify-content: center; }
-.space-between { justify-content: space-between; }
-.rounded { border-radius: var(--radius-md); }
-.border { border: 1px solid var(--color-border); }
-.text-muted { color: var(--color-text-muted); }
-.hide { display: none !important; }
+.mt-8 {
+  margin-top: 8px;
+}
+
+.mt-12 {
+  margin-top: 12px;
+}
+
+.mt-16 {
+  margin-top: 16px;
+}
+
+.mb-8 {
+  margin-bottom: 8px;
+}
+
+.mb-12 {
+  margin-bottom: 12px;
+}
+
+.mb-16 {
+  margin-bottom: 16px;
+}
+
+.p-8 {
+  padding: 8px;
+}
+
+.p-12 {
+  padding: 12px;
+}
+
+.p-16 {
+  padding: 16px;
+}
+
+.gap-8 {
+  gap: 8px;
+}
+
+.gap-12 {
+  gap: 12px;
+}
+
+.gap-16 {
+  gap: 16px;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.space-between {
+  justify-content: space-between;
+}
+
+.rounded {
+  border-radius: var(--radius-md);
+}
+
+.border {
+  border: 1px solid var(--color-border);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.hide {
+  display: none !important;
+}
 
 /* ========== 页面骨架 Skeleton ========== */
-.skeleton { position: relative; overflow: hidden; background: var(--color-bg-muted); }
-.skeleton::after { content: ""; position: absolute; inset: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(255,255,255,.25), transparent); animation: shimmer 1.2s infinite; }
-@keyframes shimmer { 100% { transform: translateX(100%); } }
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg-muted);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .25), transparent);
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
 
 /* ========== 应用特定样式 App Specific ========== */
 /* 主应用容器 */
-#App { min-height: 100vh; background: var(--color-bg); }
+#App {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
 
 /* 导航栏 - 币安风格导航 */
-nav.surface { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(8px); background: color-mix(in srgb, var(--color-surface) 95%, transparent); border-bottom: 1px solid var(--color-border); }
+nav.surface {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--color-surface) 95%, transparent);
+  border-bottom: 1px solid var(--color-border);
+}
 
 /* 响应式网格 */
-.grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
-.grid-2 { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
-.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
 
 /* 卡片悬停效果 */
-.card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-.card-hover:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
 
 /* 卡片禁用状态 */
 .card-disabled {
@@ -166,10 +510,12 @@ nav.surface { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(8px)
   cursor: not-allowed;
   position: relative;
 }
+
 .card-disabled:hover {
   transform: none !important;
   box-shadow: var(--shadow-sm) !important;
 }
+
 .card-disabled::after {
   content: '';
   position: absolute;
@@ -178,32 +524,98 @@ nav.surface { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(8px)
   border-radius: var(--radius-md);
   z-index: 1;
 }
+
 .card-disabled .card-content {
   position: relative;
   z-index: 2;
 }
 
 /* 状态指示器 */
-.status-indicator { display: inline-flex; align-items: center; gap: 6px; }
-.status-indicator::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-indicator::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
 
 /* 进度条 - 币安风格进度条 */
-.progress { width: 100%; height: 8px; background: var(--color-bg-muted); border-radius: 4px; overflow: hidden; }
-.progress-bar { height: 100%; background: var(--color-primary); transition: width 0.3s ease; border-radius: 4px; }
+.progress {
+  width: 100%;
+  height: 8px;
+  background: var(--color-bg-muted);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
 
 /* 徽章 - 币安风格徽章 */
-.badge { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--color-primary); color: #000; font-size: 11px; font-weight: 600; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--color-primary);
+  color: #000;
+  font-size: 11px;
+  font-weight: 600;
+}
 
 /* 分割线 */
-.divider { height: 1px; background: var(--color-border); margin: 16px 0; }
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 16px 0;
+}
 
 /* 空状态 */
-.empty-state { text-align: center; padding: 48px 24px; color: var(--color-text-muted); }
-.empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--color-text-muted);
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
 
 /* 加载状态 - 币安风格加载动画 */
-.loading { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--color-border); border-top: 2px solid var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite; }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.loading {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top: 2px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
 
 /* 权限提示框 */
 .permission-tooltip {
@@ -224,6 +636,7 @@ nav.surface { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(8px)
   visibility: hidden;
   transition: opacity 0.2s ease, visibility 0.2s ease;
 }
+
 .permission-tooltip::after {
   content: '';
   position: absolute;
@@ -233,6 +646,7 @@ nav.surface { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(8px)
   border: 5px solid transparent;
   border-top-color: var(--color-bg);
 }
+
 .card-disabled:hover .permission-tooltip {
   opacity: 1;
   visibility: visible;
@@ -472,31 +886,240 @@ nav.surface { position: sticky; top: 0; z-index: 100; backdrop-filter: blur(8px)
   overflow: hidden;
 }
 
+/* ========== Binance ApiKey 管理专用样式 ========== */
+/* ApiKey 管理卡片头部 */
+.binance-apikey-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ApiKey 列表容器 */
+.binance-apikey-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ApiKey 列表项 */
+.binance-apikey-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+}
+
+/* ApiKey 项目信息区域 */
+.binance-apikey-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ApiKey 项目头部 */
+.binance-apikey-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ApiKey 项目名称 */
+.binance-apikey-item-name {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: var(--text-md);
+}
+
+/* ApiKey 项目标签区域 */
+.binance-apikey-item-badges {
+  display: flex;
+  gap: 6px;
+}
+
+/* ApiKey 详细信息区域 */
+.binance-apikey-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ApiKey 详细信息项 */
+.binance-apikey-item-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm);
+}
+
+/* ApiKey 掩码显示 */
+.binance-apikey-masked {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+}
+
+/* ApiKey 项目操作区域 */
+.binance-apikey-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-left: 16px;
+}
+
+/* ApiKey 空状态 */
+.binance-apikey-empty {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+/* ApiKey 表单容器 */
+.binance-apikey-form {
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+/* ApiKey 表单头部 */
+.binance-apikey-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* ApiKey 表单头部标题 */
+.binance-apikey-form-header h4 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+/* ApiKey 表单内容区域 */
+.binance-apikey-form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* ApiKey 表单操作区域 */
+.binance-apikey-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+/* ApiKey 表单消息 */
+.binance-apikey-form-message {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+
+/* ApiKey 表单成功消息 */
+.binance-apikey-form-success {
+  background: color-mix(in srgb, var(--color-success) 10%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+  color: var(--color-success);
+}
+
+/* ApiKey 表单错误消息 */
+.binance-apikey-form-error {
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+  color: var(--color-danger);
+}
+
 /* 响应式断点 */
 @media (max-width: 768px) {
-  .grid-2 { grid-template-columns: 1fr; }
-  .grid-3 { grid-template-columns: 1fr; }
-  .container { padding: 0 12px; }
-  nav.surface .flex { flex-direction: column; gap: 12px; align-items: flex-start; }
-  
-  .container .flex.gap-16 { flex-direction: column; }
-  .container .flex.gap-16.mb-16 { flex-direction: column; }
-  .container section.surface.p-16.mt-16 .flex.gap-12 { justify-content: center; }
-  
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .container {
+    padding: 0 12px;
+  }
+
+  nav.surface .flex {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .container .flex.gap-16 {
+    flex-direction: column;
+  }
+
+  .container .flex.gap-16.mb-16 {
+    flex-direction: column;
+  }
+
+  .container section.surface.p-16.mt-16 .flex.gap-12 {
+    justify-content: center;
+  }
+
   /* 移动端插件详情页面优化 */
   .plugin-detail-header {
     padding: 8px 12px;
   }
-  
+
   .plugin-detail-header .flex {
     flex-direction: column;
     gap: 8px;
     align-items: flex-start;
   }
-  
+
   .plugin-detail-header .flex.gap-8 {
     flex-direction: row;
     width: 100%;
     justify-content: flex-end;
+  }
+
+  /* 移动端 Binance ApiKey 管理优化 */
+  .binance-apikey-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .binance-apikey-item {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .binance-apikey-item-actions {
+    flex-direction: row;
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .binance-apikey-form-header {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .binance-apikey-form-actions {
+    justify-content: stretch;
+  }
+
+  .binance-apikey-form-actions .btn {
+    flex: 1;
   }
 }
