@@ -1,19 +1,43 @@
 import { useState, useEffect } from 'react';
-import { UpdateSaveConfig, UpdateCheckNow } from '../../wailsjs/go/main/App';
+import { UpdateSaveConfig, UpdateCheckNow, ClearAllData, GetDataSize } from '../../wailsjs/go/main/App';
 import { EventsOn } from '../../wailsjs/runtime';
 import type { Response } from '../core/response';
 import { feedURLExamples } from '../router';
+import { useUserStore } from '../stores/user-store';
+import { useDataManagementStore } from '../stores/data-management-store';
 
 interface ApiKeyItem {
     id: string;
     name: string;
     apiKey: string;
     secretKey: string;
-    isTestnet: boolean;
     createdAt: string;
 }
 
 function SettingsPage() {
+    // 使用 Pinia-like user store
+    const {
+        // State
+        username, email, theme, language,
+        defaultLeverage, defaultSymbol, riskLevel,
+        enableNotifications, soundEnabled,
+        compactMode, showAdvancedFeatures,
+        
+        // Actions
+        setUsername, setEmail, setTheme, setLanguage,
+        setDefaultLeverage, setDefaultSymbol, setRiskLevel,
+        toggleNotifications, toggleSound,
+        toggleCompactMode, toggleAdvancedFeatures,
+        updateSettings, resetToDefaults, getSettingsSummary
+    } = useUserStore();
+
+    // 使用数据管理 store
+    const {
+        recordClearOperation,
+        getClearStats,
+        confirmBeforeClear,
+    } = useDataManagementStore();
+
     // 更新设置状态
     const [feedURL, setFeedURL] = useState('');
     const [autoCheck, setAutoCheck] = useState(false);
@@ -33,10 +57,14 @@ function SettingsPage() {
     const [apiKeyForm, setApiKeyForm] = useState({
         name: '',
         apiKey: '',
-        secretKey: '',
-        isTestnet: false
+        secretKey: ''
     });
     const [apiKeyStatus, setApiKeyStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+
+    // 数据清理相关状态
+    const [dataSize, setDataSize] = useState<any>(null);
+    const [clearDataStatus, setClearDataStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [showClearConfirm, setShowClearConfirm] = useState(false);
 
     useEffect(() => {
         // 订阅更新事件
@@ -52,14 +80,14 @@ function SettingsPage() {
             const res: Response<any> = await UpdateSaveConfig(cfg as any);
             if (res.code === 0) {
                 setSaveStatus('success');
-                setTimeout(() => setSaveStatus('idle'), 2000);
+                setTimeout(() => setSaveStatus('idle'), 500);
             } else {
                 setSaveStatus('error');
-                setTimeout(() => setSaveStatus('idle'), 3000);
+                setTimeout(() => setSaveStatus('idle'), 500);
             }
         } catch (error) {
             setSaveStatus('error');
-            setTimeout(() => setSaveStatus('idle'), 3000);
+            setTimeout(() => setSaveStatus('idle'), 500);
         }
     }
 
@@ -79,8 +107,7 @@ function SettingsPage() {
         setApiKeyForm({
             name: '',
             apiKey: '',
-            secretKey: '',
-            isTestnet: false
+            secretKey: ''
         });
         setEditingApiKey(null);
         setShowAddApiKey(false);
@@ -90,8 +117,7 @@ function SettingsPage() {
         setApiKeyForm({
             name: '',
             apiKey: '',
-            secretKey: '',
-            isTestnet: false
+            secretKey: ''
         });
         setEditingApiKey(null);
         setShowAddApiKey(true);
@@ -102,8 +128,7 @@ function SettingsPage() {
         setApiKeyForm({
             name: apiKey.name,
             apiKey: apiKey.apiKey,
-            secretKey: apiKey.secretKey,
-            isTestnet: apiKey.isTestnet
+            secretKey: apiKey.secretKey
         });
         setShowAddApiKey(true);
     }
@@ -111,14 +136,14 @@ function SettingsPage() {
     async function handleSaveApiKey() {
         if (!apiKeyForm.name.trim() || !apiKeyForm.apiKey.trim() || !apiKeyForm.secretKey.trim()) {
             setApiKeyStatus('error');
-            setTimeout(() => setApiKeyStatus('idle'), 3000);
+            setTimeout(() => setApiKeyStatus('idle'), 500);
             return;
         }
 
         setApiKeyStatus('saving');
         try {
             // 模拟保存 API Key 的逻辑
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             if (editingApiKey) {
                 // 更新现有 API Key
@@ -141,10 +166,10 @@ function SettingsPage() {
             setTimeout(() => {
                 setApiKeyStatus('idle');
                 resetApiKeyForm();
-            }, 2000);
+            }, 500);
         } catch (error) {
             setApiKeyStatus('error');
-            setTimeout(() => setApiKeyStatus('idle'), 3000);
+            setTimeout(() => setApiKeyStatus('idle'), 500);
         }
     }
 
@@ -158,6 +183,50 @@ function SettingsPage() {
         if (key.length <= 8) return key;
         return key.substring(0, 4) + '****' + key.substring(key.length - 4);
     }
+
+    // 数据清理相关函数
+    async function loadDataSize() {
+        try {
+            const size = await GetDataSize();
+            setDataSize(size);
+        } catch (error) {
+            console.error('获取数据大小失败:', error);
+        }
+    }
+
+    async function handleClearAllData() {
+        setClearDataStatus('loading');
+        try {
+            await ClearAllData();
+            
+            // 记录清理操作到数据管理 store
+            recordClearOperation();
+            
+            // 清理成功后，重置所有 store 状态
+            resetToDefaults();
+            
+            // 重新加载数据大小
+            await loadDataSize();
+            
+            setClearDataStatus('success');
+            setShowClearConfirm(false);
+            
+            setTimeout(() => {
+                setClearDataStatus('idle');
+            }, 2000);
+        } catch (error) {
+            console.error('清理数据失败:', error);
+            setClearDataStatus('error');
+            setTimeout(() => {
+                setClearDataStatus('idle');
+            }, 2000);
+        }
+    }
+
+    // 组件挂载时加载数据大小
+    useEffect(() => {
+        loadDataSize();
+    }, []);
 
 
     return (
@@ -266,6 +335,191 @@ function SettingsPage() {
                 </div>
             </div>
 
+            {/* 用户设置 - 使用 Pinia-like Store 演示 */}
+            <div className="card mb-16">
+                <div className="card-header">
+                    <h3 style={{ margin: 0 }}>用户设置 (Pinia-like Store 演示)</h3>
+                </div>
+                <div className="card-content">
+                    {/* 基础设置 */}
+                    <div className="form-row">
+                        <label className="label">用户名</label>
+                        <input
+                            className="input"
+                            placeholder="请输入用户名"
+                            value={username}
+                            onChange={e => setUsername(e.target.value)}
+                        />
+                    </div>
+
+                    <div className="form-row">
+                        <label className="label">邮箱</label>
+                        <input
+                            className="input"
+                            type="email"
+                            placeholder="请输入邮箱"
+                            value={email}
+                            onChange={e => setEmail(e.target.value)}
+                        />
+                    </div>
+
+                    {/* 主题和语言设置 */}
+                    <div className="flex gap-16" style={{ flexWrap: 'wrap', marginBottom: '16px' }}>
+                        <div className="flex items-center gap-8">
+                            <span className="label">主题:</span>
+                            <select 
+                                className="input" 
+                                style={{ width: '120px' }}
+                                value={theme}
+                                onChange={e => setTheme(e.target.value as 'light' | 'dark')}
+                            >
+                                <option value="dark">深色</option>
+                                <option value="light">浅色</option>
+                            </select>
+                        </div>
+
+                        <div className="flex items-center gap-8">
+                            <span className="label">语言:</span>
+                            <select 
+                                className="input" 
+                                style={{ width: '120px' }}
+                                value={language}
+                                onChange={e => setLanguage(e.target.value as 'zh-CN' | 'en-US')}
+                            >
+                                <option value="zh-CN">中文</option>
+                                <option value="en-US">English</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* 交易设置 */}
+                    <div className="flex gap-16" style={{ flexWrap: 'wrap', marginBottom: '16px' }}>
+                        <div className="flex items-center gap-8">
+                            <span className="label">默认杠杆:</span>
+                            <input
+                                type="number"
+                                className="input"
+                                style={{ width: '100px' }}
+                                value={defaultLeverage}
+                                onChange={e => setDefaultLeverage(Number(e.target.value) || 1)}
+                                min="1"
+                                max="125"
+                            />
+                            <span>x</span>
+                        </div>
+
+                        <div className="flex items-center gap-8">
+                            <span className="label">默认币种:</span>
+                            <select 
+                                className="input" 
+                                style={{ width: '100px' }}
+                                value={defaultSymbol}
+                                onChange={e => setDefaultSymbol(e.target.value as 'BTC' | 'ETH' | 'BNB')}
+                            >
+                                <option value="BTC">BTC</option>
+                                <option value="ETH">ETH</option>
+                                <option value="BNB">BNB</option>
+                            </select>
+                        </div>
+
+                        <div className="flex items-center gap-8">
+                            <span className="label">风险等级:</span>
+                            <select 
+                                className="input" 
+                                style={{ width: '100px' }}
+                                value={riskLevel}
+                                onChange={e => setRiskLevel(e.target.value as 'low' | 'medium' | 'high')}
+                            >
+                                <option value="low">低</option>
+                                <option value="medium">中</option>
+                                <option value="high">高</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    {/* 通知和界面设置 */}
+                    <div className="flex gap-16" style={{ flexWrap: 'wrap', marginBottom: '16px' }}>
+                        <label className="flex items-center gap-8">
+                            <input
+                                type="checkbox"
+                                checked={enableNotifications}
+                                onChange={toggleNotifications}
+                            />
+                            <span>启用通知</span>
+                        </label>
+
+                        <label className="flex items-center gap-8">
+                            <input
+                                type="checkbox"
+                                checked={soundEnabled}
+                                onChange={toggleSound}
+                            />
+                            <span>声音提醒</span>
+                        </label>
+
+                        <label className="flex items-center gap-8">
+                            <input
+                                type="checkbox"
+                                checked={compactMode}
+                                onChange={toggleCompactMode}
+                            />
+                            <span>紧凑模式</span>
+                        </label>
+
+                        <label className="flex items-center gap-8">
+                            <input
+                                type="checkbox"
+                                checked={showAdvancedFeatures}
+                                onChange={toggleAdvancedFeatures}
+                            />
+                            <span>显示高级功能</span>
+                        </label>
+                    </div>
+
+                    {/* 操作按钮 */}
+                    <div className="flex gap-8 mb-16">
+                        <button
+                            className="btn btn-outline"
+                            onClick={() => updateSettings({
+                                username: '演示用户',
+                                email: 'demo@ppll.com',
+                                defaultLeverage: 10,
+                                defaultSymbol: 'ETH'
+                            })}
+                        >
+                            快速设置演示数据
+                        </button>
+
+                        <button
+                            className="btn btn-ghost"
+                            onClick={resetToDefaults}
+                        >
+                            重置为默认
+                        </button>
+                    </div>
+
+                    {/* 配置摘要 */}
+                    <div className="p-12 rounded" style={{ backgroundColor: 'var(--color-bg-muted)' }}>
+                        <div className="text-sm text-muted mb-8">当前配置摘要 (实时更新):</div>
+                        {(() => {
+                            const summary = getSettingsSummary();
+                            return (
+                                <div className="text-sm">
+                                    <div><strong>用户:</strong> {summary.user || '未设置'}</div>
+                                    <div><strong>交易:</strong> {summary.trading}</div>
+                                    <div><strong>界面:</strong> {summary.ui}</div>
+                                    <div><strong>功能:</strong> {summary.features}</div>
+                                </div>
+                            );
+                        })()}
+                    </div>
+
+                    <div className="mt-12 p-8 rounded" style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-bg))', color: 'var(--color-primary)' }}>
+                        💡 <strong>持久化说明:</strong> 所有设置会自动保存到 <code>~/.config/ppll-client/config.enc.json</code>，页面刷新或重启应用后会自动恢复。
+                    </div>
+                </div>
+            </div>
+
             {/* Binance ApiKey 管理 */}
             <div className="card mb-16">
                 <div className="card-header">
@@ -288,11 +542,6 @@ function SettingsPage() {
                                     <div className="binance-apikey-item-info">
                                         <div className="binance-apikey-item-header">
                                             <span className="binance-apikey-item-name">{item.name}</span>
-                                            <div className="binance-apikey-item-badges">
-                                                <span className={`tag ${item.isTestnet ? 'warn' : 'success'}`}>
-                                                    {item.isTestnet ? '测试网' : '主网'}
-                                                </span>
-                                            </div>
                                         </div>
                                         <div className="binance-apikey-item-details">
                                             <div className="binance-apikey-item-detail">
@@ -380,17 +629,6 @@ function SettingsPage() {
                                             onChange={e => setApiKeyForm(prev => ({ ...prev, secretKey: e.target.value }))}
                                         />
                                     </div>
-
-                                    <div className="binance-apikey-form-field binance-apikey-form-checkbox">
-                                        <label className="flex items-center gap-8">
-                                            <input
-                                                type="checkbox"
-                                                checked={apiKeyForm.isTestnet}
-                                                onChange={e => setApiKeyForm(prev => ({ ...prev, isTestnet: e.target.checked }))}
-                                            />
-                                            <span>测试网环境</span>
-                                        </label>
-                                    </div>
                                 </div>
 
                                 <div className="binance-apikey-form-actions">
@@ -476,6 +714,152 @@ function SettingsPage() {
                     </div>
                 </div>
             )}
+
+            {/* 数据管理 */}
+            <div className="card mb-16">
+                <div className="card-header">
+                    <h3 style={{ margin: 0 }}>数据管理</h3>
+                </div>
+                <div className="card-content">
+                    {/* 数据大小信息 */}
+                    {dataSize && (
+                        <div className="mb-16">
+                            <div className="flex flex-col gap-8">
+                                <div className="flex space-between">
+                                    <span className="text-muted">存储位置</span>
+                                    <span className="text-sm font-mono">{dataSize.configPath}</span>
+                                </div>
+                                <div className="flex space-between">
+                                    <span className="text-muted">配置项数量</span>
+                                    <span>{dataSize.totalItems} 项</span>
+                                </div>
+                                <div className="flex space-between">
+                                    <span className="text-muted">数据大小</span>
+                                    <span>{dataSize.configSize} 字节</span>
+                                </div>
+                            </div>
+
+                            {/* 清理统计信息 */}
+                            <div className="mt-12 p-8 rounded" style={{ backgroundColor: 'var(--color-bg-muted)' }}>
+                                <div className="text-sm text-muted mb-8">清理统计:</div>
+                                {(() => {
+                                    const stats = getClearStats();
+                                    return (
+                                        <div className="flex flex-col gap-4 text-xs">
+                                            <div className="flex space-between">
+                                                <span>总清理次数:</span>
+                                                <span>{stats.totalClears} 次</span>
+                                            </div>
+                                            <div className="flex space-between">
+                                                <span>上次清理:</span>
+                                                <span>{stats.lastClear}</span>
+                                            </div>
+                                            {stats.totalClears > 0 && (
+                                                <div className="flex space-between">
+                                                    <span>距今天数:</span>
+                                                    <span>{stats.daysSinceLastClear} 天</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+
+                            {/* 详细配置项列表 */}
+                            {dataSize.itemDetails && Object.keys(dataSize.itemDetails).length > 0 && (
+                                <div className="mt-12">
+                                    <div className="text-sm text-muted mb-8">当前存储的配置项:</div>
+                                    <div className="p-8 rounded" style={{ backgroundColor: 'var(--color-bg-muted)', maxHeight: '120px', overflowY: 'auto' }}>
+                                        {Object.keys(dataSize.itemDetails).map((key, index) => (
+                                            <div key={index} className="text-xs font-mono mb-4">
+                                                <span className="text-primary">{key}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* 清理操作区域 */}
+                    <div className="p-12 rounded" style={{ backgroundColor: 'color-mix(in srgb, var(--color-danger) 10%, var(--color-bg))', border: '1px solid color-mix(in srgb, var(--color-danger) 20%, transparent)' }}>
+                        <div className="flex items-start gap-12">
+                            <div className="flex-1">
+                                <h4 style={{ margin: '0 0 8px 0', color: 'var(--color-danger)' }}>⚠️ 危险操作</h4>
+                                <p className="text-sm text-muted mb-12">
+                                    清理所有应用数据将会删除：
+                                </p>
+                                <ul className="text-sm text-muted mb-12" style={{ paddingLeft: '16px' }}>
+                                    <li>• 所有用户设置和偏好</li>
+                                    <li>• 策略配置参数</li>
+                                    <li>• API Key 配置信息</li>
+                                    <li>• 其他所有持久化数据</li>
+                                </ul>
+                                <p className="text-xs text-muted">
+                                    此操作不可恢复，请谨慎操作！
+                                </p>
+                            </div>
+                            
+                            <div className="flex flex-col gap-8">
+                                <button
+                                    className="btn btn-ghost"
+                                    onClick={loadDataSize}
+                                    style={{ minWidth: '100px' }}
+                                >
+                                    刷新数据
+                                </button>
+                                
+                                {!showClearConfirm ? (
+                                    <button
+                                        className="btn btn-danger"
+                                        onClick={() => setShowClearConfirm(true)}
+                                        style={{ minWidth: '100px' }}
+                                    >
+                                        清理数据
+                                    </button>
+                                ) : (
+                                    <div className="flex flex-col gap-8">
+                                        <div className="text-xs text-center text-danger mb-4">
+                                            确认清理所有数据？
+                                        </div>
+                                        <div className="flex gap-4">
+                                            <button
+                                                className={`btn btn-danger ${clearDataStatus === 'loading' ? 'btn-outline' : ''}`}
+                                                onClick={handleClearAllData}
+                                                disabled={clearDataStatus === 'loading'}
+                                                style={{ fontSize: 'var(--text-xs)', padding: '4px 8px' }}
+                                            >
+                                                {clearDataStatus === 'loading' ? '清理中...' : '确认'}
+                                            </button>
+                                            <button
+                                                className="btn btn-ghost"
+                                                onClick={() => setShowClearConfirm(false)}
+                                                disabled={clearDataStatus === 'loading'}
+                                                style={{ fontSize: 'var(--text-xs)', padding: '4px 8px' }}
+                                            >
+                                                取消
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* 操作状态提示 */}
+                        {clearDataStatus === 'success' && (
+                            <div className="mt-12 p-8 rounded" style={{ backgroundColor: 'var(--color-success-50)', color: 'var(--color-success)' }}>
+                                ✅ 数据清理完成！所有配置已重置为默认值。
+                            </div>
+                        )}
+
+                        {clearDataStatus === 'error' && (
+                            <div className="mt-12 p-8 rounded" style={{ backgroundColor: 'color-mix(in srgb, var(--color-danger) 10%, var(--color-bg))', color: 'var(--color-danger)' }}>
+                                ❌ 数据清理失败，请重试或查看控制台错误信息。
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
 
             {/* 系统信息 */}
             <div className="card">

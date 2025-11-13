@@ -159,3 +159,140 @@ func (a *App) PluginSaveConfig(id string, cfg map[string]any) services.Response[
     }
     return a.ps.SaveConfig(id, cfg)
 }
+
+// ===== 通用配置存储 API (用于前端状态持久化) =====
+
+// GetConfig 获取配置项
+func (a *App) GetConfig(key string) string {
+    if a.cfg == nil {
+        return ""
+    }
+    
+    m, err := a.cfg.LoadMap()
+    if err != nil {
+        a.log.Error("加载配置失败", "error", err, "key", key)
+        return ""
+    }
+    
+    if value, exists := m[key]; exists {
+        if str, ok := value.(string); ok {
+            return str
+        }
+    }
+    
+    return ""
+}
+
+// SetConfig 设置配置项
+func (a *App) SetConfig(key, value string) error {
+    if a.cfg == nil {
+        return fmt.Errorf("配置服务未初始化")
+    }
+    
+    m, err := a.cfg.LoadMap()
+    if err != nil {
+        a.log.Error("加载配置失败", "error", err, "key", key)
+        return err
+    }
+    
+    m[key] = value
+    
+    if err := a.cfg.SaveMap(m); err != nil {
+        a.log.Error("保存配置失败", "error", err, "key", key)
+        return err
+    }
+    
+    a.log.Info("配置已保存", "key", key)
+    return nil
+}
+
+// RemoveConfig 删除配置项
+func (a *App) RemoveConfig(key string) error {
+    if a.cfg == nil {
+        return fmt.Errorf("配置服务未初始化")
+    }
+    
+    m, err := a.cfg.LoadMap()
+    if err != nil {
+        a.log.Error("加载配置失败", "error", err, "key", key)
+        return err
+    }
+    
+    delete(m, key)
+    
+    if err := a.cfg.SaveMap(m); err != nil {
+        a.log.Error("保存配置失败", "error", err, "key", key)
+        return err
+    }
+    
+    a.log.Info("配置已删除", "key", key)
+    return nil
+}
+
+// ===== 数据清理 API =====
+
+// ClearAllData 清理所有应用数据
+func (a *App) ClearAllData() error {
+    if a.cfg == nil {
+        return fmt.Errorf("配置服务未初始化")
+    }
+    
+    a.log.Info("开始清理所有应用数据")
+    
+    // 清空配置存储
+    emptyConfig := map[string]any{}
+    if err := a.cfg.SaveMap(emptyConfig); err != nil {
+        a.log.Error("清理配置数据失败", "error", err)
+        return fmt.Errorf("清理配置数据失败: %w", err)
+    }
+    
+    a.log.Info("所有应用数据已清理完成")
+    return nil
+}
+
+// GetDataSize 获取当前数据大小信息
+func (a *App) GetDataSize() map[string]any {
+    if a.cfg == nil {
+        return map[string]any{
+            "configSize": 0,
+            "configPath": "配置服务未初始化",
+            "totalItems": 0,
+        }
+    }
+    
+    // 获取配置文件路径和大小
+    configPath, err := a.cfg.LoadMap()
+    if err != nil {
+        a.log.Error("获取配置数据失败", "error", err)
+        return map[string]any{
+            "configSize": 0,
+            "configPath": "获取失败",
+            "totalItems": 0,
+            "error": err.Error(),
+        }
+    }
+    
+    // 计算配置项数量
+    totalItems := len(configPath)
+    
+    // 估算数据大小（序列化后的大小）
+    configSize := 0
+    for key, value := range configPath {
+        keySize := len(key)
+        valueSize := 0
+        if str, ok := value.(string); ok {
+            valueSize = len(str)
+        } else {
+            // 对于非字符串值，估算序列化后的大小
+            valueSize = len(fmt.Sprintf("%v", value))
+        }
+        configSize += keySize + valueSize
+    }
+    
+    return map[string]any{
+        "configSize":  configSize,
+        "configPath":  "~/.config/ppll-client/config.enc.json",
+        "totalItems":  totalItems,
+        "itemDetails": configPath,
+    }
+}

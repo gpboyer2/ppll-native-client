@@ -77,8 +77,16 @@ cd ppll-native-client
 # 安装前端依赖
 npm install
 
-# 安装 Go 依赖
+# 清理 & 同步 模块依赖关系 (修改 go.mod / go.sum )
+# 添加 项目中实际使用但 go.mod 未声明的依赖（implicit → explicit）
+# 移除 go.mod 中未被使用的依赖条目（dead code elimination）
+# 更新 go.sum 校验和，确保依赖完整性
+go mod tidy
+
+# 安装 Go 依赖 (本地模块缓存（$GOPATH/pkg/mod）, 预下载依赖到本地磁盘)
 go mod download
+
+go build
 ```
 
 3. **配置环境**
