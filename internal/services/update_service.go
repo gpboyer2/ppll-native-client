@@ -315,7 +315,7 @@ func jsonUnmarshalNative(b []byte, v any) error {
 
 // tempFile 创建临时文件
 func tempFile() (*os.File, string, error) {
-    f, err := os.CreateTemp("", "ppll-update-*")
+    f, err := os.CreateTemp("", "ppll-client-update-*")
     if err != nil {
         return nil, "", err
     }
@@ -352,7 +352,7 @@ func (s *UpdateService) httpGetWithRetry(url string, tries int) (*http.Response,
 
 // partialPath 返回分片文件路径与已存在大小
 func (s *UpdateService) partialPath(version string) (string, int64) {
-    dir := filepath.Join(os.TempDir(), "ppll-update")
+    dir := filepath.Join(os.TempDir(), "ppll-client-update")
     path := filepath.Join(dir, fmt.Sprintf("%s.part", strings.ReplaceAll(version, "/", "_")))
     if st, err := os.Stat(path); err == nil && !st.IsDir() {
         return path, st.Size()

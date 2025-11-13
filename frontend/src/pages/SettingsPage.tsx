@@ -87,8 +87,14 @@ function SettingsPage() {
     }
 
     function handleAddApiKey() {
+        setApiKeyForm({
+            name: '',
+            apiKey: '',
+            secretKey: '',
+            isTestnet: false
+        });
+        setEditingApiKey(null);
         setShowAddApiKey(true);
-        resetApiKeyForm();
     }
 
     function handleEditApiKey(apiKey: ApiKeyItem) {
@@ -275,7 +281,7 @@ function SettingsPage() {
                 </div>
                 <div className="card-content">
                     {/* API Key 列表 */}
-                    {apiKeyList.length > 0 ? (
+                    {apiKeyList.length > 0 && (
                         <div className="binance-apikey-list">
                             {apiKeyList.map((item) => (
                                 <div key={item.id} className="binance-apikey-item">
@@ -320,7 +326,10 @@ function SettingsPage() {
                                 </div>
                             ))}
                         </div>
-                    ) : (
+                    )}
+
+                    {/* 空状态 - 只在没有 API Key 且没有显示表单时显示 */}
+                    {apiKeyList.length === 0 && !showAddApiKey && (
                         <div className="binance-apikey-empty">
                             <div className="text-muted">暂无 API Key，点击上方按钮添加</div>
                         </div>
@@ -340,47 +349,48 @@ function SettingsPage() {
                             </div>
 
                             <div className="binance-apikey-form-content">
-                                <div className="form-row">
-                                    <label className="label">名称</label>
-                                    <input
-                                        className="input"
-                                        placeholder="为此 API Key 设置一个名称"
-                                        value={apiKeyForm.name}
-                                        onChange={e => setApiKeyForm(prev => ({ ...prev, name: e.target.value }))}
-                                    />
-                                </div>
-
-                                <div className="form-row">
-                                    <label className="label">API Key</label>
-                                    <input
-                                        className="input"
-                                        placeholder="请输入 Binance API Key"
-                                        value={apiKeyForm.apiKey}
-                                        onChange={e => setApiKeyForm(prev => ({ ...prev, apiKey: e.target.value }))}
-                                    />
-                                </div>
-
-                                <div className="form-row">
-                                    <label className="label">Secret Key</label>
-                                    <input
-                                        type="password"
-                                        className="input"
-                                        placeholder="请输入 Binance Secret Key"
-                                        value={apiKeyForm.secretKey}
-                                        onChange={e => setApiKeyForm(prev => ({ ...prev, secretKey: e.target.value }))}
-                                    />
-                                </div>
-
-                                <div className="form-row">
-                                    <label className="flex items-center gap-8">
+                                <div className="binance-apikey-form-grid">
+                                    <div className="binance-apikey-form-field">
+                                        <label className="label">名称</label>
                                         <input
-                                            type="checkbox"
-                                            checked={apiKeyForm.isTestnet}
-                                            onChange={e => setApiKeyForm(prev => ({ ...prev, isTestnet: e.target.checked }))}
+                                            className="input"
+                                            placeholder="API Key 名称"
+                                            value={apiKeyForm.name}
+                                            onChange={e => setApiKeyForm(prev => ({ ...prev, name: e.target.value }))}
                                         />
-                                        <span>测试网环境</span>
-                                    </label>
-                                    <div className="help">勾选此项将连接到 Binance 测试网络</div>
+                                    </div>
+
+                                    <div className="binance-apikey-form-field">
+                                        <label className="label">API Key</label>
+                                        <input
+                                            className="input"
+                                            placeholder="Binance API Key"
+                                            value={apiKeyForm.apiKey}
+                                            onChange={e => setApiKeyForm(prev => ({ ...prev, apiKey: e.target.value }))}
+                                        />
+                                    </div>
+
+                                    <div className="binance-apikey-form-field">
+                                        <label className="label">Secret Key</label>
+                                        <input
+                                            type="password"
+                                            className="input"
+                                            placeholder="Binance Secret Key"
+                                            value={apiKeyForm.secretKey}
+                                            onChange={e => setApiKeyForm(prev => ({ ...prev, secretKey: e.target.value }))}
+                                        />
+                                    </div>
+
+                                    <div className="binance-apikey-form-field binance-apikey-form-checkbox">
+                                        <label className="flex items-center gap-8">
+                                            <input
+                                                type="checkbox"
+                                                checked={apiKeyForm.isTestnet}
+                                                onChange={e => setApiKeyForm(prev => ({ ...prev, isTestnet: e.target.checked }))}
+                                            />
+                                            <span>测试网环境</span>
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <div className="binance-apikey-form-actions">

@@ -59,9 +59,9 @@ func (a *App) Greet(name string) string {
 	return fmt.Sprintf("欢迎使用 PPLL Native Client, %s!", name)
 }
 
-// GetAppName 获取应用名称
+// GetAppName 获取应用名称 (关系到应用配置目录和数据储存目录)
 func (a *App) GetAppName() string {
-	return "PPLL Native Client"
+	return "ppll-client"
 }
 
 // GetAppVersion 获取应用版本

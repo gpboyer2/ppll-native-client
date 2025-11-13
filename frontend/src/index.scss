@@ -906,7 +906,7 @@ nav.surface {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: 12px;
+  padding: 10px 12px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   background: var(--color-bg-muted);
@@ -917,7 +917,7 @@ nav.surface {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 /* ApiKey 项目头部 */
@@ -981,8 +981,8 @@ nav.surface {
 
 /* ApiKey 表单容器 */
 .binance-apikey-form {
-  margin-top: 16px;
-  padding: 16px;
+  margin-top: 12px;
+  padding: 12px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-surface);
@@ -993,8 +993,8 @@ nav.surface {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -1010,7 +1010,27 @@ nav.surface {
 .binance-apikey-form-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+}
+
+/* ApiKey 表单网格布局 */
+.binance-apikey-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ApiKey 表单字段 */
+.binance-apikey-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ApiKey 表单复选框字段 */
+.binance-apikey-form-checkbox {
+  grid-column: 1 / -1;
+  align-self: center;
 }
 
 /* ApiKey 表单操作区域 */
@@ -1121,5 +1141,14 @@ nav.surface {
 
   .binance-apikey-form-actions .btn {
     flex: 1;
+  }
+
+  .binance-apikey-form-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .binance-apikey-form-field {
+    gap: 3px;
   }
 }

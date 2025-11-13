@@ -99,7 +99,7 @@ function PluginsPage() {
                         </div>
                         <div className="flex gap-8">
                             <Link to="/" className="btn btn-outline" style={{ height: '32px', padding: '0 12px', fontSize: 'var(--text-sm)' }}>返回首页</Link>
-                            <Link to="/plugins" className="btn btn-ghost" style={{ height: '32px', padding: '0 12px', fontSize: 'var(--text-sm)' }}>插件管理</Link>
+                            {/* <Link to="/plugins" className="btn btn-ghost" style={{ height: '32px', padding: '0 12px', fontSize: 'var(--text-sm)' }}>插件管理</Link> */}
                         </div>
                     </div>
                 </div>
@@ -129,7 +129,7 @@ function PluginsPage() {
                                     <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
                                     <h3 style={{ margin: '0 0 8px' }}>插件无权限</h3>
                                     <p className="text-muted" style={{ margin: '0 0 16px' }}>请先启用此插件才能使用</p>
-                                    <Link to="/plugins" className="btn btn-primary">前往启用</Link>
+                                    {/* <Link to="/plugins" className="btn btn-primary">前往启用</Link> */}
                                 </div>
                             </div>
                         )}
