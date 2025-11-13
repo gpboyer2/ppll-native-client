@@ -1,5 +1,6 @@
 import { RequestWrapper } from './request'
 import { PageRequest, PageData, PluginInfo, Notification, UUID } from '../types'
+import { BinanceApi } from './binance'
 
 /**
  * API端点定义

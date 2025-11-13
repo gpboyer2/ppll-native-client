@@ -15,27 +15,13 @@ interface ApiKeyItem {
 }
 
 function SettingsPage() {
-    // 使用 Pinia-like user store
-    const {
-        // State
-        username, email, theme, language,
-        defaultLeverage, defaultSymbol, riskLevel,
-        enableNotifications, soundEnabled,
-        compactMode, showAdvancedFeatures,
-        
-        // Actions
-        setUsername, setEmail, setTheme, setLanguage,
-        setDefaultLeverage, setDefaultSymbol, setRiskLevel,
-        toggleNotifications, toggleSound,
-        toggleCompactMode, toggleAdvancedFeatures,
-        updateSettings, resetToDefaults, getSettingsSummary
-    } = useUserStore();
+    // 使用 user store 
+    const { resetToDefaults } = useUserStore();
 
     // 使用数据管理 store
     const {
         recordClearOperation,
         getClearStats,
-        confirmBeforeClear,
     } = useDataManagementStore();
 
     // 更新设置状态
@@ -198,19 +184,19 @@ function SettingsPage() {
         setClearDataStatus('loading');
         try {
             await ClearAllData();
-            
+
             // 记录清理操作到数据管理 store
             recordClearOperation();
-            
+
             // 清理成功后，重置所有 store 状态
             resetToDefaults();
-            
+
             // 重新加载数据大小
             await loadDataSize();
-            
+
             setClearDataStatus('success');
             setShowClearConfirm(false);
-            
+
             setTimeout(() => {
                 setClearDataStatus('idle');
             }, 2000);
@@ -332,191 +318,6 @@ function SettingsPage() {
                             ❌ 保存失败，请重试
                         </div>
                     )}
-                </div>
-            </div>
-
-            {/* 用户设置 - 使用 Pinia-like Store 演示 */}
-            <div className="card mb-16">
-                <div className="card-header">
-                    <h3 style={{ margin: 0 }}>用户设置 (Pinia-like Store 演示)</h3>
-                </div>
-                <div className="card-content">
-                    {/* 基础设置 */}
-                    <div className="form-row">
-                        <label className="label">用户名</label>
-                        <input
-                            className="input"
-                            placeholder="请输入用户名"
-                            value={username}
-                            onChange={e => setUsername(e.target.value)}
-                        />
-                    </div>
-
-                    <div className="form-row">
-                        <label className="label">邮箱</label>
-                        <input
-                            className="input"
-                            type="email"
-                            placeholder="请输入邮箱"
-                            value={email}
-                            onChange={e => setEmail(e.target.value)}
-                        />
-                    </div>
-
-                    {/* 主题和语言设置 */}
-                    <div className="flex gap-16" style={{ flexWrap: 'wrap', marginBottom: '16px' }}>
-                        <div className="flex items-center gap-8">
-                            <span className="label">主题:</span>
-                            <select 
-                                className="input" 
-                                style={{ width: '120px' }}
-                                value={theme}
-                                onChange={e => setTheme(e.target.value as 'light' | 'dark')}
-                            >
-                                <option value="dark">深色</option>
-                                <option value="light">浅色</option>
-                            </select>
-                        </div>
-
-                        <div className="flex items-center gap-8">
-                            <span className="label">语言:</span>
-                            <select 
-                                className="input" 
-                                style={{ width: '120px' }}
-                                value={language}
-                                onChange={e => setLanguage(e.target.value as 'zh-CN' | 'en-US')}
-                            >
-                                <option value="zh-CN">中文</option>
-                                <option value="en-US">English</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* 交易设置 */}
-                    <div className="flex gap-16" style={{ flexWrap: 'wrap', marginBottom: '16px' }}>
-                        <div className="flex items-center gap-8">
-                            <span className="label">默认杠杆:</span>
-                            <input
-                                type="number"
-                                className="input"
-                                style={{ width: '100px' }}
-                                value={defaultLeverage}
-                                onChange={e => setDefaultLeverage(Number(e.target.value) || 1)}
-                                min="1"
-                                max="125"
-                            />
-                            <span>x</span>
-                        </div>
-
-                        <div className="flex items-center gap-8">
-                            <span className="label">默认币种:</span>
-                            <select 
-                                className="input" 
-                                style={{ width: '100px' }}
-                                value={defaultSymbol}
-                                onChange={e => setDefaultSymbol(e.target.value as 'BTC' | 'ETH' | 'BNB')}
-                            >
-                                <option value="BTC">BTC</option>
-                                <option value="ETH">ETH</option>
-                                <option value="BNB">BNB</option>
-                            </select>
-                        </div>
-
-                        <div className="flex items-center gap-8">
-                            <span className="label">风险等级:</span>
-                            <select 
-                                className="input" 
-                                style={{ width: '100px' }}
-                                value={riskLevel}
-                                onChange={e => setRiskLevel(e.target.value as 'low' | 'medium' | 'high')}
-                            >
-                                <option value="low">低</option>
-                                <option value="medium">中</option>
-                                <option value="high">高</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    {/* 通知和界面设置 */}
-                    <div className="flex gap-16" style={{ flexWrap: 'wrap', marginBottom: '16px' }}>
-                        <label className="flex items-center gap-8">
-                            <input
-                                type="checkbox"
-                                checked={enableNotifications}
-                                onChange={toggleNotifications}
-                            />
-                            <span>启用通知</span>
-                        </label>
-
-                        <label className="flex items-center gap-8">
-                            <input
-                                type="checkbox"
-                                checked={soundEnabled}
-                                onChange={toggleSound}
-                            />
-                            <span>声音提醒</span>
-                        </label>
-
-                        <label className="flex items-center gap-8">
-                            <input
-                                type="checkbox"
-                                checked={compactMode}
-                                onChange={toggleCompactMode}
-                            />
-                            <span>紧凑模式</span>
-                        </label>
-
-                        <label className="flex items-center gap-8">
-                            <input
-                                type="checkbox"
-                                checked={showAdvancedFeatures}
-                                onChange={toggleAdvancedFeatures}
-                            />
-                            <span>显示高级功能</span>
-                        </label>
-                    </div>
-
-                    {/* 操作按钮 */}
-                    <div className="flex gap-8 mb-16">
-                        <button
-                            className="btn btn-outline"
-                            onClick={() => updateSettings({
-                                username: '演示用户',
-                                email: 'demo@ppll.com',
-                                defaultLeverage: 10,
-                                defaultSymbol: 'ETH'
-                            })}
-                        >
-                            快速设置演示数据
-                        </button>
-
-                        <button
-                            className="btn btn-ghost"
-                            onClick={resetToDefaults}
-                        >
-                            重置为默认
-                        </button>
-                    </div>
-
-                    {/* 配置摘要 */}
-                    <div className="p-12 rounded" style={{ backgroundColor: 'var(--color-bg-muted)' }}>
-                        <div className="text-sm text-muted mb-8">当前配置摘要 (实时更新):</div>
-                        {(() => {
-                            const summary = getSettingsSummary();
-                            return (
-                                <div className="text-sm">
-                                    <div><strong>用户:</strong> {summary.user || '未设置'}</div>
-                                    <div><strong>交易:</strong> {summary.trading}</div>
-                                    <div><strong>界面:</strong> {summary.ui}</div>
-                                    <div><strong>功能:</strong> {summary.features}</div>
-                                </div>
-                            );
-                        })()}
-                    </div>
-
-                    <div className="mt-12 p-8 rounded" style={{ backgroundColor: 'color-mix(in srgb, var(--color-primary) 10%, var(--color-bg))', color: 'var(--color-primary)' }}>
-                        💡 <strong>持久化说明:</strong> 所有设置会自动保存到 <code>~/.config/ppll-client/config.enc.json</code>，页面刷新或重启应用后会自动恢复。
-                    </div>
                 </div>
             </div>
 
@@ -765,8 +566,8 @@ function SettingsPage() {
                                 })()}
                             </div>
 
-                            {/* 详细配置项列表 */}
-                            {dataSize.itemDetails && Object.keys(dataSize.itemDetails).length > 0 && (
+                            {/* 详细配置项列表 - 但没有必要给用户展示 */}
+                            {/* {dataSize.itemDetails && Object.keys(dataSize.itemDetails).length > 0 && (
                                 <div className="mt-12">
                                     <div className="text-sm text-muted mb-8">当前存储的配置项:</div>
                                     <div className="p-8 rounded" style={{ backgroundColor: 'var(--color-bg-muted)', maxHeight: '120px', overflowY: 'auto' }}>
@@ -777,7 +578,7 @@ function SettingsPage() {
                                         ))}
                                     </div>
                                 </div>
-                            )}
+                            )} */}
                         </div>
                     )}
 
@@ -790,16 +591,16 @@ function SettingsPage() {
                                     清理所有应用数据将会删除：
                                 </p>
                                 <ul className="text-sm text-muted mb-12" style={{ paddingLeft: '16px' }}>
-                                    <li>• 所有用户设置和偏好</li>
-                                    <li>• 策略配置参数</li>
-                                    <li>• API Key 配置信息</li>
-                                    <li>• 其他所有持久化数据</li>
+                                    <li>所有用户设置和偏好</li>
+                                    <li>策略配置参数</li>
+                                    <li>API Key 配置信息</li>
+                                    <li>其他所有持久化数据</li>
                                 </ul>
                                 <p className="text-xs text-muted">
                                     此操作不可恢复，请谨慎操作！
                                 </p>
                             </div>
-                            
+
                             <div className="flex flex-col gap-8">
                                 <button
                                     className="btn btn-ghost"
@@ -808,7 +609,7 @@ function SettingsPage() {
                                 >
                                     刷新数据
                                 </button>
-                                
+
                                 {!showClearConfirm ? (
                                     <button
                                         className="btn btn-danger"
@@ -862,7 +663,7 @@ function SettingsPage() {
             </div>
 
             {/* 系统信息 */}
-            <div className="card">
+            <div className="card" >
                 <div className="card-header">
                     <h3 style={{ margin: 0 }}>系统信息</h3>
                 </div>
@@ -887,6 +688,9 @@ function SettingsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* 占位 */}
+            <div style={{ height: '16px' }}></div>
         </div>
     );
 }

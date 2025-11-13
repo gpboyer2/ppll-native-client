@@ -4,8 +4,9 @@ import { getPPLLMantineTheme } from './mantine-theme';
 
 /**
  * PPLL 项目专用的 Mantine Provider
- * 
+ *
  * 核心特性：
+ * 1. 局部样式隔离 - 只在包装的组件内生效
  * 1. 完全禁用全局样式注入
  * 2. 只在包装的组件内生效
  * 3. 与现有样式系统完全隔离
@@ -15,11 +16,7 @@ import { getPPLLMantineTheme } from './mantine-theme';
 interface PPLLMantineProviderProps {
   children: React.ReactNode;
   /** 是否启用 CSS 变量注入，默认为 false */
-  withCSSVariables?: boolean;
-  /** 是否启用全局样式，默认为 false（强制禁用） */
-  withGlobalStyles?: boolean;
-  /** 是否启用标准化样式，默认为 false */
-  withNormalizeCSS?: boolean;
+  withCssVariables?: boolean;
   /** 自定义主题覆盖 */
   themeOverride?: Partial<MantineProviderProps['theme']>;
 }
@@ -41,22 +38,18 @@ interface PPLLMantineProviderProps {
  */
 export function PPLLMantineProvider({
   children,
-  withCSSVariables = false,
-  withGlobalStyles = false, // 强制禁用全局样式
-  withNormalizeCSS = false,
+  withCssVariables = false,
   themeOverride
 }: PPLLMantineProviderProps) {
   const theme = getPPLLMantineTheme();
-  
+
   // 合并自定义主题覆盖
   const finalTheme = themeOverride ? { ...theme, ...themeOverride } : theme;
 
   return (
     <BaseMantineProvider
       theme={finalTheme}
-      withCSSVariables={withCSSVariables}
-      withGlobalStyles={withGlobalStyles} // 强制为 false
-      withNormalizeCSS={withNormalizeCSS}
+      withCssVariables={withCssVariables}
     >
       {children}
     </BaseMantineProvider>

@@ -103,9 +103,7 @@ export const mantineTheme = createTheme({
     xl: '0 25px 50px rgba(0,0,0,0.9)',
   },
 
-  // 深色主题配置
-  colorScheme: 'dark',
-
+  
   // 其他配置
   other: {
     // 自定义 CSS 变量映射
@@ -208,5 +206,5 @@ export const mantineTheme = createTheme({
  * 获取适配当前项目的 Mantine 主题
  */
 export function getPPLLMantineTheme(): MantineTheme {
-  return mantineTheme;
+  return mantineTheme as MantineTheme;
 }
