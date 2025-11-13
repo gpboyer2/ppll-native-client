@@ -9,6 +9,14 @@ import { navItems, ROUTES } from './router';
 function Navigation() {
     const location = useLocation();
 
+    // 检查是否在插件详情页面（路径格式：/plugins/插件ID）
+    const isPluginDetailPage = location.pathname.match(/^\/plugins\/[^\/]+$/);
+
+    // 如果在插件详情页面，不显示导航栏
+    if (isPluginDetailPage) {
+        return null;
+    }
+
     return (
         <nav className="surface p-12 mb-16">
             <div className="flex items-center space-between">

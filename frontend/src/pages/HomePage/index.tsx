@@ -7,6 +7,7 @@ import type { Response } from '../../core/response';
 function HomePage() {
     const [notifyList, setNotifyList] = useState(notifications.list);
     const [pluginList, setPluginList] = useState<{ id: string; name: string; enable: boolean; version: string }[]>([]);
+    const [isEditingShortcuts, setIsEditingShortcuts] = useState(false);
 
     // 通知系统初始化
     useEffect(() => {
@@ -33,57 +34,54 @@ function HomePage() {
 
     return (
         <div className="container">
-            {/* 欢迎区域 */}
-            <section className="surface p-16 mb-16">
-                <div className="flex items-center space-between mb-12">
-                    <div>
-                        <h1 style={{ margin: 0, color: 'var(--color-primary)' }}>PPLL 量化交易客户端</h1>
-                        <p className="text-muted" style={{ margin: '4px 0 0' }}>专业的量化交易桌面解决方案</p>
-                    </div>
-                    <div className="flex gap-8">
-                        <Link to="/settings" className="btn btn-outline">系统设置</Link>
-                        <Link to="/plugins" className="btn btn-primary">插件管理</Link>
-                    </div>
-                </div>
-            </section>
-
             {/* 快速状态卡片 */}
             <div className="flex gap-16 mb-16" style={{ flexWrap: 'wrap' }}>
-                <div className="card" style={{ flex: '1', minWidth: '200px' }}>
-                    <div className="card-content">
-                        <div className="flex items-center space-between">
-                            <div>
-                                <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>已启用插件</div>
-                                <div style={{ fontSize: 'var(--text-2xl)', fontWeight: 600, color: 'var(--color-primary)' }}>{enabledPlugins.length}</div>
+                <div className="flex gap-16" style={{ flex: '2', }}>
+                    <div className="card" style={{ flex: '1', minWidth: '200px' }}>
+                        <div className="card-content">
+                            <div className="flex items-center space-between">
+                                <div>
+                                    <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>已启用插件</div>
+                                    <div style={{ fontSize: 'var(--text-2xl)', fontWeight: 600, color: 'var(--color-primary)' }}>{enabledPlugins.length}</div>
+                                </div>
+                                <div style={{ fontSize: '24px' }}>
+                                    {/*  */}
+                                </div>
                             </div>
-                            <div style={{ fontSize: '24px' }}>🔧</div>
+                        </div>
+                    </div>
+
+                    <div className="card" style={{ flex: '1', minWidth: '200px' }}>
+                        <div className="card-content">
+                            <div className="flex items-center space-between">
+                                <div>
+                                    <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>系统通知</div>
+                                    <div style={{ fontSize: 'var(--text-2xl)', fontWeight: 600, color: 'var(--color-warning)' }}>{totalNotifications}</div>
+                                </div>
+                                <div style={{ fontSize: '24px' }}>
+                                    {/*  */}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="card" style={{ flex: '1', minWidth: '200px' }}>
-                    <div className="card-content">
-                        <div className="flex items-center space-between">
-                            <div>
-                                <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>系统通知</div>
-                                <div style={{ fontSize: 'var(--text-2xl)', fontWeight: 600, color: 'var(--color-warning)' }}>{totalNotifications}</div>
+                <div style={{ flex: '1', }}>
+                    <div className="card" >
+                        <div className="card-content">
+                            <div className="flex items-center space-between">
+                                <div>
+                                    <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>运行状态</div>
+                                    <div style={{ fontSize: 'var(--text-lg)', fontWeight: 600, color: 'var(--color-success)' }}>正常</div>
+                                </div>
+                                <div style={{ fontSize: '24px' }}>
+                                    {/*  */}
+                                </div>
                             </div>
-                            <div style={{ fontSize: '24px' }}>📢</div>
                         </div>
                     </div>
                 </div>
 
-                <div className="card" style={{ flex: '1', minWidth: '200px' }}>
-                    <div className="card-content">
-                        <div className="flex items-center space-between">
-                            <div>
-                                <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>运行状态</div>
-                                <div style={{ fontSize: 'var(--text-lg)', fontWeight: 600, color: 'var(--color-success)' }}>正常</div>
-                            </div>
-                            <div style={{ fontSize: '24px' }}>✅</div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {/* 主要功能区域 */}
@@ -93,7 +91,13 @@ function HomePage() {
                     <div className="card-header">
                         <div className="flex items-center space-between">
                             <span>插件快捷入口</span>
-                            <Link to="/plugins" className="btn btn-ghost" style={{ height: '28px', padding: '0 8px', fontSize: 'var(--text-sm)' }}>查看全部</Link>
+                            <button
+                                className={`btn ${isEditingShortcuts ? 'btn-primary' : 'btn-ghost'}`}
+                                style={{ height: '28px', padding: '0 8px', fontSize: 'var(--text-sm)' }}
+                                onClick={() => setIsEditingShortcuts(!isEditingShortcuts)}
+                            >
+                                {isEditingShortcuts ? '完成' : '编辑'}
+                            </button>
                         </div>
                     </div>
                     <div className="card-content">
@@ -105,9 +109,23 @@ function HomePage() {
                                             <div style={{ fontWeight: 600 }}>{plugin.name || plugin.id}</div>
                                             <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>v{plugin.version}</div>
                                         </div>
-                                        <Link to={`/plugins/${plugin.id}`} className="btn btn-primary" style={{ height: '32px', padding: '0 12px' }}>
-                                            打开
-                                        </Link>
+                                        <div className="flex gap-8">
+                                            {isEditingShortcuts && (
+                                                <button
+                                                    className="btn btn-danger"
+                                                    style={{ height: '32px', padding: '0 12px' }}
+                                                    onClick={() => {
+                                                        // 这里可以添加从快捷入口移除插件的逻辑
+                                                        console.log('移除插件快捷入口:', plugin.id);
+                                                    }}
+                                                >
+                                                    移除
+                                                </button>
+                                            )}
+                                            <Link to={`/plugins/${plugin.id}`} className="btn btn-primary" style={{ height: '32px', padding: '0 12px' }}>
+                                                打开
+                                            </Link>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
@@ -156,50 +174,56 @@ function HomePage() {
                 </div>
             </div>
 
-            {/* 快速操作区域 */}
+            {/* 全部插件区域 */}
             <section className="surface p-16 mt-16">
-                <h3 style={{ margin: '0 0 12px', fontSize: 'var(--text-lg)' }}>快速操作</h3>
-                <div className="flex gap-12" style={{ flexWrap: 'wrap' }}>
-                    <Link to="/plugins/u-contract-market" className="card" style={{ textDecoration: 'none', minWidth: '160px', transition: 'transform 0.2s ease' }}
-                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                        <div className="card-content" style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '32px', marginBottom: '8px' }}>📊</div>
-                            <div style={{ fontWeight: 600 }}>合约超市</div>
-                            <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>策略模板管理</div>
+                <h3 style={{ margin: '0 0 12px', fontSize: 'var(--text-lg)' }}>全部插件</h3>
+                <div className="horizontal-scroll">
+                    {pluginList.length > 0 ? (
+                        pluginList.map(plugin => (
+                            <Link
+                                key={plugin.id}
+                                to={`/plugins/${plugin.id}`}
+                                className={`card ${!plugin.enable ? 'card-disabled' : ''}`}
+                                style={{
+                                    textDecoration: 'none',
+                                    minWidth: '160px',
+                                    flexShrink: 0,
+                                    transition: 'transform 0.2s ease',
+                                    position: 'relative'
+                                }}
+                                onMouseEnter={(e) => plugin.enable && (e.currentTarget.style.transform = 'translateY(-2px)')}
+                                onMouseLeave={(e) => plugin.enable && (e.currentTarget.style.transform = 'translateY(0)')}
+                            >
+                                {!plugin.enable && <div className="permission-tooltip">插件无权限</div>}
+                                <div className="card-content" style={{ textAlign: 'center' }}>
+                                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>
+                                        {plugin.id === 'u-contract-market' ? '📊' :
+                                            plugin.id.includes('grid') ? '🔄' :
+                                                plugin.id.includes('needle') ? '⚡' :
+                                                    plugin.id.includes('setting') ? '⚙️' : '🔌'}
+                                    </div>
+                                    <div style={{ fontWeight: 600 }}>{plugin.name || plugin.id}</div>
+                                    <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>v{plugin.version}</div>
+                                    <div className={`tag ${plugin.enable ? 'success' : ''}`} style={{ marginTop: '4px', fontSize: '10px' }}>
+                                        {plugin.enable ? '已启用' : '无权限'}
+                                    </div>
+                                </div>
+                            </Link>
+                        ))
+                    ) : (
+                        <div className="text-muted" style={{ textAlign: 'center', padding: '24px', width: '100%' }}>
+                            <div style={{ fontSize: '48px', marginBottom: '8px' }}>🔌</div>
+                            <div>暂无插件</div>
+                            <Link to="/plugins" className="btn btn-outline mt-8">前往管理</Link>
                         </div>
-                    </Link>
-
-                    <Link to="/plugins/u-grid-t" className="card" style={{ textDecoration: 'none', minWidth: '160px', transition: 'transform 0.2s ease' }}
-                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                        <div className="card-content" style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '32px', marginBottom: '8px' }}>🔄</div>
-                            <div style={{ fontWeight: 600 }}>做T网格</div>
-                            <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>网格交易策略</div>
-                        </div>
-                    </Link>
-
-                    <Link to="/plugins/u-grid-tdz" className="card" style={{ textDecoration: 'none', minWidth: '160px', transition: 'transform 0.2s ease' }}
-                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                        <div className="card-content" style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '32px', marginBottom: '8px' }}>⚡</div>
-                            <div style={{ fontWeight: 600 }}>天地针网格</div>
-                            <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>高频网格策略</div>
-                        </div>
-                    </Link>
-
-                    <Link to="/settings" className="card" style={{ textDecoration: 'none', minWidth: '160px', transition: 'transform 0.2s ease' }}
-                        onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-2px)'}
-                        onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
-                        <div className="card-content" style={{ textAlign: 'center' }}>
-                            <div style={{ fontSize: '32px', marginBottom: '8px' }}>⚙️</div>
-                            <div style={{ fontWeight: 600 }}>系统设置</div>
-                            <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>配置与更新</div>
-                        </div>
-                    </Link>
+                    )}
                 </div>
+                {/* 横向滚动提示 */}
+                {pluginList.length > 4 && (
+                    <div className="text-muted" style={{ fontSize: 'var(--text-xs)', textAlign: 'center', marginTop: '8px' }}>
+                        ← 左右滑动查看更多插件 →
+                    </div>
+                )}
             </section>
         </div>
     );

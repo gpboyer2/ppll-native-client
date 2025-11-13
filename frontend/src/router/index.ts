@@ -11,34 +11,35 @@ export const ROUTES = {
 // 页面组件路径映射
 export const pageComponents = {
   HomePage: '../pages/HomePage',
-  SettingsPage: '../pages/SettingsPage', 
+  SettingsPage: '../pages/SettingsPage',
   PluginsPage: '../pages/PluginsPage'
 } as const;
 
 // 导航配置
 export const navItems = [
-  { 
-    path: '/', 
-    label: '首页', 
+  {
+    path: '/',
+    label: '首页',
     icon: '🏠',
     description: '系统概览与快速操作'
   },
-  { 
-    path: '/settings', 
-    label: '设置', 
+  {
+    path: '/settings',
+    label: '设置',
     icon: '⚙️',
     description: '系统配置与更新管理'
   },
-  { 
-    path: '/plugins', 
-    label: '插件', 
-    icon: '🔧',
-    description: '插件管理与配置'
-  }
+  // 功能内容还没有想好, 暂时隐藏
+  // {
+  //   path: '/plugins',
+  //   label: '插件',
+  //   icon: '🔧',
+  //   description: '插件管理与配置'
+  // }
 ];
 
 // 插件信息配置
-export const pluginInfo: Record<string, {name: string; description: string; icon: string; category: string}> = {
+export const pluginInfo: Record<string, { name: string; description: string; icon: string; category: string }> = {
   'u-contract-market': {
     name: 'U本位合约超市',
     description: '浏览与管理策略模板，支持搜索和收藏功能',
