@@ -1,6 +1,5 @@
 import { HashRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
 import logo from './assets/images/logo-universal.png';
-import './App.css';
 import HomePage from './pages/HomePage';
 import SettingsPage from './pages/SettingsPage';
 import PluginsPage from './pages/PluginsPage';
