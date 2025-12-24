@@ -5,6 +5,9 @@
 
 set -e
 
+# 添加 Go bin 目录到 PATH（Wails 安装在这里）
+export PATH="$PATH:$HOME/go/bin"
+
 # 项目根目录
 PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 FRONTEND_DIR="${PROJECT_ROOT}/frontend"
