@@ -75,11 +75,22 @@ get_package_manager_path() {
     fi
 }
 
-# 检查 wails 是否安装
+# 检查并安装 wails
 check_wails() {
     if ! command -v wails &> /dev/null; then
-        echo "错误: 找不到 wails，请先安装: go install github.com/wailsapp/wails/v2/cmd/wails@latest"
-        exit 1
+        echo "未找到 wails，正在自动安装..."
+        go install github.com/wailsapp/wails/v2/cmd/wails@latest
+        
+        # 重新检查是否安装成功
+        if ! command -v wails &> /dev/null; then
+            echo "错误: wails 安装失败，请手动安装: go install github.com/wailsapp/wails/v2/cmd/wails@latest"
+            echo "提示: 请确保 GOPATH/bin 已添加到系统 PATH 中"
+            exit 1
+        fi
+        
+        echo "wails 安装成功！"
+    else
+        echo "wails 已安装"
     fi
 }
 
