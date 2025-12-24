@@ -1,8 +1,10 @@
-import { HashRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import logo from './assets/images/logo-universal.png';
 import HomePage from './pages/HomePage';
 import SettingsPage from './pages/SettingsPage';
 import PluginsPage from './pages/PluginsPage';
+import GridStrategyListPage from './pages/GridStrategy';
+import GridStrategyEditPage from './pages/GridStrategy/edit';
 import { navItems, ROUTES } from './router';
 
 // 导航组件
@@ -12,10 +14,16 @@ function Navigation() {
     // 检查是否在插件详情页面（路径格式：/plugins/插件ID）
     const isPluginDetailPage = location.pathname.match(/^\/plugins\/[^\/]+$/);
 
+    // 检查是否在网格策略编辑页面
+    const isGridStrategyEditPage = location.pathname.startsWith('/grid-strategy/edit');
+
     // 如果在插件详情页面，不显示导航栏
     if (isPluginDetailPage) {
         return null;
     }
+
+    // 判断网格策略页面是否激活
+    const isGridStrategyActive = location.pathname.startsWith('/grid-strategy');
 
     return (
         <nav className="surface p-12 mb-16">
@@ -45,6 +53,20 @@ function Navigation() {
                             </Link>
                         );
                     })}
+                    {/* 网格策略导航链接 */}
+                    <Link
+                        to={ROUTES.GRID_STRATEGY}
+                        className={`btn ${isGridStrategyActive ? 'btn-primary' : 'btn-outline'}`}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            textDecoration: 'none'
+                        }}
+                    >
+                        <span>📊</span>
+                        <span>网格策略</span>
+                    </Link>
                 </div>
             </div>
         </nav>
@@ -61,6 +83,10 @@ function App() {
                     <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
                     <Route path={ROUTES.PLUGINS} element={<PluginsPage />} />
                     <Route path={ROUTES.PLUGIN_DETAIL} element={<PluginsPage />} />
+                    {/* 做T网格插件重定向到网格策略页面 */}
+                    <Route path="/plugins/u-grid-t" element={<Navigate to={ROUTES.GRID_STRATEGY} replace />} />
+                    <Route path={ROUTES.GRID_STRATEGY} element={<GridStrategyListPage />} />
+                    <Route path={ROUTES.GRID_STRATEGY_EDIT} element={<GridStrategyEditPage />} />
                 </Routes>
             </Router>
         </div>

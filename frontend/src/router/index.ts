@@ -5,14 +5,18 @@ export const ROUTES = {
   HOME: '/',
   SETTINGS: '/settings',
   PLUGINS: '/plugins',
-  PLUGIN_DETAIL: '/plugins/:id'
+  PLUGIN_DETAIL: '/plugins/:id',
+  GRID_STRATEGY: '/grid-strategy',
+  GRID_STRATEGY_EDIT: '/grid-strategy/edit/:id?'
 } as const;
 
 // 页面组件路径映射
 export const pageComponents = {
   HomePage: '../pages/HomePage',
   SettingsPage: '../pages/SettingsPage',
-  PluginsPage: '../pages/PluginsPage'
+  PluginsPage: '../pages/PluginsPage',
+  GridStrategyListPage: '../pages/GridStrategy',
+  GridStrategyEditPage: '../pages/GridStrategy/edit'
 } as const;
 
 // 导航配置

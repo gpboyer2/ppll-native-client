@@ -1,0 +1,602 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import type { GridStrategy, GridStrategyForm, PositionSide } from '../../types/grid-strategy';
+import { defaultGridStrategy } from '../../types/grid-strategy';
+
+/**
+ * 网格策略编辑页面
+ * 支持新建和编辑网格策略
+ */
+function GridStrategyEditPage() {
+    const navigate = useNavigate();
+    const { id } = useParams<{ id?: string }>();
+    const isEditing = Boolean(id);
+
+    // 表单数据状态
+    const [formData, setFormData] = useState<GridStrategyForm>(defaultGridStrategy);
+
+    // 保存状态
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+
+    // 加载现有策略数据
+    useEffect(() => {
+        if (isEditing && id) {
+            loadStrategy(id);
+        }
+    }, [isEditing, id]);
+
+    // 加载策略数据
+    function loadStrategy(strategyId: string) {
+        try {
+            const stored = localStorage.getItem('grid-strategy-list');
+            if (stored) {
+                const list = JSON.parse(stored) as GridStrategy[];
+                const strategy = list.find(s => s.id === strategyId);
+                if (strategy) {
+                    setFormData(strategy);
+                }
+            }
+        } catch (error) {
+            console.error('加载策略失败:', error);
+        }
+    }
+
+    // 保存策略数据
+    function saveStrategy(data: GridStrategyForm) {
+        try {
+            const stored = localStorage.getItem('grid-strategy-list');
+            let list: GridStrategy[] = stored ? JSON.parse(stored) : [];
+
+            if (isEditing && id) {
+                // 更新现有策略
+                list = list.map(s => s.id === id ? { ...data, id, status: s.status, createdAt: s.createdAt, updatedAt: new Date().toISOString() } : s);
+            } else {
+                // 创建新策略
+                const newStrategy: GridStrategy = {
+                    ...data,
+                    id: Date.now().toString(),
+                    status: 'stopped',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString()
+                };
+                list.push(newStrategy);
+            }
+
+            localStorage.setItem('grid-strategy-list', JSON.stringify(list));
+            return true;
+        } catch (error) {
+            console.error('保存策略失败:', error);
+            return false;
+        }
+    }
+
+    // 表单提交处理
+    function handleSubmit(e: React.FormEvent) {
+        e.preventDefault();
+
+        // 验证必填字段
+        if (!formData.tradingPair.trim()) {
+            alert('请输入交易对');
+            return;
+        }
+        if (!formData.apiKey.trim()) {
+            alert('请输入币安API Key');
+            return;
+        }
+        if (!formData.apiSecret.trim()) {
+            alert('请输入币安API Secret');
+            return;
+        }
+        if (!formData.gridPriceDifference || formData.gridPriceDifference <= 0) {
+            alert('请输入有效的网格价格差价');
+            return;
+        }
+
+        setSaveStatus('saving');
+        setTimeout(() => {
+            const success = saveStrategy(formData);
+            if (success) {
+                setSaveStatus('success');
+                setTimeout(() => {
+                    navigate('/grid-strategy');
+                }, 500);
+            } else {
+                setSaveStatus('error');
+                setTimeout(() => setSaveStatus('idle'), 2000);
+            }
+        }, 300);
+    }
+
+    // 重置表单
+    function handleReset() {
+        if (isEditing && id) {
+            loadStrategy(id);
+        } else {
+            setFormData(defaultGridStrategy);
+        }
+    }
+
+    // 更新表单字段
+    function updateFormField<K extends keyof GridStrategyForm>(key: K, value: GridStrategyForm[K]) {
+        setFormData(prev => ({ ...prev, [key]: value }));
+    }
+
+    // 获取持仓方向相关字段的可见性
+    function isLongOnlyField() {
+        return formData.positionSide === 'LONG';
+    }
+
+    function isShortOnlyField() {
+        return formData.positionSide === 'SHORT';
+    }
+
+    return (
+        <div className="container">
+            {/* 页面头部 */}
+            <div className="surface p-12 mb-16">
+                <div className="flex items-center space-between">
+                    <div className="flex items-center gap-12">
+                        <Link to="/grid-strategy" className="btn btn-ghost" style={{ height: '32px', padding: '0 8px' }}>
+                            ← 返回列表
+                        </Link>
+                        <span style={{ color: 'var(--color-text-muted)' }}>|</span>
+                        <h1 style={{ margin: 0, fontSize: 'var(--text-xl)' }}>
+                            {isEditing ? '编辑网格策略' : '新建网格策略'}
+                        </h1>
+                    </div>
+                    <div className="flex gap-8">
+                        <button
+                            type="button"
+                            className="btn btn-outline"
+                            style={{ height: '32px', padding: '0 12px' }}
+                            onClick={handleReset}
+                        >
+                            重置
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* 表单 */}
+            <form onSubmit={handleSubmit} className="grid-strategy-form">
+                {/* 基础设置 */}
+                <div className="grid-strategy-form-section">
+                    <h2 className="grid-strategy-form-section-title">
+                        <span className="grid-strategy-form-section-icon">⚙️</span>
+                        基础设置
+                    </h2>
+
+                    <div className="grid-strategy-form-grid">
+                        {/* 持仓方向 */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">
+                                持仓方向
+                                <span className="grid-strategy-form-required">*</span>
+                            </label>
+                            <select
+                                className="input"
+                                value={formData.positionSide}
+                                onChange={e => updateFormField('positionSide', e.target.value as PositionSide)}
+                                required
+                            >
+                                <option value="LONG">做多 (LONG)</option>
+                                <option value="SHORT">做空 (SHORT)</option>
+                            </select>
+                            <div className="help">选择网格交易的持仓方向，做多或做空</div>
+                        </div>
+
+                        {/* 交易对 */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">
+                                交易对
+                                <span className="grid-strategy-form-required">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                className="input"
+                                placeholder="例如：ETHUSDT、BTCUSDT"
+                                value={formData.tradingPair}
+                                onChange={e => updateFormField('tradingPair', e.target.value)}
+                                required
+                            />
+                            <div className="help">输入要交易的币对，如ETHUSDT表示ETH兑换USDT</div>
+                        </div>
+
+                        {/* API Key */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">
+                                币安API Key
+                                <span className="grid-strategy-form-required">*</span>
+                            </label>
+                            <input
+                                type="password"
+                                className="input"
+                                placeholder="请输入币安API Key"
+                                value={formData.apiKey}
+                                onChange={e => updateFormField('apiKey', e.target.value)}
+                                required
+                            />
+                            <div className="help">您的币安交易所API密钥，用于执行交易</div>
+                        </div>
+
+                        {/* API Secret */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">
+                                币安API Secret
+                                <span className="grid-strategy-form-required">*</span>
+                            </label>
+                            <input
+                                type="password"
+                                className="input"
+                                placeholder="请输入币安API Secret"
+                                value={formData.apiSecret}
+                                onChange={e => updateFormField('apiSecret', e.target.value)}
+                                required
+                            />
+                            <div className="help">您的币安交易所API密钥密码</div>
+                        </div>
+
+                        {/* 杠杆倍数 */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">杠杆倍数</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.leverage}
+                                onChange={e => updateFormField('leverage', Number(e.target.value) || 20)}
+                                min="1"
+                                max="125"
+                            />
+                            <div className="help">设置杠杆倍数，默认20倍（不足20的设为最大倍数）</div>
+                        </div>
+
+                        {/* 初始建仓价格 */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">初始建仓价格</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.initialFillPrice || ''}
+                                onChange={e => updateFormField('initialFillPrice', Number(e.target.value) || 0)}
+                                step="0.01"
+                                min="0"
+                                placeholder="0"
+                            />
+                            <div className="help">初始建仓的价格，为0时自动按当前价格建仓</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 网格参数 */}
+                <div className="grid-strategy-form-section">
+                    <h2 className="grid-strategy-form-section-title">
+                        <span className="grid-strategy-form-section-icon">📊</span>
+                        网格参数
+                    </h2>
+
+                    <div className="grid-strategy-form-grid">
+                        {/* 网格价格差价 */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">
+                                网格价格差价
+                                <span className="grid-strategy-form-required">*</span>
+                            </label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.gridPriceDifference || ''}
+                                onChange={e => updateFormField('gridPriceDifference', Number(e.target.value) || undefined)}
+                                step="0.01"
+                                min="0.01"
+                                placeholder="例如：10"
+                                required
+                            />
+                            <div className="help">每个网格之间的价格间隔，如10表示每个网格间隔10 USDT</div>
+                        </div>
+
+                        {/* 网格交易数量（通用） */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">网格交易数量（通用）</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.gridTradeQuantity || ''}
+                                onChange={e => updateFormField('gridTradeQuantity', Number(e.target.value) || undefined)}
+                                step="0.001"
+                                min="0.001"
+                                placeholder="例如：0.1"
+                            />
+                            <div className="help">每个网格的交易数量，如果没有设置分离数量则使用此值</div>
+                        </div>
+
+                        {/* 做多开仓数量 */}
+                        <div className={`grid-strategy-form-field ${isLongOnlyField() ? '' : 'grid-strategy-field-hidden'}`}>
+                            <label className="grid-strategy-form-label">做多开仓数量</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.gridLongOpenQuantity || ''}
+                                onChange={e => updateFormField('gridLongOpenQuantity', Number(e.target.value) || undefined)}
+                                step="0.001"
+                                min="0.001"
+                                placeholder="例如：0.1"
+                            />
+                            <div className="help">做多方向：每次增加多单持仓的数量</div>
+                        </div>
+
+                        {/* 做多平仓数量 */}
+                        <div className={`grid-strategy-form-field ${isLongOnlyField() ? '' : 'grid-strategy-field-hidden'}`}>
+                            <label className="grid-strategy-form-label">做多平仓数量</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.gridLongCloseQuantity || ''}
+                                onChange={e => updateFormField('gridLongCloseQuantity', Number(e.target.value) || undefined)}
+                                step="0.001"
+                                min="0.001"
+                                placeholder="例如：0.1"
+                            />
+                            <div className="help">做多方向：每次减少多单持仓的数量</div>
+                        </div>
+
+                        {/* 做空开仓数量 */}
+                        <div className={`grid-strategy-form-field ${isShortOnlyField() ? '' : 'grid-strategy-field-hidden'}`}>
+                            <label className="grid-strategy-form-label">做空开仓数量</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.gridShortOpenQuantity || ''}
+                                onChange={e => updateFormField('gridShortOpenQuantity', Number(e.target.value) || undefined)}
+                                step="0.001"
+                                min="0.001"
+                                placeholder="例如：0.1"
+                            />
+                            <div className="help">做空方向：每次增加空单持仓的数量（开空单）</div>
+                        </div>
+
+                        {/* 做空平仓数量 */}
+                        <div className={`grid-strategy-form-field ${isShortOnlyField() ? '' : 'grid-strategy-field-hidden'}`}>
+                            <label className="grid-strategy-form-label">做空平仓数量</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.gridShortCloseQuantity || ''}
+                                onChange={e => updateFormField('gridShortCloseQuantity', Number(e.target.value) || undefined)}
+                                step="0.001"
+                                min="0.001"
+                                placeholder="例如：0.1"
+                            />
+                            <div className="help">做空方向：每次减少空单持仓的数量（平空单）</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 风险控制 */}
+                <div className="grid-strategy-form-section">
+                    <h2 className="grid-strategy-form-section-title">
+                        <span className="grid-strategy-form-section-icon">🛡️</span>
+                        风险控制
+                    </h2>
+
+                    <div className="grid-strategy-form-grid">
+                        {/* 最大持仓数量 */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">最大持仓数量</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.maxOpenPositionQuantity || ''}
+                                onChange={e => updateFormField('maxOpenPositionQuantity', e.target.value ? Number(e.target.value) : undefined)}
+                                step="0.001"
+                                min="0"
+                                placeholder="例如：1"
+                            />
+                            <div className="help">限制的最大的持仓数量，为空则不限制，如1个ETH</div>
+                        </div>
+
+                        {/* 最小持仓数量 */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">最小持仓数量</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.minOpenPositionQuantity || ''}
+                                onChange={e => updateFormField('minOpenPositionQuantity', e.target.value ? Number(e.target.value) : undefined)}
+                                step="0.001"
+                                min="0"
+                                placeholder="例如：0.2"
+                            />
+                            <div className="help">限制的最少的持仓数量，为空则不限制，如0.2个ETH</div>
+                        </div>
+
+                        {/* 防跌/防涨系数 */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">防跌/防涨系数</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.fallPreventionCoefficient}
+                                onChange={e => updateFormField('fallPreventionCoefficient', Number(e.target.value) || 0)}
+                                step="0.01"
+                                min="0"
+                                placeholder="0"
+                            />
+                            <div className="help">系数越大，价格变动时的触发价格会下放得更低，为0时固定使用网格差价</div>
+                        </div>
+
+                        {/* 价格上限 */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">价格上限</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.gtLimitationPrice || ''}
+                                onChange={e => updateFormField('gtLimitationPrice', e.target.value ? Number(e.target.value) : undefined)}
+                                step="0.01"
+                                min="0"
+                                placeholder="例如：3000"
+                            />
+                            <div className="help">大于等于此价格时暂停网格，为空则不限制</div>
+                        </div>
+
+                        {/* 价格下限 */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">价格下限</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.ltLimitationPrice || ''}
+                                onChange={e => updateFormField('ltLimitationPrice', e.target.value ? Number(e.target.value) : undefined)}
+                                step="0.01"
+                                min="0"
+                                placeholder="例如：2000"
+                            />
+                            <div className="help">小于等于此价格时暂停网格，为空则不限制</div>
+                        </div>
+                    </div>
+
+                    {/* 价格限制开关 */}
+                    <div className="grid-strategy-form-toggles">
+                        <div className="grid-strategy-form-toggle">
+                            <div className="grid-strategy-form-toggle-info">
+                                <label className="grid-strategy-form-label">高于开仓价格时暂停</label>
+                                <div className="help">当价格大于等于开仓价格时则暂停网格</div>
+                            </div>
+                            <label className="grid-strategy-toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.isAboveOpenPrice}
+                                    onChange={e => updateFormField('isAboveOpenPrice', e.target.checked)}
+                                />
+                                <span></span>
+                            </label>
+                        </div>
+
+                        <div className="grid-strategy-form-toggle">
+                            <div className="grid-strategy-form-toggle-info">
+                                <label className="grid-strategy-form-label">低于开仓价格时暂停</label>
+                                <div className="help">当价格低于等于开仓价格时则暂停网格</div>
+                            </div>
+                            <label className="grid-strategy-toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.isBelowOpenPrice}
+                                    onChange={e => updateFormField('isBelowOpenPrice', e.target.checked)}
+                                />
+                                <span></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 高级选项 */}
+                <div className="grid-strategy-form-section">
+                    <h2 className="grid-strategy-form-section-title">
+                        <span className="grid-strategy-form-section-icon">🔧</span>
+                        高级选项
+                    </h2>
+
+                    <div className="grid-strategy-form-grid">
+                        {/* 轮询间隔 */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">轮询间隔（毫秒）</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.pollingInterval}
+                                onChange={e => updateFormField('pollingInterval', Number(e.target.value) || 10000)}
+                                min="0"
+                                step="100"
+                            />
+                            <div className="help">获得最新价格的轮询间隔时间，设为0则不限制（回测用）</div>
+                        </div>
+
+                        {/* 平均成本价天数 */}
+                        <div className="grid-strategy-form-field">
+                            <label className="grid-strategy-form-label">平均成本价天数</label>
+                            <input
+                                type="number"
+                                className="input"
+                                value={formData.avgCostPriceDays}
+                                onChange={e => updateFormField('avgCostPriceDays', Number(e.target.value) || 30)}
+                                min="1"
+                                max="365"
+                            />
+                            <div className="help">计算平均成本价的默认天数</div>
+                        </div>
+                    </div>
+
+                    {/* 高级开关 */}
+                    <div className="grid-strategy-form-toggles">
+                        <div className="grid-strategy-form-toggle">
+                            <div className="grid-strategy-form-toggle-info">
+                                <label className="grid-strategy-form-label">启用日志输出</label>
+                                <div className="help">是否启用日志输出，便于调试和监控</div>
+                            </div>
+                            <label className="grid-strategy-toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.enableLog}
+                                    onChange={e => updateFormField('enableLog', e.target.checked)}
+                                />
+                                <span></span>
+                            </label>
+                        </div>
+
+                        <div className="grid-strategy-form-toggle">
+                            <div className="grid-strategy-form-toggle-info">
+                                <label className="grid-strategy-form-label">顺势仅减仓策略</label>
+                                <div className="help">当仓位记录为空但实际持有仓位时，在价格趋势中优先执行平仓</div>
+                            </div>
+                            <label className="grid-strategy-toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    checked={formData.priorityCloseOnTrend}
+                                    onChange={e => updateFormField('priorityCloseOnTrend', e.target.checked)}
+                                />
+                                <span></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 操作按钮 */}
+                <div className="grid-strategy-form-actions">
+                    <Link to="/grid-strategy" className="btn btn-outline" style={{ height: '40px', padding: '0 24px' }}>
+                        取消
+                    </Link>
+                    <button
+                        type="button"
+                        className="btn btn-outline"
+                        style={{ height: '40px', padding: '0 24px' }}
+                        onClick={handleReset}
+                    >
+                        重置表单
+                    </button>
+                    <button
+                        type="submit"
+                        className={`btn ${saveStatus === 'saving' ? 'btn-outline' : 'btn-primary'}`}
+                        style={{ height: '40px', padding: '0 32px' }}
+                        disabled={saveStatus === 'saving'}
+                    >
+                        {saveStatus === 'saving' ? '保存中...' : '保存策略'}
+                    </button>
+                </div>
+
+                {/* 保存状态提示 */}
+                {saveStatus === 'success' && (
+                    <div className="grid-strategy-form-message grid-strategy-form-success">
+                        保存成功，正在跳转...
+                    </div>
+                )}
+                {saveStatus === 'error' && (
+                    <div className="grid-strategy-form-message grid-strategy-form-error">
+                        保存失败，请重试
+                    </div>
+                )}
+            </form>
+        </div>
+    );
+}
+
+export default GridStrategyEditPage;

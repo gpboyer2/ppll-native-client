@@ -1593,3 +1593,248 @@ nav.surface {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+/* ========== 网格策略页面样式 ========== */
+/* 策略列表页面 */
+.grid-strategy-statistics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.grid-strategy-stat-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+}
+
+.grid-strategy-stat-value {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* 筛选按钮 */
+.grid-strategy-filter-button {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.grid-strategy-filter-button:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.grid-strategy-filter-button.active {
+  background: var(--color-primary);
+  color: #000;
+  border-color: var(--color-primary);
+}
+
+/* 策略卡片列表 */
+.grid-strategy-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.grid-strategy-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.grid-strategy-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* 持仓方向标签 */
+.grid-strategy-position-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+/* 状态标签 */
+.grid-strategy-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+/* 策略编辑表单 */
+.grid-strategy-form {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* 表单区块 */
+.grid-strategy-form-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.grid-strategy-form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 20px;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.grid-strategy-form-section-icon {
+  font-size: 20px;
+}
+
+/* 表单网格布局 */
+.grid-strategy-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+/* 表单字段 */
+.grid-strategy-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.grid-strategy-form-label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.grid-strategy-form-required {
+  margin-left: 4px;
+  color: var(--color-danger);
+}
+
+/* 隐藏字段 */
+.grid-strategy-field-hidden {
+  display: none;
+}
+
+/* 表单开关区域 */
+.grid-strategy-form-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.grid-strategy-form-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.grid-strategy-form-toggle-info {
+  flex: 1;
+}
+
+/* 开关按钮 */
+.grid-strategy-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.grid-strategy-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.grid-strategy-toggle-switch span {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-bg-muted);
+  border: 1px solid var(--color-border);
+  transition: 0.3s;
+  border-radius: 24px;
+}
+
+.grid-strategy-toggle-switch span:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 2px;
+  bottom: 2px;
+  background-color: var(--color-text-muted);
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.grid-strategy-toggle-switch input:checked + span {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.grid-strategy-toggle-switch input:checked + span:before {
+  transform: translateX(20px);
+  background-color: #fff;
+}
+
+.grid-strategy-toggle-switch input:focus + span {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+/* 表单操作按钮 */
+.grid-strategy-form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* 表单消息提示 */
+.grid-strategy-form-message {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  margin-top: 16px;
+  text-align: center;
+}
+
+.grid-strategy-form-success {
+  background: color-mix(in srgb, var(--color-success) 10%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+  color: var(--color-success);
+}
+
+.grid-strategy-form-error {
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+  color: var(--color-danger);
+}

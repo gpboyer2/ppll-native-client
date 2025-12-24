@@ -6,6 +6,13 @@
     "**/._*": true,
     "**/dist": true
   },
+  "search.exclude": {
+    "._*": true,
+    "**/._*": true,
+    "**/dist": true,
+    "**/node_modules": true,
+    "frontend/dist": true
+  },
   "terminal.integrated.defaultProfile.windows": "Git Bash",
   // Auto fix and format on save
   "editor.codeActionsOnSave": {

@@ -36,7 +36,7 @@ func NewPluginService(ctx context.Context, logger *slog.Logger, store *ConfigSto
     s := &PluginService{ctx: ctx, log: logger, store: store}
     s.list = []PluginMeta{
         {ID: "u-contract-market", Name: "U本位合约超市", Version: "0.1.0", Enable: true},
-        {ID: "u-grid-t", Name: "U本位合约做T网格", Version: "0.1.0", Enable: false},
+        {ID: "u-grid-t", Name: "U本位合约做T网格", Version: "0.1.0", Enable: true},
         {ID: "u-grid-tdz", Name: "U本位天地针网格", Version: "0.1.0", Enable: false},
     }
     // 从存储加载（如有）
