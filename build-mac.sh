@@ -75,23 +75,45 @@ get_package_manager_path() {
     fi
 }
 
+# 获取 wails 可执行文件路径
+get_wails_path() {
+    # 优先使用 PATH 中的 wails
+    if command -v wails &> /dev/null; then
+        echo "wails"
+        return 0
+    fi
+
+    # 检查 GOPATH/bin
+    local gopath=$(go env GOPATH)
+    if [ -f "$gopath/bin/wails" ]; then
+        echo "$gopath/bin/wails"
+        return 0
+    fi
+
+    # 未找到
+    return 1
+}
+
 # 检查并安装 wails
 check_wails() {
-    if ! command -v wails &> /dev/null; then
+    if ! get_wails_path &> /dev/null; then
         echo "未找到 wails，正在自动安装..."
         go install github.com/wailsapp/wails/v2/cmd/wails@latest
-        
+
         # 重新检查是否安装成功
-        if ! command -v wails &> /dev/null; then
+        if ! get_wails_path &> /dev/null; then
             echo "错误: wails 安装失败，请手动安装: go install github.com/wailsapp/wails/v2/cmd/wails@latest"
             echo "提示: 请确保 GOPATH/bin 已添加到系统 PATH 中"
             exit 1
         fi
-        
+
         echo "wails 安装成功！"
     else
         echo "wails 已安装"
     fi
+
+    # 导出 wails 路径供后续使用
+    WAILS_PATH=$(get_wails_path)
 }
 
 # 检查 Go 是否安装
@@ -175,7 +197,7 @@ cd ..
 
 if [ "$BUILD_MODE" = "build" ]; then
     echo "[4/5] 构建生产版本..."
-    wails build -platform darwin/universal
+    "$WAILS_PATH" build -platform darwin/universal
 
     echo "[5/5] 构建完成！"
     echo "========================================"
@@ -186,7 +208,7 @@ else
     echo "[4/5] 跳过生产构建（开发模式）"
     echo "[5/5] 准备完成！"
     echo "========================================"
-    echo "如需启动开发服务器，请运行: wails dev"
+    echo "如需启动开发服务器，请运行: $WAILS_PATH dev"
     echo "如需构建生产版本，请运行: ./build-mac.sh -m=build"
     echo "========================================"
 fi
