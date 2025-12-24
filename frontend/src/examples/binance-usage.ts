@@ -17,7 +17,7 @@ export class BinanceUsageExample {
 
     try {
       // 方式1：通过ApiEndpoints调用
-      const response = await BinanceApi.getUmAccountInfo(apiKey, apiSecret)
+      const response = await BinanceApi.getUmAccountInfo({ apiKey, apiSecret })
 
       if (response.code === 0 && response.data) {
         const accountData = response.data
@@ -106,7 +106,11 @@ export class BinanceUsageExample {
       const formattedPositions = BinanceApi.formatTradingPairs(positions)
       console.log('格式化后的交易对:', formattedPositions)
 
-      const response = await BinanceApi.batchClosePosition(apiKey, apiSecret, formattedPositions)
+      const response = await BinanceApi.batchClosePosition({
+        apiKey,
+        apiSecret,
+        positions: formattedPositions
+      })
 
       if (response.code === 0 && response.data) {
         const result = response.data
@@ -170,7 +174,10 @@ export class BinanceUsageExample {
   static async errorHandlingExample() {
     try {
       // 使用无效的API凭证
-      const response = await BinanceApi.getUmAccountInfo('invalid_key', 'invalid_secret')
+      const response = await BinanceApi.getUmAccountInfo({
+        apiKey: 'invalid_key',
+        apiSecret: 'invalid_secret'
+      })
 
       if (response.code !== 0) {
         console.log('预期的错误响应:', response.msg)
