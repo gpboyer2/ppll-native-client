@@ -1,0 +1,52 @@
+"use strict";
+
+// 登录日志数据模型（文件从 login-logs.js 调整为单数命名以符合路径规范）
+const { Model } = require("sequelize");
+
+module.exports = (sequelize, DataTypes) => {
+  class login_logs extends Model {
+    static associate(models) {
+      // 可按需建立与用户模型的关联（此处不强制）
+    }
+  }
+
+  login_logs.init(
+    {
+      user_id: { type: DataTypes.BIGINT, allowNull: true, comment: "用户ID" },
+      username: { type: DataTypes.STRING(64), allowNull: true, comment: "用户名（冗余）" },
+      apiKey: { type: DataTypes.STRING(255), allowNull: true, comment: "API密钥" },
+      apiSecret: { type: DataTypes.STRING(255), allowNull: true, comment: "API密钥Secret（敏感）" },
+      login_time: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW, comment: "登录时间" },
+      ip: { type: DataTypes.STRING(64), allowNull: true, comment: "登录IP" },
+      location: { type: DataTypes.STRING(255), allowNull: true, comment: "登录地址详情" },
+      user_agent: { type: DataTypes.STRING(500), allowNull: true, comment: "User-Agent" },
+      browser: { type: DataTypes.STRING(255), allowNull: true, comment: "浏览器类型" },
+      os: { type: DataTypes.STRING(255), allowNull: true, comment: "操作系统" },
+      device: { type: DataTypes.STRING(255), allowNull: true, comment: "设备" },
+      method: { type: DataTypes.STRING(64), allowNull: true, comment: "登录方式" },
+      login_system: { type: DataTypes.STRING(16), allowNull: true, comment: "登录系统(app/admin)" },
+      status: { type: DataTypes.TINYINT, allowNull: false, defaultValue: 0, comment: "登录状态(0:失败,1:成功)" },
+      fail_reason: { type: DataTypes.STRING(255), allowNull: true, comment: "失败原因" },
+      created_at: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW, comment: "创建时间" },
+      updated_at: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW, comment: "更新时间" },
+    },
+    {
+      sequelize,
+      modelName: "login_logs",
+      tableName: "login_logs",
+      timestamps: false,
+      indexes: [
+        { fields: ["user_id"], name: "idx_user_id" },
+        { fields: ["username"], name: "idx_username" },
+        { fields: ["apiKey"], name: "idx_api_key" },
+        { fields: ["login_time"], name: "idx_login_time" },
+        { fields: ["ip"], name: "idx_ip" },
+        { fields: ["status"], name: "idx_status" },
+        { fields: ["login_system"], name: "idx_login_system" },
+      ],
+    }
+  );
+
+  return login_logs;
+};
+

@@ -1,0 +1,6 @@
+/**
+ * 验证模块索引文件
+ * 统一导出所有验证模块，便于其他模块引用
+ */
+module.exports.authValidation = require('./auth.validation');
+module.exports.userValidation = require('./user.validation');

@@ -124,10 +124,20 @@ check_go() {
     fi
 }
 
+# 检查 Node.js 是否安装
+check_nodejs() {
+    if ! command -v node &> /dev/null; then
+        echo "错误: 找不到 Node.js，请先安装 Node.js"
+        echo "Node.js 是运行后端服务所必需的"
+        exit 1
+    fi
+    echo "Node.js 版本: $(node -v)"
+}
+
 # 获取包管理器的完整路径
 PACKAGE_MANAGER_CMD=$(get_package_manager_path "$PACKAGE_MANAGER")
 
-# 检查上次使用的包管理器
+# 检查上次使用的包管理器（前端）
 check_package_manager_change() {
     local current_manager=$1
     local previous_manager=""
@@ -163,6 +173,7 @@ check_package_manager_change() {
 # 检查必要工具
 check_go
 check_wails
+check_nodejs
 
 # 检查并处理包管理器切换
 check_package_manager_change "$PACKAGE_MANAGER"
@@ -175,7 +186,7 @@ echo "目标分支: $BRANCH_NAME"
 echo "构建模式: $BUILD_MODE"
 echo "========================================"
 
-echo "[1/5] 确认代码在 $BRANCH_NAME 分支..."
+echo "[1/7] 确认代码在 $BRANCH_NAME 分支..."
 CURRENT_BRANCH=$(git branch --show-current)
 if [ "$CURRENT_BRANCH" != "$BRANCH_NAME" ]; then
     echo "当前分支是 '$CURRENT_BRANCH'，正在切换到 $BRANCH_NAME 分支..."
@@ -187,27 +198,52 @@ else
     git pull origin "$BRANCH_NAME"
 fi
 
-echo "[2/5] 安装 Go 依赖..."
+echo "[2/7] 安装 Go 依赖..."
 go mod tidy
 
-echo "[3/5] 安装前端依赖..."
+echo "[3/7] 安装前端依赖..."
 cd ./frontend
 $PACKAGE_MANAGER_CMD install
 cd ..
 
+echo "[4/7] 安装 Node.js 后端依赖..."
+if [ -d "./nodejs-server" ]; then
+    cd ./nodejs-server
+    if [ -f "package.json" ]; then
+        $PACKAGE_MANAGER_CMD install
+        echo "Node.js 后端依赖安装完成"
+    else
+        echo "警告: nodejs-server/package.json 不存在，跳过依赖安装"
+    fi
+    cd ..
+else
+    echo "警告: nodejs-server 目录不存在，跳过依赖安装"
+fi
+
 if [ "$BUILD_MODE" = "build" ]; then
-    echo "[4/5] 构建生产版本..."
+    echo "[5/7] 构建前端生产资源..."
+    cd ./frontend
+    $PACKAGE_MANAGER_CMD run build
+    cd ..
+
+    echo "[6/7] 构建 macOS 应用..."
     "$WAILS_PATH" build -platform darwin/universal
 
-    echo "[5/5] 构建完成！"
+    echo "[7/7] 构建完成！"
     echo "========================================"
     echo "构建产物位于: build/bin/"
     echo "========================================"
     ls -la build/bin/
 else
-    echo "[4/5] 跳过生产构建（开发模式）"
-    echo "[5/5] 准备完成！"
+    echo "[5/7] 跳过前端生产构建（开发模式）"
+    echo "[6/7] 跳过应用构建（开发模式）"
+    echo "[7/7] 准备完成！"
     echo "========================================"
+    echo "开发模式信息:"
+    echo "  - Go + Node.js 后端服务将自动启动"
+    echo "  - 前端热重载已启用"
+    echo "  - SQLite 数据库: ~/.config/ppll-client/data.db"
+    echo ""
     echo "如需启动开发服务器，请运行: $WAILS_PATH dev"
     echo "如需构建生产版本，请运行: ./build-mac.sh -m=build"
     echo "========================================"
