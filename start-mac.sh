@@ -11,6 +11,7 @@ export PATH="$PATH:$HOME/go/bin"
 # 项目根目录
 PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 FRONTEND_DIR="${PROJECT_ROOT}/frontend"
+ENV_CHECK_FILE="${PROJECT_ROOT}/.env_checked"
 
 # 颜色输出
 GREEN='\033[0;32m'
@@ -81,8 +82,29 @@ check_dependencies() {
         cd "${FRONTEND_DIR}"
         npm install
         print_success "前端依赖安装完成"
-    else
-        print_success "前端依赖已就绪"
+    fi
+}
+
+# 完整环境检查（首次运行）
+full_env_check() {
+    print_info "首次运行，检查开发环境..."
+    check_go
+    check_node
+    check_npm
+    check_wails
+    check_dependencies
+    # 标记环境已检查
+    echo "$(date +%Y%m%d)" > "${ENV_CHECK_FILE}"
+    print_success "环境检查完成，后续启动将跳过检查"
+    echo ""
+}
+
+# 快速检查（仅检查 node_modules）
+quick_check() {
+    if [ ! -d "${FRONTEND_DIR}/node_modules" ]; then
+        print_warning "前端依赖缺失，正在安装..."
+        cd "${FRONTEND_DIR}"
+        npm install
     fi
 }
 
@@ -97,30 +119,52 @@ cleanup() {
 # 捕获退出信号
 trap cleanup SIGINT SIGTERM
 
+# 显示帮助
+show_help() {
+    echo "用法: $0 [选项]"
+    echo ""
+    echo "选项:"
+    echo "  -q, --quick   快速启动（跳过环境检查）"
+    echo "  -h, --help    显示帮助信息"
+    echo ""
+    echo "默认行为: 执行完整环境检查"
+}
+
 # 主流程
 main() {
+    # 解析参数
+    QUICK_START=false
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -q|--quick)
+                QUICK_START=true
+                shift
+                ;;
+            -h|--help)
+                show_help
+                exit 0
+                ;;
+            *)
+                shift
+                ;;
+        esac
+    done
+
     echo ""
     echo "=========================================="
-    echo "  PPLL Native Client 启动脚本 (macOS)"
+    echo "  PPLL Native Client 启动"
     echo "=========================================="
     echo ""
 
-    # 检查环境
-    print_info "检查开发环境..."
-    check_go
-    check_node
-    check_npm
-    check_wails
+    # 判断启动模式
+    if [ "$QUICK_START" = true ]; then
+        print_info "快速启动模式"
+        quick_check
+    else
+        full_env_check
+    fi
 
-    echo ""
-
-    # 检查并安装依赖
-    check_dependencies
-
-    echo ""
-    echo "=========================================="
     print_info "启动 Wails 开发服务器..."
-    echo "=========================================="
     echo ""
 
     # 启动 Wails 开发模式
