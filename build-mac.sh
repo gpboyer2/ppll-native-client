@@ -210,7 +210,18 @@ echo "[4/7] 安装 Node.js 后端依赖..."
 if [ -d "./nodejs-server" ]; then
     cd ./nodejs-server
     if [ -f "package.json" ]; then
-        $PACKAGE_MANAGER_CMD install
+        # 如果使用 pnpm，使用参数允许构建脚本
+        if [ "$PACKAGE_MANAGER" = "pnpm" ]; then
+            echo "检测到 pnpm，使用 --ignore-scripts=false 允许原生模块构建..."
+            $PACKAGE_MANAGER_CMD install --ignore-scripts=false
+
+            # 额外确保 sqlite3 原生模块已编译
+            echo "确保 sqlite3 原生模块已编译..."
+            $PACKAGE_MANAGER_CMD rebuild sqlite3 2>&1 || echo "注意: sqlite3 重建执行完毕"
+        else
+            $PACKAGE_MANAGER_CMD install
+        fi
+
         echo "Node.js 后端依赖安装完成"
     else
         echo "警告: nodejs-server/package.json 不存在，跳过依赖安装"
