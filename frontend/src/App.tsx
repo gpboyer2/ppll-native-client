@@ -6,6 +6,7 @@ import PluginsPage from './pages/PluginsPage';
 import GridStrategyListPage from './pages/GridStrategy';
 import GridStrategyEditPage from './pages/GridStrategy/edit';
 import { navItems, ROUTES } from './router';
+import { ThemeToggle } from './components/ThemeToggle';
 
 // 导航组件
 function Navigation() {
@@ -32,7 +33,7 @@ function Navigation() {
                     <img src={logo} alt="PPLL Logo" style={{ width: '32px', height: '32px' }} />
                     <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>PPLL 量化交易客户端</span>
                 </div>
-                <div className="flex gap-8">
+                <div className="flex gap-8 items-center">
                     {navItems.map(item => {
                         const isActive = location.pathname === item.path ||
                             (item.path === '/plugins' && location.pathname.startsWith('/plugins'));
@@ -67,6 +68,8 @@ function Navigation() {
                         <span>📊</span>
                         <span>网格策略</span>
                     </Link>
+                    {/* 主题切换按钮 */}
+                    <ThemeToggle />
                 </div>
             </div>
         </nav>
