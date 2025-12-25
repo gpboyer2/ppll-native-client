@@ -6,7 +6,7 @@ const db = require("../models");
 const Robot = db.robots;
 const httpStatus = require('http-status');
 const InfiniteLongGrid = require('../plugin/umInfiniteGrid.js');
-const wsClient = require("../plugin/websocketClient.js")
+const { createWsClient } = require("../plugin/websocketClient.js");
 const ApiError = require('../utils/ApiError');
 
 
@@ -28,43 +28,34 @@ const createRobot = async (params) => {
 
 
 const createSymbolWebsocket = async (params) => {
-    // todo 需要此功能
-    // wsClient.config({
-    //     api_key: params.apiKey,
-    //     api_secret: params.apiSecret,
-    // })
+    // 使用传入的 API 密钥创建独立的 WebSocket 客户端
+    const wsClient = createWsClient({
+        apiKey: params.apiKey,
+        apiSecret: params.apiSecret,
+        beautify: true,
+    });
 
-    debugger
     wsClient.subscribeContinuousContractKlines(params.tradingPair, 'perpetual', '1m', 'usdm');
 
     let wealthySoon = new InfiniteLongGrid(params);
     wealthySoon.initOrders();
 
-    // todo 需要此功能
-    // wealthySoon.on('orders', res => {
-    //     console.log(res);
-    // })
-
     wsClient.on('formattedMessage', (data) => {
         // K线
-        // wsClient.subscribeContinuousContractKlines
-        // close 是最新价格
         if (data.eventType === 'continuous_kline') {
             let { close } = data.kline;
             wealthySoon.gridWebsocket({ latestPrice: close });
         }
 
         // 最新标记价格
-        // wsClient.subscribeMarkPrice
-        // markPrice 是标记价格
         if (data.eventType === 'markPriceUpdate') {
             let { markPrice } = data;
-            // console.log(markPrice);
             wealthySoon.gridWebsocket({ latestPrice: markPrice });
         }
     });
 
-    return wealthySoon;
+    // 返回客户端实例，便于外部管理和清理
+    return { wealthySoon, wsClient };
 };
 
 

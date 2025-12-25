@@ -45,8 +45,8 @@ const db = {};
 const sequelizeOptions = {
   ...config,
   storage: storagePath,
-  // 通过环境变量 DISABLE_SQL_LOGGING 控制日志显示
-  logging: process.env.DISABLE_SQL_LOGGING === 'true' ? false : console.log,
+  // 日志由 Go 端统一控制：默认不打印，debug 模式打印
+  logging: false,
   // SQLite 特定配置
   dialectOptions: {
     // 启用外键约束

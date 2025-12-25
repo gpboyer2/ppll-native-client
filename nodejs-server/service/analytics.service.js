@@ -161,8 +161,8 @@ async function batchLogUserActions(logs) {
     }));
 
     await OperationLogModel.bulkCreate(formattedLogs, {
-      // 通过环境变量控制此批量操作的SQL日志显示
-      logging: process.env.DISABLE_SQL_LOGGING === 'true' ? false : console.log
+      // 日志由 Go 端统一控制：默认不打印
+      logging: false
     });
   } catch (err) {
     console.error('Failed to batch log user actions:', err);

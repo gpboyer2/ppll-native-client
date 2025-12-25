@@ -19,6 +19,24 @@ const morgan = require("morgan");
 const WebSocketConnectionManager = require("./managers/WebSocketConnectionManager");
 const gitInfoMiddleware = require("./middleware/git-info");
 
+// ==================== 全局异常处理 ====================
+// 捕获未处理的 Promise 拒绝
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('===== UNHANDLED REJECTION =====');
+    console.error('Reason:', reason);
+    // 不退出进程，记录错误后继续运行
+    // WebSocket 连接错误等不应导致服务退出
+});
+
+// 捕获未捕获的异常
+process.on('uncaughtException', (error) => {
+    console.error('===== UNCAUGHT EXCEPTION =====');
+    console.error('Error:', error.message);
+    console.error('Stack:', error.stack);
+    // 不退出进程，记录错误后继续运行
+    // 某些第三方库可能会抛出非致命异常
+});
+
 const corsOptions = {
     origin: function (origin, callback) {
         // 无 origin 头（直接请求、Postman、curl 等）直接允许
@@ -151,9 +169,62 @@ app.use(function (req, res, next) {
 });
 
 const SocketIOManager = require("./managers/SocketIOManager");
+const { execSync } = require("child_process");
+
+/**
+ * 清理占用指定端口的进程
+ * @param {number} port - 要清理的端口号
+ */
+function killProcessOnPort(port) {
+    try {
+        const platform = process.platform;
+        let pids = [];
+        
+        if (platform === 'darwin' || platform === 'linux') {
+            // macOS / Linux: 使用 lsof 查找占用端口的进程
+            const result = execSync(`lsof -ti:${port} 2>/dev/null || true`, { encoding: 'utf8' });
+            pids = result.trim().split('\n').filter(pid => pid);
+        } else if (platform === 'win32') {
+            // Windows: 使用 netstat 查找占用端口的进程
+            const result = execSync(`netstat -ano | findstr :${port}`, { encoding: 'utf8' });
+            const lines = result.trim().split('\n');
+            lines.forEach(line => {
+                const parts = line.trim().split(/\s+/);
+                const pid = parts[parts.length - 1];
+                if (pid && !isNaN(pid) && !pids.includes(pid)) {
+                    pids.push(pid);
+                }
+            });
+        }
+        
+        if (pids.length > 0) {
+            console.log(`[端口清理] 发现端口 ${port} 被占用，正在清理进程: ${pids.join(', ')}`);
+            pids.forEach(pid => {
+                try {
+                    if (platform === 'win32') {
+                        execSync(`taskkill /F /PID ${pid}`, { encoding: 'utf8' });
+                    } else {
+                        execSync(`kill -9 ${pid}`, { encoding: 'utf8' });
+                    }
+                    console.log(`[端口清理] 已终止进程 ${pid}`);
+                } catch (e) {
+                    // 进程可能已经退出，忽略错误
+                }
+            });
+            // 等待端口释放
+            execSync('sleep 1');
+        }
+    } catch (error) {
+        // 没有进程占用端口或命令执行失败，忽略
+    }
+}
 
 // start server
 const port = process.env.PORT || 54321;
+
+// 启动前清理占用端口的进程
+killProcessOnPort(port);
+
 const server = app.listen(port, () => {
     ipUtil.ipinfo();
 
@@ -165,7 +236,9 @@ const server = app.listen(port, () => {
         // 监听 WebSocket 连接管理器的错误事件，防止未处理的错误导致服务崩溃
         // WebSocket 连接错误是正常现象，binance 客户端会自动重连
         // 在Nodejs中, error 事件：没有监听器时，emit 会抛出异常，导致程序崩溃
-        global.wsManager.on('error', (errorData) => { });
+        global.wsManager.on('error', (errorData) => {
+            // 静默处理，避免日志刷屏
+        });
 
         // 初始化 Socket.IO，传入 wsManager 实例
         SocketIOManager.init(server, global.wsManager);
@@ -178,17 +251,27 @@ const server = app.listen(port, () => {
     });
 });
 
+// 安全地加载模块，避免单个模块错误导致整个服务崩溃
+const safeRequire = (modulePath, moduleName) => {
+    try {
+        require(modulePath);
+        console.log(`✅ ${moduleName} 模块加载成功`);
+    } catch (error) {
+        console.error(`❌ ${moduleName} 模块加载失败:`, error.message);
+    }
+};
+
 // 全市场最新标记价格 监听
-require("./jobs/markPriceStream.js");
+safeRequire("./jobs/markPriceStream.js", "标记价格流");
 
 // 在应用启动时执行一次用户表备份
-require("./jobs/backupUsers.js");
+safeRequire("./jobs/backupUsers.js", "用户备份");
 
 // 服务启动或重启时恢复策略
-require("./jobs/restoreStrategiesOnStartup.js");
+safeRequire("./jobs/restoreStrategiesOnStartup.js", "策略恢复");
 
 // 服务启动或重启时 去读git分支与版本信息
-require("./jobs/git.js");
+safeRequire("./jobs/git.js", "Git信息");
 
 // 在app.js中获取git信息并存储到global.gitInfo
 // 确保git.js模块已经执行完成
@@ -200,7 +283,7 @@ if (global.GIT_INFO) {
 }
 
 // 服务启动或重启时, 每隔一段时间更新一次 24h涨跌幅排序 数据
-require("./jobs/getGateAllCoinList.js");
+safeRequire("./jobs/getGateAllCoinList.js", "币种列表更新");
 
 // 定时清理 record-debug 和 record-log 目录中超过一个月的文件
-require("./jobs/cleanOldLogs.js");
+safeRequire("./jobs/cleanOldLogs.js", "日志清理");

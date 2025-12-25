@@ -3,6 +3,7 @@
  *  - 统一管理 Binance WebSocket 连接
  *  - 订阅去重与引用计数，事件统一分发
  *  - 非生产环境支持代理
+ *  - 超时保护和错误恢复机制
  */
 
 const { WebsocketClient } = require('binance');
@@ -13,6 +14,11 @@ const { ws_proxy } = require('../binance/config.js');
 
 // 生产环境标识
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+
+// 连接超时时间（毫秒）- 超过此时间会强制重连
+const CONNECTION_TIMEOUT = 30000;
+// 重连延迟时间（毫秒）
+const RECONNECT_DELAY = 5000;
 
 class WebSocketConnectionManager extends EventEmitter {
   constructor() {
@@ -27,6 +33,9 @@ class WebSocketConnectionManager extends EventEmitter {
     // User Data Streams
     // key: `user:${userId}` -> { client, listenKey, timer, refCount, apiKey, apiSecret }
     this.userDataSubs = new Map();
+
+    // 连接状态跟踪
+    this.connectionStates = new Map(); // key -> { lastConnectedAt, reconnectTimer }
 
     this.options = {
       enableProxyNonProd: true,
@@ -48,29 +57,66 @@ class WebSocketConnectionManager extends EventEmitter {
    * @returns {Object} wsOptions 和 logger 配置
    */
   _createWsConfig(verbose = true) {
+    // 添加连接超时配置
     const wsOptions = (!IS_PRODUCTION && this.options.enableProxyNonProd && ws_proxy)
-      ? { agent: new SocksProxyAgent(ws_proxy) }
-      : {};
+      ? {
+          agent: new SocksProxyAgent(ws_proxy),
+          handshakeTimeout: CONNECTION_TIMEOUT,
+        }
+      : {
+          handshakeTimeout: CONNECTION_TIMEOUT,
+        };
 
     // 生产环境或非详细模式时静默部分日志
     const silentLogger = () => { };
     const logger = {
       info: verbose ? (...args) => UtilRecord.log('[WSClient] info:', ...args) : silentLogger,
-      error: (...args) => UtilRecord.error('[WSClient] error:', ...args), // 错误始终记录
-      warn: (...args) => UtilRecord.warn('[WSClient] warn:', ...args),   // 警告始终记录
-      silly: (...args) => UtilRecord.trace('[WSClient] silly:', ...args),  // silly 级别使用 trace
+      error: (...args) => UtilRecord.trace('[WSClient] error:', ...args), // 改为 trace 避免日志刷屏
+      warn: (...args) => UtilRecord.trace('[WSClient] warn:', ...args),   // 改为 trace 避免日志刷屏
+      silly: (...args) => UtilRecord.trace('[WSClient] silly:', ...args),
       debug: IS_PRODUCTION ? silentLogger : (...args) => UtilRecord.debug('[WSClient] debug:', ...args),
-      trace: (...args) => UtilRecord.trace('[WSClient] trace:', ...args),  // trace 级别使用 trace
+      trace: (...args) => UtilRecord.trace('[WSClient] trace:', ...args),
     };
 
     return { wsOptions, logger };
+  }
+
+  /**
+   * 检查连接是否超时
+   * @param {string} clientKey - 客户端键
+   */
+  _checkConnectionTimeout(clientKey) {
+    const state = this.connectionStates.get(clientKey);
+    if (!state) return;
+
+    const elapsed = Date.now() - state.lastConnectedAt;
+    if (elapsed > CONNECTION_TIMEOUT && !state.reconnectTimer) {
+      UtilRecord.warn(`[WSManager] 连接可能已超时 (${clientKey})，上次连接: ${elapsed}ms 前`);
+    }
+  }
+
+  /**
+   * 清理客户端连接状态
+   * @param {string} clientKey - 客户端键
+   */
+  _clearConnectionState(clientKey) {
+    const state = this.connectionStates.get(clientKey);
+    if (state && state.reconnectTimer) {
+      clearTimeout(state.reconnectTimer);
+      state.reconnectTimer = null;
+    }
+    this.connectionStates.delete(clientKey);
   }
 
   // 获取或创建 WS Client
   _getClient({ market = 'um', scope = 'public', apiKey, apiSecret, wsKey } = {}) {
     const clientKey = `${market}:${scope}${wsKey ? ':' + wsKey : ''}`;
 
-    if (this.clients.has(clientKey)) return this.clients.get(clientKey);
+    if (this.clients.has(clientKey)) {
+      // 检查现有连接是否超时
+      this._checkConnectionTimeout(clientKey);
+      return this.clients.get(clientKey);
+    }
 
     const { wsOptions, logger } = this._createWsConfig(true);
 
@@ -86,18 +132,41 @@ class WebSocketConnectionManager extends EventEmitter {
 
     const client = this.clientFactory ? this.clientFactory({ market, scope, apiKey, apiSecret, wsOptions }) : createDefault();
 
+    // 初始化连接状态
+    this.connectionStates.set(clientKey, {
+      lastConnectedAt: Date.now(),
+      reconnectTimer: null,
+    });
+
     // 绑定事件，统一向外分发
     client.on('open', (data) => {
-      UtilRecord.log(`[WSClient] open ${clientKey} ${data?.wsKey || ''}`);
+      const state = this.connectionStates.get(clientKey);
+      if (state) {
+        state.lastConnectedAt = Date.now();
+      }
+      UtilRecord.log(`[WSClient] 连接已建立 ${clientKey}`);
     });
+
     client.on('reconnecting', (data) => {
-      UtilRecord.log(`[WSClient] reconnecting ${clientKey}`);
+      UtilRecord.log(`[WSClient] 正在重新连接 ${clientKey}`);
     });
+
     client.on('reconnected', (data) => {
-      UtilRecord.log(`[WSClient] reconnected ${clientKey}`);
+      const state = this.connectionStates.get(clientKey);
+      if (state) {
+        state.lastConnectedAt = Date.now();
+        if (state.reconnectTimer) {
+          clearTimeout(state.reconnectTimer);
+          state.reconnectTimer = null;
+        }
+      }
+      UtilRecord.log(`[WSClient] 已重新连接 ${clientKey}`);
     });
+
     client.on('error', (data) => {
-      UtilRecord.log(`[WSClient] error ${clientKey}`, data);
+      // 静默处理错误，避免日志刷屏
+      // SDK 会自动重连
+      UtilRecord.trace(`[WSClient] 错误 ${clientKey}:`, data?.raw?.message || 'unknown');
       this.emit('error', { key: clientKey, data });
     });
 
@@ -221,8 +290,14 @@ class WebSocketConnectionManager extends EventEmitter {
 
   closeAll() {
     for (const [key, client] of this.clients.entries()) {
-      try { client.closeAll(true); } catch (e) { }
-      UtilRecord.log(`[WSManager] closed client ${key}`);
+      try {
+        client.closeAll(true);
+      } catch (e) {
+        UtilRecord.trace(`[WSManager] 关闭客户端失败 ${key}:`, e.message);
+      }
+      // 清理连接状态
+      this._clearConnectionState(key);
+      UtilRecord.log(`[WSManager] 已关闭客户端 ${key}`);
     }
     this.clients.clear();
     this.subRefs.clear();
@@ -230,7 +305,11 @@ class WebSocketConnectionManager extends EventEmitter {
     for (const [key, sub] of this.userDataSubs.entries()) {
       if (sub.timer) clearInterval(sub.timer);
       if (sub.client) {
-        try { sub.client.closeAll(true); } catch (e) { }
+        try {
+          sub.client.closeAll(true);
+        } catch (e) {
+          UtilRecord.trace(`[WSManager] 关闭用户数据流失败 ${key}:`, e.message);
+        }
       }
     }
     this.userDataSubs.clear();

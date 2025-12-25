@@ -144,8 +144,7 @@ func (s *NodejsService) Start() error {
 	s.healthCheckDone = make(chan struct{})
 
 	// 启动日志监听
-	s.goLogListener(stdout, stderr, "stdout")
-	s.goLogListener(stderr, nil, "stderr")
+	s.goLogListener(stdout, stderr)
 
 	// 等待进程结束
 	s.goWaitForExit()
@@ -343,7 +342,6 @@ func (s *NodejsService) buildEnv(baseEnv []string) []string {
 	env = append(env, "NODE_ENV=production")
 	env = append(env, fmt.Sprintf("PORT=%d", s.port))
 	env = append(env, "DISABLE_RATE_LIMIT=true")
-	env = append(env, "DISABLE_SQL_LOGGING=false")
 
 	// 添加 SQLite 数据库路径
 	if s.dbPath != "" {
@@ -355,21 +353,27 @@ func (s *NodejsService) buildEnv(baseEnv []string) []string {
 }
 
 // goLogListener 启动日志监听协程
-func (s *NodejsService) goLogListener(reader io.Reader, otherReader io.Reader, name string) {
-	go func() {
-		scanner := bufio.NewScanner(reader)
-		for scanner.Scan() {
-			line := scanner.Text()
-			s.log.Info("[Node.js "+name+"] "+line)
-		}
-	}()
-
-	if otherReader != nil {
+// stdout: 仅在 debug 模式打印
+// stderr: 始终打印（错误日志）
+func (s *NodejsService) goLogListener(stdout io.Reader, stderr io.Reader) {
+	// stdout 监听：仅 debug 模式打印
+	if stdout != nil {
 		go func() {
-			scanner := bufio.NewScanner(otherReader)
+			scanner := bufio.NewScanner(stdout)
 			for scanner.Scan() {
 				line := scanner.Text()
-				s.log.Info("[Node.js "+name+"] "+line)
+				s.log.Debug("[Node.js stdout] " + line)
+			}
+		}()
+	}
+
+	// stderr 监听：始终打印（错误日志）
+	if stderr != nil {
+		go func() {
+			scanner := bufio.NewScanner(stderr)
+			for scanner.Scan() {
+				line := scanner.Text()
+				s.log.Error("[Node.js stderr] " + line)
 			}
 		}()
 	}

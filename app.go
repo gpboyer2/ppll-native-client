@@ -35,8 +35,13 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
     a.ctx = ctx
 
-    // 初始化日志（控制台简单日志）
-    a.log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
+    // 初始化日志：根据 DEBUG 环境变量设置日志级别
+    // DEBUG=1 或 DEBUG=true 启用 debug 模式
+    logLevel := slog.LevelInfo
+    if os.Getenv("DEBUG") == "true" || os.Getenv("DEBUG") == "1" {
+        logLevel = slog.LevelDebug
+    }
+    a.log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
 
     // 1. 初始化数据库服务（必须在最前面，因为其他服务可能依赖）
     a.log.Info("正在初始化 SQLite 数据库...")
