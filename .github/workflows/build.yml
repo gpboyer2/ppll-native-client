@@ -3,15 +3,8 @@ name: Build Multi-Platform
 # 触发条件
 on:
   push:
-    branches:
-      - master
-      - develop
     tags:
       - 'v*'
-  pull_request:
-    branches:
-      - master
-      - develop
   workflow_dispatch:  # 允许手动触发
 
 # 构建矩阵
