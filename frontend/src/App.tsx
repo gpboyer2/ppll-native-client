@@ -24,9 +24,6 @@ function Navigation() {
         return null;
     }
 
-    // 判断网格策略页面是否激活
-    const isGridStrategyActive = location.pathname.startsWith('/grid-strategy');
-
     return (
         <nav className="surface p-12 mb-16">
             <div className="flex items-center space-between">
@@ -55,20 +52,6 @@ function Navigation() {
                             </Link>
                         );
                     })}
-                    {/* 网格策略导航链接 */}
-                    <Link
-                        to={ROUTES.GRID_STRATEGY}
-                        className={`btn ${isGridStrategyActive ? 'btn-primary' : 'btn-outline'}`}
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            textDecoration: 'none'
-                        }}
-                    >
-                        <span>📊</span>
-                        <span>网格策略</span>
-                    </Link>
                     {/* 主题切换按钮 */}
                     <ThemeToggle />
                 </div>
