@@ -14,9 +14,13 @@ export function ThemeToggle({ className = '' }: ThemeToggleProps) {
 
     const isDark = theme === 'dark';
 
+    const handleClick = () => {
+        toggleTheme();
+    };
+
     return (
         <button
-            onClick={toggleTheme}
+            onClick={handleClick}
             className={`btn btn-ghost ${className}`}
             style={{
                 width: '36px',
