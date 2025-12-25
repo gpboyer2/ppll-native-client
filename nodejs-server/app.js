@@ -21,24 +21,27 @@ const gitInfoMiddleware = require("./middleware/git-info");
 
 const corsOptions = {
     origin: function (origin, callback) {
-        // 开发环境：允许本地来源（localhost / 127.0.0.1）或无 origin（如 Postman/curl）
-        if (process.env.NODE_ENV === 'development') {
-            // 无 origin 头（直接请求、Postman、curl 等）直接允许
-            if (!origin) {
-                return callback(null, true);
-            }
-            // 允许 localhost 和 127.0.0.1 的任意端口
-            if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
-                return callback(null, true);
-            }
-            // 允许任何本机请求
+        // 无 origin 头（直接请求、Postman、curl 等）直接允许
+        if (!origin) {
             return callback(null, true);
         }
+
+        // 允许 localhost 和 127.0.0.1 的任意端口（桌面客户端本地访问）
+        if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+            return callback(null, true);
+        }
+
+        // 开发环境：允许任何本机请求
+        if (process.env.NODE_ENV === 'development') {
+            return callback(null, true);
+        }
+
         // 生产环境白名单
         const whitelist = ["http://156.245.200.31"];
         if (whitelist.includes(origin)) {
             return callback(null, true);
         }
+
         callback(new Error('CORS 不允许的来源'));
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -95,14 +98,14 @@ if (process.env.DISABLE_RATE_LIMIT === 'true') {
 app.use(gitInfoMiddleware());
 
 // 启动时同步模型与数据库
-// 🈲️止生产环境使用
-// db.sequelize.sync()
-//     .then(() => {
-//         console.log("sync db.");
-//     })
-//     .catch((err) => {
-//         console.log("Failed to sync db: " + err.message);
-//     });
+// 注意：桌面客户端本地 SQLite 数据库可以安全启用自动同步
+db.sequelize.sync()
+    .then(() => {
+        console.log("数据库同步成功，表结构已创建/更新");
+    })
+    .catch((err) => {
+        console.log("数据库同步失败: " + err.message);
+    });
 
 // jwt authentication
 app.use(passport.initialize());

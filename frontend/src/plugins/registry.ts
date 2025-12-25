@@ -10,6 +10,7 @@ const loaders: Record<string, Loader> = {
   'u-contract-market': async () => (await import('./u-contract-market')).default,
   'u-grid-t': async () => (await import('./u-grid-t')).default,
   'u-grid-tdz': async () => (await import('./u-grid-tdz')).default,
+  'coin-funding-rate-arbitrage': async () => (await import('./coin-funding-rate-arbitrage')).default,
 }
 
 const instances = new Map<string, Plugin>()

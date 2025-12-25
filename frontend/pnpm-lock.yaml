@@ -23,6 +23,9 @@ importers:
       '@mantine/notifications':
         specifier: ^8.3.7
         version: 8.3.7(@mantine/core@8.3.7(@mantine/hooks@8.3.7(react@18.3.1))(@types/react@18.3.26)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(@mantine/hooks@8.3.7(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@tabler/icons-react':
+        specifier: ^3.36.0
+        version: 3.36.0(react@18.3.1)
       react:
         specifier: ^18.2.0
         version: 18.3.1
@@ -371,6 +374,14 @@ packages:
   '@remix-run/router@1.23.0':
     resolution: {integrity: sha512-O3rHJzAQKamUz1fvE0Qaw0xSFqsA/yafi2iqeE0pvdFtCO1viYx8QL6f3Ln/aCCTLxs68SLf0KPM9eSeM8yBnA==}
     engines: {node: '>=14.0.0'}
+
+  '@tabler/icons-react@3.36.0':
+    resolution: {integrity: sha512-sSZ00bEjTdTTskVFykq294RJq+9cFatwy4uYa78HcYBCXU1kSD1DIp5yoFsQXmybkIOKCjp18OnhAYk553UIfQ==}
+    peerDependencies:
+      react: '>= 16'
+
+  '@tabler/icons@3.36.0':
+    resolution: {integrity: sha512-z9OfTEG6QbaQWM9KBOxxUdpgvMUn0atageXyiaSc2gmYm51ORO8Ua7eUcjlks+Dc0YMK4rrodAFdK9SfjJ4ZcA==}
 
   '@types/parse-json@4.0.2':
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
@@ -1344,6 +1355,13 @@ snapshots:
     optional: true
 
   '@remix-run/router@1.23.0': {}
+
+  '@tabler/icons-react@3.36.0(react@18.3.1)':
+    dependencies:
+      '@tabler/icons': 3.36.0
+      react: 18.3.1
+
+  '@tabler/icons@3.36.0': {}
 
   '@types/parse-json@4.0.2': {}
 

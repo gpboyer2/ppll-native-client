@@ -88,6 +88,22 @@ export const pluginConfig: Record<string, PluginConfig> = {
     defaultEnable: false,
     status: 'coming-soon',
     referenceUrl: 'https://nof1.ai/'
+  },
+  'u-funding-rate-arbitrage': {
+    name: 'U本位资金费率套利',
+    description: '利用永续合约资金费率进行套利，通过现货与合约对冲获取稳定收益',
+    icon: '💰',
+    category: '交易策略',
+    version: '0.1.0',
+    defaultEnable: false
+  },
+  'coin-funding-rate-arbitrage': {
+    name: '币本位合约资金费率套利',
+    description: '利用币本位永续合约资金费率进行套利，通过现货与合约对冲获取稳定收益',
+    icon: '💎',
+    category: '交易策略',
+    version: '0.1.0',
+    defaultEnable: false
   }
 };
 

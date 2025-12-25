@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -37,6 +38,7 @@ type NodejsService struct {
 
 	cancel         context.CancelFunc
 	outputDone     chan struct{}
+	healthCheckDone chan struct{}
 }
 
 // Config NodejsService 配置
@@ -139,6 +141,7 @@ func (s *NodejsService) Start() error {
 	s.isRunning = true
 	s.startTime = time.Now()
 	s.outputDone = make(chan struct{})
+	s.healthCheckDone = make(chan struct{})
 
 	// 启动日志监听
 	s.goLogListener(stdout, stderr, "stdout")
@@ -146,6 +149,9 @@ func (s *NodejsService) Start() error {
 
 	// 等待进程结束
 	s.goWaitForExit()
+
+	// 启动健康检查
+	s.goHealthChecker()
 
 	s.log.Info("[Node.js] 服务启动成功", "pid", s.process.Pid)
 
@@ -162,6 +168,12 @@ func (s *NodejsService) Stop() error {
 	}
 
 	s.log.Info("[Node.js] 正在停止服务...")
+
+	// 停止健康检查
+	if s.healthCheckDone != nil {
+		close(s.healthCheckDone)
+		s.healthCheckDone = nil
+	}
 
 	// 取消上下文
 	if s.cancel != nil {
@@ -384,4 +396,78 @@ func (s *NodejsService) goWaitForExit() {
 			}
 		}
 	}()
+}
+
+// goHealthChecker 启动健康检查协程
+// 定期检查 Node.js API 服务是否正常响应
+func (s *NodejsService) goHealthChecker() {
+	go func() {
+		// 健康检查间隔
+		ticker := time.NewTicker(5 * time.Second)
+		defer ticker.Stop()
+
+		// 首次检查延迟，等待服务启动
+		time.Sleep(2 * time.Second)
+
+		for {
+			select {
+			case <-s.healthCheckDone:
+				// 收到停止信号
+				return
+			case <-ticker.C:
+				s.performHealthCheck()
+			}
+		}
+	}()
+}
+
+// performHealthChecker 执行单次健康检查
+// 通过调用 /v1/hello 端点来验证服务是否正常
+func (s *NodejsService) performHealthCheck() {
+	// 构建健康检查 URL
+	healthURL := fmt.Sprintf("http://localhost:%d/v1/hello", s.port)
+
+	// 创建 HTTP 客户端，设置超时
+	client := &http.Client{
+		Timeout: 3 * time.Second,
+	}
+
+	// 发送 GET 请求
+	resp, err := client.Get(healthURL)
+	if err != nil {
+		s.mu.Lock()
+		wasHealthy := s.isHealthy
+		s.isHealthy = false
+		s.lastHealthCheck = time.Now()
+		s.mu.Unlock()
+
+		if wasHealthy {
+			s.log.Warn("[Node.js] 健康检查失败", "error", err)
+		}
+		return
+	}
+	defer resp.Body.Close()
+
+	// 检查响应状态码
+	if resp.StatusCode == http.StatusOK {
+		s.mu.Lock()
+		wasHealthy := s.isHealthy
+		s.isHealthy = true
+		s.lastHealthCheck = time.Now()
+		s.mu.Unlock()
+
+		if !wasHealthy {
+			s.log.Info("[Node.js] 健康检查通过")
+		}
+	} else {
+		s.mu.Lock()
+		wasHealthy := s.isHealthy
+		s.isHealthy = false
+		s.lastHealthCheck = time.Now()
+		s.mu.Unlock()
+
+		if wasHealthy {
+			s.log.Warn("[Node.js] 健康检查失败", "statusCode", resp.StatusCode)
+		}
+	}
 }
