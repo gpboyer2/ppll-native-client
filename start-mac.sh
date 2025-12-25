@@ -93,8 +93,8 @@ full_env_check() {
     check_npm
     check_wails
     check_dependencies
-    # 标记环境已检查
-    echo "$(date +%Y%m%d)" > "${ENV_CHECK_FILE}"
+    # 标记环境已检查（使用时间戳：年月日时分秒）
+    echo "$(date +%Y%m%d%H%M%S)" > "${ENV_CHECK_FILE}"
     print_success "环境检查完成，后续启动将跳过检查"
     echo ""
 }

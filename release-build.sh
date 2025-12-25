@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # PPLL Native Client 构建发布脚本
-# 构建 macOS 应用并打标签
+# 构建 macOS 和 Windows 应用并打标签
 #
 # 使用方法:
 # chmod +x release-build.sh
@@ -120,16 +120,16 @@ echo "推送目标分支: $PUSH_BRANCH"
 echo "标签版本: $TAG_VERSION"
 echo "========================================="
 
-# 1. 执行构建
-echo "[步骤 1/6] 执行构建..."
-./build-mac.sh -n="$PACKAGE_MANAGER" -b="$BRANCH_NAME" -m=build
+# 1. 执行多平台构建
+echo "[步骤 1/5] 执行多平台构建..."
+./build-platforms.sh -n="$PACKAGE_MANAGER" -b="$BRANCH_NAME"
 
 # 2. 添加构建产物到git
-echo "[步骤 2/6] 添加构建产物..."
-git add -f build/bin/
+echo "[步骤 2/5] 添加构建产物到git..."
+git add -f build/*.dmg build/*.exe
 
 # 3. 提交构建产物
-echo "[步骤 3/6] 提交构建产物..."
+echo "[步骤 3/5] 提交构建产物..."
 COMMIT_MESSAGE="build: 部署构建产物 - 版本 $TAG_VERSION
 
 构建信息:
@@ -137,14 +137,14 @@ COMMIT_MESSAGE="build: 部署构建产物 - 版本 $TAG_VERSION
 - 源代码分支: $BRANCH_NAME
 - 构建时间: $(date '+%Y-%m-%d %H:%M:%S')
 - 标签版本: $TAG_VERSION
-- 平台: macOS universal
+- 平台: macOS (Intel/ARM/Universal) + Windows (x64/arm64)
 
-此提交包含 macOS 应用构建产物，仅用于发布目的。"
+此提交包含跨平台应用安装包，仅用于发布目的。"
 
 git commit -m "$COMMIT_MESSAGE"
 
 # 4. 推送到指定分支
-echo "[步骤 4/6] 推送到 $PUSH_BRANCH 分支..."
+echo "[步骤 4/5] 推送到 $PUSH_BRANCH 分支..."
 if [ "$BRANCH_NAME" != "$PUSH_BRANCH" ]; then
     git checkout "$PUSH_BRANCH"
     git pull origin "$PUSH_BRANCH"
@@ -155,10 +155,10 @@ git push origin "$PUSH_BRANCH"
 
 # 5. 创建标签（如果需要）
 if [ "$SKIP_TAG" = true ]; then
-    echo "[步骤 5/6] 跳过标签创建（当前commit已有标签）..."
+    echo "[步骤 5/5] 跳过标签创建（当前commit已有标签）..."
     echo "已存在的标签: $EXISTING_TAGS"
 else
-    echo "[步骤 5/6] 创建标签 $TAG_VERSION..."
+    echo "[步骤 5/5] 创建标签 $TAG_VERSION..."
     git tag -a "$TAG_VERSION" -m "版本 $TAG_VERSION
 
 版本信息:
@@ -166,21 +166,14 @@ else
 - 部署分支: $PUSH_BRANCH
 - 包管理器: $PACKAGE_MANAGER
 - 构建时间: $(date '+%Y-%m-%d %H:%M:%S')
-- 平台: macOS universal
+- 平台: macOS (Intel/ARM/Universal) + Windows (x64/arm64)
 - 标签类型: 构建发布标签
 
-此标签标记了 PPLL Native Client macOS 应用的发布版本。"
-fi
-
-# 6. 推送标签到远程（如果需要）
-if [ "$SKIP_TAG" = true ]; then
-    echo "[步骤 6/6] 跳过标签推送（当前commit已有标签）..."
-else
-    echo "[步骤 6/6] 推送标签到远程..."
+此标签标记了 PPLL Native Client 跨平台应用的发布版本。"
     git push origin "$TAG_VERSION"
 fi
 
-# 7. 显示完成信息
+# 6. 显示完成信息
 echo "========================================="
 echo "构建和发布完成！"
 echo "========================================="
@@ -188,7 +181,7 @@ echo "提交哈希: $(git rev-parse HEAD)"
 echo "标签版本: $TAG_VERSION"
 echo "源代码分支: $BRANCH_NAME"
 echo "部署分支: $PUSH_BRANCH"
-echo "构建产物: build/bin/"
+echo "构建产物: build/"
 
 if [ "$SKIP_TAG" = true ]; then
     echo "标签状态: 跳过创建（当前commit已有标签）"
@@ -199,6 +192,6 @@ fi
 
 echo "========================================="
 echo "构建产物列表:"
-ls -la build/bin/
+ls -lh build/*.dmg build/*.exe 2>/dev/null || ls -lh build/
 echo "========================================="
 echo "如需切换到此版本: git checkout $TAG_VERSION"

@@ -193,7 +193,7 @@
 
 ### 3.3 构建脚本改造
 
-**修改 build-mac.sh：**
+**修改 prepare-dev.sh：**
 - 添加 Node.js 检查函数
 - 添加安装 Node.js 后端依赖的步骤
 - 更新构建流程，包含前端、后端、Go 三部分的构建
@@ -217,7 +217,7 @@
 | go.sum | 同步更新依赖校验和 |
 | main.go | 添加 OnShutdown: app.shutdown 回调 |
 | app.go | 集成 DatabaseStore 和 NodejsService，添加相关方法 |
-| build-mac.sh | 添加 Node.js 检查和后端依赖安装步骤 |
+| prepare-dev.sh | 添加 Node.js 检查和后端依赖安装步骤 |
 | nodejs-server/config/database.json | 从 MySQL 改为 SQLite 配置 |
 | nodejs-server/models/index.js | 支持 SQLite 连接和环境变量读取 |
 | nodejs-server/package.json | 添加 sqlite3 依赖 |
@@ -275,7 +275,7 @@
 
 ```bash
 # 执行开发模式准备
-./build-mac.sh -m=dev
+./prepare-dev.sh -m=dev
 
 # 启动开发服务器
 /Users/peng/go/bin/wails dev
@@ -292,7 +292,7 @@
 
 ```bash
 # 构建生产版本
-./build-mac.sh -m=build
+./prepare-dev.sh -m=build
 ```
 
 **预期结果：**

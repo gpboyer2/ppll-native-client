@@ -10,8 +10,8 @@ const optionsV1 = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'API DOCS',
-            description: '小额对冲 API ',
+            title: 'PPLL Native Client API',
+            description: 'PPLL量化交易系统 API - 提供网格策略、订单管理、账户管理等核心功能',
             version: '1.0.0',
         },
     },
