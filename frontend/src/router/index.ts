@@ -4,6 +4,7 @@
 export const ROUTES = {
   HOME: '/',
   SETTINGS: '/settings',
+  SYSTEM_INFO: '/system-info',
   PLUGINS: '/plugins',
   PLUGIN_DETAIL: '/plugins/:id',
   GRID_STRATEGY: '/grid-strategy',
@@ -33,36 +34,121 @@ export const navItems = [
     icon: '⚙️',
     description: '系统配置与更新管理'
   },
-  // 功能内容还没有想好, 暂时隐藏
-  // {
-  //   path: '/plugins',
-  //   label: '插件',
-  //   icon: '🔧',
-  //   description: '插件管理与配置'
-  // }
+  {
+    path: '/system-info',
+    label: '系统信息',
+    icon: 'ℹ️',
+    description: '查看系统配置和服务状态'
+  },
 ];
 
-// 插件信息配置
-export const pluginInfo: Record<string, { name: string; description: string; icon: string; category: string }> = {
+// 插件信息配置（唯一数据源）
+export interface PluginConfig {
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+  version: string;
+  defaultEnable: boolean;
+  status?: 'coming-soon';
+  referenceUrl?: string;
+}
+
+export const pluginConfig: Record<string, PluginConfig> = {
   'u-contract-market': {
     name: 'U本位合约超市',
     description: '浏览与管理策略模板，支持搜索和收藏功能',
     icon: '📊',
-    category: '策略管理'
+    category: '策略管理',
+    version: '0.1.0',
+    defaultEnable: true
   },
   'u-grid-t': {
     name: '做T网格',
     description: '经典网格交易策略，适合震荡行情',
     icon: '🔄',
-    category: '交易策略'
+    category: '交易策略',
+    version: '0.1.0',
+    defaultEnable: true
   },
   'u-grid-tdz': {
     name: '天地针网格',
     description: '高频网格策略，捕捉短期价格波动',
     icon: '⚡',
-    category: '交易策略'
+    category: '交易策略',
+    version: '0.1.0',
+    defaultEnable: false
+  },
+  'ai-quant-agent': {
+    name: 'AI量化代理',
+    description: '基于AI的智能量化交易代理，参考 nof1.ai 设计',
+    icon: '🤖',
+    category: 'AI策略',
+    version: '0.0.1',
+    defaultEnable: false,
+    status: 'coming-soon',
+    referenceUrl: 'https://nof1.ai/'
   }
 };
+
+// 插件状态管理（纯前端，使用 localStorage）
+const PLUGIN_ENABLE_KEY = 'ppll-plugin-enable';
+
+function loadEnableMap(): Record<string, boolean> {
+  try {
+    const stored = localStorage.getItem(PLUGIN_ENABLE_KEY);
+    return stored ? JSON.parse(stored) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveEnableMap(map: Record<string, boolean>): void {
+  try {
+    localStorage.setItem(PLUGIN_ENABLE_KEY, JSON.stringify(map));
+  } catch {
+    // 忽略存储错误
+  }
+}
+
+// 插件列表项类型
+export interface PluginItem {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  category: string;
+  version: string;
+  enable: boolean;
+  status?: 'coming-soon';
+  referenceUrl?: string;
+}
+
+// 获取完整插件列表（合并配置和启用状态）
+export function getPluginList(): PluginItem[] {
+  const enableMap = loadEnableMap();
+  return Object.entries(pluginConfig).map(([id, config]) => ({
+    id,
+    name: config.name,
+    description: config.description,
+    icon: config.icon,
+    category: config.category,
+    version: config.version,
+    enable: enableMap[id] ?? config.defaultEnable,
+    status: config.status,
+    referenceUrl: config.referenceUrl,
+  }));
+}
+
+// 设置插件启用状态
+export function setPluginEnable(id: string, enable: boolean): void {
+  const map = loadEnableMap();
+  map[id] = enable;
+  saveEnableMap(map);
+}
+
+// 兼容旧代码的 pluginInfo 导出
+export const pluginInfo = pluginConfig;
 
 // Feed URL 示例配置
 export const feedURLExamples = [

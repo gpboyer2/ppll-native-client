@@ -144,9 +144,9 @@ pnpm run pm2:prod
 
 项目启动后，可通过以下地址访问交互式 API 文档：
 
-**Swagger UI**: [http://localhost:7002/v1/docs](http://localhost:7002/v1/docs)
+**Swagger UI**: [http://localhost:54321/v1/docs](http://localhost:54321/v1/docs)
 
-服务器默认运行在端口 `7002`，确保端口未被占用。
+服务器默认运行在端口 `54321`，确保端口未被占用。
 
 ## 🔧 核心模块详解
 
@@ -275,13 +275,13 @@ const gridConfig = {
 #### 开发环境
 ```bash
 NODE_ENV=development
-PORT=7002
+PORT=54321
 ```
 
 #### 生产环境
 ```bash
 NODE_ENV=production
-PORT=7002
+PORT=54321
 ```
 
 

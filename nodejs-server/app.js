@@ -21,11 +21,18 @@ const gitInfoMiddleware = require("./middleware/git-info");
 
 const corsOptions = {
     origin: function (origin, callback) {
-        // 开发环境：允许本地来源（localhost / 127.0.0.1）或无 origin（如 Postman）
+        // 开发环境：允许本地来源（localhost / 127.0.0.1）或无 origin（如 Postman/curl）
         if (process.env.NODE_ENV === 'development') {
-            if (!origin || /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+            // 无 origin 头（直接请求、Postman、curl 等）直接允许
+            if (!origin) {
                 return callback(null, true);
             }
+            // 允许 localhost 和 127.0.0.1 的任意端口
+            if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+                return callback(null, true);
+            }
+            // 允许任何本机请求
+            return callback(null, true);
         }
         // 生产环境白名单
         const whitelist = ["http://156.245.200.31"];
@@ -107,7 +114,10 @@ swaggerDocs(app, process.env.PORT);
 
 // error handler
 app.use(function (err, req, res, next) {
-    console.error(err.stack);
+    console.error('===== API ERROR =====');
+    console.error('URL:', req.originalUrl);
+    console.error('Method:', req.method);
+    console.error('Stack:', err.stack);
 
     // 处理 ApiError
     if (err.statusCode) {
@@ -140,7 +150,7 @@ app.use(function (req, res, next) {
 const SocketIOManager = require("./managers/SocketIOManager");
 
 // start server
-const port = process.env.PORT || 7002;
+const port = process.env.PORT || 54321;
 const server = app.listen(port, () => {
     ipUtil.ipinfo();
 

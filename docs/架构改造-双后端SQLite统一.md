@@ -131,7 +131,7 @@
 **Go 启动 Node.js 的方式：**
 1. Go 在应用启动时查找 Node.js 可执行文件
 2. 通过环境变量将数据库路径传递给 Node.js
-3. 启动 Node.js 子进程，监听指定端口（7002）
+3. 启动 Node.js 子进程，监听指定端口（54321）
 4. 监听 Node.js 进程的输出日志
 5. 应用关闭时自动停止 Node.js 进程
 
@@ -240,7 +240,7 @@
 **Node.js 环境变量：**
 - SQLITE_PATH - 数据库文件路径（由 Go 注入）
 - DB_TYPE=sqlite - 数据库类型标识
-- PORT=7002 - 服务端口
+- PORT=54321 - 服务端口
 - DISABLE_RATE_LIMIT=true - 开发环境禁用频率限制
 
 ### 4.4 运行流程
@@ -256,7 +256,7 @@
    - 查找 Node.js 可执行文件
    - 设置环境变量（包含数据库路径）
    - 执行 node nodejs-server/app.js
-8. Node.js 服务启动，监听 7002 端口
+8. Node.js 服务启动，监听 54321 端口
 9. React 前端加载完成
 10. 用户可以正常使用应用
 
@@ -286,7 +286,7 @@
 - 控制台显示数据库初始化成功
 - 控制台显示 Node.js 服务启动成功
 - 浏览器打开应用界面
-- 访问 http://localhost:7002 可以测试 Node.js 接口
+- 访问 http://localhost:54321 可以测试 Node.js 接口
 
 ### 5.2 生产构建验证
 

@@ -2,7 +2,7 @@
 
 ## 问题描述
 
-在访问 `http://localhost:7002/v1/docs` 后，点击各个接口的Execute按钮时，浏览器控制台出现错误：
+在访问 `http://localhost:54321/v1/docs` 后，点击各个接口的Execute按钮时，浏览器控制台出现错误：
 
 ```
 TypeError: Cannot read properties of null (reading 'get')
@@ -78,7 +78,7 @@ responseInterceptor: function (response) {
 
 修复后需要：
 1. 重启服务器
-2. 访问 `http://localhost:7002/v1/docs`
+2. 访问 `http://localhost:54321/v1/docs`
 3. 点击任意接口的Execute按钮
 4. 检查浏览器控制台是否还有相同错误
 

@@ -58,7 +58,7 @@ type Logger interface {
 // NewNodejsService 创建 Node.js 服务实例
 func NewNodejsService(ctx context.Context, log Logger, dbPath string, cfg Config) *NodejsService {
 	if cfg.Port == 0 {
-		cfg.Port = 7002 // 默认端口
+		cfg.Port = 54321 // 默认端口
 	}
 
 	return &NodejsService{

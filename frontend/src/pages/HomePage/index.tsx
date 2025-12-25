@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { notifications } from '../../notifications/store';
-import { PluginList } from '../../../wailsjs/go/main/App';
-import type { Response } from '../../core/response';
+import { getPluginList, type PluginItem } from '../../router';
 
 function HomePage() {
     const [notifyList, setNotifyList] = useState(notifications.list);
-    const [pluginList, setPluginList] = useState<{ id: string; name: string; enable: boolean; version: string }[]>([]);
+    const [pluginList, setPluginList] = useState<PluginItem[]>(() => getPluginList());
     const [isEditingShortcuts, setIsEditingShortcuts] = useState(false);
 
     // 通知系统初始化
@@ -16,19 +15,8 @@ function HomePage() {
         return () => clearInterval(timer);
     }, []);
 
-    // 获取插件状态
-    useEffect(() => {
-        async function fetchPlugins() {
-            const res: Response<{ pluginList: any[] }> = await PluginList();
-            if (res.code === 0 && res.data) {
-                setPluginList(res.data.pluginList);
-            }
-        }
-        fetchPlugins();
-    }, []);
-
     // 快速统计数据
-    const enabledPlugins = pluginList.filter(p => p.enable);
+    const enabledPluginList = pluginList.filter(p => p.enable && p.status !== 'coming-soon');
     const totalNotifications = notifyList.length;
     const recentNotifications = notifyList.slice(0, 3);
 
@@ -42,7 +30,7 @@ function HomePage() {
                             <div className="flex items-center space-between">
                                 <div>
                                     <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>已启用插件</div>
-                                    <div style={{ fontSize: 'var(--text-2xl)', fontWeight: 600, color: 'var(--color-primary)' }}>{enabledPlugins.length}</div>
+                                    <div style={{ fontSize: 'var(--text-2xl)', fontWeight: 600, color: 'var(--color-primary)' }}>{enabledPluginList.length}</div>
                                 </div>
                                 <div style={{ fontSize: '24px' }}>
                                     {/*  */}
@@ -101,9 +89,9 @@ function HomePage() {
                         </div>
                     </div>
                     <div className="card-content">
-                        {enabledPlugins.length > 0 ? (
+                        {enabledPluginList.length > 0 ? (
                             <div className="flex flex-col gap-8">
-                                {enabledPlugins.map(plugin => (
+                                {enabledPluginList.map(plugin => (
                                     <div key={plugin.id} className="flex items-center space-between p-8 rounded border">
                                         <div>
                                             <div style={{ fontWeight: 600 }}>{plugin.name || plugin.id}</div>
@@ -178,47 +166,38 @@ function HomePage() {
             <section className="surface p-16 mt-16">
                 <h3 style={{ margin: '0 0 12px', fontSize: 'var(--text-lg)' }}>全部插件</h3>
                 <div className="horizontal-scroll">
-                    {pluginList.length > 0 ? (
-                        pluginList.map(plugin => (
+                    {pluginList.map(plugin => {
+                        const isComingSoon = plugin.status === 'coming-soon';
+                        const isDisabled = !plugin.enable || isComingSoon;
+                        return (
                             <Link
                                 key={plugin.id}
-                                to={`/plugins/${plugin.id}`}
-                                className={`card ${!plugin.enable ? 'card-disabled' : ''}`}
+                                to={isComingSoon ? '#' : `/plugins/${plugin.id}`}
+                                className={`card ${isDisabled ? 'card-disabled' : ''}`}
                                 style={{
                                     textDecoration: 'none',
                                     minWidth: '160px',
                                     flexShrink: 0,
                                     transition: 'transform 0.2s ease',
-                                    position: 'relative'
+                                    position: 'relative',
+                                    pointerEvents: isComingSoon ? 'none' : 'auto'
                                 }}
-                                onMouseEnter={(e) => plugin.enable && (e.currentTarget.style.transform = 'translateY(-2px)')}
-                                onMouseLeave={(e) => plugin.enable && (e.currentTarget.style.transform = 'translateY(0)')}
+                                onMouseEnter={(e) => !isDisabled && (e.currentTarget.style.transform = 'translateY(-2px)')}
+                                onMouseLeave={(e) => !isDisabled && (e.currentTarget.style.transform = 'translateY(0)')}
                             >
-                                {!plugin.enable && <div className="permission-tooltip">插件无权限</div>}
+                                {isDisabled && !isComingSoon && <div className="permission-tooltip">插件无权限</div>}
                                 <div className="card-content" style={{ textAlign: 'center' }}>
-                                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>
-                                        {plugin.id === 'u-contract-market' ? '📊' :
-                                            plugin.id.includes('grid') ? '🔄' :
-                                                plugin.id.includes('needle') ? '⚡' :
-                                                    plugin.id.includes('setting') ? '⚙️' : '🔌'}
-                                    </div>
-                                    <div style={{ fontWeight: 600 }}>{plugin.name || plugin.id}</div>
+                                    <div style={{ fontSize: '32px', marginBottom: '8px' }}>{plugin.icon}</div>
+                                    <div style={{ fontWeight: 600 }}>{plugin.name}</div>
                                     <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>v{plugin.version}</div>
-                                    <div className={`tag ${plugin.enable ? 'success' : ''}`} style={{ marginTop: '4px', fontSize: '10px' }}>
-                                        {plugin.enable ? '已启用' : '无权限'}
+                                    <div className={`tag ${isComingSoon ? 'warn' : plugin.enable ? 'success' : ''}`} style={{ marginTop: '4px', fontSize: '10px' }}>
+                                        {isComingSoon ? '即将推出' : plugin.enable ? '已启用' : '无权限'}
                                     </div>
                                 </div>
                             </Link>
-                        ))
-                    ) : (
-                        <div className="text-muted" style={{ textAlign: 'center', padding: '24px', width: '100%' }}>
-                            <div style={{ fontSize: '48px', marginBottom: '8px' }}>🔌</div>
-                            <div>暂无插件</div>
-                            <Link to="/plugins" className="btn btn-outline mt-8">前往管理</Link>
-                        </div>
-                    )}
+                        );
+                    })}
                 </div>
-                {/* 横向滚动提示 */}
                 {pluginList.length > 4 && (
                     <div className="text-muted" style={{ fontSize: 'var(--text-xs)', textAlign: 'center', marginTop: '8px' }}>
                         ← 左右滑动查看更多插件 →

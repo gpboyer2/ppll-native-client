@@ -105,9 +105,6 @@ function swaggerDocs(app, port) {
         })(req, res, next);
     })
 
-    // set security HTTP headers
-    app.use(helmet());
-
     // Documentation in JSON format
     app.get('/v1/docs-json', (req, res) => {
         const module = req.query.module;

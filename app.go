@@ -73,7 +73,7 @@ func (a *App) startup(ctx context.Context) {
     a.log.Info("正在启动 Node.js 后端服务...")
     a.njs = services.NewNodejsService(ctx, a.logWrapper(), a.db.GetPath(), services.Config{
         ServerDir: "./nodejs-server",
-        Port:      7002,
+        Port:      54321,
     })
     if err := a.njs.Start(); err != nil {
         a.log.Error("Node.js 服务启动失败", "error", err)
@@ -246,33 +246,10 @@ func (a *App) NotifyDismiss(id string) services.Response[any] {
     return a.ns.Dismiss(id)
 }
 
-// ===== 插件相关（插拔式）=====
+// ===== 插件配置相关（插拔式）=====
+// 插件元数据和启用状态由前端管理，后端仅提供敏感配置的加密存储
 
-// PluginList 返回插件元数据列表
-func (a *App) PluginList() services.Response[services.PluginMetaList] {
-    if a.ps == nil {
-        return services.Err[services.PluginMetaList](1, "插件服务未初始化")
-    }
-    return a.ps.List()
-}
-
-// PluginEnable 启用插件
-func (a *App) PluginEnable(id string) services.Response[services.PluginMeta] {
-    if a.ps == nil {
-        return services.Err[services.PluginMeta](1, "插件服务未初始化")
-    }
-    return a.ps.Enable(id)
-}
-
-// PluginDisable 禁用插件
-func (a *App) PluginDisable(id string) services.Response[services.PluginMeta] {
-    if a.ps == nil {
-        return services.Err[services.PluginMeta](1, "插件服务未初始化")
-    }
-    return a.ps.Disable(id)
-}
-
-// PluginGetConfig 读取插件配置
+// PluginGetConfig 读取插件运行时配置（如API密钥等敏感信息）
 func (a *App) PluginGetConfig(id string) services.Response[map[string]any] {
     if a.ps == nil {
         return services.Err[map[string]any](1, "插件服务未初始化")
@@ -280,7 +257,7 @@ func (a *App) PluginGetConfig(id string) services.Response[map[string]any] {
     return a.ps.GetConfig(id)
 }
 
-// PluginSaveConfig 保存插件配置
+// PluginSaveConfig 保存插件运行时配置（如API密钥等敏感信息）
 func (a *App) PluginSaveConfig(id string, cfg map[string]any) services.Response[any] {
     if a.ps == nil {
         return services.Err[any](1, "插件服务未初始化")
@@ -422,5 +399,18 @@ func (a *App) GetDataSize() map[string]any {
         "configPath":  "~/.config/ppll-client/config.enc.json",
         "totalItems":  totalItems,
         "itemDetails": configPath,
+    }
+}
+
+// GetSystemInfo 获取系统信息（供前端系统信息页面使用）
+func (a *App) GetSystemInfo() map[string]any {
+    return map[string]any{
+        "appName":         a.GetAppName(),
+        "appVersion":      a.GetAppVersion(),
+        "appDescription":  a.GetAppDescription(),
+        "databasePath":    a.GetDatabasePath(),
+        "databaseHealthy": a.IsDatabaseHealthy(),
+        "nodejsStatus":    a.GetNodejsServiceStatus(),
+        "nodejsURL":       a.GetNodejsServiceURL(),
     }
 }

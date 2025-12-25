@@ -2,6 +2,7 @@ import { HashRouter as Router, Routes, Route, Link, useLocation, Navigate } from
 import logo from './assets/images/logo-universal.png';
 import HomePage from './pages/HomePage';
 import SettingsPage from './pages/SettingsPage';
+import SystemInfoPage from './pages/SystemInfoPage';
 import PluginsPage from './pages/PluginsPage';
 import GridStrategyListPage from './pages/GridStrategy';
 import GridStrategyEditPage from './pages/GridStrategy/edit';
@@ -84,6 +85,7 @@ function App() {
                 <Routes>
                     <Route path={ROUTES.HOME} element={<HomePage />} />
                     <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+                    <Route path={ROUTES.SYSTEM_INFO} element={<SystemInfoPage />} />
                     <Route path={ROUTES.PLUGINS} element={<PluginsPage />} />
                     <Route path={ROUTES.PLUGIN_DETAIL} element={<PluginsPage />} />
                     {/* 做T网格插件重定向到网格策略页面 */}
