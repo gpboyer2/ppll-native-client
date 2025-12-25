@@ -210,14 +210,21 @@ echo "[4/7] 安装 Node.js 后端依赖..."
 if [ -d "./nodejs-server" ]; then
     cd ./nodejs-server
     if [ -f "package.json" ]; then
-        # 如果使用 pnpm，使用参数允许构建脚本
+        # 如果使用 pnpm，需要手动编译 sqlite3 原生模块
         if [ "$PACKAGE_MANAGER" = "pnpm" ]; then
-            echo "检测到 pnpm，使用 --ignore-scripts=false 允许原生模块构建..."
-            $PACKAGE_MANAGER_CMD install --ignore-scripts=false
+            echo "检测到 pnpm，安装依赖..."
+            $PACKAGE_MANAGER_CMD install
 
-            # 额外确保 sqlite3 原生模块已编译
-            echo "确保 sqlite3 原生模块已编译..."
-            $PACKAGE_MANAGER_CMD rebuild sqlite3 2>&1 || echo "注意: sqlite3 重建执行完毕"
+            echo "手动编译 sqlite3 原生模块..."
+            # 找到 sqlite3 包目录并手动编译
+            SQLITE3_DIR=$(find node_modules/.pnpm/sqlite3@*/node_modules/sqlite3 -maxdepth 0 -type d 2>/dev/null | head -1)
+            if [ -n "$SQLITE3_DIR" ]; then
+                cd "$SQLITE3_DIR"
+                npm run install 2>&1 || echo "警告: sqlite3 编译失败"
+                cd - > /dev/null
+            else
+                echo "警告: 未找到 sqlite3 目录"
+            fi
         else
             $PACKAGE_MANAGER_CMD install
         fi
