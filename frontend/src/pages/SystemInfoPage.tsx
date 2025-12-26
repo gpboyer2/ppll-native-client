@@ -62,6 +62,25 @@ const IconDatabase = () => (
     </svg>
 );
 
+// 等待 Node.js 服务健康检查，最多等待 10 秒
+async function waitForNodejsHealthy(nodejsUrl: string, maxRetries: number = 10): Promise<boolean> {
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const response = await fetch(`${nodejsUrl}/v1/hello`, {
+                method: 'GET',
+                signal: AbortSignal.timeout(1000)
+            });
+            if (response.ok) {
+                return true;
+            }
+        } catch {
+            // 服务还未就绪，继续等待
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    return false;
+}
+
 function SystemInfoPage() {
     const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
     const [loading, setLoading] = useState(true);
@@ -78,15 +97,23 @@ function SystemInfoPage() {
                     GetNodejsServiceStatus()
                 ]);
 
+                // 等待 Node.js 服务健康后再请求 IPv4 列表
                 let ipv4List: string[] = [];
-                try {
-                    const ipResponse = await fetch(`${nodejsUrl}/v1/system/ipv4-list`);
-                    const ipData = await ipResponse.json();
-                    if (ipData.code === 200 && Array.isArray(ipData.data)) {
-                        ipv4List = ipData.data;
+                if (nodejsUrl && (nodejsStatus as SystemInfo['nodejsStatus'])?.isRunning) {
+                    const isHealthy = await waitForNodejsHealthy(nodejsUrl, 10);
+                    if (isHealthy) {
+                        try {
+                            const ipResponse = await fetch(`${nodejsUrl}/v1/system/ipv4-list`);
+                            const ipData = await ipResponse.json();
+                            if (ipData.code === 200 && Array.isArray(ipData.data)) {
+                                ipv4List = ipData.data;
+                            }
+                        } catch (error) {
+                            console.error('获取 IP 地址列表失败:', error);
+                        }
+                    } else {
+                        console.warn('Node.js 服务健康检查超时');
                     }
-                } catch (error) {
-                    console.error('获取 IP 地址列表失败:', error);
                 }
 
                 setSystemInfo({
