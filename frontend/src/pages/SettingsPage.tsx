@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UpdateSaveConfig, UpdateCheckNow, ClearAllData, GetDataSize, GetNodejsServiceURL, GetConfig } from '../../wailsjs/go/main/App';
+import { UpdateSaveConfig, UpdateCheckNow, ClearAllData, GetDataSize, GetNodejsServiceURL } from '../../wailsjs/go/main/App';
 import { EventsOn } from '../../wailsjs/runtime';
 import type { Response } from '../core/response';
 import { feedURLExamples } from '../router';
@@ -45,7 +45,6 @@ function SettingsPage() {
 
     // Binance ApiKey 管理状态
     const [nodejsUrl, setNodejsUrl] = useState<string>('');
-    const [authToken, setAuthToken] = useState<string>('');
     const [apiKeyList, setApiKeyList] = useState<ApiKeyItem[]>([]);
     const [apiKeyListLoaded, setApiKeyListLoaded] = useState(false);
     const [showAddApiKey, setShowAddApiKey] = useState(false);
@@ -71,36 +70,25 @@ function SettingsPage() {
         EventsOn('update:downloaded', (p: any) => setProgress({ ...p, percent: 100 }));
     }, []);
 
-    // 初始化：加载 Nodejs URL 和 token
+    // 初始化：加载 Nodejs URL
     useEffect(() => {
-        async function initAuth() {
+        async function init() {
             try {
                 const url = await GetNodejsServiceURL();
                 setNodejsUrl(url);
-
-                // 尝试从 Go 配置获取 token
-                const tokenRes = await GetConfig('auth_token');
-                if (tokenRes && typeof tokenRes === 'object' && 'code' in tokenRes) {
-                    const res = tokenRes as Response<any>;
-                    if (res.code === 0 && res.data) {
-                        setAuthToken(String(res.data));
-                    }
-                } else if (typeof tokenRes === 'string') {
-                    setAuthToken(tokenRes);
-                }
             } catch (error) {
-                console.error('初始化认证失败:', error);
+                console.error('初始化失败:', error);
             }
         }
-        initAuth();
+        init();
     }, []);
 
     // 加载 API Key 列表
     useEffect(() => {
-        if (nodejsUrl && authToken && !apiKeyListLoaded) {
+        if (nodejsUrl && !apiKeyListLoaded) {
             loadApiKeyList();
         }
-    }, [nodejsUrl, authToken, apiKeyListLoaded]);
+    }, [nodejsUrl, apiKeyListLoaded]);
 
     // Binance ApiKey API 调用函数
     async function loadApiKeyList() {
@@ -108,8 +96,7 @@ function SettingsPage() {
             const response = await fetch(`${nodejsUrl}/v1/binance-api-key/query`, {
                 method: 'GET',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
+                    'Content-Type': 'application/json'
                 }
             });
             const result = await response.json();
@@ -222,8 +209,7 @@ function SettingsPage() {
             const response = await fetch(url, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(body)
             });
@@ -259,8 +245,7 @@ function SettingsPage() {
             const response = await fetch(`${nodejsUrl}/v1/binance-api-key/delete`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({ id })
             });
