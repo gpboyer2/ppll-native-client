@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { UpdateSaveConfig, UpdateCheckNow, ClearAllData, GetDataSize } from '../../wailsjs/go/main/App';
+import { UpdateSaveConfig, UpdateCheckNow, ClearAllData, GetDataSize, GetNodejsServiceURL, GetConfig } from '../../wailsjs/go/main/App';
 import { EventsOn } from '../../wailsjs/runtime';
 import type { Response } from '../core/response';
 import { feedURLExamples } from '../router';
@@ -7,11 +7,14 @@ import { useUserStore } from '../stores/user-store';
 import { useDataManagementStore } from '../stores/data-management-store';
 
 interface ApiKeyItem {
-    id: string;
+    id: number;
     name: string;
     apiKey: string;
     secretKey: string;
-    createdAt: string;
+    status: number;
+    remark?: string;
+    created_at: string;
+    updated_at: string;
 }
 
 function SettingsPage() {
@@ -37,13 +40,18 @@ function SettingsPage() {
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
     // Binance ApiKey 管理状态
+    const [nodejsUrl, setNodejsUrl] = useState<string>('');
+    const [authToken, setAuthToken] = useState<string>('');
     const [apiKeyList, setApiKeyList] = useState<ApiKeyItem[]>([]);
+    const [apiKeyListLoaded, setApiKeyListLoaded] = useState(false);
     const [showAddApiKey, setShowAddApiKey] = useState(false);
     const [editingApiKey, setEditingApiKey] = useState<ApiKeyItem | null>(null);
     const [apiKeyForm, setApiKeyForm] = useState({
         name: '',
         apiKey: '',
-        secretKey: ''
+        secretKey: '',
+        status: 2,
+        remark: ''
     });
     const [apiKeyStatus, setApiKeyStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
@@ -58,6 +66,58 @@ function SettingsPage() {
         EventsOn('update:progress', (p: any) => setProgress(p));
         EventsOn('update:downloaded', (p: any) => setProgress({ ...p, percent: 100 }));
     }, []);
+
+    // 初始化：加载 Nodejs URL 和 token
+    useEffect(() => {
+        async function initAuth() {
+            try {
+                const url = await GetNodejsServiceURL();
+                setNodejsUrl(url);
+
+                // 尝试从 Go 配置获取 token
+                const tokenRes = await GetConfig('auth_token');
+                if (tokenRes && typeof tokenRes === 'object' && 'code' in tokenRes) {
+                    const res = tokenRes as Response<any>;
+                    if (res.code === 0 && res.data) {
+                        setAuthToken(String(res.data));
+                    }
+                } else if (typeof tokenRes === 'string') {
+                    setAuthToken(tokenRes);
+                }
+            } catch (error) {
+                console.error('初始化认证失败:', error);
+            }
+        }
+        initAuth();
+    }, []);
+
+    // 加载 API Key 列表
+    useEffect(() => {
+        if (nodejsUrl && authToken && !apiKeyListLoaded) {
+            loadApiKeyList();
+        }
+    }, [nodejsUrl, authToken, apiKeyListLoaded]);
+
+    // Binance ApiKey API 调用函数
+    async function loadApiKeyList() {
+        try {
+            const response = await fetch(`${nodejsUrl}/v1/binance-api-key/query`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                }
+            });
+            const result = await response.json();
+            if (result.status === 'success' && result.data?.list) {
+                setApiKeyList(result.data.list);
+            }
+            setApiKeyListLoaded(true);
+        } catch (error) {
+            console.error('加载 API Key 列表失败:', error);
+            setApiKeyListLoaded(true);
+        }
+    }
 
     async function saveUpdateConfig() {
         setSaveStatus('saving');
@@ -93,7 +153,9 @@ function SettingsPage() {
         setApiKeyForm({
             name: '',
             apiKey: '',
-            secretKey: ''
+            secretKey: '',
+            status: 2,
+            remark: ''
         });
         setEditingApiKey(null);
         setShowAddApiKey(false);
@@ -103,7 +165,9 @@ function SettingsPage() {
         setApiKeyForm({
             name: '',
             apiKey: '',
-            secretKey: ''
+            secretKey: '',
+            status: 2,
+            remark: ''
         });
         setEditingApiKey(null);
         setShowAddApiKey(true);
@@ -114,7 +178,9 @@ function SettingsPage() {
         setApiKeyForm({
             name: apiKey.name,
             apiKey: apiKey.apiKey,
-            secretKey: apiKey.secretKey
+            secretKey: apiKey.secretKey,
+            status: apiKey.status,
+            remark: apiKey.remark || ''
         });
         setShowAddApiKey(true);
     }
@@ -128,40 +194,85 @@ function SettingsPage() {
 
         setApiKeyStatus('saving');
         try {
-            // 模拟保存 API Key 的逻辑
-            await new Promise(resolve => setTimeout(resolve, 500));
+            const url = editingApiKey
+                ? `${nodejsUrl}/v1/binance-api-key/update`
+                : `${nodejsUrl}/v1/binance-api-key/create`;
 
-            if (editingApiKey) {
-                // 更新现有 API Key
-                setApiKeyList(prev => prev.map(item =>
-                    item.id === editingApiKey.id
-                        ? { ...item, ...apiKeyForm }
-                        : item
-                ));
-            } else {
-                // 添加新 API Key
-                const newApiKey: ApiKeyItem = {
-                    id: Date.now().toString(),
-                    ...apiKeyForm,
-                    createdAt: new Date().toISOString()
+            const body = editingApiKey
+                ? {
+                    id: editingApiKey.id,
+                    name: apiKeyForm.name,
+                    apiKey: apiKeyForm.apiKey,
+                    secretKey: apiKeyForm.secretKey,
+                    status: apiKeyForm.status,
+                    remark: apiKeyForm.remark
+                }
+                : {
+                    name: apiKeyForm.name,
+                    apiKey: apiKeyForm.apiKey,
+                    secretKey: apiKeyForm.secretKey,
+                    status: apiKeyForm.status,
+                    remark: apiKeyForm.remark
                 };
-                setApiKeyList(prev => [...prev, newApiKey]);
-            }
 
-            setApiKeyStatus('success');
-            setTimeout(() => {
-                setApiKeyStatus('idle');
-                resetApiKeyForm();
-            }, 500);
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify(body)
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                setApiKeyStatus('success');
+                // 重新加载列表
+                setApiKeyListLoaded(false);
+                setTimeout(() => {
+                    setApiKeyStatus('idle');
+                    resetApiKeyForm();
+                }, 500);
+            } else {
+                console.error('保存 API Key 失败:', result.message);
+                setApiKeyStatus('error');
+                setTimeout(() => setApiKeyStatus('idle'), 500);
+            }
         } catch (error) {
+            console.error('保存 API Key 失败:', error);
             setApiKeyStatus('error');
             setTimeout(() => setApiKeyStatus('idle'), 500);
         }
     }
 
-    function handleDeleteApiKey(id: string) {
-        if (confirm('确认删除此 API Key？')) {
-            setApiKeyList(prev => prev.filter(item => item.id !== id));
+    async function handleDeleteApiKey(id: number) {
+        if (!confirm('确认删除此 API Key？')) {
+            return;
+        }
+
+        try {
+            const response = await fetch(`${nodejsUrl}/v1/binance-api-key/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${authToken}`
+                },
+                body: JSON.stringify({ id })
+            });
+
+            const result = await response.json();
+
+            if (result.status === 'success') {
+                // 重新加载列表
+                setApiKeyListLoaded(false);
+            } else {
+                console.error('删除 API Key 失败:', result.message);
+                alert('删除失败: ' + (result.message || '未知错误'));
+            }
+        } catch (error) {
+            console.error('删除 API Key 失败:', error);
+            alert('删除失败，请重试');
         }
     }
 
@@ -251,7 +362,7 @@ function SettingsPage() {
                                             </div>
                                             <div className="binance-apikey-item-detail">
                                                 <span className="text-muted">创建时间:</span>
-                                                <span>{new Date(item.createdAt).toLocaleString()}</span>
+                                                <span>{new Date(item.created_at).toLocaleString()}</span>
                                             </div>
                                         </div>
                                     </div>

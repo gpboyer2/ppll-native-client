@@ -192,6 +192,48 @@ func (s *NodejsService) findNodeExecutable() (string, error) {
 	return "", fmt.Errorf("未找到 Node.js，请确保已安装 Node.js")
 }
 
+// startCommand 启动命令配置
+type startCommand struct {
+	executable string // 可执行文件路径
+	args       []string
+	workingDir string
+}
+
+// buildStartCommand 构建启动命令（平台无关）
+func (s *NodejsService) buildStartCommand() (startCommand, error) {
+	serverDir := s.resolveServerDir()
+
+	// 检查入口文件
+	entryPoint := serverDir + "/app.js"
+	if _, err := os.Stat(entryPoint); os.IsNotExist(err) {
+		return startCommand{}, fmt.Errorf("Node.js 入口文件不存在: %s", entryPoint)
+	}
+
+	cmd := startCommand{
+		workingDir: serverDir,
+	}
+
+	// 优先使用 nodemon（开发模式自动热重载）
+	nodemonPath := serverDir + "/node_modules/.bin/nodemon"
+	if _, err := os.Stat(nodemonPath); err == nil {
+		cmd.executable = nodemonPath
+		cmd.args = []string{entryPoint, "--watch", serverDir, "--ext", "js,json", "--ignore", "node_modules/*"}
+		s.log.Info("[Node.js] 热重载模式")
+		return cmd, nil
+	}
+
+	// 回退到 node
+	nodePath, err := s.findNodeExecutable()
+	if err != nil {
+		return startCommand{}, err
+	}
+	cmd.executable = nodePath
+	cmd.args = []string{entryPoint}
+	s.log.Info("[Node.js] 普通模式")
+
+	return cmd, nil
+}
+
 // resolveServerDir 解析服务目录路径
 func (s *NodejsService) resolveServerDir() string {
 	if filepath.IsAbs(s.serverDir) {

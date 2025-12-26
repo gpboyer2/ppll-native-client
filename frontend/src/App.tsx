@@ -1,5 +1,7 @@
 import { HashRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { MantineProvider } from '@mantine/core';
+import '@mantine/core/styles.css';
+import { getPPLLMantineTheme } from './core/mantine-theme';
 import logo from './assets/images/logo-universal.png';
 import HomePage from './pages/HomePage';
 import SettingsPage from './pages/SettingsPage';
@@ -62,8 +64,10 @@ function Navigation() {
 }
 
 function App() {
+    const mantineTheme = getPPLLMantineTheme();
+
     return (
-        <MantineProvider>
+        <MantineProvider theme={mantineTheme}>
             <div id="App">
                 <Router>
                     <Navigation />

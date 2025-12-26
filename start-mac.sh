@@ -9,8 +9,6 @@
 # 使用方法：
 #   ./start-mac.sh          # 完整启动（首次使用推荐，执行环境检查）
 #   ./start-mac.sh -q       # 快速启动（跳过环境检查）
-#   ./start-mac.sh -r       # 启用 Node.js 后端热重载
-#   ./start-mac.sh -q -r    # 快速启动 + 热重载
 #   ./start-mac.sh --help   # 显示帮助信息
 #
 # 依赖要求：
@@ -20,12 +18,13 @@
 #
 # 日志文件：
 #   - go.log           # Go/Wails 后端日志
-#   - nodejs-server.log # Node.js 服务日志
+#   - nodejs-server.log # Node.js 服务日志（支持热重载）
 #   - web.log          # Vite 前端开发服务器日志
 #
 # 注意事项：
 #   - 确保已启动 Clash 代理（端口 7890），用于访问海外 API
 #   - 首次运行会自动安装前端依赖
+#   - Node.js 后端支持热重载（nodemon），修改 js 文件后自动重启
 #   - 按 Ctrl+C 停止服务
 #
 #===============================================================================
@@ -87,19 +86,16 @@ trap cleanup SIGINT SIGTERM
 
 # 显示帮助
 show_help() {
-    echo "用法: $0 [-q|--quick] [-r|--reload] [-h|--help]"
+    echo "用法: $0 [-q|--quick] [-h|--help]"
     echo "  -q  快速启动（跳过环境检查）"
-    echo "  -r  启用 Node.js 后端热重载（nodemon）"
     echo "  -h  显示帮助"
 }
 
 main() {
     local quick=false
-    local hot_reload=false
     while [[ $# -gt 0 ]]; do
         case $1 in
             -q|--quick) quick=true; shift ;;
-            -r|--reload) hot_reload=true; shift ;;
             -h|--help) show_help; exit 0 ;;
             *) shift ;;
         esac
@@ -110,12 +106,6 @@ main() {
     echo "  PPLL Native Client 启动"
     echo "=========================================="
     echo ""
-
-    # 设置热重载环境变量
-    if [ "$hot_reload" = true ]; then
-        export NODE_HOT_RELOAD=true
-        ok "Node.js 热重载已启用"
-    fi
 
     # 环境检查
     if [ "$quick" = false ]; then
@@ -128,7 +118,7 @@ main() {
     touch "${LOG_DIR}/go.log" "${LOG_DIR}/nodejs-server.log" "${LOG_DIR}/web.log"
     log "日志目录: ${LOG_DIR}"
     log "  ├─ go.log            (Go/Wails)"
-    log "  ├─ nodejs-server.log (Node.js)"
+    log "  ├─ nodejs-server.log (Node.js + 热重载)"
     log "  └─ web.log           (Vite)"
     echo ""
 
