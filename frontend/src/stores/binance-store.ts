@@ -71,20 +71,23 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
     initialized: false,
     loading: false,
 
-    // 初始化
+    // 初始化：先获取 API Key 列表，成功且有数据时才获取交易对
     init: async () => {
-        const { initialized, loading, apiKeyList, usdtPairs } = get();
+        const { loading, apiKeyList, usdtPairs } = get();
         // 如果正在加载或已经成功初始化且有数据，则跳过
-        if (loading || (initialized && apiKeyList.length > 0 && usdtPairs.length > 0)) return;
+        if (loading || (apiKeyList.length > 0 && usdtPairs.length > 0)) return;
 
         set({ loading: true });
 
         try {
-            // 并行获取 API Key 列表和交易对
-            await Promise.all([
-                get().refreshApiKeys(),
-                get().refreshTradingPairs()
-            ]);
+            // 先获取 API Key 列表
+            await get().refreshApiKeys();
+
+            // 只有 API Key 列表存在且有数据时，才获取交易对信息
+            const afterApiKeys = get().apiKeyList;
+            if (afterApiKeys.length > 0) {
+                await get().refreshTradingPairs();
+            }
 
             set({ initialized: true, loading: false });
         } catch (error) {
@@ -186,11 +189,3 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         return get().apiKeyList.find(k => k.id === id);
     }
 }));
-
-// 自动初始化
-setTimeout(() => {
-    const store = useBinanceStore.getState();
-    if (!store.initialized && !store.loading) {
-        store.init();
-    }
-}, 100);

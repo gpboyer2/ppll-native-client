@@ -4,6 +4,7 @@ import {
     GetDatabasePath,
     GetNodejsServiceURL
 } from '../../wailsjs/go/main/App';
+import { apiClient } from '../api/client';
 
 interface GitInfo {
     branch: string;
@@ -118,6 +119,11 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
                     GetDatabasePath(),
                     GetNodejsServiceURL()
                 ]);
+
+                // 配置 API 客户端的 baseURL
+                if (nodejsUrl) {
+                    apiClient.configure({ baseURL: nodejsUrl });
+                }
 
                 let ipv4List: string[] = [];
                 let gitInfo: GitInfo | undefined;

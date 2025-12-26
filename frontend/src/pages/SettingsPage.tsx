@@ -6,17 +6,8 @@ import { feedURLExamples } from '../router';
 import { useUserStore } from '../stores/user-store';
 import { useDataManagementStore } from '../stores/data-management-store';
 import { useSystemInfoStore } from '../stores/system-info-store';
-
-interface ApiKeyItem {
-    id: number;
-    name: string;
-    api_key: string;
-    secret_key: string;
-    status: number;
-    remark?: string;
-    created_at: string;
-    updated_at: string;
-}
+import { useBinanceStore } from '../stores/binance-store';
+import type { BinanceApiKey } from '../stores/binance-store';
 
 function SettingsPage() {
     // 使用系统信息 store
@@ -31,6 +22,9 @@ function SettingsPage() {
         getClearStats,
     } = useDataManagementStore();
 
+    // 使用 binance store
+    const { init, apiKeyList, refreshApiKeys } = useBinanceStore();
+
     // 更新设置状态
     const [feedURL, setFeedURL] = useState('');
     const [autoCheck, setAutoCheck] = useState(false);
@@ -44,11 +38,8 @@ function SettingsPage() {
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
     // Binance ApiKey 管理状态
-    const [nodejsUrl, setNodejsUrl] = useState<string>('');
-    const [apiKeyList, setApiKeyList] = useState<ApiKeyItem[]>([]);
-    const [apiKeyListLoaded, setApiKeyListLoaded] = useState(false);
     const [showAddApiKey, setShowAddApiKey] = useState(false);
-    const [editingApiKey, setEditingApiKey] = useState<ApiKeyItem | null>(null);
+    const [editingApiKey, setEditingApiKey] = useState<BinanceApiKey | null>(null);
     const [apiKeyForm, setApiKeyForm] = useState({
         name: '',
         api_key: '',
@@ -70,45 +61,10 @@ function SettingsPage() {
         EventsOn('update:downloaded', (p: any) => setProgress({ ...p, percent: 100 }));
     }, []);
 
-    // 初始化：加载 Nodejs URL
+    // 初始化 binance store
     useEffect(() => {
-        async function init() {
-            try {
-                const url = await GetNodejsServiceURL();
-                setNodejsUrl(url);
-            } catch (error) {
-                console.error('初始化失败:', error);
-            }
-        }
         init();
     }, []);
-
-    // 加载 API Key 列表
-    useEffect(() => {
-        if (nodejsUrl && !apiKeyListLoaded) {
-            loadApiKeyList();
-        }
-    }, [nodejsUrl, apiKeyListLoaded]);
-
-    // Binance ApiKey API 调用函数
-    async function loadApiKeyList() {
-        try {
-            const response = await fetch(`${nodejsUrl}/v1/binance-api-key/query`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
-            const result = await response.json();
-            if (result.status === 'success' && result.data?.list) {
-                setApiKeyList(result.data.list);
-            }
-            setApiKeyListLoaded(true);
-        } catch (error) {
-            console.error('加载 API Key 列表失败:', error);
-            setApiKeyListLoaded(true);
-        }
-    }
 
     async function saveUpdateConfig() {
         setSaveStatus('saving');
@@ -164,12 +120,12 @@ function SettingsPage() {
         setShowAddApiKey(true);
     }
 
-    function handleEditApiKey(apiKey: ApiKeyItem) {
+    function handleEditApiKey(apiKey: BinanceApiKey) {
         setEditingApiKey(apiKey);
         setApiKeyForm({
             name: apiKey.name,
-            api_key: apiKey.api_key,
-            secret_key: apiKey.secret_key,
+            api_key: apiKey.apiKey,
+            secret_key: apiKey.secretKey,
             status: apiKey.status,
             remark: apiKey.remark || ''
         });
@@ -185,6 +141,7 @@ function SettingsPage() {
 
         setApiKeyStatus('saving');
         try {
+            const nodejsUrl = await GetNodejsServiceURL();
             const url = editingApiKey
                 ? `${nodejsUrl}/v1/binance-api-key/update`
                 : `${nodejsUrl}/v1/binance-api-key/create`;
@@ -218,8 +175,8 @@ function SettingsPage() {
 
             if (result.status === 'success') {
                 setApiKeyStatus('success');
-                // 重新加载列表
-                setApiKeyListLoaded(false);
+                // 刷新列表
+                await refreshApiKeys();
                 setTimeout(() => {
                     setApiKeyStatus('idle');
                     resetApiKeyForm();
@@ -242,6 +199,7 @@ function SettingsPage() {
         }
 
         try {
+            const nodejsUrl = await GetNodejsServiceURL();
             const response = await fetch(`${nodejsUrl}/v1/binance-api-key/delete`, {
                 method: 'POST',
                 headers: {
@@ -253,8 +211,8 @@ function SettingsPage() {
             const result = await response.json();
 
             if (result.status === 'success') {
-                // 重新加载列表
-                setApiKeyListLoaded(false);
+                // 刷新列表
+                await refreshApiKeys();
             } else {
                 console.error('删除 API Key 失败:', result.message);
                 alert('删除失败: ' + (result.message || '未知错误'));
@@ -344,11 +302,11 @@ function SettingsPage() {
                                         <div className="binance-apikey-item-details">
                                             <div className="binance-apikey-item-detail">
                                                 <span className="text-muted">API Key:</span>
-                                                <span className="binance-apikey-masked">{maskApiKey(item.api_key)}</span>
+                                                <span className="binance-apikey-masked">{maskApiKey(item.apiKey)}</span>
                                             </div>
                                             <div className="binance-apikey-item-detail">
                                                 <span className="text-muted">Secret Key:</span>
-                                                <span className="binance-apikey-masked">{maskApiKey(item.secret_key)}</span>
+                                                <span className="binance-apikey-masked">{maskApiKey(item.secretKey)}</span>
                                             </div>
                                             <div className="binance-apikey-item-detail">
                                                 <span className="text-muted">创建时间:</span>
