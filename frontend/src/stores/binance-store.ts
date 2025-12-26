@@ -72,8 +72,9 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
     // 初始化
     init: async () => {
-        const { initialized } = get();
-        if (initialized) return;
+        const { initialized, loading, apiKeyList, usdtPairs } = get();
+        // 如果正在加载或已经成功初始化且有数据，则跳过
+        if (loading || (initialized && apiKeyList.length > 0 && usdtPairs.length > 0)) return;
 
         set({ loading: true });
 

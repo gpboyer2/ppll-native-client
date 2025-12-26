@@ -17,7 +17,7 @@ function GridStrategyEditPage() {
     const isEditing = Boolean(id);
 
     // 使用币安 store
-    const { apiKeyList, usdtPairs, init } = useBinanceStore();
+    const { apiKeyList, usdtPairs, init, loading } = useBinanceStore();
 
     // 表单数据状态
     const [formData, setFormData] = useState<GridStrategyForm>(defaultGridStrategy);
@@ -337,23 +337,6 @@ function GridStrategyEditPage() {
                                 }}
                             />
                             <div className="help">选择已配置的币安API密钥，Secret将自动填充</div>
-                        </div>
-
-                        {/* API Secret - 只读显示 */}
-                        <div className="grid-strategy-form-field">
-                            <label className="grid-strategy-form-label">
-                                币安API Secret
-                                <span className="grid-strategy-form-required">*</span>
-                            </label>
-                            <input
-                                type="password"
-                                className="input"
-                                placeholder="选择API Key后自动填充"
-                                value={formData.apiSecret}
-                                readOnly
-                                required
-                            />
-                            <div className="help">根据选择的API Key自动填充</div>
                         </div>
 
                         {/* 杠杆倍数 */}
