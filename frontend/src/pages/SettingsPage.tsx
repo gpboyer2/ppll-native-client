@@ -10,8 +10,8 @@ import { useSystemInfoStore } from '../stores/system-info-store';
 interface ApiKeyItem {
     id: number;
     name: string;
-    apiKey: string;
-    secretKey: string;
+    api_key: string;
+    secret_key: string;
     status: number;
     remark?: string;
     created_at: string;
@@ -51,8 +51,8 @@ function SettingsPage() {
     const [editingApiKey, setEditingApiKey] = useState<ApiKeyItem | null>(null);
     const [apiKeyForm, setApiKeyForm] = useState({
         name: '',
-        apiKey: '',
-        secretKey: '',
+        api_key: '',
+        secret_key: '',
         status: 2,
         remark: ''
     });
@@ -143,8 +143,8 @@ function SettingsPage() {
     function resetApiKeyForm() {
         setApiKeyForm({
             name: '',
-            apiKey: '',
-            secretKey: '',
+            api_key: '',
+            secret_key: '',
             status: 2,
             remark: ''
         });
@@ -155,8 +155,8 @@ function SettingsPage() {
     function handleAddApiKey() {
         setApiKeyForm({
             name: '',
-            apiKey: '',
-            secretKey: '',
+            api_key: '',
+            secret_key: '',
             status: 2,
             remark: ''
         });
@@ -168,8 +168,8 @@ function SettingsPage() {
         setEditingApiKey(apiKey);
         setApiKeyForm({
             name: apiKey.name,
-            apiKey: apiKey.apiKey,
-            secretKey: apiKey.secretKey,
+            api_key: apiKey.api_key,
+            secret_key: apiKey.secret_key,
             status: apiKey.status,
             remark: apiKey.remark || ''
         });
@@ -177,7 +177,7 @@ function SettingsPage() {
     }
 
     async function handleSaveApiKey() {
-        if (!apiKeyForm.name.trim() || !apiKeyForm.apiKey.trim() || !apiKeyForm.secretKey.trim()) {
+        if (!apiKeyForm.name.trim() || !apiKeyForm.api_key.trim() || !apiKeyForm.secret_key.trim()) {
             setApiKeyStatus('error');
             setTimeout(() => setApiKeyStatus('idle'), 500);
             return;
@@ -193,15 +193,15 @@ function SettingsPage() {
                 ? {
                     id: editingApiKey.id,
                     name: apiKeyForm.name,
-                    apiKey: apiKeyForm.apiKey,
-                    secretKey: apiKeyForm.secretKey,
+                    apiKey: apiKeyForm.api_key,
+                    secretKey: apiKeyForm.secret_key,
                     status: apiKeyForm.status,
                     remark: apiKeyForm.remark
                 }
                 : {
                     name: apiKeyForm.name,
-                    apiKey: apiKeyForm.apiKey,
-                    secretKey: apiKeyForm.secretKey,
+                    apiKey: apiKeyForm.api_key,
+                    secretKey: apiKeyForm.secret_key,
                     status: apiKeyForm.status,
                     remark: apiKeyForm.remark
                 };
@@ -265,7 +265,8 @@ function SettingsPage() {
         }
     }
 
-    function maskApiKey(key: string): string {
+    function maskApiKey(key: string | undefined): string {
+        if (!key) return '';
         if (key.length <= 8) return key;
         return key.substring(0, 4) + '****' + key.substring(key.length - 4);
     }
@@ -343,11 +344,11 @@ function SettingsPage() {
                                         <div className="binance-apikey-item-details">
                                             <div className="binance-apikey-item-detail">
                                                 <span className="text-muted">API Key:</span>
-                                                <span className="binance-apikey-masked">{maskApiKey(item.apiKey)}</span>
+                                                <span className="binance-apikey-masked">{maskApiKey(item.api_key)}</span>
                                             </div>
                                             <div className="binance-apikey-item-detail">
                                                 <span className="text-muted">Secret Key:</span>
-                                                <span className="binance-apikey-masked">{maskApiKey(item.secretKey)}</span>
+                                                <span className="binance-apikey-masked">{maskApiKey(item.secret_key)}</span>
                                             </div>
                                             <div className="binance-apikey-item-detail">
                                                 <span className="text-muted">创建时间:</span>
@@ -411,8 +412,8 @@ function SettingsPage() {
                                         <input
                                             className="input"
                                             placeholder="Binance API Key"
-                                            value={apiKeyForm.apiKey}
-                                            onChange={e => setApiKeyForm(prev => ({ ...prev, apiKey: e.target.value }))}
+                                            value={apiKeyForm.api_key}
+                                            onChange={e => setApiKeyForm(prev => ({ ...prev, api_key: e.target.value }))}
                                         />
                                     </div>
 
@@ -422,8 +423,8 @@ function SettingsPage() {
                                             type="password"
                                             className="input"
                                             placeholder="Binance Secret Key"
-                                            value={apiKeyForm.secretKey}
-                                            onChange={e => setApiKeyForm(prev => ({ ...prev, secretKey: e.target.value }))}
+                                            value={apiKeyForm.secret_key}
+                                            onChange={e => setApiKeyForm(prev => ({ ...prev, secret_key: e.target.value }))}
                                         />
                                     </div>
                                 </div>
