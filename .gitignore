@@ -1,5 +1,5 @@
 # Go
-build/bin
+build
 node_modules
 frontend/dist
 
@@ -89,6 +89,7 @@ typings/
 # dotenv environment variables file
 #.env
 .env.test
+.env_checked
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
