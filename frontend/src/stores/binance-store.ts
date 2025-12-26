@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { GetNodejsServiceURL, GetConfig } from '../../wailsjs/go/main/App';
 import type { Response } from '../core/response';
+import { showError, showWarning } from '../utils/api-error';
 
 // API Key 信息
 export interface BinanceApiKey {
@@ -97,7 +98,14 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         const nodejsUrl = await getNodejsUrl();
         const authToken = await getAuthToken();
 
-        if (!nodejsUrl || !authToken) return;
+        if (!nodejsUrl) {
+            showWarning('无法获取服务地址');
+            return;
+        }
+        if (!authToken) {
+            showError(401, '未授权，请先登录');
+            return;
+        }
 
         try {
             const response = await fetch(`${nodejsUrl}/v1/binance-api-key/query`, {
@@ -108,23 +116,42 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
                 }
             });
 
+            if (!response.ok) {
+                showError(response.status, `获取 API Key 列表失败: ${response.statusText}`);
+                return;
+            }
+
             const result = await response.json();
             if (result.status === 'success' && result.data?.list) {
                 set({ apiKeyList: result.data.list });
+            } else if (result.code && result.code !== 0) {
+                showError(result.code, result.msg || '获取 API Key 列表失败');
+            } else {
+                showError(500, '获取 API Key 列表失败: 响应格式错误');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('获取 API Key 列表失败:', error);
+            showError(500, error.message || '获取 API Key 列表失败');
         }
     },
 
     // 刷新交易对列表
     refreshTradingPairs: async () => {
         const nodejsUrl = await getNodejsUrl();
-        if (!nodejsUrl) return;
+        if (!nodejsUrl) {
+            showWarning('无法获取服务地址');
+            return;
+        }
 
         try {
             // 获取交易所信息
             const response = await fetch(`${nodejsUrl}/v1/binance-exchange-info`);
+
+            if (!response.ok) {
+                showError(response.status, `获取交易对列表失败: ${response.statusText}`);
+                return;
+            }
+
             const result = await response.json();
 
             if (result.code === 200 && result.data?.exchangeInfo?.symbols) {
@@ -143,9 +170,14 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
                     tradingPairs: allPairs,
                     usdtPairs
                 });
+            } else if (result.code && result.code !== 200) {
+                showError(result.code, result.msg || '获取交易对列表失败');
+            } else {
+                showError(500, '获取交易对列表失败: 响应格式错误');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('获取交易对列表失败:', error);
+            showError(500, error.message || '获取交易对列表失败');
         }
     },
 

@@ -5,6 +5,7 @@ import { ROUTES } from '../../router';
 import { useBinanceStore } from '../../stores/binance-store';
 import type { GridStrategy, GridStrategyForm, PositionSide } from '../../types/grid-strategy';
 import { defaultGridStrategy } from '../../types/grid-strategy';
+import { showWarning, showSuccess } from '../../utils/api-error';
 
 /**
  * 网格策略表单页面
@@ -88,19 +89,19 @@ function GridStrategyEditPage() {
 
         // 验证必填字段
         if (!formData.tradingPair.trim()) {
-            alert('请选择交易对');
+            showWarning('请选择交易对');
             return;
         }
         if (!formData.apiKey.trim()) {
-            alert('请选择币安API Key');
+            showWarning('请选择币安API Key');
             return;
         }
         if (!formData.apiSecret.trim()) {
-            alert('请选择币安API Key');
+            showWarning('请选择币安API Key');
             return;
         }
         if (!formData.gridPriceDifference || formData.gridPriceDifference <= 0) {
-            alert('请输入有效的网格价格差价');
+            showWarning('请输入有效的网格价格差价');
             return;
         }
 
@@ -108,7 +109,7 @@ function GridStrategyEditPage() {
         setTimeout(() => {
             const success = saveStrategy(formData);
             if (success) {
-                setSaveStatus('success');
+                showSuccess(isEditing ? '策略已更新' : '策略已创建');
                 setTimeout(() => {
                     navigate(ROUTES.GRID_STRATEGY);
                 }, 500);

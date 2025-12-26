@@ -1,6 +1,8 @@
 import { HashRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
 import { MantineProvider } from '@mantine/core';
+import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
 import { getPPLLMantineTheme } from './core/mantine-theme';
 import logo from './assets/images/logo-universal.png';
 import HomePage from './pages/HomePage';
@@ -68,6 +70,7 @@ function App() {
 
     return (
         <MantineProvider theme={mantineTheme}>
+            <Notifications position="top-right" />
             <div id="App">
                 <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                     <Navigation />
