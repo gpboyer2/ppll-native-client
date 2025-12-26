@@ -68,7 +68,9 @@ const createApiKey = async (params) => {
     remark
   };
 
-  const createdKey = await BinanceApiKey.create(keyData);
+  const createdKey = await BinanceApiKey.create(keyData, {
+    validate: false
+  });
   return createdKey.toJSON();
 };
 
