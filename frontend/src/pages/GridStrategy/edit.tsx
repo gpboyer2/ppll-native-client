@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import { ROUTES } from '../../router';
 import type { GridStrategy, GridStrategyForm, PositionSide } from '../../types/grid-strategy';
 import { defaultGridStrategy } from '../../types/grid-strategy';
 
 /**
- * 网格策略编辑页面
- * 支持新建和编辑网格策略
+ * 网格策略表单页面
+ * 新建路由：/grid-strategy/create
+ * 编辑路由：/grid-strategy/edit/:id
  */
 function GridStrategyEditPage() {
     const navigate = useNavigate();
@@ -98,7 +100,7 @@ function GridStrategyEditPage() {
             if (success) {
                 setSaveStatus('success');
                 setTimeout(() => {
-                    navigate('/grid-strategy');
+                    navigate(ROUTES.GRID_STRATEGY);
                 }, 500);
             } else {
                 setSaveStatus('error');
@@ -130,13 +132,43 @@ function GridStrategyEditPage() {
         return formData.positionSide === 'SHORT';
     }
 
+    // 生成随机测试数据
+    function fillMockData() {
+        const mockData: Partial<GridStrategyForm> = {
+            positionSide: Math.random() > 0.5 ? 'LONG' : 'SHORT',
+            tradingPair: ['ETHUSDT', 'BTCUSDT', 'BNBUSDT', 'SOLUSDT'][Math.floor(Math.random() * 4)],
+            apiKey: 'mock_api_key_' + Math.random().toString(36).substring(2, 10),
+            apiSecret: 'mock_secret_' + Math.random().toString(36).substring(2, 10),
+            leverage: 20,
+            initialFillPrice: undefined,
+            gridPriceDifference: Number((Math.random() * 50 + 10).toFixed(2)),
+            gridTradeQuantity: Number((Math.random() * 0.5 + 0.01).toFixed(3)),
+            gridLongOpenQuantity: Number((Math.random() * 0.5 + 0.01).toFixed(3)),
+            gridLongCloseQuantity: Number((Math.random() * 0.5 + 0.01).toFixed(3)),
+            gridShortOpenQuantity: Number((Math.random() * 0.5 + 0.01).toFixed(3)),
+            gridShortCloseQuantity: Number((Math.random() * 0.5 + 0.01).toFixed(3)),
+            maxOpenPositionQuantity: Number((Math.random() * 2 + 0.5).toFixed(3)),
+            minOpenPositionQuantity: Number((Math.random() * 0.3 + 0.1).toFixed(3)),
+            fallPreventionCoefficient: Math.floor(Math.random() * 10),
+            gtLimitationPrice: Math.random() > 0.5 ? Number((Math.random() * 2000 + 3000).toFixed(2)) : undefined,
+            ltLimitationPrice: Math.random() > 0.5 ? Number((Math.random() * 1000 + 2000).toFixed(2)) : undefined,
+            isAboveOpenPrice: Math.random() > 0.7,
+            isBelowOpenPrice: Math.random() > 0.7,
+            pollingInterval: 10000,
+            avgCostPriceDays: 30,
+            enableLog: Math.random() > 0.5,
+            priorityCloseOnTrend: Math.random() > 0.7
+        };
+        setFormData(prev => ({ ...prev, ...mockData }));
+    }
+
     return (
         <div className="container">
             {/* 页面头部 */}
             <div className="surface p-12 mb-16">
                 <div className="flex items-center space-between">
                     <div className="flex items-center gap-12">
-                        <Link to="/grid-strategy" className="btn btn-ghost" style={{ height: '32px', padding: '0 8px' }}>
+                        <Link to={ROUTES.GRID_STRATEGY} className="btn btn-ghost" style={{ height: '32px', padding: '0 8px' }}>
                             ← 返回列表
                         </Link>
                         <span style={{ color: 'var(--color-text-muted)' }}>|</span>
@@ -145,6 +177,16 @@ function GridStrategyEditPage() {
                         </h1>
                     </div>
                     <div className="flex gap-8">
+                        {!isEditing && (
+                            <button
+                                type="button"
+                                className="btn btn-outline"
+                                style={{ height: '32px', padding: '0 12px' }}
+                                onClick={fillMockData}
+                            >
+                                Mock
+                            </button>
+                        )}
                         <button
                             type="button"
                             className="btn btn-outline"
@@ -562,7 +604,7 @@ function GridStrategyEditPage() {
 
                 {/* 操作按钮 */}
                 <div className="grid-strategy-form-actions">
-                    <Link to="/grid-strategy" className="btn btn-outline" style={{ height: '40px', padding: '0 24px' }}>
+                    <Link to={ROUTES.GRID_STRATEGY} className="btn btn-outline" style={{ height: '40px', padding: '0 24px' }}>
                         取消
                     </Link>
                     <button

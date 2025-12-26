@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { ROUTES } from '../../router';
 import type { GridStrategy, StrategyFilter, StrategyStatus, PositionSide } from '../../types/grid-strategy';
 
 /**
@@ -169,7 +170,7 @@ function GridStrategyListPage() {
                         <h1 style={{ margin: '0 0 4px', color: 'var(--color-primary)' }}>网格策略管理</h1>
                         <p className="text-muted" style={{ margin: 0 }}>管理您的网格交易策略配置</p>
                     </div>
-                    <Link to="/grid-strategy/edit" className="btn btn-primary">
+                    <Link to={ROUTES.GRID_STRATEGY_CREATE} className="btn btn-primary">
                         新建策略
                     </Link>
                 </div>
@@ -349,7 +350,7 @@ function GridStrategyListPage() {
                     <div className="empty-state-icon">📊</div>
                     <h3>暂无网格策略</h3>
                     <p>创建您的第一个网格交易策略开始自动化交易</p>
-                    <Link to="/grid-strategy/edit" className="btn btn-primary mt-12">
+                    <Link to={ROUTES.GRID_STRATEGY_CREATE} className="btn btn-primary mt-12">
                         创建策略
                     </Link>
                 </div>

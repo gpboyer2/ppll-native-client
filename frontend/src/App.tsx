@@ -80,6 +80,7 @@ function App() {
                         {/* 做T网格插件重定向到网格策略页面 */}
                         <Route path="/plugins/u-grid-t" element={<Navigate to={ROUTES.GRID_STRATEGY} replace />} />
                         <Route path={ROUTES.GRID_STRATEGY} element={<GridStrategyListPage />} />
+                        <Route path={ROUTES.GRID_STRATEGY_CREATE} element={<GridStrategyEditPage />} />
                         <Route path={ROUTES.GRID_STRATEGY_EDIT} element={<GridStrategyEditPage />} />
                     </Routes>
                 </Router>

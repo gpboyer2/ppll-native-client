@@ -8,7 +8,8 @@ export const ROUTES = {
   PLUGINS: '/plugins',
   PLUGIN_DETAIL: '/plugins/:id',
   GRID_STRATEGY: '/grid-strategy',
-  GRID_STRATEGY_EDIT: '/grid-strategy/edit/:id?'
+  GRID_STRATEGY_CREATE: '/grid-strategy/create',
+  GRID_STRATEGY_EDIT: '/grid-strategy/edit/:id'
 } as const;
 
 // 页面组件路径映射
