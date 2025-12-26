@@ -15,14 +15,6 @@ const createApiKey = catchAsync(async (req, res) => {
     const { name, apiKey, secretKey, status, remark } = req.body;
     const userId = req.user?.id;
 
-    if (!userId) {
-      return res.status(httpStatus.UNAUTHORIZED).send({
-        status: 'error',
-        code: httpStatus.UNAUTHORIZED,
-        message: '用户未登录'
-      });
-    }
-
     const result = await binanceApiKeyService.createApiKey({
       userId,
       name,
