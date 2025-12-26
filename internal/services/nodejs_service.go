@@ -219,8 +219,8 @@ func (s *NodejsService) buildEnv(baseEnv []string) []string {
 	// 优先使用系统环境变量，如果未设置则使用默认的 Clash 代理
 	defaultProxyURL := "http://127.0.0.1:7890"
 	proxyVars := []struct {
-		name    string
-		default string
+		name         string
+		defaultValue string
 	}{
 		{"HTTPS_PROXY", defaultProxyURL},
 		{"https_proxy", defaultProxyURL},
@@ -232,7 +232,7 @@ func (s *NodejsService) buildEnv(baseEnv []string) []string {
 		value := os.Getenv(pv.name)
 		if value == "" {
 			// 系统环境变量未设置，使用默认代理
-			env = append(env, pv.name+"="+pv.default)
+			env = append(env, pv.name+"="+pv.defaultValue)
 		} else {
 			// 使用系统环境变量
 			env = append(env, pv.name+"="+value)
