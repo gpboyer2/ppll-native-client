@@ -80,6 +80,7 @@ cleanup() {
     exit 0
 }
 
+# 设置进程组，便于信号传递
 trap cleanup SIGINT SIGTERM
 
 # 显示帮助
@@ -120,9 +121,10 @@ main() {
     log "  └─ web.log           (Vite)"
     echo ""
 
-    # 启动 Wails（日志由 Go 后端通过 PPLL_LOG_DIR 环境变量写入文件）
+    # 启动 Wails（前端日志通过 tee 写入 web.log）
     cd "${PROJECT_ROOT}"
-    wails dev
+    # 使用 bash -c 设置进程组，确保信号正确传递
+    bash -c "trap 'exit 0' SIGINT SIGTERM; wails dev 2>&1 | tee -a '${LOG_DIR}/web.log'"
 }
 
 main "$@"
