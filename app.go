@@ -37,7 +37,7 @@ func NewApp() *App {
 }
 
 // initLogger 初始化日志系统
-// 如果设置了 PPLL_LOG_DIR 环境变量，日志输出到文件；否则输出到 stdout
+// 日志输出到 PPLL_LOG_DIR/go.log（如果设置了环境变量）
 func (a *App) initLogger() {
     logLevel := slog.LevelInfo
     if os.Getenv("DEBUG") == "true" || os.Getenv("DEBUG") == "1" {
@@ -45,16 +45,13 @@ func (a *App) initLogger() {
     }
 
     var writer io.Writer = os.Stdout
-
-    // 检查是否需要输出到文件
     if logDir := os.Getenv("PPLL_LOG_DIR"); logDir != "" {
-        logPath := filepath.Join(logDir, "go.log")
-        if f, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644); err == nil {
+        os.MkdirAll(logDir, 0755)
+        if f, err := os.OpenFile(filepath.Join(logDir, "go.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644); err == nil {
             a.logFile = f
-            writer = io.MultiWriter(os.Stdout, f) // 同时输出到控制台和文件
+            writer = io.MultiWriter(os.Stdout, f)
         }
     }
-
     a.log = slog.New(slog.NewTextHandler(writer, &slog.HandlerOptions{Level: logLevel}))
 }
 

@@ -16,6 +16,11 @@
 #   - Node.js 16+          # 下载地址: https://nodejs.org/
 #   - Wails v2             # 安装命令: go install github.com/wailsapp/wails/v2/cmd/wails@latest
 #
+# 日志文件：
+#   - go.log           # Go/Wails 后端日志
+#   - nodejs-server.log # Node.js 服务日志
+#   - web.log          # Vite 前端开发服务器日志
+#
 # 注意事项：
 #   - 确保已启动 Clash 代理（端口 7890），用于访问海外 API
 #   - 首次运行会自动安装前端依赖
@@ -25,15 +30,13 @@
 
 set -e
 
-# 添加 Go bin 目录到 PATH（Wails 安装在这里）
 export PATH="$PATH:$HOME/go/bin"
 
-# 项目根目录
 PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 FRONTEND_DIR="${PROJECT_ROOT}/frontend"
 ENV_CHECK_FILE="${PROJECT_ROOT}/.env_checked"
 
-# 日志目录配置
+# 日志目录配置（格式：yyyyMMddHHmmss）
 LOG_TIMESTAMP=$(date +%Y%m%d%H%M%S)
 LOG_DIR="${PROJECT_ROOT}/process-monitoring/${LOG_TIMESTAMP}"
 export PPLL_LOG_DIR="${LOG_DIR}"
@@ -45,140 +48,54 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-print_info() {
-    echo -e "${BLUE}ℹ $1${NC}"
+log() { echo -e "${BLUE}ℹ $1${NC}"; }
+ok() { echo -e "${GREEN}✓ $1${NC}"; }
+warn() { echo -e "${YELLOW}⚠ $1${NC}"; }
+err() { echo -e "${RED}✗ $1${NC}"; }
+
+# 环境检查
+check_env() {
+    local missing=0
+    for cmd in go node npm wails; do
+        command -v $cmd &>/dev/null || { err "$cmd 未安装"; missing=1; }
+    done
+    [ $missing -eq 1 ] && exit 1
+    ok "环境检查通过"
 }
 
-print_success() {
-    echo -e "${GREEN}✓ $1${NC}"
-}
-
-print_warning() {
-    echo -e "${YELLOW}⚠ $1${NC}"
-}
-
-print_error() {
-    echo -e "${RED}✗ $1${NC}"
-}
-
-# 初始化日志目录
-init_log_dir() {
-    mkdir -p "${LOG_DIR}"
-    print_info "日志目录: ${LOG_DIR}"
-}
-
-# 检查 Wails 是否安装
-check_wails() {
-    if ! command -v wails &> /dev/null; then
-        print_error "Wails 未安装，请先安装 Wails"
-        echo "安装命令: go install github.com/wailsapp/wails/v2/cmd/wails@latest"
-        exit 1
-    fi
-    print_success "Wails 已安装"
-}
-
-# 检查 Go 是否安装
-check_go() {
-    if ! command -v go &> /dev/null; then
-        print_error "Go 未安装，请先安装 Go"
-        echo "下载地址: https://go.dev/dl/"
-        exit 1
-    fi
-    print_success "Go 已安装"
-}
-
-# 检查 Node.js 是否安装
-check_node() {
-    if ! command -v node &> /dev/null; then
-        print_error "Node.js 未安装，请先安装 Node.js"
-        echo "下载地址: https://nodejs.org/"
-        exit 1
-    fi
-    print_success "Node.js 已安装"
-}
-
-# 检查 npm 是否安装
-check_npm() {
-    if ! command -v npm &> /dev/null; then
-        print_error "npm 未安装，请先安装 npm"
-        exit 1
-    fi
-    print_success "npm 已安装"
-}
-
-# 检查前端依赖是否安装
-check_dependencies() {
-    if [ ! -d "${FRONTEND_DIR}/node_modules" ]; then
-        print_warning "前端依赖未安装，正在安装..."
-        cd "${FRONTEND_DIR}"
-        npm install
-        print_success "前端依赖安装完成"
-    fi
-}
-
-# 完整环境检查（首次运行）
-full_env_check() {
-    print_info "首次运行，检查开发环境..."
-    check_go
-    check_node
-    check_npm
-    check_wails
-    check_dependencies
-    # 标记环境已检查（使用时间戳：年月日时分秒）
-    echo "$(date +%Y%m%d%H%M%S)" > "${ENV_CHECK_FILE}"
-    print_success "环境检查完成，后续启动将跳过检查"
-    echo ""
-}
-
-# 快速检查（仅检查 node_modules）
-quick_check() {
-    if [ ! -d "${FRONTEND_DIR}/node_modules" ]; then
-        print_warning "前端依赖缺失，正在安装..."
-        cd "${FRONTEND_DIR}"
-        npm install
-    fi
+# 依赖检查
+check_deps() {
+    [ ! -d "${FRONTEND_DIR}/node_modules" ] && {
+        warn "安装前端依赖..."
+        cd "${FRONTEND_DIR}" && npm install
+    }
 }
 
 # 清理函数
 cleanup() {
     echo ""
-    print_warning "正在停止服务..."
-    print_success "服务已停止"
-    print_info "日志文件位置: ${LOG_DIR}"
+    warn "正在停止服务..."
+    ok "服务已停止"
+    log "日志目录: ${LOG_DIR}"
     exit 0
 }
 
-# 捕获退出信号
 trap cleanup SIGINT SIGTERM
 
 # 显示帮助
 show_help() {
-    echo "用法: $0 [选项]"
-    echo ""
-    echo "选项:"
-    echo "  -q, --quick   快速启动（跳过环境检查）"
-    echo "  -h, --help    显示帮助信息"
-    echo ""
-    echo "默认行为: 执行完整环境检查"
+    echo "用法: $0 [-q|--quick] [-h|--help]"
+    echo "  -q  快速启动（跳过环境检查）"
+    echo "  -h  显示帮助"
 }
 
-# 主流程
 main() {
-    # 解析参数
-    QUICK_START=false
+    local quick=false
     while [[ $# -gt 0 ]]; do
         case $1 in
-            -q|--quick)
-                QUICK_START=true
-                shift
-                ;;
-            -h|--help)
-                show_help
-                exit 0
-                ;;
-            *)
-                shift
-                ;;
+            -q|--quick) quick=true; shift ;;
+            -h|--help) show_help; exit 0 ;;
+            *) shift ;;
         esac
     done
 
@@ -188,26 +105,23 @@ main() {
     echo "=========================================="
     echo ""
 
-    # 判断启动模式
-    if [ "$QUICK_START" = true ]; then
-        print_info "快速启动模式"
-        quick_check
-    else
-        full_env_check
+    # 环境检查
+    if [ "$quick" = false ]; then
+        [ ! -f "${ENV_CHECK_FILE}" ] && { check_env; echo "${LOG_TIMESTAMP}" > "${ENV_CHECK_FILE}"; }
     fi
-
-    print_info "启动 Wails 开发服务器..."
-    print_info "Go/Wails 日志: ${LOG_DIR}/go.log"
-    print_info "Node.js 日志: ${LOG_DIR}/nodejs-server.log"
-    print_info "Web 前端日志: ${LOG_DIR}/web.log"
-    echo ""
+    check_deps
 
     # 初始化日志目录
-    init_log_dir
+    mkdir -p "${LOG_DIR}"
+    log "日志目录: ${LOG_DIR}"
+    log "  ├─ go.log           (Go/Wails)"
+    log "  ├─ nodejs-server.log (Node.js)"
+    log "  └─ web.log          (Vite)"
+    echo ""
 
-    # 启动 Wails 开发模式，日志输出到文件
+    # 启动 Wails（日志由 Go 后端通过 PPLL_LOG_DIR 环境变量写入文件）
     cd "${PROJECT_ROOT}"
-    wails dev 2>&1 | tee -a "${LOG_DIR}/go.log"
+    wails dev
 }
 
 main "$@"
