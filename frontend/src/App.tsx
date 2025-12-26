@@ -69,7 +69,7 @@ function App() {
     return (
         <MantineProvider theme={mantineTheme}>
             <div id="App">
-                <Router>
+                <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                     <Navigation />
                     <Routes>
                         <Route path={ROUTES.HOME} element={<HomePage />} />
