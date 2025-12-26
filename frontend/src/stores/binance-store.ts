@@ -129,8 +129,18 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         const nodejsUrl = await getNodejsUrl();
         if (!nodejsUrl) return;
 
+        // 从 apiKeyList 中获取第一个可用的 apiKey
+        const apiKeyList = get().apiKeyList;
+        if (apiKeyList.length === 0) return;
+
+        const apiKey = apiKeyList[0];
+
         try {
-            const response = await fetch(`${nodejsUrl}/v1/binance-exchange-info`);
+            const url = new URL(`${nodejsUrl}/v1/binance-exchange-info`);
+            url.searchParams.append('apiKey', apiKey.apiKey);
+            url.searchParams.append('apiSecret', apiKey.secretKey);
+
+            const response = await fetch(url.toString());
             if (!response.ok) return;
 
             const result = await response.json();
