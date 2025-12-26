@@ -324,4 +324,102 @@ export class ApiEndpoints {
   static async getPluginStats() {
     return RequestWrapper.get('/api/stats/plugins')
   }
+
+  // ==================== 数据库管理 ====================
+
+  /**
+   * 获取数据库概览信息
+   */
+  static async getDatabaseInfo() {
+    return RequestWrapper.get('/v1/system/database/info')
+  }
+
+  /**
+   * 获取表列表
+   */
+  static async getDatabaseTables(params: { currentPage?: number; pageSize?: number; keyword?: string }) {
+    return RequestWrapper.post('/v1/system/database/tables', params)
+  }
+
+  /**
+   * 获取表结构详情
+   */
+  static async getTableDetail(tableName: string) {
+    return RequestWrapper.post('/v1/system/database/table-detail', { tableName })
+  }
+
+  /**
+   * 获取表数据
+   */
+  static async getTableData(params: {
+    tableName: string
+    currentPage?: number
+    pageSize?: number
+    sortBy?: string
+    sortOrder?: 'ASC' | 'DESC'
+  }) {
+    return RequestWrapper.post('/v1/system/database/table-data', params)
+  }
+
+  /**
+   * 创建数据
+   */
+  static async createData(tableName: string, data: any[]) {
+    return RequestWrapper.post('/v1/system/database/data-create', { tableName, data })
+  }
+
+  /**
+   * 更新数据
+   */
+  static async updateData(tableName: string, data: any[]) {
+    return RequestWrapper.put('/v1/system/database/data-update', { tableName, data })
+  }
+
+  /**
+   * 删除数据
+   */
+  static async deleteData(tableName: string, data: any[]) {
+    return RequestWrapper.delete('/v1/system/database/data-delete', { tableName, data })
+  }
+
+  /**
+   * 执行 SQL 查询
+   */
+  static async executeQuery(sql: string, queryParams?: any[]) {
+    return RequestWrapper.post('/v1/system/database/query', { sql, queryParams })
+  }
+
+  /**
+   * 创建表
+   */
+  static async createTable(tableName: string, columns: any[]) {
+    return RequestWrapper.post('/v1/system/database/table-create', { tableName, columns })
+  }
+
+  /**
+   * 删除表
+   */
+  static async deleteTable(data: string[]) {
+    return RequestWrapper.delete('/v1/system/database/table-delete', { data })
+  }
+
+  /**
+   * 添加列
+   */
+  static async createColumn(params: {
+    tableName: string
+    columnName: string
+    type: string
+    nullable?: boolean
+    defaultValue?: any
+  }) {
+    return RequestWrapper.post('/v1/system/database/column-create', params)
+  }
+
+  /**
+   * 删除列
+   */
+  static async deleteColumn(tableName: string, columnName: string) {
+    return RequestWrapper.delete('/v1/system/database/column-delete', { tableName, columnName })
+  }
 }

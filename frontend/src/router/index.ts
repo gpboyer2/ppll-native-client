@@ -5,6 +5,7 @@ export const ROUTES = {
   HOME: '/',
   SETTINGS: '/settings',
   SYSTEM_INFO: '/system-info',
+  DATABASE_MANAGER: '/database-manager',
   PLUGINS: '/plugins',
   PLUGIN_DETAIL: '/plugins/:id',
   GRID_STRATEGY: '/grid-strategy',
@@ -40,6 +41,12 @@ export const navItems = [
     label: '系统信息',
     icon: 'ℹ️',
     description: '查看系统配置和服务状态'
+  },
+  {
+    path: '/database-manager',
+    label: '数据库管理',
+    icon: '🗄️',
+    description: '管理数据库表结构和数据'
   },
 ];
 

@@ -8,6 +8,7 @@ import logo from './assets/images/logo-universal.png';
 import HomePage from './pages/HomePage';
 import SettingsPage from './pages/SettingsPage';
 import SystemInfoPage from './pages/SystemInfoPage';
+import DatabaseManagerPage from './pages/DatabaseManagerPage';
 import PluginsPage from './pages/PluginsPage';
 import GridStrategyListPage from './pages/GridStrategy';
 import GridStrategyEditPage from './pages/GridStrategy/edit';
@@ -80,6 +81,7 @@ function App() {
                         <Route path={ROUTES.HOME} element={<HomePage />} />
                         <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
                         <Route path={ROUTES.SYSTEM_INFO} element={<SystemInfoPage />} />
+                        <Route path={ROUTES.DATABASE_MANAGER} element={<DatabaseManagerPage />} />
                         <Route path={ROUTES.PLUGINS} element={<PluginsPage />} />
                         <Route path={ROUTES.PLUGIN_DETAIL} element={<PluginsPage />} />
                         {/* 做T网格插件重定向到网格策略页面 */}
