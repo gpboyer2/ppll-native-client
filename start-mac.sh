@@ -65,10 +65,10 @@ check_env() {
 
 # 依赖检查
 check_deps() {
-    [ ! -d "${FRONTEND_DIR}/node_modules" ] && {
+    if [ ! -d "${FRONTEND_DIR}/node_modules" ]; then
         warn "安装前端依赖..."
         cd "${FRONTEND_DIR}" && npm install
-    }
+    fi
 }
 
 # 清理函数
@@ -121,10 +121,9 @@ main() {
     log "  └─ web.log           (Vite)"
     echo ""
 
-    # 启动 Wails（前端日志通过 tee 写入 web.log）
+    # 启动 Wails（所有日志输出到终端，同时写入 web.log）
     cd "${PROJECT_ROOT}"
-    # 使用 bash -c 设置进程组，确保信号正确传递
-    bash -c "trap 'exit 0' SIGINT SIGTERM; wails dev 2>&1 | tee -a '${LOG_DIR}/web.log'"
+    wails dev 2>&1 | tee -a "${LOG_DIR}/web.log"
 }
 
 main "$@"

@@ -246,20 +246,18 @@ func (s *NodejsService) buildEnv(baseEnv []string) []string {
 }
 
 // goLogListener 启动日志监听协程
-// stdout/stderr 输出到 PPLL_LOG_DIR/nodejs-server.log
+// stdout/stderr 同时输出到终端和 PPLL_LOG_DIR/nodejs-server.log
 func (s *NodejsService) goLogListener(stdout io.Reader, stderr io.Reader) {
-    var logWriter io.Writer
+    var logWriter io.Writer = os.Stdout
     if logDir := os.Getenv("PPLL_LOG_DIR"); logDir != "" {
         if f, err := os.OpenFile(filepath.Join(logDir, "nodejs-server.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644); err == nil {
             s.logFile = f
-            logWriter = f
+            logWriter = io.MultiWriter(os.Stdout, f)
         }
     }
 
     writeLog := func(prefix string, line string) {
-        if logWriter != nil {
-            fmt.Fprintln(logWriter, time.Now().Format("2006-01-02 15:04:05")+" "+prefix+" "+line)
-        }
+        fmt.Fprintln(logWriter, time.Now().Format("2006-01-02 15:04:05")+" "+prefix+" "+line)
     }
 
     if stdout != nil {
