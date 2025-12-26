@@ -1,10 +1,9 @@
 /**
  * 网格交易历史控制器
- * 处理网格交易历史相关的业务逻辑，提供交易记录查询和统计功能
+ * 单用户系统：处理网格交易历史相关的业务逻辑，提供交易记录查询和统计功能
  */
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catchAsync");
-const userService = require("../service/user.service");
 const service = require("../service/grid-trade-history.service");
 
 /**

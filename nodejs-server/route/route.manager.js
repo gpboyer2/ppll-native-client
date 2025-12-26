@@ -1,9 +1,8 @@
 /**
  * 路由管理器
  * 统一管理和注册所有API路由模块
+ * 单用户系统：已移除 user 和 role 相关路由
  */
-const userRoute = require("./v1/user.route");
-const roleRoute = require("./v1/role.route");
 const authRoute = require("./v1/auth.route");
 const chatRoute = require("./v1/chat.route");
 const robotRoute = require("./v1/robot.route");
@@ -33,8 +32,6 @@ const databaseAdminRoute = require("./v1/database-admin.route");
 
 const routeManager = (app) => {
   // API V1 Routes
-  app.use("/v1/user", userRoute);
-  app.use("/v1/role", roleRoute);
   app.use("/v1/auth", authRoute);
   app.use("/v1/chat", chatRoute);
   app.use("/v1/robot", robotRoute);

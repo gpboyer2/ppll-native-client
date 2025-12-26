@@ -1,11 +1,10 @@
 /**
  * 模板控制器
- * 处理模板相关的业务逻辑，提供模板管理功能
+ * 单用户系统：处理模板相关的业务逻辑，提供模板管理功能
  */
 const orderService = require("../service/template.service");
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catchAsync");
-const userService = require("../service/user.service");
 
 const createOrder = catchAsync(async (req, res) => {
     let errorMsg = null;
@@ -92,16 +91,15 @@ const deleteOrder = catchAsync(async (req, res) => {
 // 列表查询（分页 + 过滤）
 const queryOrders = catchAsync(async (req, res) => {
     // 获取查询参数
-    const { id, ids, user_id, currentPage = 1, pageSize = 10 } = req.query;
-    
-    // 构建查询条件
+    const { id, ids, currentPage = 1, pageSize = 10 } = req.query;
+
+    // 构建查询条件（单用户系统，移除 user_id）
     const filter = {};
     if (id) filter.id = id;
     if (ids) filter.ids = ids;
-    if (user_id) filter.user_id = user_id;
-    
+
     const options = { page: parseInt(currentPage, 10) || 1, pageSize: parseInt(pageSize, 10) || 10 };
-    
+
     const data = await orderService.queryOrders(filter, options);
     res.status(200).send({ status: 'success', code: 200, data });
 });

@@ -1,6 +1,6 @@
 /**
  * Binance ApiKey 控制器
- * 处理 Binance ApiKey 管理相关的业务逻辑，提供增删改查功能
+ * 单用户系统：处理 Binance ApiKey 管理相关的业务逻辑
  */
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catchAsync");
@@ -12,16 +12,15 @@ const binanceApiKeyService = require("../service/binance-api-key.service");
  */
 const createApiKey = catchAsync(async (req, res) => {
   try {
-    const { name, apiKey, secretKey, status, remark } = req.body;
-    const userId = req.user?.id;
+    const { name, apiKey, secretKey, status, remark, vipExpireAt } = req.body;
 
     const result = await binanceApiKeyService.createApiKey({
-      userId,
       name,
       apiKey,
       secretKey,
       status,
-      remark
+      remark,
+      vipExpireAt
     });
 
     res.send({
@@ -44,17 +43,8 @@ const createApiKey = catchAsync(async (req, res) => {
 const deleteApiKey = catchAsync(async (req, res) => {
   try {
     const { id } = req.body;
-    const userId = req.user?.id;
 
-    if (!userId) {
-      return res.status(httpStatus.UNAUTHORIZED).send({
-        status: 'error',
-        code: httpStatus.UNAUTHORIZED,
-        message: '用户未登录'
-      });
-    }
-
-    const deleted = await binanceApiKeyService.deleteApiKeyById(id, userId);
+    const deleted = await binanceApiKeyService.deleteApiKeyById(id);
     res.send({
       status: 'success',
       data: deleted
@@ -74,18 +64,9 @@ const deleteApiKey = catchAsync(async (req, res) => {
  */
 const updateApiKey = catchAsync(async (req, res) => {
   try {
-    const { id, name, apiKey, secretKey, status, remark } = req.body;
-    const userId = req.user?.id;
+    const { id } = req.body;
 
-    if (!userId) {
-      return res.status(httpStatus.UNAUTHORIZED).send({
-        status: 'error',
-        code: httpStatus.UNAUTHORIZED,
-        message: '用户未登录'
-      });
-    }
-
-    const result = await binanceApiKeyService.updateApiKeyById(id, req.body, userId);
+    const result = await binanceApiKeyService.updateApiKeyById(id, req.body);
 
     res.send({
       status: 'success',
@@ -107,7 +88,6 @@ const updateApiKey = catchAsync(async (req, res) => {
 const queryApiKey = catchAsync(async (req, res) => {
   try {
     let { id, ids, name, status, pageSize = 10, currentPage = 1 } = req.query;
-    const userId = req.user?.id;
 
     // 解析 id/ids 支持：id=1 或 id=1,2,3 或 ids=1,2,3
     const parseIds = (idVal, idsVal) => {

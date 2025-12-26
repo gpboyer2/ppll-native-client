@@ -1,13 +1,12 @@
 /**
  * 聊天控制器
- * 处理聊天相关的业务逻辑，提供消息发送、获取和管理功能
+ * 单用户系统：处理聊天相关的业务逻辑，提供消息发送、获取和管理功能
  */
 const db = require("../models");
 const Chat = db.chats;
 const chatService = require("../service/chat.service");
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catchAsync");
-const userService = require("../service/user.service");
 
 const chat = (req, res) => {
   res.send({

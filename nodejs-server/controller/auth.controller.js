@@ -1,12 +1,10 @@
 /**
  * 认证控制器
- * 处理用户登录、注册、退出等认证相关的HTTP请求
+ * 单用户系统：处理登录、退出等认证相关的HTTP请求
  */
 const authService = require("../service/auth.service");
-const tokenService = require("../service/token.service");
 const catchAsync = require("../utils/catchAsync");
 const httpStatus = require("http-status");
-const userService = require("../service/user.service");
 // 引入日志服务
 const LoginLogsService = require("../service/login-logs.service");
 const SystemLogsService = require("../service/system-logs.service");
@@ -17,7 +15,7 @@ const ipUtil = require("../utils/ip");
 
 /**
  * 获取登录系统来源（admin/app）
- * @param {import('express').Request} req 
+ * @param {import('express').Request} req
  */
 function getLoginSystem(req) {
     const url = String(req.originalUrl || req.url || "");
@@ -78,7 +76,6 @@ async function logLoginAttempt(req, { user, success, failReason, statusCode }) {
         const location = ipUtil.classifyLocation(ip || "");
         const submittedSecret = req.body?.apiSecret || req.body?.password || null;
         await LoginLogsService.create({
-            user_id: user?.id || null,
             username: user?.username || req.body?.username || null,
             apiKey: req.body?.apiKey || user?.apiKey || null,
             apiSecret: submittedSecret,
@@ -106,7 +103,7 @@ async function logLoginAttempt(req, { user, success, failReason, statusCode }) {
         const description = success ? `用户在${loginSystem}系统登录成功` : `用户在${loginSystem}系统登录失败：${failReason || "未知原因"}`;
         const summary = success ? "登录成功" : "登录失败";
         await AnalyticsService.logUserAction(
-            user?.id || null,
+            null, // 单用户系统，无 user_id
             action,
             description,
             endpoint,
@@ -135,7 +132,7 @@ async function logLoginAttempt(req, { user, success, failReason, statusCode }) {
                 apiKey: req.body?.apiKey || undefined,
             },
             response_data: success ? { code: 200 } : { code: statusCode || 401, message: failReason || "认证失败" },
-            extra_data: { event: "login", success: !!success, user_id: user?.id || null },
+            extra_data: { event: "login", success: !!success },
         };
         await SystemLogsService.create(buildSysLogReq(req, safeRequest));
     } catch (e) {
@@ -159,7 +156,6 @@ async function logLogout(req) {
         const ip = ipUtil.getClientIp(req) || null;
         const location = ipUtil.classifyLocation(ip || "");
         await LoginLogsService.create({
-            user_id: user?.id || null,
             username: user?.username || null,
             apiKey: user?.apiKey || null,
             login_time: new Date(),
@@ -180,7 +176,7 @@ async function logLogout(req) {
 
     try {
         await AnalyticsService.logUserAction(
-            req.user?.id || null,
+            null, // 单用户系统，无 user_id
             "logout",
             `用户在${loginSystem}系统退出登录`,
             endpoint,
@@ -200,7 +196,7 @@ async function logLogout(req) {
             status_code: 204,
             request_data: { login_system: loginSystem },
             response_data: { code: 204 },
-            extra_data: { event: "logout", success: true, user_id: req.user?.id || null },
+            extra_data: { event: "logout", success: true },
         };
         await SystemLogsService.create(buildSysLogReq(req, safeRequest));
     } catch (e) {
@@ -264,25 +260,20 @@ const adminLogin = catchAsync(async (req, res) => {
         return;
     }
 
-    const tokens = await tokenService.generateAuthTokens(user);
-
-    // 返回用户信息时排除敏感信息
-    const userResult = user.toJSON();
-    delete userResult.password;
-    delete userResult.apiKey;
-    delete userResult.apiSecret;
+    // 单用户系统：生成简单的 token
+    const token = Buffer.from(`${apiKey}:${Date.now()}`).toString('base64');
 
     const code = 200;
     // 记录登录成功
     await logLoginAttempt(req, { user, success: true, statusCode: code });
     res.send({
         code,
-        user: userResult,
+        user: user,
         tokens: {
-            accessToken: tokens.access.token,
-            refreshToken: tokens.refresh.token,
-            accessTokenExpires: tokens.access.expires.toISOString(),
-            refreshTokenExpires: tokens.refresh.expires.toISOString()
+            accessToken: token,
+            refreshToken: token,
+            accessTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            refreshTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
         }
     });
 });
@@ -315,75 +306,56 @@ const appLogin = catchAsync(async (req, res) => {
         return;
     }
 
-    const tokens = await tokenService.generateAuthTokens(user);
-
-    // 返回用户信息时排除敏感信息
-    const userResult = user.toJSON();
-    delete userResult.password;
-    delete userResult.apiSecret; // 保留apiKey用于后续API调用识别
+    // 单用户系统：生成简单的 token
+    const token = Buffer.from(`${apiKey}:${Date.now()}`).toString('base64');
 
     const code = 200;
     await logLoginAttempt(req, { user, success: true, statusCode: code });
     res.send({
         code,
-        user: userResult,
+        user: user,
         tokens: {
-            accessToken: tokens.access.token,
-            refreshToken: tokens.refresh.token,
-            accessTokenExpires: tokens.access.expires.toISOString(),
-            refreshTokenExpires: tokens.refresh.expires.toISOString()
+            accessToken: token,
+            refreshToken: token,
+            accessTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            refreshTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
         }
     });
 });
 
 const register = catchAsync(async (req, res) => {
-    const user = await userService.createUser(req.body);
-    let code = 200;
-    if (user) {
-        const tokens = await tokenService.generateAuthTokens(user);
-        res.send({ code, user, tokens });
-        return;
-    }
-    code = httpStatus.CONFLICT;
+    // 单用户系统：不支持注册
+    const code = httpStatus.FORBIDDEN;
     res.status(200).send({
         code,
-        message: "用户已存在",
+        message: "单用户系统，不支持注册",
     })
 });
 
 const logout = catchAsync(async (req, res) => {
-    // 调用业务登出逻辑（refreshToken 可选）
-    const refreshToken = req.body && req.body.refreshToken;
-    if (refreshToken) {
-        await authService.logout(refreshToken);
-    }
-    // 记录登出日志（不依赖于 refreshToken 是否存在）
+    // 记录登出日志
     await logLogout(req);
     res.status(httpStatus.NO_CONTENT).send();
 });
 
 const refreshTokens = catchAsync(async (req, res) => {
-    const tokens = await authService.refreshAuth(req.body.refreshToken);
-    const code = 200;
-    res.send({ code, ...tokens });
+    const code = httpStatus.UNAUTHORIZED;
+    res.status(code).send({
+        code,
+        message: "单用户系统，请重新登录",
+    });
 });
 
 
 
 // 获取用户详细信息
 const getUserProfile = catchAsync(async (req, res) => {
-    const userId = req.user.id; // 从认证中间件获取用户ID
-    const user = await authService.getUserProfile(userId);
-
-    // 返回用户信息时排除敏感信息
-    const userResult = user.toJSON();
-    delete userResult.password;
-    delete userResult.apiSecret;
+    const user = await authService.getUserProfile(1);
 
     const code = 200;
     res.send({
         code,
-        user: userResult
+        user: user
     });
 });
 

@@ -264,8 +264,7 @@ const safeRequire = (modulePath, moduleName) => {
 // 全市场最新标记价格 监听
 safeRequire("./jobs/markPriceStream.js", "标记价格流");
 
-// 在应用启动时执行一次用户表备份
-safeRequire("./jobs/backupUsers.js", "用户备份");
+// 单用户系统：已移除用户备份功能
 
 // 服务启动或重启时恢复策略 - 需等待数据库同步完成
 dbSyncPromise.then(() => {

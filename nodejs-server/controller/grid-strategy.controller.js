@@ -1,12 +1,11 @@
 /**
  * 网格策略控制器
- * 处理网格交易策略相关的业务逻辑，提供策略创建、管理和执行功能
+ * 单用户系统：处理网格交易策略相关的业务逻辑，提供策略创建、管理和执行功能
  */
 const gridStrategyService = require("../service/grid-strategy.service");
 const gridOptimizerService = require("../service/grid-optimizer.service");
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catchAsync");
-const userService = require("../service/user.service");
 
 const list = catchAsync(async (req, res) => {
     let { apiKey, apiSecret, page, limit } = req.query;

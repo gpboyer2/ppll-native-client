@@ -1,19 +1,18 @@
 "use strict";
 
-// 登录日志数据模型（文件从 login-logs.js 调整为单数命名以符合路径规范）
+// 登录日志数据模型（单用户系统，无需 user_id）
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
   class login_logs extends Model {
     static associate(models) {
-      // 可按需建立与用户模型的关联（此处不强制）
+      // 单用户系统，无需用户关联
     }
   }
 
   login_logs.init(
     {
-      user_id: { type: DataTypes.BIGINT, allowNull: true, comment: "用户ID" },
-      username: { type: DataTypes.STRING(64), allowNull: true, comment: "用户名（冗余）" },
+      username: { type: DataTypes.STRING(64), allowNull: true, comment: "用户名" },
       apiKey: { type: DataTypes.STRING(255), allowNull: true, comment: "API密钥" },
       apiSecret: { type: DataTypes.STRING(255), allowNull: true, comment: "API密钥Secret（敏感）" },
       login_time: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW, comment: "登录时间" },

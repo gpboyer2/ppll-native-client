@@ -1,6 +1,7 @@
 /**
  * Binance ApiKey 数据模型
  * 定义 Binance ApiKey 表结构和相关的数据库操作方法
+ * 单用户系统：不需要用户关联，每个 API Key 代表一个配置
  */
 'use strict';
 const {
@@ -14,22 +15,11 @@ module.exports = (sequelize, DataTypes) => {
      * This method is not a part of Sequelize lifecycle.
      */
     static associate(models) {
-      // ApiKey 属于一个用户（禁用外键约束）
-      binance_api_keys.belongsTo(models.users, {
-        foreignKey: 'user_id',
-        targetKey: 'id',
-        as: 'userInfo',
-        constraints: false
-      });
+      // 单用户系统，无需关联
     }
   }
 
   binance_api_keys.init({
-    user_id: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      comment: '关联的用户ID'
-    },
     name: {
       type: DataTypes.STRING(64),
       allowNull: false,
@@ -55,6 +45,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(255),
       allowNull: true,
       comment: '备注信息'
+    },
+    vip_expire_at: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'VIP过期时间'
     },
     deleted: {
       type: DataTypes.TINYINT,

@@ -1,27 +1,24 @@
 /**
  * VIP用户验证中间件
- * 验证API密钥对应的用户是否为有效的VIP用户，提供统一的VIP权限控制
+ * 单用户系统：直接验证 binance_api_key 表中的 API Key
  */
-
-const userService = require('../service/user.service');
+const db = require('../models');
+const BinanceApiKey = db.binance_api_keys;
 
 /**
  * VIP访问权限验证中间件
- * 从请求体或查询参数中获取apiKey和apiSecret，验证用户VIP状态
- * 
+ * 单用户系统：所有通过验证的用户都是 VIP
+ * 验证 binance_api_key 表中的 VIP 状态
+ *
  * @param {Object} req - Express请求对象
- * @param {Object} res - Express响应对象  
+ * @param {Object} res - Express响应对象
  * @param {Function} next - Express下一个中间件函数
- * 
+ *
  * 验证流程：
  * 1. 从req.body或req.query中提取apiKey和apiSecret
- * 2. 调用 userService.validateVipAccess 进行VIP状态验证
- * 3. 如果不是VIP用户，返回403错误
+ * 2. 验证 binance_api_key 表中是否存在匹配的记录
+ * 3. 检查 VIP 是否过期
  * 4. 如果验证通过，调用next()继续处理
- * 
- * 错误处理：
- * - VIP验证失败：返回403 Forbidden
- * - 验证过程异常：返回403 Forbidden（安全考虑）
  */
 const validateVipAccess = async (req, res, next) => {
   try {
@@ -29,29 +26,66 @@ const validateVipAccess = async (req, res, next) => {
     const apiKey = req.body?.apiKey || req.query?.apiKey;
     const apiSecret = req.body?.apiSecret || req.query?.apiSecret;
 
-    // 如果提供了apiKey，进行VIP验证
+    // 如果提供了apiKey，进行验证
     if (apiKey && apiSecret) {
       try {
-        // 调用用户服务进行VIP状态检查，同时获取用户信息
-        const vipResult = await userService.validateVipAccess(apiKey, apiSecret);
+        // 验证 binance_api_key 表中是否存在匹配的记录
+        const keyRecord = await BinanceApiKey.findOne({
+          where: {
+            api_key: apiKey,
+            secret_key: apiSecret,
+            deleted: 0,
+          }
+        });
 
-        if (!vipResult.isVip) {
+        if (!keyRecord) {
           return res.send({
             status: 'error',
             code: 403,
-            message: '您不是VIP用户，无法使用该功能'
+            message: 'API Key 或 Secret 无效'
           });
         }
 
-        // 将用户信息挂载到请求对象，供后续中间件和控制器使用
-        req.vipUser = vipResult.user;
+        // 验证状态
+        if (keyRecord.status !== 2) {
+          return res.send({
+            status: 'error',
+            code: 403,
+            message: 'API Key 已被禁用'
+          });
+        }
+
+        // 检查 VIP 是否过期
+        if (keyRecord.vip_expire_at) {
+          const now = new Date();
+          const expireTime = new Date(keyRecord.vip_expire_at);
+          if (expireTime < now) {
+            return res.send({
+              status: 'error',
+              code: 403,
+              message: 'VIP 已过期'
+            });
+          }
+        } else {
+          return res.send({
+            status: 'error',
+            code: 403,
+            message: '您不是 VIP 用户，无法使用该功能'
+          });
+        }
+
+        req.vipUser = {
+          id: keyRecord.id,
+          username: keyRecord.name || 'admin',
+          apiKey: apiKey,
+          vipExpireAt: keyRecord.vip_expire_at,
+        };
       } catch (error) {
-        // VIP验证过程中的任何错误都视为无权限访问
         console.error('VIP验证过程中发生错误:', error);
         return res.send({
           status: 'error',
           code: 403,
-          message: '您不是VIP用户，无法使用该功能'
+          message: '验证失败'
         });
       }
     } else {
@@ -65,12 +99,11 @@ const validateVipAccess = async (req, res, next) => {
     // 验证通过，继续处理请求
     next();
   } catch (error) {
-    // 中间件级别的错误处理
     console.error('VIP中间件执行错误:', error);
     return res.send({
       status: 'error',
       code: 403,
-      message: '您不是VIP用户，无法使用该功能'
+      message: '验证失败'
     });
   }
 };

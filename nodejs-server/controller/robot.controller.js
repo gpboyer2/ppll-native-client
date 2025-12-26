@@ -1,11 +1,10 @@
 /**
  * 机器人控制器
- * 处理交易机器人相关的业务逻辑，提供机器人管理和控制功能
+ * 单用户系统：处理交易机器人相关的业务逻辑，提供机器人管理和控制功能
  */
 const robotService = require("../service/robot.service");
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catchAsync");
-const userService = require("../service/user.service");
 
 const robot = async (req, res) => {
     const { apiKey, apiSecret } = req.query;

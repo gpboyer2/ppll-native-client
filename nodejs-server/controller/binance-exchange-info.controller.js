@@ -1,11 +1,10 @@
 /**
  * 币安交易所信息控制器
- * 处理币安交易所信息相关的业务逻辑，提供交易对信息和市场数据管理功能
+ * 单用户系统：处理币安交易所信息相关的业务逻辑，提供交易对信息和市场数据管理功能
  */
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catchAsync");
 const binanceExchangeInfoService = require("../service/binance-exchange-info.service");
-const userService = require("../service/user.service");
 const { extractApiCredentials } = require("../utils");
 
 /**

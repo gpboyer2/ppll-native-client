@@ -1,6 +1,6 @@
 /**
  * USD-M 合约账户数据模型
- * 存储用户的币安 USD-M 合约账户信息快照
+ * 单用户系统：存储用户的币安 USD-M 合约账户信息快照
  */
 'use strict';
 const { Model } = require('sequelize');
@@ -8,21 +8,11 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
   class usd_m_futures_account extends Model {
     static associate(models) {
-      // 关联用户表
-      usd_m_futures_account.belongsTo(models.users, {
-        foreignKey: 'user_id',
-        targetKey: 'id',
-        as: 'user'
-      });
+      // 单用户系统，无需用户关联
     }
   }
 
   usd_m_futures_account.init({
-    user_id: {
-      type: DataTypes.BIGINT,
-      allowNull: false,
-      comment: '用户ID，关联users表'
-    },
     account_json: {
       type: DataTypes.TEXT('long'),
       allowNull: false,

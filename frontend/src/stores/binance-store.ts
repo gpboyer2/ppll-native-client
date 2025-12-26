@@ -9,6 +9,7 @@ export interface BinanceApiKey {
     secretKey: string;
     status: number;
     remark?: string;
+    vipExpireAt?: string;
     created_at: string;
     updated_at: string;
 }

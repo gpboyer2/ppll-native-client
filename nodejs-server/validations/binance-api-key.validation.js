@@ -1,6 +1,6 @@
 /**
  * Binance ApiKey 验证规则
- * 定义 Binance ApiKey 相关 API 的请求参数验证规则
+ * 单用户系统：定义 Binance ApiKey 相关 API 的请求参数验证规则
  */
 const Joi = require('joi');
 
@@ -30,6 +30,9 @@ const createApiKey = {
     }),
     remark: Joi.string().max(255).allow('').optional().messages({
       'string.max': '备注长度不能超过255个字符'
+    }),
+    vipExpireAt: Joi.date().optional().messages({
+      'date.base': 'VIP过期时间格式不正确'
     })
   })
 };
@@ -75,6 +78,9 @@ const updateApiKey = {
     }),
     remark: Joi.string().max(255).allow('').optional().messages({
       'string.max': '备注长度不能超过255个字符'
+    }),
+    vipExpireAt: Joi.date().optional().messages({
+      'date.base': 'VIP过期时间格式不正确'
     })
   }).min(2).messages({
     'object.min': '至少需要提供一个要更新的字段（除了 id）'
@@ -86,9 +92,7 @@ const updateApiKey = {
  */
 const getApiKeys = {
   query: Joi.object().keys({
-    // 支持单个 id 或 逗号分隔的字符串形式
     id: Joi.alternatives().try(Joi.number().integer(), Joi.string()),
-    // 支持多个 ids：数组或逗号分隔字符串
     ids: Joi.alternatives().try(
       Joi.array().items(Joi.number().integer()),
       Joi.string()
