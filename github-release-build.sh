@@ -195,8 +195,8 @@ main() {
         echo ""
         git status --short
         echo ""
-        read -p "是否继续发布？(y/N): " continue_anyway
-        if [[ $continue_anyway != "y" && $continue_anyway != "Y" ]]; then
+        read -p "是否继续发布？(Y/n): " continue_anyway
+        if [[ $continue_anyway == "n" || $continue_anyway == "N" ]]; then
             print_info "已取消"
             exit 0
         fi
@@ -319,8 +319,8 @@ main() {
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
 
-    read -p "确认创建并推送？(y/N): " confirm
-    if [[ $confirm != "y" && $confirm != "Y" ]]; then
+    read -p "确认创建并推送？(Y/n): " confirm
+    if [[ $confirm == "n" || $confirm == "N" ]]; then
         print_info "已取消"
         exit 0
     fi
