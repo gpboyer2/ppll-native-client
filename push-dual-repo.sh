@@ -264,49 +264,40 @@ main() {
     fi
     options+=("取消")
 
-    local i=1
+    local option_count=0
     for opt in "${options[@]}"; do
-        echo "  $i) $opt"
-        ((i++))
+        ((option_count++))
+        echo "  $option_count) $opt"
     done
     echo ""
 
-    read -p "请选择 [1-$i]: " push_choice
+    read -p "请选择 [1-$option_count]: " push_choice
 
     local push_origin=0
     local push_github=0
 
-    case $push_choice in
-        1)
-            if [[ $has_origin -eq 1 && ($has_github -eq 0 || $i -eq 4) ]]; then
-                push_origin=1
-            elif [[ $has_github -eq 1 ]]; then
-                push_github=1
-            fi
-            ;;
-        2)
-            if [[ $has_origin -eq 1 && $has_github -eq 1 ]]; then
-                if [[ $push_choice -eq 2 ]]; then
-                    push_github=1
-                fi
-            else
-                push_origin=1
-            fi
-            ;;
-        3)
-            if [[ $has_origin -eq 1 && $has_github -eq 1 ]]; then
-                push_origin=1
-                push_github=1
-            else
-                print_info "已取消"
-                exit 0
-            fi
-            ;;
-        *)
-            print_info "已取消"
-            exit 0
-            ;;
-    esac
+    # 根据实际存在的仓库和用户选择来确定推送目标
+    if [[ $has_origin -eq 1 && $has_github -eq 1 ]]; then
+        # 两个仓库都存在
+        case $push_choice in
+            1) push_origin=1 ;;
+            2) push_github=1 ;;
+            3) push_origin=1; push_github=1 ;;
+            *) print_info "已取消"; exit 0 ;;
+        esac
+    elif [[ $has_origin -eq 1 ]]; then
+        # 只有 Gitee
+        case $push_choice in
+            1) push_origin=1 ;;
+            *) print_info "已取消"; exit 0 ;;
+        esac
+    else
+        # 只有 GitHub
+        case $push_choice in
+            1) push_github=1 ;;
+            *) print_info "已取消"; exit 0 ;;
+        esac
+    fi
 
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
