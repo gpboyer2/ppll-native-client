@@ -116,8 +116,8 @@ if (process.env.DISABLE_RATE_LIMIT === 'true') {
 app.use(gitInfoMiddleware());
 
 // 启动时同步模型与数据库
-// 注意：桌面客户端本地 SQLite 数据库可以安全启用自动同步
-const dbSyncPromise = db.sequelize.sync()
+// 注意：桌面客户端本地 SQLite 数据库可以安全启用 alter 自动同步表结构
+const dbSyncPromise = db.sequelize.sync({ alter: true })
     .then(() => {
         console.log("数据库同步成功，表结构已创建/更新");
     })
