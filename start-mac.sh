@@ -36,8 +36,8 @@ PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 FRONTEND_DIR="${PROJECT_ROOT}/frontend"
 ENV_CHECK_FILE="${PROJECT_ROOT}/.env_checked"
 
-# 日志目录配置（格式：yyyyMMddHHmmss）
-LOG_TIMESTAMP=$(date +%Y%m%d%H%M%S)
+# 日志目录配置（格式：yyyyMMddHH0000，分秒固定为0000）
+LOG_TIMESTAMP=$(date +%Y%m%d%H)0000
 LOG_DIR="${PROJECT_ROOT}/process-monitoring/${LOG_TIMESTAMP}"
 export PPLL_LOG_DIR="${LOG_DIR}"
 
@@ -111,12 +111,13 @@ main() {
     fi
     check_deps
 
-    # 初始化日志目录
+    # 初始化日志目录和文件
     mkdir -p "${LOG_DIR}"
+    touch "${LOG_DIR}/go.log" "${LOG_DIR}/nodejs-server.log" "${LOG_DIR}/web.log"
     log "日志目录: ${LOG_DIR}"
-    log "  ├─ go.log           (Go/Wails)"
+    log "  ├─ go.log            (Go/Wails)"
     log "  ├─ nodejs-server.log (Node.js)"
-    log "  └─ web.log          (Vite)"
+    log "  └─ web.log           (Vite)"
     echo ""
 
     # 启动 Wails（日志由 Go 后端通过 PPLL_LOG_DIR 环境变量写入文件）

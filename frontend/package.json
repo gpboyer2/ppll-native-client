@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:log": "vite >> ${PPLL_LOG_DIR:-../process-monitoring}/web.log 2>&1",
+    "dev:log": "mkdir -p \"${PPLL_LOG_DIR:-../process-monitoring}\" && vite 2>&1 | tee -a \"${PPLL_LOG_DIR:-../process-monitoring}/web.log\"",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
