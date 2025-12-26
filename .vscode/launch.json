@@ -1,0 +1,34 @@
+{
+  // 使用 IntelliSense 了解相关属性。
+  // 悬停以查看现有属性的描述。
+  // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "shell",
+      "request": "launch",
+      "name": "🚀 Native Client: 一键启动(-q)",
+      "command": "./start-mac.sh -q",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "shell",
+      "request": "launch",
+      "name": "🖥️ Native Client: Wails dev",
+      "command": "wails dev",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "⚙️ Native Client: Node.js 后端",
+      "skipFiles": ["<node_internals>/**"],
+      "program": "${workspaceFolder}/nodejs-server/node_modules/npm/bin/npm-cli.js",
+      "args": ["run", "node:dev"],
+      "cwd": "${workspaceFolder}/nodejs-server",
+      "console": "integratedTerminal"
+    }
+  ]
+}
