@@ -20,7 +20,7 @@ interface ApiKeyItem {
 
 function SettingsPage() {
     // 使用系统信息 store
-    const { staticInfo: systemStaticInfo, dynamicInfo: systemDynamicInfo, init: initSystemInfo } = useSystemInfoStore();
+    const { staticInfo: systemStaticInfo, dynamicInfo: systemDynamicInfo } = useSystemInfoStore();
 
     // 使用 user store
     const { resetToDefaults } = useUserStore();
@@ -328,11 +328,6 @@ function SettingsPage() {
     useEffect(() => {
         loadDataSize();
     }, []);
-
-    // 初始化系统信息 store
-    useEffect(() => {
-        initSystemInfo();
-    }, [initSystemInfo]);
 
 
     return (

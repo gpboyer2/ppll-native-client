@@ -8,6 +8,13 @@ const systemController = require('../../controller/system.controller.js');
 
 
 /**
+ * 获取系统健康状态
+ * GET /v1/system/health
+ */
+router.get('/health', systemController.getHealth);
+
+
+/**
  * 获取本机 IPv4 地址列表
  * GET /v1/system/ipv4-list
  */

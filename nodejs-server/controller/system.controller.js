@@ -57,7 +57,30 @@ const getGitInfo = (req, res) => {
 };
 
 
+/**
+ * 获取系统健康状态
+ */
+const getHealth = async (req, res) => {
+  try {
+    const healthData = await systemService.getHealth();
+    res.send({
+      status: 'success',
+      code: 200,
+      data: healthData
+    });
+  } catch (error) {
+    res.status(500).send({
+      status: 'error',
+      code: 500,
+      message: '获取健康状态失败',
+      error: error.message
+    });
+  }
+};
+
+
 module.exports = {
   getIPv4List,
-  getGitInfo
+  getGitInfo,
+  getHealth
 };

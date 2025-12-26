@@ -7,6 +7,9 @@ const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 let io;
 let wsManager;
 
+// 连接统计
+const stats = { active: 0, total: 0 };
+
 const init = (server, wsManagerInstance) => {
   wsManager = wsManagerInstance;
   io = socketIo(server, {
@@ -17,6 +20,9 @@ const init = (server, wsManagerInstance) => {
   });
 
   io.on('connection', (socket) => {
+    // 更新连接统计
+    stats.total++;
+    stats.active++;
     UtilRecord.log(`[SocketIO] Client connected: ${socket.id}`);
 
     // 记录此 Socket 订阅了哪些用户数据流，格式: `${userId}:${market}`
@@ -161,6 +167,7 @@ const init = (server, wsManagerInstance) => {
     });
 
     socket.on('disconnect', () => {
+      stats.active--;
       UtilRecord.log(`[SocketIO] Client disconnected: ${socket.id}`);
       // 统一清理订阅
       cleanupSocketSubscription(socket);
@@ -211,4 +218,15 @@ const cleanupSocketSubscription = (socket) => {
   socket.subscribedTickerList.clear();
 };
 
-module.exports = { init };
+/**
+ * 获取连接统计信息
+ * @returns {object} 统计信息
+ */
+const getStats = () => {
+  return {
+    active: io?.sockets?.sockets?.size || stats.active,
+    total: stats.total
+  };
+};
+
+module.exports = { init, getStats };

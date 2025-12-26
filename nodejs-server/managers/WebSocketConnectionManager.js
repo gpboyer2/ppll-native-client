@@ -24,6 +24,8 @@ class WebSocketConnectionManager extends EventEmitter {
   constructor() {
     super();
     this.inited = false;
+    // 连接统计
+    this.stats = { active: 0, total: 0 };
     // key: `${market}:${scope}` -> wsClient
     this.clients = new Map();
     // 订阅去重与引用计数
@@ -117,6 +119,10 @@ class WebSocketConnectionManager extends EventEmitter {
       this._checkConnectionTimeout(clientKey);
       return this.clients.get(clientKey);
     }
+
+    // 更新连接统计
+    this.stats.total++;
+    this.stats.active++;
 
     const { wsOptions, logger } = this._createWsConfig(true);
 
@@ -290,6 +296,7 @@ class WebSocketConnectionManager extends EventEmitter {
 
   closeAll() {
     for (const [key, client] of this.clients.entries()) {
+      this.stats.active--;
       try {
         client.closeAll(true);
       } catch (e) {
@@ -459,6 +466,19 @@ class WebSocketConnectionManager extends EventEmitter {
   getUserDataSubStatus(userId, market = 'usdm') {
     const subKey = `user:${userId}:${market}`;
     return this.userDataSubs.get(subKey) || null;
+  }
+
+  /**
+   * 获取连接统计信息
+   * @returns {object} 统计信息
+   */
+  getStats() {
+    return {
+      active: this.clients.size + this.userDataSubs.size,
+      public: this.clients.size,
+      userData: this.userDataSubs.size,
+      total: this.stats.total
+    };
   }
 }
 

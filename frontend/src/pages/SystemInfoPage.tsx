@@ -1,6 +1,5 @@
 import { useEffect } from 'react';
-import { useSystemInfoStore, getStaticInfo, getDynamicInfo } from '../stores/system-info-store';
-import type { GitInfo, NodejsStatus } from '../stores/system-info-store';
+import { useSystemInfoStore } from '../stores/system-info-store';
 
 // 图标组件
 const IconNetwork = () => (
@@ -49,11 +48,7 @@ const IconGit = () => (
 );
 
 function SystemInfoPage() {
-    const { staticInfo, dynamicInfo, loading, init } = useSystemInfoStore();
-
-    useEffect(() => {
-        init();
-    }, [init]);
+    const { staticInfo, dynamicInfo, loading } = useSystemInfoStore();
 
     if (loading || !staticInfo || !dynamicInfo) {
         return (
