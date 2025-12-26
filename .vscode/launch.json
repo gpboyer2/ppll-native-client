@@ -5,19 +5,19 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "🚀 Native Client: 一键启动(-q)",
+      "name": "🚀 一键启动(-q)",
       "command": "export PATH=\"$PATH:$HOME/go/bin\" && ./start-mac.sh -q",
       "request": "launch",
       "type": "node-terminal"
     },
     {
-      "name": "🖥️ Native Client: Wails dev",
+      "name": "🖥️ Wails dev",
       "command": "export PATH=\"$PATH:$HOME/go/bin\" && wails dev",
       "request": "launch",
       "type": "node-terminal"
     },
     {
-      "name": "⚙️ Native Client: Node.js 后端",
+      "name": "⚙️ Node.js 后端",
       "command": "cd nodejs-server && npm run node:dev",
       "request": "launch",
       "type": "node-terminal"
