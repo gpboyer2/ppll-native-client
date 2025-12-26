@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
+import { Select } from '@mantine/core';
 import { ROUTES } from '../../router';
+import { useBinanceStore } from '../../stores/binance-store';
 import type { GridStrategy, GridStrategyForm, PositionSide } from '../../types/grid-strategy';
 import { defaultGridStrategy } from '../../types/grid-strategy';
 
@@ -14,11 +16,19 @@ function GridStrategyEditPage() {
     const { id } = useParams<{ id?: string }>();
     const isEditing = Boolean(id);
 
+    // 使用币安 store
+    const { apiKeyList, usdtPairs, init } = useBinanceStore();
+
     // 表单数据状态
     const [formData, setFormData] = useState<GridStrategyForm>(defaultGridStrategy);
 
     // 保存状态
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+
+    // 初始化 store
+    useEffect(() => {
+        init();
+    }, [init]);
 
     // 加载现有策略数据
     useEffect(() => {
@@ -78,15 +88,15 @@ function GridStrategyEditPage() {
 
         // 验证必填字段
         if (!formData.tradingPair.trim()) {
-            alert('请输入交易对');
+            alert('请选择交易对');
             return;
         }
         if (!formData.apiKey.trim()) {
-            alert('请输入币安API Key');
+            alert('请选择币安API Key');
             return;
         }
         if (!formData.apiSecret.trim()) {
-            alert('请输入币安API Secret');
+            alert('请选择币安API Key');
             return;
         }
         if (!formData.gridPriceDifference || formData.gridPriceDifference <= 0) {
@@ -132,11 +142,32 @@ function GridStrategyEditPage() {
         return formData.positionSide === 'SHORT';
     }
 
+    // 选择 API Key 后自动填充 Secret
+    function handleApiKeyChange(value: string) {
+        const apiKeyId = parseInt(value);
+        const selectedKey = apiKeyList.find(k => k.id === apiKeyId);
+        if (selectedKey) {
+            setFormData(prev => ({
+                ...prev,
+                apiKey: selectedKey.apiKey,
+                apiSecret: selectedKey.secretKey,
+                _apiKeyId: selectedKey.id
+            }));
+        } else {
+            setFormData(prev => ({
+                ...prev,
+                apiKey: '',
+                apiSecret: '',
+                _apiKeyId: undefined
+            }));
+        }
+    }
+
     // 生成随机测试数据
     function fillMockData() {
         const mockData: Partial<GridStrategyForm> = {
             positionSide: Math.random() > 0.5 ? 'LONG' : 'SHORT',
-            tradingPair: ['ETHUSDT', 'BTCUSDT', 'BNBUSDT', 'SOLUSDT'][Math.floor(Math.random() * 4)],
+            tradingPair: usdtPairs[Math.floor(Math.random() * Math.min(usdtPairs.length, 10))] || 'ETHUSDT',
             apiKey: 'mock_api_key_' + Math.random().toString(36).substring(2, 10),
             apiSecret: 'mock_secret_' + Math.random().toString(36).substring(2, 10),
             leverage: 20,
@@ -161,6 +192,16 @@ function GridStrategyEditPage() {
         };
         setFormData(prev => ({ ...prev, ...mockData }));
     }
+
+    // API Key 下拉选项
+    const apiKeyOptions = apiKeyList.map(k => ({
+        value: String(k.id),
+        label: `${k.name} (${k.apiKey.substring(0, 8)}...)`
+    }));
+
+    // 当前选中的 API Key
+    const currentApiKeyValue = formData._apiKeyId ? String(formData._apiKeyId) :
+        apiKeyList.find(k => k.apiKey === formData.apiKey)?.id.toString() || '';
 
     return (
         <div className="container">
@@ -227,41 +268,80 @@ function GridStrategyEditPage() {
                             <div className="help">选择网格交易的持仓方向，做多或做空</div>
                         </div>
 
-                        {/* 交易对 */}
+                        {/* 交易对 - 使用 Mantine Select */}
                         <div className="grid-strategy-form-field">
                             <label className="grid-strategy-form-label">
                                 交易对
                                 <span className="grid-strategy-form-required">*</span>
                             </label>
-                            <input
-                                type="text"
-                                className="input"
-                                placeholder="例如：ETHUSDT、BTCUSDT"
+                            <Select
+                                placeholder="搜索选择交易对"
+                                searchable
+                                clearable
+                                nothingFound="没有找到匹配的交易对"
+                                data={usdtPairs}
                                 value={formData.tradingPair}
-                                onChange={e => updateFormField('tradingPair', e.target.value)}
-                                required
+                                onChange={(value) => updateFormField('tradingPair', value || '')}
+                                styles={{
+                                    input: {
+                                        backgroundColor: 'var(--color-bg)',
+                                        borderColor: 'var(--color-border)',
+                                        color: 'var(--color-text)',
+                                        minHeight: '36px'
+                                    },
+                                    dropdown: {
+                                        backgroundColor: 'var(--color-bg)',
+                                        borderColor: 'var(--color-border)'
+                                    },
+                                    option: {
+                                        backgroundColor: 'var(--color-bg)',
+                                        color: 'var(--color-text)',
+                                        '&:hover': {
+                                            backgroundColor: 'var(--color-bg-muted)'
+                                        }
+                                    }
+                                }}
                             />
-                            <div className="help">输入要交易的币对，如ETHUSDT表示ETH兑换USDT</div>
+                            <div className="help">选择要交易的USDT币对，如ETHUSDT表示ETH兑换USDT</div>
                         </div>
 
-                        {/* API Key */}
+                        {/* API Key - 使用 Mantine Select */}
                         <div className="grid-strategy-form-field">
                             <label className="grid-strategy-form-label">
                                 币安API Key
                                 <span className="grid-strategy-form-required">*</span>
                             </label>
-                            <input
-                                type="password"
-                                className="input"
-                                placeholder="请输入币安API Key"
-                                value={formData.apiKey}
-                                onChange={e => updateFormField('apiKey', e.target.value)}
-                                required
+                            <Select
+                                placeholder="选择API Key"
+                                clearable
+                                nothingFound={apiKeyList.length === 0 ? '暂无API Key，请先在设置页面添加' : '没有找到匹配的API Key'}
+                                data={apiKeyOptions}
+                                value={currentApiKeyValue}
+                                onChange={handleApiKeyChange}
+                                styles={{
+                                    input: {
+                                        backgroundColor: 'var(--color-bg)',
+                                        borderColor: 'var(--color-border)',
+                                        color: 'var(--color-text)',
+                                        minHeight: '36px'
+                                    },
+                                    dropdown: {
+                                        backgroundColor: 'var(--color-bg)',
+                                        borderColor: 'var(--color-border)'
+                                    },
+                                    option: {
+                                        backgroundColor: 'var(--color-bg)',
+                                        color: 'var(--color-text)',
+                                        '&:hover': {
+                                            backgroundColor: 'var(--color-bg-muted)'
+                                        }
+                                    }
+                                }}
                             />
-                            <div className="help">您的币安交易所API密钥，用于执行交易</div>
+                            <div className="help">选择已配置的币安API密钥，Secret将自动填充</div>
                         </div>
 
-                        {/* API Secret */}
+                        {/* API Secret - 只读显示 */}
                         <div className="grid-strategy-form-field">
                             <label className="grid-strategy-form-label">
                                 币安API Secret
@@ -270,12 +350,12 @@ function GridStrategyEditPage() {
                             <input
                                 type="password"
                                 className="input"
-                                placeholder="请输入币安API Secret"
+                                placeholder="选择API Key后自动填充"
                                 value={formData.apiSecret}
-                                onChange={e => updateFormField('apiSecret', e.target.value)}
+                                readOnly
                                 required
                             />
-                            <div className="help">您的币安交易所API密钥密码</div>
+                            <div className="help">根据选择的API Key自动填充</div>
                         </div>
 
                         {/* 杠杆倍数 */}

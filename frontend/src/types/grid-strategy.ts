@@ -94,7 +94,10 @@ export interface GridStrategy {
 }
 
 /** 网格策略表单数据类型（用于编辑） */
-export type GridStrategyForm = Omit<GridStrategy, 'id' | 'status' | 'createdAt' | 'updatedAt'>;
+export type GridStrategyForm = Omit<GridStrategy, 'id' | 'status' | 'createdAt' | 'updatedAt'> & {
+    /** 内部字段：选择的 API Key ID（不保存到数据库） */
+    _apiKeyId?: number;
+};
 
 /** 网格策略列表项类型（用于列表展示） */
 export interface GridStrategyListItem {
