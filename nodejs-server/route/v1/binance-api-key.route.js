@@ -31,7 +31,7 @@ router.post('/update', auth(), validate(binanceApiKeyValidation.updateApiKey), b
  * 查询 ApiKey 列表
  * GET /v1/binance-api-key/query
  */
-router.get('/query', auth(), validate(binanceApiKeyValidation.getApiKeys), binanceApiKeyController.queryApiKey);
+router.get('/query', validate(binanceApiKeyValidation.getApiKeys), binanceApiKeyController.queryApiKey);
 
 module.exports = router;
 

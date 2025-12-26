@@ -109,14 +109,6 @@ const queryApiKey = catchAsync(async (req, res) => {
     let { id, ids, name, status, pageSize = 10, currentPage = 1 } = req.query;
     const userId = req.user?.id;
 
-    if (!userId) {
-      return res.status(httpStatus.UNAUTHORIZED).send({
-        status: 'error',
-        code: httpStatus.UNAUTHORIZED,
-        message: '用户未登录'
-      });
-    }
-
     // 解析 id/ids 支持：id=1 或 id=1,2,3 或 ids=1,2,3
     const parseIds = (idVal, idsVal) => {
       const out = [];
@@ -143,7 +135,7 @@ const queryApiKey = catchAsync(async (req, res) => {
 
     const idList = parseIds(id, ids);
 
-    const filter = { userId };
+    const filter = {};
     const options = {};
 
     if (idList.length === 1) {
