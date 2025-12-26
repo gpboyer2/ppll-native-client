@@ -13,6 +13,7 @@ import GridStrategyListPage from './pages/GridStrategy';
 import GridStrategyEditPage from './pages/GridStrategy/edit';
 import { navItems, ROUTES } from './router';
 import { ThemeToggle } from './components/ThemeToggle';
+import { useThemeStore } from './stores/theme-store';
 
 // 导航组件
 function Navigation() {
@@ -67,9 +68,10 @@ function Navigation() {
 
 function App() {
     const mantineTheme = getPPLLMantineTheme();
+    const { theme } = useThemeStore();
 
     return (
-        <MantineProvider theme={mantineTheme}>
+        <MantineProvider theme={mantineTheme} defaultColorScheme={theme}>
             <Notifications position="top-right" />
             <div id="App">
                 <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>

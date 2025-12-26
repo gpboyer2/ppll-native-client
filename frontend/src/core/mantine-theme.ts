@@ -190,13 +190,88 @@ export const mantineTheme = createTheme({
 
     Notification: {
       defaultProps: {
-        radius: 'md',
+        radius: 'sm',
+        withBorder: false,
       },
-      styles: {
-        root: {
-          backgroundColor: '#181a20',
-          borderColor: '#2b3139',
-        }
+      styles: (theme, params) => {
+        // 根据类型设置颜色（实心，不透明）
+        const colorMap: Record<string, { bg: string; border: string; icon: string; title: string; description: string }> = {
+          red: {
+            bg: theme.colorScheme === 'dark' ? '#2b1a20' : '#fef2f2',
+            border: theme.colorScheme === 'dark' ? '#7a2533' : '#fecaca',
+            icon: '#f6465d',
+            title: theme.colorScheme === 'dark' ? '#fca5a5' : '#b91c1c',
+            description: theme.colorScheme === 'dark' ? '#d4a5a5' : '#9ca3af'
+          },
+          green: {
+            bg: theme.colorScheme === 'dark' ? '#0d2918' : '#f0fdf4',
+            border: theme.colorScheme === 'dark' ? '#0d5c35' : '#bbf7d0',
+            icon: '#0ecb81',
+            title: theme.colorScheme === 'dark' ? '#4ade80' : '#15803d',
+            description: theme.colorScheme === 'dark' ? '#8acaa0' : '#9ca3af'
+          },
+          yellow: {
+            bg: theme.colorScheme === 'dark' ? '#29240a' : '#fef9e7',
+            border: theme.colorScheme === 'dark' ? '#8a7429' : '#fde68a',
+            icon: '#f0b90b',
+            title: theme.colorScheme === 'dark' ? '#fcd34d' : '#b45309',
+            description: theme.colorScheme === 'dark' ? '#c9b868' : '#9ca3af'
+          }
+        };
+
+        const colors = colorMap[params.color || ''] || {
+          bg: theme.colorScheme === 'dark' ? '#181a20' : '#ffffff',
+          border: theme.colorScheme === 'dark' ? '#2b3139' : '#e5e7eb',
+          icon: theme.colorScheme === 'dark' ? '#f0b90b' : '#d97706',
+          title: theme.colorScheme === 'dark' ? '#eaecef' : '#1f2937',
+          description: theme.colorScheme === 'dark' ? '#848e9c' : '#6b7280'
+        };
+
+        return {
+          root: {
+            backgroundColor: colors.bg,
+            border: `1px solid ${colors.border}`,
+            boxShadow: theme.colorScheme === 'dark'
+              ? '0 4px 12px rgba(0, 0, 0, 0.5)'
+              : '0 4px 16px rgba(0, 0, 0, 0.1)',
+            padding: '12px 16px',
+            minWidth: '280px',
+            maxWidth: '400px',
+          },
+          icon: {
+            color: colors.icon,
+            width: '22px',
+            height: '22px',
+          },
+          body: {
+            gap: '10px',
+          },
+          title: {
+            color: colors.title,
+            fontWeight: 600,
+            fontSize: '14px',
+            lineHeight: '1.4',
+          },
+          description: {
+            color: colors.description,
+            fontSize: '13px',
+            lineHeight: '1.5',
+          },
+          closeButton: {
+            color: theme.colorScheme === 'dark' ? '#848e9c' : '#9ca3af',
+            width: '28px',
+            height: '28px',
+            '&:hover': {
+              backgroundColor: theme.colorScheme === 'dark'
+                ? 'rgba(255, 255, 255, 0.1)'
+                : 'rgba(0, 0, 0, 0.06)',
+              color: theme.colorScheme === 'dark' ? '#eaecef' : '#1f2937',
+            }
+          },
+          loader: {
+            color: colors.icon,
+          }
+        };
       }
     }
   }
