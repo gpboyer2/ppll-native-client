@@ -144,7 +144,7 @@ function GridStrategyEditPage() {
     }
 
     // 选择 API Key 后自动填充 Secret
-    function handleApiKeyChange(value: string) {
+    function handleApiKeyChange(value: string | null) {
         const apiKeyId = parseInt(value);
         const selectedKey = apiKeyList.find(k => k.id === apiKeyId);
         if (selectedKey) {

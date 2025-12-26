@@ -193,7 +193,7 @@ export const mantineTheme = createTheme({
         radius: 'sm',
         withBorder: false,
       },
-      styles: (theme, params) => {
+      styles: (theme: any, params: any) => {
         // 根据类型设置颜色（实心，不透明）
         const colorMap: Record<string, { bg: string; border: string; icon: string; title: string; description: string }> = {
           red: {

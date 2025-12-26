@@ -186,7 +186,7 @@ function DatabaseManagerPage() {
         } else {
             notifications.show({
                 title: '查询失败',
-                message: response.message || '执行失败',
+                message: response.msg || '执行失败',
                 color: 'red'
             });
         }

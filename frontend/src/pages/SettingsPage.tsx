@@ -796,26 +796,26 @@ function SettingsPage() {
                                 </div>
                                 <div className="flex space-between">
                                     <span className="text-muted">Node.js 服务</span>
-                                    <span className={systemDynamicInfo?.nodejsStatus?.isRunning ? 'text-success' : 'text-danger'}>
-                                        {systemDynamicInfo?.nodejsStatus?.isRunning ? '运行中' : '未运行'}
+                                    <span className={systemDynamicInfo?.health?.service?.isRunning ? 'text-success' : 'text-danger'}>
+                                        {systemDynamicInfo?.health?.service?.isRunning ? '运行中' : '未运行'}
                                     </span>
                                 </div>
                                 <div className="flex space-between">
                                     <span className="text-muted">服务健康状态</span>
-                                    <span className={systemDynamicInfo?.nodejsStatus?.isHealthy ? 'text-success' : 'text-danger'}>
-                                        {systemDynamicInfo?.nodejsStatus?.isHealthy ? '健康' : '异常'}
+                                    <span className={systemDynamicInfo?.health?.health?.isHealthy ? 'text-success' : 'text-danger'}>
+                                        {systemDynamicInfo?.health?.health?.isHealthy ? '健康' : '异常'}
                                     </span>
                                 </div>
-                                {systemDynamicInfo?.nodejsStatus?.uptime && (
+                                {systemDynamicInfo?.health?.service?.uptime && (
                                     <div className="flex space-between">
                                         <span className="text-muted">运行时长</span>
-                                        <span>{systemDynamicInfo.nodejsStatus.uptime}</span>
+                                        <span>{systemDynamicInfo.health.service.uptime}</span>
                                     </div>
                                 )}
                                 <div className="flex space-between">
                                     <span className="text-muted">数据库状态</span>
-                                    <span className={systemDynamicInfo?.databaseHealthy ? 'text-success' : 'text-danger'}>
-                                        {systemDynamicInfo?.databaseHealthy ? '正常' : '异常'}
+                                    <span className={systemDynamicInfo?.health?.health?.database?.healthy ? 'text-success' : 'text-danger'}>
+                                        {systemDynamicInfo?.health?.health?.database?.healthy ? '正常' : '异常'}
                                     </span>
                                 </div>
                             </>

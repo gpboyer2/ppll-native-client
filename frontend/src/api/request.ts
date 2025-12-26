@@ -65,8 +65,8 @@ export class RequestWrapper {
   /**
    * DELETE请求
    */
-  static async delete<T = any>(url: string): Promise<Response<T>> {
-    return this.wrapRequest<T>(apiClient.delete<T>(url))
+  static async delete<T = any>(url: string, data?: any): Promise<Response<T>> {
+    return this.wrapRequest<T>(apiClient.delete<T>(url, { data }))
   }
 
   /**
