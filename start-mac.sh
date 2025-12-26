@@ -9,6 +9,8 @@
 # 使用方法：
 #   ./start-mac.sh          # 完整启动（首次使用推荐，执行环境检查）
 #   ./start-mac.sh -q       # 快速启动（跳过环境检查）
+#   ./start-mac.sh -r       # 启用 Node.js 后端热重载
+#   ./start-mac.sh -q -r    # 快速启动 + 热重载
 #   ./start-mac.sh --help   # 显示帮助信息
 #
 # 依赖要求：
@@ -85,16 +87,19 @@ trap cleanup SIGINT SIGTERM
 
 # 显示帮助
 show_help() {
-    echo "用法: $0 [-q|--quick] [-h|--help]"
+    echo "用法: $0 [-q|--quick] [-r|--reload] [-h|--help]"
     echo "  -q  快速启动（跳过环境检查）"
+    echo "  -r  启用 Node.js 后端热重载（nodemon）"
     echo "  -h  显示帮助"
 }
 
 main() {
     local quick=false
+    local hot_reload=false
     while [[ $# -gt 0 ]]; do
         case $1 in
             -q|--quick) quick=true; shift ;;
+            -r|--reload) hot_reload=true; shift ;;
             -h|--help) show_help; exit 0 ;;
             *) shift ;;
         esac
@@ -105,6 +110,12 @@ main() {
     echo "  PPLL Native Client 启动"
     echo "=========================================="
     echo ""
+
+    # 设置热重载环境变量
+    if [ "$hot_reload" = true ]; then
+        export NODE_HOT_RELOAD=true
+        ok "Node.js 热重载已启用"
+    fi
 
     # 环境检查
     if [ "$quick" = false ]; then

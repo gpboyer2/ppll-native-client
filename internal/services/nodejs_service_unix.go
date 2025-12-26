@@ -84,8 +84,25 @@ func (s *NodejsService) Start() error {
 		return fmt.Errorf("Node.js 入口文件不存在: %s", entryPoint)
 	}
 
-	// 构建启动命令
-	cmd := exec.CommandContext(ctx, nodePath, entryPoint)
+	// 构建启动命令 - 支持热重载
+	var nodeArgs []string
+	// 通过 NODE_HOT_RELOAD 环境变量控制是否启用 nodemon 热重载
+	if os.Getenv("NODE_HOT_RELOAD") == "true" {
+		// 查找 nodemon 可执行文件
+		nodemonPath := serverDir + "/node_modules/.bin/nodemon"
+		if _, err := exec.Command("test", "-f", nodemonPath).CombinedOutput(); err == 0 {
+			nodePath = nodemonPath
+			nodeArgs = []string{entryPoint, "--watch", serverDir, "--ext", "js,json", "--ignore", "node_modules/*"}
+			s.log.Info("[Node.js Unix] 热重载已启用 (nodemon)")
+		} else {
+			nodeArgs = []string{entryPoint}
+			s.log.Warn("[Node.js Unix] nodemon 未找到，使用普通 node 启动")
+		}
+	} else {
+		nodeArgs = []string{entryPoint}
+	}
+
+	cmd := exec.CommandContext(ctx, nodePath, nodeArgs...)
 	cmd.Dir = serverDir
 
 	// 设置环境变量

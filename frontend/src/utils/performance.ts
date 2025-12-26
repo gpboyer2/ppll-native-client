@@ -1,6 +1,11 @@
 // 性能优化工具函数
 
 /**
+ * 定时器类型（兼容浏览器和 Node.js）
+ */
+type TimerId = ReturnType<typeof setTimeout>
+
+/**
  * 性能监控类
  */
 export class Performance {
@@ -100,7 +105,7 @@ export function debounce<T extends (...args: any[]) => any>(
   wait: number,
   immediate: boolean = false
 ): (...args: Parameters<T>) => void {
-  let timeout: number | null = null
+  let timeout: TimerId | null = null
 
   return function debounced(this: any, ...args: Parameters<T>) {
     const callNow = immediate && !timeout
@@ -114,7 +119,7 @@ export function debounce<T extends (...args: any[]) => any>(
       if (!immediate) {
         func.apply(this, args)
       }
-    }, wait)
+    }, wait) as TimerId
 
     if (callNow) {
       func.apply(this, args)
@@ -130,7 +135,7 @@ export function throttle<T extends (...args: any[]) => any>(
   limit: number,
   options: { leading?: boolean; trailing?: boolean } = {}
 ): (...args: Parameters<T>) => void {
-  let timeout: number | null = null
+  let timeout: TimerId | null = null
   let previous = 0
   const { leading = true, trailing = true } = options
 
@@ -155,7 +160,7 @@ export function throttle<T extends (...args: any[]) => any>(
         previous = leading ? Date.now() : 0
         timeout = null
         func.apply(this, args)
-      }, remaining)
+      }, remaining) as TimerId
     }
   }
 }
@@ -187,7 +192,7 @@ export function memoize<T extends (...args: any[]) => any>(
  */
 export class BatchProcessor<T> {
   private items: T[] = []
-  private timer: number | null = null
+  private timer: TimerId | null = null
   private readonly batchSize: number
   private readonly waitTime: number
   private readonly processor: (items: T[]) => void
@@ -211,7 +216,7 @@ export class BatchProcessor<T> {
     if (this.items.length >= this.batchSize) {
       this.flush()
     } else if (!this.timer) {
-      this.timer = setTimeout(() => this.flush(), this.waitTime)
+      this.timer = setTimeout(() => this.flush(), this.waitTime) as TimerId
     }
   }
 

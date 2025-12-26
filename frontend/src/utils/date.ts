@@ -1,6 +1,11 @@
 // 日期时间工具函数
 
 /**
+ * 定时器类型（兼容浏览器和 Node.js）
+ */
+type TimerId = ReturnType<typeof setTimeout>
+
+/**
  * 日期格式化类
  */
 export class DateFormat {
@@ -185,10 +190,10 @@ export class TimeUtils {
     func: T,
     wait: number
   ): (...args: Parameters<T>) => void {
-    let timeout: number | null = null
+    let timeout: TimerId | null = null
     return (...args: Parameters<T>) => {
       if (timeout) clearTimeout(timeout)
-      timeout = setTimeout(() => func(...args), wait)
+      timeout = setTimeout(() => func(...args), wait) as TimerId
     }
   }
 
