@@ -13,7 +13,7 @@ const binanceApiKeyValidation = require('../../validations/binance-api-key.valid
  * 创建 ApiKey
  * POST /v1/binance-api-key/create
  */
-router.post('/create', auth(), binanceApiKeyController.createApiKey);
+router.post('/create', binanceApiKeyController.createApiKey);
 
 /**
  * 删除 ApiKey
