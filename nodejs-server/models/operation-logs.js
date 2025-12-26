@@ -114,9 +114,6 @@ module.exports = (sequelize, DataTypes) => {
       modelName: 'operation_logs',
       tableName: 'operation_logs',
       timestamps: false, // 使用自定义字段
-      indexes: [
-        { fields: ['user_id'], name: 'idx_user_id' },
-      ],
     }
   );
 

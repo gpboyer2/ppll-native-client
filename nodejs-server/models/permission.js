@@ -121,13 +121,6 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'permissions',
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-    indexes: [
-      { fields: ['code'], name: 'idx_permission_code', unique: true },
-      { fields: ['parentId'], name: 'idx_permission_parent' },
-      { fields: ['type'], name: 'idx_permission_type' },
-      { fields: ['status'], name: 'idx_permission_status' },
-      { fields: ['sort'], name: 'idx_permission_sort' }
-    ]
   });
 
   // 检查权限编码是否已存在

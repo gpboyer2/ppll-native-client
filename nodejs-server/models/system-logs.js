@@ -121,10 +121,6 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "system_logs",
       tableName: "system_logs",
       timestamps: false, // 禁用自动时间戳，使用 created_at 字段
-      indexes: [
-        // 与 ppll-server-system_logs.sql 保持一致
-        { fields: ["user_id"], name: "idx_user_id" },
-      ],
     }
   );
 

@@ -192,8 +192,6 @@ func (s *DatabaseStore) sqlRoles() string {
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_roles_code ON roles(code);
-	CREATE INDEX IF NOT EXISTS idx_roles_status ON roles(status);
 	`
 }
 
@@ -212,7 +210,6 @@ func (s *DatabaseStore) sqlPermissions() string {
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_permissions_code ON permissions(code);
 	`
 }
 
@@ -241,9 +238,6 @@ func (s *DatabaseStore) sqlUsers() string {
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);
-	CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
-	CREATE UNIQUE INDEX IF NOT EXISTS idx_users_api_key ON users(apiKey);
 	`
 }
 
@@ -352,9 +346,6 @@ func (s *DatabaseStore) sqlGridStrategies() string {
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_grid_strategies_trading_pair ON grid_strategies(trading_pair);
-	CREATE INDEX IF NOT EXISTS idx_grid_strategies_api_key ON grid_strategies(api_key);
-	CREATE INDEX IF NOT EXISTS idx_grid_strategies_status ON grid_strategies(status);
 	`
 }
 
@@ -397,10 +388,6 @@ func (s *DatabaseStore) sqlOrders() string {
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_orders_order_id ON orders(order_id);
-	CREATE INDEX IF NOT EXISTS idx_orders_symbol ON orders(symbol);
-	CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
-	CREATE INDEX IF NOT EXISTS idx_orders_grid_id ON orders(grid_id);
 	`
 }
 
@@ -426,8 +413,6 @@ func (s *DatabaseStore) sqlGridTradeHistory() string {
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_grid_trade_history_grid_id ON grid_trade_history(grid_id);
-	CREATE INDEX IF NOT EXISTS idx_grid_trade_history_trading_pair ON grid_trade_history(trading_pair);
 	`
 }
 
@@ -441,8 +426,6 @@ func (s *DatabaseStore) sqlMarkPrice() string {
 		timestamp BIGINT,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_mark_price_symbol ON mark_price(symbol);
-	CREATE UNIQUE INDEX IF NOT EXISTS idx_mark_price_symbol_time ON mark_price(symbol, timestamp);
 	`
 }
 
@@ -460,8 +443,6 @@ func (s *DatabaseStore) sqlLoginLogs() string {
 		error_message VARCHAR(255),
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_login_logs_user_id ON login_logs(user_id);
-	CREATE INDEX IF NOT EXISTS idx_login_logs_created_at ON login_logs(created_at);
 	`
 }
 
@@ -481,9 +462,6 @@ func (s *DatabaseStore) sqlOperationLogs() string {
 		user_agent TEXT,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_operation_logs_user_id ON operation_logs(user_id);
-	CREATE INDEX IF NOT EXISTS idx_operation_logs_action ON operation_logs(action);
-	CREATE INDEX IF NOT EXISTS idx_operation_logs_created_at ON operation_logs(created_at);
 	`
 }
 
@@ -501,8 +479,6 @@ func (s *DatabaseStore) sqlApiErrorLog() string {
 		ip VARCHAR(64),
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_api_error_log_user_id ON api_error_log(user_id);
-	CREATE INDEX IF NOT EXISTS idx_api_error_log_created_at ON api_error_log(created_at);
 	`
 }
 
@@ -517,8 +493,6 @@ func (s *DatabaseStore) sqlSystemLogs() string {
 		data TEXT,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_system_logs_level ON system_logs(level);
-	CREATE INDEX IF NOT EXISTS idx_system_logs_created_at ON system_logs(created_at);
 	`
 }
 
@@ -535,8 +509,6 @@ func (s *DatabaseStore) sqlPageViewLog() string {
 		duration INTEGER,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_page_view_log_user_id ON page_view_log(user_id);
-	CREATE INDEX IF NOT EXISTS idx_page_view_log_created_at ON page_view_log(created_at);
 	`
 }
 
@@ -552,8 +524,6 @@ func (s *DatabaseStore) sqlSpotAccount() string {
 		locked DECIMAL(20,8) DEFAULT 0,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_spot_account_user_id ON spot_account(user_id);
-	CREATE INDEX IF NOT EXISTS idx_spot_account_asset ON spot_account(asset);
 	`
 }
 
@@ -570,7 +540,6 @@ func (s *DatabaseStore) sqlUsdMFuturesAccount() string {
 		margin_balance DECIMAL(20,8) DEFAULT 0,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_usd_m_futures_account_user_id ON usd_m_futures_account(user_id);
 	`
 }
 
@@ -588,7 +557,6 @@ func (s *DatabaseStore) sqlCoinMFuturesAccount() string {
 		margin_balance DECIMAL(20,8) DEFAULT 0,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_coin_m_futures_account_user_id ON coin_m_futures_account(user_id);
 	`
 }
 
@@ -602,7 +570,6 @@ func (s *DatabaseStore) sqlBinanceExchangeInfo() string {
 		data TEXT,
 		updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE UNIQUE INDEX IF NOT EXISTS idx_binance_exchange_info_symbol ON binance_exchange_info(symbol, exchange_type);
 	`
 }
 
@@ -616,7 +583,6 @@ func (s *DatabaseStore) sqlChat() string {
 		role VARCHAR(20),
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_chat_user_id ON chat(user_id);
 	`
 }
 
@@ -631,8 +597,6 @@ func (s *DatabaseStore) sqlToken() string {
 		expires DATETIME,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_token_user_id ON token(user_id);
-	CREATE INDEX IF NOT EXISTS idx_token_expires ON token(expires);
 	`
 }
 
@@ -646,6 +610,5 @@ func (s *DatabaseStore) sqlBannedIp() string {
 		banned_until DATETIME,
 		created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 	);
-	CREATE INDEX IF NOT EXISTS idx_banned_ip_ip ON banned_ip(ip);
 	`
 }

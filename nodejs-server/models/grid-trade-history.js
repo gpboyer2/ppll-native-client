@@ -387,20 +387,6 @@ module.exports = (sequelize) => {
       tableName: "grid_trade_history",
       createdAt: 'created_at',
       updatedAt: 'updated_at',
-      indexes: [
-        { fields: ["grid_id"], name: "idx_grid_id" },
-        { fields: ["trading_pair"], name: "idx_trading_pair" },
-        { fields: ["user_id"], name: "idx_user_id" },
-        { fields: ["api_key"], name: "idx_api_key" },
-        { fields: ["entry_time"], name: "idx_entry_time" },
-        { fields: ["exit_time"], name: "idx_exit_time" },
-        { fields: ["entry_order_id"], name: "idx_entry_order_id" },
-        { fields: ["exit_order_id"], name: "idx_exit_order_id" },
-        { fields: ["trade_direction"], name: "idx_trade_direction" },
-        { fields: ["position_side"], name: "idx_position_side" },
-        { fields: ["profit_loss"], name: "idx_profit_loss" },
-        { fields: ["execution_quality"], name: "idx_execution_quality" },
-      ],
     }
   );
 

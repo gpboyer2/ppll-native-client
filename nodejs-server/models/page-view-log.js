@@ -70,10 +70,6 @@ module.exports = (sequelize, DataTypes) => {
       tableName: "page_view_log",
       createdAt: 'created_at',
       updatedAt: false,
-      indexes: [
-        { fields: ["user_id"], name: "idx_user_id" },
-        { fields: ["created_at"], name: "idx_created_at" },
-      ],
     }
   );
 

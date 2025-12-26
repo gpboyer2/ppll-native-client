@@ -35,15 +35,6 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "login_logs",
       tableName: "login_logs",
       timestamps: false,
-      indexes: [
-        { fields: ["user_id"], name: "idx_user_id" },
-        { fields: ["username"], name: "idx_username" },
-        { fields: ["apiKey"], name: "idx_api_key" },
-        { fields: ["login_time"], name: "idx_login_time" },
-        { fields: ["ip"], name: "idx_ip" },
-        { fields: ["status"], name: "idx_status" },
-        { fields: ["login_system"], name: "idx_login_system" },
-      ],
     }
   );
 

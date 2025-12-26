@@ -136,11 +136,6 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-    indexes: [
-      { fields: ['status'], name: 'idx_status' },
-      { fields: ['role'], name: 'idx_role' },
-      { fields: ['apiKey'], name: 'idx_api_key', unique: true }
-    ]
   });
 
   users.isEmailTaken = async (email, excludeUserId) => {

@@ -47,9 +47,6 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-    indexes: [
-      { fields: ['user_id'], name: 'idx_user_id', unique: true }
-    ]
   });
 
   return coin_m_futures_account;

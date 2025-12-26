@@ -88,10 +88,6 @@ module.exports = (sequelize, DataTypes) => {
       // 使用下划线命名的时间戳字段
       createdAt: 'created_at',
       updatedAt: 'updated_at',
-      indexes: [
-        { fields: ['symbol'], unique: true, name: 'uk_symbol' },
-        { fields: ['event_time'], name: 'idx_event_time' },
-      ],
     }
   );
 

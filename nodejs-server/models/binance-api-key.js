@@ -80,12 +80,6 @@ module.exports = (sequelize, DataTypes) => {
     timestamps: true,
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-    indexes: [
-      { fields: ['user_id'], name: 'idx_user_id' },
-      { fields: ['api_key'], name: 'idx_api_key' },
-      { fields: ['status'], name: 'idx_status' },
-      { fields: ['deleted'], name: 'idx_deleted' }
-    ]
   });
 
   return binance_api_keys;

@@ -93,15 +93,6 @@ module.exports = (sequelize, DataTypes) => {
       modelName: "api_error_log",
       tableName: "api_error_log",
       timestamps: false, // 默认为true, 为false 表示禁用自动时间戳，不会生成 created_at 和 updatedAt 字段。
-      indexes: [
-        // 与 ppll-server-system_logs.sql 保持一致，便于查询性能
-        { fields: ["user_id"], name: "idx_user_id" },
-        { fields: ["created_at"], name: "idx_created_at" },
-        { fields: ["http_method"], name: "idx_http_method" },
-        { fields: ["status_code"], name: "idx_status_code" },
-        { fields: ["error_code"], name: "idx_error_code" },
-        { fields: ["ip_address"], name: "idx_ip_address" },
-      ],
     }
   );
 

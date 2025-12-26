@@ -412,11 +412,6 @@ module.exports = (sequelize, DataTypes) => {
       // 使用下划线命名的时间戳字段
       createdAt: 'created_at',
       updatedAt: 'updated_at',
-      indexes: [
-        { name: "idx_grid_strategies_trading_pair", fields: ["trading_pair"] },
-        { name: "idx_grid_strategies_api_key", fields: ["api_key"] },
-        { name: "idx_grid_strategies_status", fields: ["status"] },
-      ],
     }
   );
 

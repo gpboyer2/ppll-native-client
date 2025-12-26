@@ -211,12 +211,6 @@ module.exports = (sequelize, DataTypes) => {
     tableName: 'banned_ips',
     createdAt: 'created_at',
     updatedAt: 'updated_at',
-    indexes: [
-      { fields: ['ip'], name: 'idx_ip', unique: true },
-      { fields: ['status'], name: 'idx_status' },
-      { fields: ['expires_at'], name: 'idx_expires_at' },
-      { fields: ['created_by'], name: 'idx_created_by' }
-    ]
   });
 
   return BannedIP;
