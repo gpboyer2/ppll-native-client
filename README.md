@@ -8,18 +8,53 @@
 
 ## 🚀 快速开始
 
+### 方式一：一键启动（推荐）
+
+使用启动脚本自动启动所有服务：
+
 ```bash
 # 克隆项目
 git clone https://github.com/gpboyer2/ppll-native-client.git
 cd ppll-native-client
 
-# 安装依赖
-npm install
-go mod tidy
-go mod download
+# 一键启动（首次使用会进行环境检查）
+./start-mac.sh
 
-# 启动开发服务器
+# 快速启动（跳过环境检查）
+./start-mac.sh -q
+```
+
+脚本会自动：
+- 检查 Go、Node.js、Wails 环境
+- 安装前端依赖
+- 启动 Wails 开发服务器
+- 日志输出到 `process-monitoring/` 目录
+
+### 方式二：手动分离启动
+
+分别启动桌面客户端和后端服务（适合调试）：
+
+```bash
+# 终端1：启动桌面客户端（Go + 前端）
+cd /path/to/ppll-native-client
 wails dev
+
+# 终端2：启动 Node.js 后端服务
+cd /path/to/ppll-native-client/nodejs-server
+npm run node:dev
+```
+
+### 依赖要求
+
+| 工具 | 版本 | 说明 |
+|------|------|------|
+| Go | 1.20+ | 后端语言 |
+| Node.js | 16+ | 运行时环境 |
+| Wails | v2 | 桌面应用框架 |
+
+安装 Wails：
+```bash
+go install github.com/wailsapp/wails/v2/cmd/wails@latest
 ```
 
 ## 📚 文档导航
