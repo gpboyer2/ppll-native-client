@@ -59,7 +59,7 @@ const createApiKey = async (params) => {
   }
 
   const keyData = {
-    user_id: userId,
+    user_id: userId || null,
     name,
     api_key: apiKey,
     secret_key: secretKey,
