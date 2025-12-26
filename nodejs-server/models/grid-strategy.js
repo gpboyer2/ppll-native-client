@@ -413,9 +413,9 @@ module.exports = (sequelize, DataTypes) => {
       createdAt: 'created_at',
       updatedAt: 'updated_at',
       indexes: [
-        { fields: ["trading_pair"] },
-        { fields: ["api_key"] },
-        { fields: ["status"] },
+        { name: "idx_grid_strategies_trading_pair", fields: ["trading_pair"] },
+        { name: "idx_grid_strategies_api_key", fields: ["api_key"] },
+        { name: "idx_grid_strategies_status", fields: ["status"] },
       ],
     }
   );

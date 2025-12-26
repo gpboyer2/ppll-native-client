@@ -12,7 +12,7 @@
     },
     {
       "name": "🖥️ Wails dev",
-      "command": "export PATH=\"$PATH:$HOME/go/bin\" && wails dev",
+      "command": "cexport PATH=\"$PATH:$HOME/go/bin\" && SKIP_NODEJS_AUTO_START=1 wails dev",
       "request": "launch",
       "type": "node-terminal"
     },

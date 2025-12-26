@@ -94,15 +94,22 @@ func (a *App) startup(ctx context.Context) {
     a.ps = services.NewPluginService(ctx, a.log, a.cfg)
 
     // 4. 启动 Node.js 后端服务
-    a.log.Info("正在启动 Node.js 后端服务...")
+    // 设置环境变量 SKIP_NODEJS_AUTO_START=1 可跳过自动启动
+    skipNodejs := os.Getenv("SKIP_NODEJS_AUTO_START") == "1"
     a.njs = services.NewNodejsService(ctx, a.logWrapper(), a.db.GetPath(), services.Config{
         ServerDir: "./nodejs-server",
         Port:      54321,
     })
-    if err := a.njs.Start(); err != nil {
-        a.log.Error("Node.js 服务启动失败", "error", err)
+
+    if skipNodejs {
+        a.log.Info("SKIP_NODEJS_AUTO_START=1，跳过 Node.js 服务自动启动")
     } else {
-        a.log.Info("Node.js 后端服务启动成功")
+        a.log.Info("正在启动 Node.js 后端服务...")
+        if err := a.njs.Start(); err != nil {
+            a.log.Error("Node.js 服务启动失败", "error", err)
+        } else {
+            a.log.Info("Node.js 后端服务启动成功")
+        }
     }
 }
 
