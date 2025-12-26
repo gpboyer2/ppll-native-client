@@ -91,4 +91,46 @@ router.post('/column-create', databaseAdminController.createColumn);
 router.delete('/column-delete', databaseAdminController.deleteColumn);
 
 
+/**
+ * 重命名表
+ * POST /v1/database-admin/table-rename  body: { tableName, newName }
+ */
+router.post('/table-rename', databaseAdminController.renameTable);
+
+
+/**
+ * 复制表
+ * POST /v1/database-admin/table-copy  body: { tableName, newName, copyData }
+ */
+router.post('/table-copy', databaseAdminController.copyTable);
+
+
+/**
+ * 清空表
+ * POST /v1/database-admin/table-truncate  body: { data: [] }
+ */
+router.post('/table-truncate', databaseAdminController.truncateTable);
+
+
+/**
+ * 重命名列
+ * POST /v1/database-admin/column-rename  body: { tableName, oldName, newName }
+ */
+router.post('/column-rename', databaseAdminController.renameColumn);
+
+
+/**
+ * 创建索引
+ * POST /v1/database-admin/index-create  body: { tableName, indexName, columns: [], unique }
+ */
+router.post('/index-create', databaseAdminController.createIndex);
+
+
+/**
+ * 删除索引
+ * DELETE /v1/database-admin/index-delete  body: { data: [] }
+ */
+router.delete('/index-delete', databaseAdminController.deleteIndex);
+
+
 module.exports = router;

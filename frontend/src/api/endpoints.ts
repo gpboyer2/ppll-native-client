@@ -422,4 +422,51 @@ export class ApiEndpoints {
   static async deleteColumn(tableName: string, columnName: string) {
     return RequestWrapper.delete('/v1/database-admin/column-delete', { tableName, columnName })
   }
+
+  /**
+   * 重命名表
+   */
+  static async renameTable(tableName: string, newName: string) {
+    return RequestWrapper.post('/v1/database-admin/table-rename', { tableName, newName })
+  }
+
+  /**
+   * 复制表
+   */
+  static async copyTable(tableName: string, newName: string, copyData: boolean = true) {
+    return RequestWrapper.post('/v1/database-admin/table-copy', { tableName, newName, copyData })
+  }
+
+  /**
+   * 清空表
+   */
+  static async truncateTable(data: string[]) {
+    return RequestWrapper.post('/v1/database-admin/table-truncate', { data })
+  }
+
+  /**
+   * 重命名列
+   */
+  static async renameColumn(tableName: string, oldName: string, newName: string) {
+    return RequestWrapper.post('/v1/database-admin/column-rename', { tableName, oldName, newName })
+  }
+
+  /**
+   * 创建索引
+   */
+  static async createIndex(params: {
+    tableName: string
+    indexName: string
+    columns: string[]
+    unique?: boolean
+  }) {
+    return RequestWrapper.post('/v1/database-admin/index-create', params)
+  }
+
+  /**
+   * 删除索引
+   */
+  static async deleteIndex(data: string[]) {
+    return RequestWrapper.delete('/v1/database-admin/index-delete', { data })
+  }
 }

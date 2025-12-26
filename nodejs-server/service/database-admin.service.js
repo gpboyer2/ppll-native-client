@@ -460,6 +460,247 @@ const deleteColumn = async (params) => {
 };
 
 
+// 重命名表
+const renameTable = async (params) => {
+  try {
+    const { tableName, newName } = params;
+    if (!/^[a-zA-Z0-9_]+$/.test(tableName)) {
+      throw new Error('表名包含非法字符');
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(newName)) {
+      throw new Error('新表名包含非法字符');
+    }
+    if (tableName === newName) {
+      throw new Error('新表名不能与原表名相同');
+    }
+
+    // 检查新表名是否已存在
+    const existingTable = await db.sequelize.query(
+      `SELECT name FROM sqlite_master WHERE type='table' AND name='${newName}'`
+    );
+    if (existingTable[0].length > 0) {
+      throw new Error('表名已存在');
+    }
+
+    await db.sequelize.query(`ALTER TABLE "${tableName}" RENAME TO "${newName}"`);
+
+    return { success: true, oldName: tableName, newName: newName };
+  } catch (error) {
+    console.error('重命名表失败:', error);
+    throw error;
+  }
+};
+
+
+// 复制表
+const copyTable = async (params) => {
+  try {
+    const { tableName, newName, copyData = true } = params;
+    if (!/^[a-zA-Z0-9_]+$/.test(tableName)) {
+      throw new Error('表名包含非法字符');
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(newName)) {
+      throw new Error('新表名包含非法字符');
+    }
+    if (tableName === newName) {
+      throw new Error('新表名不能与原表名相同');
+    }
+
+    // 检查新表名是否已存在
+    const existingTable = await db.sequelize.query(
+      `SELECT name FROM sqlite_master WHERE type='table' AND name='${newName}'`
+    );
+    if (existingTable[0].length > 0) {
+      throw new Error('表名已存在');
+    }
+
+    if (copyData) {
+      // 复制表结构和数据
+      await db.sequelize.query(`CREATE TABLE "${newName}" AS SELECT * FROM "${tableName}"`);
+    } else {
+      // 仅复制表结构
+      const createTable = await db.sequelize.query(`SELECT sql FROM sqlite_master WHERE type='table' AND name='${tableName}'`);
+      if (createTable[0].length === 0) {
+        throw new Error('原表不存在');
+      }
+      const createSql = createTable[0][0].sql.replace(`CREATE TABLE "${tableName}"`, `CREATE TABLE "${newName}"`);
+      await db.sequelize.query(createSql);
+    }
+
+    return { success: true, sourceTable: tableName, newTable: newName };
+  } catch (error) {
+    console.error('复制表失败:', error);
+    throw error;
+  }
+};
+
+
+// 清空表
+const truncateTable = async (params) => {
+  try {
+    const { data } = params;
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new Error('表名必须是非空数组');
+    }
+
+    let truncatedCount = 0;
+    const errors = [];
+
+    for (const tableName of data) {
+      try {
+        if (!/^[a-zA-Z0-9_]+$/.test(tableName)) {
+          throw new Error('表名包含非法字符');
+        }
+
+        // 检查表是否存在
+        const existingTable = await db.sequelize.query(
+          `SELECT name FROM sqlite_master WHERE type='table' AND name='${tableName}'`
+        );
+        if (existingTable[0].length === 0) {
+          throw new Error('表不存在');
+        }
+
+        await db.sequelize.query(`DELETE FROM "${tableName}"`);
+
+        // 重置自增序列
+        await db.sequelize.query(`DELETE FROM sqlite_sequence WHERE name='${tableName}'`);
+
+        truncatedCount++;
+      } catch (e) {
+        errors.push({ table: tableName, error: e.message });
+      }
+    }
+
+    return { successCount: truncatedCount, failCount: errors.length, errors: errors };
+  } catch (error) {
+    console.error('清空表失败:', error);
+    throw error;
+  }
+};
+
+
+// 重命名列
+const renameColumn = async (params) => {
+  try {
+    const { tableName, oldName, newName } = params;
+    if (!/^[a-zA-Z0-9_]+$/.test(tableName)) {
+      throw new Error('表名包含非法字符');
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(oldName)) {
+      throw new Error('原列名包含非法字符');
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(newName)) {
+      throw new Error('新列名包含非法字符');
+    }
+    if (oldName === newName) {
+      throw new Error('新列名不能与原列名相同');
+    }
+
+    // 检查列是否存在
+    const tableInfo = await db.sequelize.query(`PRAGMA table_info("${tableName}")`);
+    const columnExists = tableInfo[0].some(col => col.name === oldName);
+    if (!columnExists) {
+      throw new Error('列不存在');
+    }
+
+    // 检查新列名是否已存在
+    const newColumnExists = tableInfo[0].some(col => col.name === newName);
+    if (newColumnExists) {
+      throw new Error('列名已存在');
+    }
+
+    await db.sequelize.query(`ALTER TABLE "${tableName}" RENAME COLUMN "${oldName}" TO "${newName}"`);
+
+    return { success: true, tableName: tableName, oldName: oldName, newName: newName };
+  } catch (error) {
+    console.error('重命名列失败:', error);
+    throw error;
+  }
+};
+
+
+// 创建索引
+const createIndex = async (params) => {
+  try {
+    const { tableName, indexName, columns = [], unique = false } = params;
+    if (!/^[a-zA-Z0-9_]+$/.test(tableName)) {
+      throw new Error('表名包含非法字符');
+    }
+    if (!/^[a-zA-Z0-9_]+$/.test(indexName)) {
+      throw new Error('索引名包含非法字符');
+    }
+    if (!Array.isArray(columns) || columns.length === 0) {
+      throw new Error('列必须是非空数组');
+    }
+
+    // 验证列名
+    for (const col of columns) {
+      if (!/^[a-zA-Z0-9_]+$/.test(col)) {
+        throw new Error(`列名 "${col}" 包含非法字符`);
+      }
+    }
+
+    // 检查索引名是否已存在
+    const existingIndex = await db.sequelize.query(
+      `SELECT name FROM sqlite_master WHERE type='index' AND name='${indexName}'`
+    );
+    if (existingIndex[0].length > 0) {
+      throw new Error('索引名已存在');
+    }
+
+    const uniqueKeyword = unique ? 'UNIQUE' : '';
+    const columnsStr = columns.map(col => `"${col}"`).join(', ');
+
+    await db.sequelize.query(`CREATE ${uniqueKeyword} INDEX "${indexName}" ON "${tableName}" (${columnsStr})`);
+
+    return { success: true, indexName: indexName, tableName: tableName, columns: columns, unique: unique };
+  } catch (error) {
+    console.error('创建索引失败:', error);
+    throw error;
+  }
+};
+
+
+// 删除索引
+const deleteIndex = async (params) => {
+  try {
+    const { data } = params;
+    if (!Array.isArray(data) || data.length === 0) {
+      throw new Error('索引名必须是非空数组');
+    }
+
+    let deletedCount = 0;
+    const errors = [];
+
+    for (const indexName of data) {
+      try {
+        if (!/^[a-zA-Z0-9_]+$/.test(indexName)) {
+          throw new Error('索引名包含非法字符');
+        }
+
+        // 检查索引是否存在
+        const existingIndex = await db.sequelize.query(
+          `SELECT name FROM sqlite_master WHERE type='index' AND name='${indexName}'`
+        );
+        if (existingIndex[0].length === 0) {
+          throw new Error('索引不存在');
+        }
+
+        await db.sequelize.query(`DROP INDEX "${indexName}"`);
+        deletedCount++;
+      } catch (e) {
+        errors.push({ index: indexName, error: e.message });
+      }
+    }
+
+    return { successCount: deletedCount, failCount: errors.length, errors: errors };
+  } catch (error) {
+    console.error('删除索引失败:', error);
+    throw error;
+  }
+};
+
+
 module.exports = {
   getInfo,
   getTableList,
@@ -472,5 +713,11 @@ module.exports = {
   createTable,
   deleteTable,
   createColumn,
-  deleteColumn
+  deleteColumn,
+  renameTable,
+  copyTable,
+  truncateTable,
+  renameColumn,
+  createIndex,
+  deleteIndex
 };

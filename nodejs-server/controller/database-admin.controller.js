@@ -216,6 +216,126 @@ const deleteColumn = async (req, res) => {
 };
 
 
+// 重命名表
+const renameTable = async (req, res) => {
+  try {
+    const params = req.body || {};
+    if (!params.tableName) {
+      res.send({ code: 400, message: '表名不能为空', data: null });
+      return;
+    }
+    if (!params.newName) {
+      res.send({ code: 400, message: '新表名不能为空', data: null });
+      return;
+    }
+    const data = await databaseAdminService.renameTable(params);
+    res.send({ code: 200, message: '重命名成功', data: data });
+  } catch (error) {
+    res.send({ code: 500, message: error.message || '重命名表失败', data: null });
+  }
+};
+
+
+// 复制表
+const copyTable = async (req, res) => {
+  try {
+    const params = req.body || {};
+    if (!params.tableName) {
+      res.send({ code: 400, message: '表名不能为空', data: null });
+      return;
+    }
+    if (!params.newName) {
+      res.send({ code: 400, message: '新表名不能为空', data: null });
+      return;
+    }
+    const data = await databaseAdminService.copyTable(params);
+    res.send({ code: 200, message: '复制表成功', data: data });
+  } catch (error) {
+    res.send({ code: 500, message: error.message || '复制表失败', data: null });
+  }
+};
+
+
+// 清空表
+const truncateTable = async (req, res) => {
+  try {
+    const params = req.body || {};
+    if (!params.data || !Array.isArray(params.data) || params.data.length === 0) {
+      res.send({ code: 400, message: '表名不能为空', data: null });
+      return;
+    }
+    const data = await databaseAdminService.truncateTable(params);
+    res.send({ code: 200, message: '清空表成功', data: data });
+  } catch (error) {
+    res.send({ code: 500, message: error.message || '清空表失败', data: null });
+  }
+};
+
+
+// 重命名列
+const renameColumn = async (req, res) => {
+  try {
+    const params = req.body || {};
+    if (!params.tableName) {
+      res.send({ code: 400, message: '表名不能为空', data: null });
+      return;
+    }
+    if (!params.oldName) {
+      res.send({ code: 400, message: '原列名不能为空', data: null });
+      return;
+    }
+    if (!params.newName) {
+      res.send({ code: 400, message: '新列名不能为空', data: null });
+      return;
+    }
+    const data = await databaseAdminService.renameColumn(params);
+    res.send({ code: 200, message: '重命名成功', data: data });
+  } catch (error) {
+    res.send({ code: 500, message: error.message || '重命名列失败', data: null });
+  }
+};
+
+
+// 创建索引
+const createIndex = async (req, res) => {
+  try {
+    const params = req.body || {};
+    if (!params.tableName) {
+      res.send({ code: 400, message: '表名不能为空', data: null });
+      return;
+    }
+    if (!params.indexName) {
+      res.send({ code: 400, message: '索引名不能为空', data: null });
+      return;
+    }
+    if (!params.columns || !Array.isArray(params.columns) || params.columns.length === 0) {
+      res.send({ code: 400, message: '列不能为空', data: null });
+      return;
+    }
+    const data = await databaseAdminService.createIndex(params);
+    res.send({ code: 200, message: '创建索引成功', data: data });
+  } catch (error) {
+    res.send({ code: 500, message: error.message || '创建索引失败', data: null });
+  }
+};
+
+
+// 删除索引
+const deleteIndex = async (req, res) => {
+  try {
+    const params = req.body || {};
+    if (!params.data || !Array.isArray(params.data) || params.data.length === 0) {
+      res.send({ code: 400, message: '索引名不能为空', data: null });
+      return;
+    }
+    const data = await databaseAdminService.deleteIndex(params);
+    res.send({ code: 200, message: '删除索引成功', data: data });
+  } catch (error) {
+    res.send({ code: 500, message: error.message || '删除索引失败', data: null });
+  }
+};
+
+
 module.exports = {
   getInfo,
   getTableList,
@@ -228,5 +348,11 @@ module.exports = {
   createTable,
   deleteTable,
   createColumn,
-  deleteColumn
+  deleteColumn,
+  renameTable,
+  copyTable,
+  truncateTable,
+  renameColumn,
+  createIndex,
+  deleteIndex
 };
