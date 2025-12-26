@@ -117,7 +117,7 @@ app.use(gitInfoMiddleware());
 
 // 启动时同步模型与数据库
 // 注意：桌面客户端本地 SQLite 数据库可以安全启用自动同步
-db.sequelize.sync()
+const dbSyncPromise = db.sequelize.sync()
     .then(() => {
         console.log("数据库同步成功，表结构已创建/更新");
     })
@@ -267,8 +267,10 @@ safeRequire("./jobs/markPriceStream.js", "标记价格流");
 // 在应用启动时执行一次用户表备份
 safeRequire("./jobs/backupUsers.js", "用户备份");
 
-// 服务启动或重启时恢复策略
-safeRequire("./jobs/restoreStrategiesOnStartup.js", "策略恢复");
+// 服务启动或重启时恢复策略 - 需等待数据库同步完成
+dbSyncPromise.then(() => {
+    safeRequire("./jobs/restoreStrategiesOnStartup.js", "策略恢复");
+});
 
 // 服务启动或重启时 去读git分支与版本信息
 safeRequire("./jobs/git.js", "Git信息");
