@@ -57,3 +57,190 @@
 以破坏架构为耻，以遵循规范为荣；
 以假装理解为耻，以诚实无知为荣；
 以盲目修改为耻，以谨慎重构为荣。
+
+
+
+## 项目架构与技术栈
+
+## 核心业务规范
+
+
+### 1. URL 路由规范
+
+Vue Router 使用 hash 模式，URL 格式必须为：
+- 正确1：`/#/packet-config?mode=edit`
+- 正确2：`/#/packet-config/edit`
+- 错误1：`/packet-config`
+- 错误2：`/packet-config?mode=edit#/system-level-design`
+
+
+### 2. 命名规范
+
+变量命名：
+- 使用 `list` 而不是 `s`
+- 例如：`accountList` 而不是 `accounts`
+
+数据库命名：
+- 表名：小写加下划线，如 `users`、`user_sessions`
+- 字段名：小写加下划线，如 `user_id`、`user_name`
+- 禁止使用大写
+
+
+### 3. API 接口设计规范
+
+入参规范：
+- 所有接口通过 data（请求体）或 params（查询参数）传参
+- 禁止使用 `/api/xxx/{id}` 路径参数
+- 入参默认为数组，天然支持批量操作
+- 例如：`POST /api/users/delete` + `{ data: [1, 2, 3] }`
+
+出参规范（分页）：
+```json
+{
+    "code": 200,
+    "message": "操作成功",
+    "data": {
+        "list": [],
+        "pagination": {
+            "currentPage": 1,
+            "pageSize": 20,
+            "total": 2
+        }
+    }
+}
+```
+
+分页字段说明：
+- currentPage: 当前页码（从1开始）
+- pageSize: 每页数量
+- total: 总记录数
+- 禁止使用 page、size、pages、pageNum、totalCount 等变体
+
+接口精简原则：
+- 基础接口只需要增删改查四个
+- 除非必要不新增其他接口
+- 批量操作通过数组入参自然支持
+
+
+### 4. 前后端数据交互规范
+
+字段命名统一原则：
+- 前端独立开发时：可以使用自定义命名的字段
+- 后端接口开发完成后：前端必须统一使用后端的字段名, 与后端字段保持一致
+- 尽量不要在前端做字段名转换，直接使用后端原始字段名
+
+接口调用规范：
+- 直接透传整个对象，不要手动列举每个字段
+- 错误做法：`await api.update(id, { field1: data.field1, field2: data.field2 })`
+- 正确做法1：`await api.update(id, data)`
+- 正确做法2：`await api.update(id, Object.assign({}, data, {name: 'plq'}))`
+
+多请求操作的用户提示：
+- 全部成功：只显示一次"操作成功"
+- 部分成功：显示失败的那个请求的错误信息
+- 全部失败：聚合所有错误信息
+- 禁止每个请求都弹一次提示
+
+
+## 代码编写规范
+
+
+### 1. CSS/SCSS 样式规范
+
+结构清晰：
+- 必须根据 HTML/Vue 嵌套结构，使用从最顶层开始的完整路径选择器
+- 禁止嵌套：严禁使用 `&` 和 `%` 符号，必须展开所有选择器
+- 风格统一：保持美观、对齐、大小宽度一致
+- 同步性：修改后需同步更新或校验其他受影响模块
+
+正确示例1：
+```scss
+.details-content-body { }
+.details-content-body .details-properties-table { }
+.details-content-body .details-properties-table tbody tr { }
+.details-content-body .details-properties-table tbody tr:hover { }
+```
+
+正确示例2：
+```scss
+.details-content-body { 
+  .details-properties-table { 
+    tbody { 
+      tr { }
+      tr:hover { }
+    }
+  }
+}
+```
+
+错误:
+```scss
+.details-content-body { }
+.details-properties-table { }
+tbody {}
+```
+
+
+### 2. JS/Vue 代码规范
+
+极简原则：
+- 禁止新增冗余变量和代码，代码行数缩减到最少
+- 资源复用：必须充分利用已有资源和代码
+- 向前看：不用考虑向后兼容性
+- 同步性：保持样式风格不变，并同步更新或校验其他模块
+
+
+### 3. Express Router 文件规范
+
+文件结构（两大分区）：
+
+业务逻辑区（上半部分）：
+- 导入语句
+- 路由定义（含简洁注释）
+- `module.exports = router;`
+
+文档定义区（下半部分）：
+- Swagger API 文档注释块
+- components/schemas 定义
+- securitySchemes 定义
+
+两区之间用 3 行空行分隔。
+
+路由定义风格：
+```javascript
+/**
+ * 功能描述
+ * HTTP方法 /api/xxx/path  body: { data: [...] }
+ */
+router.method('/path', middleware1, middleware2, Controller.action);
+```
+
+- 简洁中文注释（功能 + 方法路径 + 请求体示例）
+- 链式调用，一行完成
+- CRUD 顺序：list → create → update → delete
+- 每个路由之间 2 行空行
+
+Swagger 文档组织：
+- 分离式：与路由代码完全分离，放在 `module.exports` 之后
+- 按接口分组：每个接口独立一个完整的 `@swagger` 块
+- 统一标签：所有接口使用相同的 `tags: [模块名]`
+- 完整规范：包含 summary、description、parameters/requestBody、responses
+- 每个 Swagger 块之间 2 行空行
+
+
+### 4. 文档格式风格
+
+标题和强调格式：
+- 不使用 emoji 图标
+- 不使用 Markdown 加粗语法
+- 使用简洁的纯文本标题
+
+代码注释格式：
+- 不使用完整的 JSDoc 注释块（`/**` 开头）
+- 使用简化的单行注释（`//` 开头）
+
+整体风格特点：
+- 简洁直接：去除装饰性元素
+- 纯文本优先：不使用特殊符号和图标
+- 注重内容：强调实质内容而非形式
+
