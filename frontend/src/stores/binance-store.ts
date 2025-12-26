@@ -1,7 +1,5 @@
 import { create } from 'zustand';
 import { GetNodejsServiceURL, GetConfig } from '../../wailsjs/go/main/App';
-import type { Response } from '../core/response';
-import { showError, showWarning } from '../utils/api-error';
 
 // API Key 信息
 export interface BinanceApiKey {
@@ -43,10 +41,9 @@ interface BinanceStore {
 async function getAuthToken(): Promise<string> {
     try {
         const tokenRes = await GetConfig('auth_token');
-        if (tokenRes && typeof tokenRes === 'object' && 'code' in tokenRes) {
-            const res = tokenRes as Response<any>;
-            if (res.code === 0 && res.data) {
-                return String(res.data);
+        if (tokenRes && typeof tokenRes === 'object') {
+            if ('code' in tokenRes && tokenRes.code === 0 && tokenRes.data) {
+                return String(tokenRes.data);
             }
         } else if (typeof tokenRes === 'string') {
             return tokenRes;
@@ -96,74 +93,51 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         }
     },
 
-    // 刷新 API Key 列表
+    // 刷新 API Key 列表（静默模式，不显示错误）
     refreshApiKeys: async () => {
         const nodejsUrl = await getNodejsUrl();
         const authToken = await getAuthToken();
 
-        if (!nodejsUrl) {
-            showWarning('无法获取服务地址');
-            return;
-        }
-        if (!authToken) {
-            showError(401, '未授权，请先登录');
-            return;
-        }
+        if (!nodejsUrl) return;
 
         try {
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json'
+            };
+            if (authToken) {
+                headers['Authorization'] = `Bearer ${authToken}`;
+            }
+
             const response = await fetch(`${nodejsUrl}/v1/binance-api-key/query`, {
                 method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${authToken}`
-                }
+                headers
             });
 
-            if (!response.ok) {
-                showError(response.status, `获取 API Key 列表失败: ${response.statusText}`);
-                return;
-            }
+            if (!response.ok) return;
 
             const result = await response.json();
             if (result.status === 'success' && result.data?.list) {
                 set({ apiKeyList: result.data.list });
-            } else if (result.code && result.code !== 0) {
-                showError(result.code, result.msg || '获取 API Key 列表失败');
-            } else {
-                showError(500, '获取 API Key 列表失败: 响应格式错误');
             }
-        } catch (error: any) {
-            console.error('获取 API Key 列表失败:', error);
-            showError(500, error.message || '获取 API Key 列表失败');
+        } catch (error) {
+            // 静默处理错误
         }
     },
 
-    // 刷新交易对列表
+    // 刷新交易对列表（静默模式，不显示错误）
     refreshTradingPairs: async () => {
         const nodejsUrl = await getNodejsUrl();
-        if (!nodejsUrl) {
-            showWarning('无法获取服务地址');
-            return;
-        }
+        if (!nodejsUrl) return;
 
         try {
-            // 获取交易所信息
             const response = await fetch(`${nodejsUrl}/v1/binance-exchange-info`);
-
-            if (!response.ok) {
-                showError(response.status, `获取交易对列表失败: ${response.statusText}`);
-                return;
-            }
+            if (!response.ok) return;
 
             const result = await response.json();
-
             if (result.code === 200 && result.data?.exchangeInfo?.symbols) {
                 const symbols = result.data.exchangeInfo.symbols;
-                // 过滤状态为 TRADING 的交易对
                 const tradingSymbols = symbols.filter((s: any) => s.status === 'TRADING');
-                // 提取所有交易对 symbol
                 const allPairs = tradingSymbols.map((s: any) => s.symbol);
-                // 提取 USDT 交易对
                 const usdtPairs = tradingSymbols
                     .filter((s: any) => s.quoteAsset === 'USDT')
                     .map((s: any) => s.symbol)
@@ -173,14 +147,9 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
                     tradingPairs: allPairs,
                     usdtPairs
                 });
-            } else if (result.code && result.code !== 200) {
-                showError(result.code, result.msg || '获取交易对列表失败');
-            } else {
-                showError(500, '获取交易对列表失败: 响应格式错误');
             }
-        } catch (error: any) {
-            console.error('获取交易对列表失败:', error);
-            showError(500, error.message || '获取交易对列表失败');
+        } catch (error) {
+            // 静默处理错误
         }
     },
 

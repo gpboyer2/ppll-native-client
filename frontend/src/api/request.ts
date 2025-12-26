@@ -1,8 +1,25 @@
 import { apiClient } from './client'
 import { Response, ok } from '../core/response'
+import { getStaticInfo } from '../stores/system-info-store'
+
+/**
+ * 获取 Node.js 服务 URL
+ * 优先从 system-info-store 获取，如果未初始化则使用默认值
+ */
+function getNodejsUrl(): string {
+  try {
+    const staticInfo = getStaticInfo()
+    if (staticInfo?.nodejsUrl) {
+      return staticInfo.nodejsUrl
+    }
+  } catch {}
+  // 默认回退到 54321 端口
+  return 'http://localhost:54321'
+}
 
 /**
  * 请求包装器 - 统一处理后端响应格式
+ * 自动从 Wails 获取 Node.js 服务 URL
  */
 export class RequestWrapper {
   /**
@@ -42,9 +59,55 @@ export class RequestWrapper {
   }
 
   /**
+   * 发起原生 fetch 请求到 Node.js 服务
+   */
+  private static async fetchNodejs<T>(
+    method: string,
+    path: string,
+    data?: any,
+    headers?: Record<string, string>
+  ): Promise<Response<T>> {
+    const nodejsUrl = getNodejsUrl()
+    const url = `${nodejsUrl}${path}`
+
+    const options: RequestInit = {
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers
+      }
+    }
+
+    if (data && method !== 'GET') {
+      options.body = JSON.stringify(data)
+    }
+
+    try {
+      const response = await fetch(url, options)
+      const result = await response.json()
+
+      if (result && typeof result === 'object' && 'code' in result) {
+        return result as Response<T>
+      }
+
+      return ok(result)
+    } catch (error: any) {
+      return {
+        code: 500,
+        msg: error.message || '网络请求失败',
+        data: undefined
+      }
+    }
+  }
+
+  /**
    * GET请求
    */
   static async get<T = any>(url: string, params?: Record<string, any>): Promise<Response<T>> {
+    // 如果是 v1 开头的路径，使用 Node.js 服务
+    if (url.startsWith('/v1/')) {
+      return this.fetchNodejs<T>('GET', url, params)
+    }
     return this.wrapRequest<T>(apiClient.get<T>(url, params))
   }
 
@@ -52,6 +115,10 @@ export class RequestWrapper {
    * POST请求
    */
   static async post<T = any>(url: string, data?: any): Promise<Response<T>> {
+    // 如果是 v1 开头的路径，使用 Node.js 服务
+    if (url.startsWith('/v1/')) {
+      return this.fetchNodejs<T>('POST', url, data)
+    }
     return this.wrapRequest<T>(apiClient.post<T>(url, data))
   }
 
@@ -59,6 +126,10 @@ export class RequestWrapper {
    * PUT请求
    */
   static async put<T = any>(url: string, data?: any): Promise<Response<T>> {
+    // 如果是 v1 开头的路径，使用 Node.js 服务
+    if (url.startsWith('/v1/')) {
+      return this.fetchNodejs<T>('PUT', url, data)
+    }
     return this.wrapRequest<T>(apiClient.put<T>(url, data))
   }
 
@@ -66,6 +137,10 @@ export class RequestWrapper {
    * DELETE请求
    */
   static async delete<T = any>(url: string, data?: any): Promise<Response<T>> {
+    // 如果是 v1 开头的路径，使用 Node.js 服务
+    if (url.startsWith('/v1/')) {
+      return this.fetchNodejs<T>('DELETE', url, data)
+    }
     return this.wrapRequest<T>(apiClient.delete<T>(url, { data }))
   }
 
@@ -73,6 +148,10 @@ export class RequestWrapper {
    * PATCH请求
    */
   static async patch<T = any>(url: string, data?: any): Promise<Response<T>> {
+    // 如果是 v1 开头的路径，使用 Node.js 服务
+    if (url.startsWith('/v1/')) {
+      return this.fetchNodejs<T>('PATCH', url, data)
+    }
     return this.wrapRequest<T>(apiClient.patch<T>(url, data))
   }
 
@@ -84,7 +163,7 @@ export class RequestWrapper {
   }
 
   /**
-   * 批量文件上传
+   * 批量上传文件
    */
   static async uploadMultiple<T = any>(url: string, files: File[]): Promise<Response<T>> {
     return this.wrapRequest<T>(apiClient.uploadMultiple<T>(url, files))
