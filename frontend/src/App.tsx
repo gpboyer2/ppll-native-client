@@ -1,4 +1,5 @@
 import { HashRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { MantineProvider } from '@mantine/core';
 import logo from './assets/images/logo-universal.png';
 import HomePage from './pages/HomePage';
 import SettingsPage from './pages/SettingsPage';
@@ -62,22 +63,24 @@ function Navigation() {
 
 function App() {
     return (
-        <div id="App">
-            <Router>
-                <Navigation />
-                <Routes>
-                    <Route path={ROUTES.HOME} element={<HomePage />} />
-                    <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
-                    <Route path={ROUTES.SYSTEM_INFO} element={<SystemInfoPage />} />
-                    <Route path={ROUTES.PLUGINS} element={<PluginsPage />} />
-                    <Route path={ROUTES.PLUGIN_DETAIL} element={<PluginsPage />} />
-                    {/* 做T网格插件重定向到网格策略页面 */}
-                    <Route path="/plugins/u-grid-t" element={<Navigate to={ROUTES.GRID_STRATEGY} replace />} />
-                    <Route path={ROUTES.GRID_STRATEGY} element={<GridStrategyListPage />} />
-                    <Route path={ROUTES.GRID_STRATEGY_EDIT} element={<GridStrategyEditPage />} />
-                </Routes>
-            </Router>
-        </div>
+        <MantineProvider>
+            <div id="App">
+                <Router>
+                    <Navigation />
+                    <Routes>
+                        <Route path={ROUTES.HOME} element={<HomePage />} />
+                        <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+                        <Route path={ROUTES.SYSTEM_INFO} element={<SystemInfoPage />} />
+                        <Route path={ROUTES.PLUGINS} element={<PluginsPage />} />
+                        <Route path={ROUTES.PLUGIN_DETAIL} element={<PluginsPage />} />
+                        {/* 做T网格插件重定向到网格策略页面 */}
+                        <Route path="/plugins/u-grid-t" element={<Navigate to={ROUTES.GRID_STRATEGY} replace />} />
+                        <Route path={ROUTES.GRID_STRATEGY} element={<GridStrategyListPage />} />
+                        <Route path={ROUTES.GRID_STRATEGY_EDIT} element={<GridStrategyEditPage />} />
+                    </Routes>
+                </Router>
+            </div>
+        </MantineProvider>
     )
 }
 
