@@ -5,6 +5,7 @@ import type { Response } from '../core/response';
 import { feedURLExamples } from '../router';
 import { useUserStore } from '../stores/user-store';
 import { useDataManagementStore } from '../stores/data-management-store';
+import { useSystemInfoStore } from '../stores/system-info-store';
 
 interface ApiKeyItem {
     id: number;
@@ -18,7 +19,10 @@ interface ApiKeyItem {
 }
 
 function SettingsPage() {
-    // 使用 user store 
+    // 使用系统信息 store
+    const { staticInfo: systemStaticInfo, dynamicInfo: systemDynamicInfo, init: initSystemInfo } = useSystemInfoStore();
+
+    // 使用 user store
     const { resetToDefaults } = useUserStore();
 
     // 使用数据管理 store
@@ -324,6 +328,11 @@ function SettingsPage() {
     useEffect(() => {
         loadDataSize();
     }, []);
+
+    // 初始化系统信息 store
+    useEffect(() => {
+        initSystemInfo();
+    }, [initSystemInfo]);
 
 
     return (
@@ -774,28 +783,48 @@ function SettingsPage() {
             </div>
 
             {/* 系统信息 */}
-            <div className="card" >
+            <div className="card">
                 <div className="card-header">
                     <h3 style={{ margin: 0 }}>系统信息</h3>
                 </div>
                 <div className="card-content">
                     <div className="flex flex-col gap-8">
-                        <div className="flex space-between">
-                            <span className="text-muted">应用版本</span>
-                            <span>v1.0.0</span>
-                        </div>
-                        <div className="flex space-between">
-                            <span className="text-muted">构建时间</span>
-                            <span>{new Date().toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex space-between">
-                            <span className="text-muted">运行环境</span>
-                            <span>Wails + React</span>
-                        </div>
-                        <div className="flex space-between">
-                            <span className="text-muted">数据目录</span>
-                            <span className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>~/.ppll-client</span>
-                        </div>
+                        {systemStaticInfo && (
+                            <>
+                                <div className="flex space-between">
+                                    <span className="text-muted">应用版本</span>
+                                    <span>v{systemStaticInfo.appVersion}</span>
+                                </div>
+                                <div className="flex space-between">
+                                    <span className="text-muted">运行环境</span>
+                                    <span>{systemStaticInfo.environment}</span>
+                                </div>
+                                <div className="flex space-between">
+                                    <span className="text-muted">Node.js 服务</span>
+                                    <span className={systemDynamicInfo?.nodejsStatus?.isRunning ? 'text-success' : 'text-danger'}>
+                                        {systemDynamicInfo?.nodejsStatus?.isRunning ? '运行中' : '未运行'}
+                                    </span>
+                                </div>
+                                <div className="flex space-between">
+                                    <span className="text-muted">服务健康状态</span>
+                                    <span className={systemDynamicInfo?.nodejsStatus?.isHealthy ? 'text-success' : 'text-danger'}>
+                                        {systemDynamicInfo?.nodejsStatus?.isHealthy ? '健康' : '异常'}
+                                    </span>
+                                </div>
+                                {systemDynamicInfo?.nodejsStatus?.uptime && (
+                                    <div className="flex space-between">
+                                        <span className="text-muted">运行时长</span>
+                                        <span>{systemDynamicInfo.nodejsStatus.uptime}</span>
+                                    </div>
+                                )}
+                                <div className="flex space-between">
+                                    <span className="text-muted">数据库状态</span>
+                                    <span className={systemDynamicInfo?.databaseHealthy ? 'text-success' : 'text-danger'}>
+                                        {systemDynamicInfo?.databaseHealthy ? '正常' : '异常'}
+                                    </span>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

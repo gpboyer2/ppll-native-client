@@ -1,42 +1,6 @@
-import { useState, useEffect } from 'react';
-import {
-    GetAppDescription,
-    GetDatabasePath,
-    IsDatabaseHealthy,
-    GetNodejsServiceURL,
-    GetNodejsServiceStatus
-} from '../../wailsjs/go/main/App';
-
-interface GitInfo {
-    branch: string;
-    tag: string;
-    commitHash: string;
-    commitAuthor: string;
-    commitDate: string;
-    commitMessage: string;
-    timestamp: string;
-}
-
-interface SystemInfo {
-    frontendUrl: string;
-    appVersion: string;
-    appDescription: string;
-    databasePath: string;
-    databaseHealthy: boolean;
-    nodejsUrl: string;
-    nodejsStatus: {
-        isRunning: boolean;
-        isHealthy: boolean;
-        port: number;
-        url: string;
-        startTime?: string;
-        uptime?: string;
-        pid?: number;
-    };
-    environment: string;
-    ipv4List: string[];
-    gitInfo?: GitInfo;
-}
+import { useEffect } from 'react';
+import { useSystemInfoStore, getStaticInfo, getDynamicInfo } from '../stores/system-info-store';
+import type { GitInfo, NodejsStatus } from '../stores/system-info-store';
 
 // 图标组件
 const IconNetwork = () => (
@@ -84,110 +48,14 @@ const IconGit = () => (
     </svg>
 );
 
-// 等待 Node.js 服务健康检查，最多等待 10 秒
-async function waitForNodejsHealthy(nodejsUrl: string, maxRetries: number = 10): Promise<boolean> {
-    for (let i = 0; i < maxRetries; i++) {
-        try {
-            const response = await fetch(`${nodejsUrl}/v1/hello`, {
-                method: 'GET',
-                signal: AbortSignal.timeout(1000)
-            });
-            if (response.ok) {
-                return true;
-            }
-        } catch {
-            // 服务还未就绪，继续等待
-        }
-        await new Promise(resolve => setTimeout(resolve, 1000));
-    }
-    return false;
-}
-
 function SystemInfoPage() {
-    const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
-    const [loading, setLoading] = useState(true);
+    const { staticInfo, dynamicInfo, loading, init } = useSystemInfoStore();
 
     useEffect(() => {
-        async function fetchSystemInfo() {
-            try {
-                const [appDescription, databasePath, databaseHealthy, nodejsUrl, nodejsStatus] = await Promise.all([
-                    GetAppDescription(),
-                    GetDatabasePath(),
-                    IsDatabaseHealthy(),
-                    GetNodejsServiceURL(),
-                    GetNodejsServiceStatus()
-                ]);
+        init();
+    }, [init]);
 
-                // 等待 Node.js 服务健康后再请求 IPv4 列表和 Git 信息
-                let ipv4List: string[] = [];
-                let gitInfo: GitInfo | undefined;
-                let appVersion = 'unknown';
-
-                if (nodejsUrl && (nodejsStatus as SystemInfo['nodejsStatus'])?.isRunning) {
-                    const isHealthy = await waitForNodejsHealthy(nodejsUrl, 10);
-                    if (isHealthy) {
-                        // 并行请求 IPv4 列表和 Git 信息
-                        const [ipResponse, gitResponse] = await Promise.allSettled([
-                            fetch(`${nodejsUrl}/v1/system/ipv4-list`),
-                            fetch(`${nodejsUrl}/v1/system/git-info`)
-                        ]);
-
-                        // 处理 IPv4 列表响应
-                        if (ipResponse.status === 'fulfilled' && ipResponse.value) {
-                            try {
-                                const ipData = await ipResponse.value.json();
-                                if (ipData.code === 200 && Array.isArray(ipData.data)) {
-                                    ipv4List = ipData.data;
-                                }
-                            } catch (error) {
-                                console.error('解析 IP 地址列表失败:', error);
-                            }
-                        } else {
-                            console.error('获取 IP 地址列表失败:', ipResponse.status === 'rejected' ? ipResponse.reason : 'Unknown error');
-                        }
-
-                        // 处理 Git 信息响应
-                        if (gitResponse.status === 'fulfilled' && gitResponse.value) {
-                            try {
-                                const gitData = await gitResponse.value.json();
-                                if (gitData.code === 200 && gitData.data) {
-                                    gitInfo = gitData.data as GitInfo;
-                                    appVersion = gitInfo?.tag || appVersion;
-                                }
-                            } catch (error) {
-                                console.error('解析 Git 信息失败:', error);
-                            }
-                        } else {
-                            console.error('获取 Git 信息失败:', gitResponse.status === 'rejected' ? gitResponse.reason : 'Unknown error');
-                        }
-                    } else {
-                        console.warn('Node.js 服务健康检查超时');
-                    }
-                }
-
-                setSystemInfo({
-                    frontendUrl: window.location.origin,
-                    appVersion,
-                    appDescription,
-                    databasePath,
-                    databaseHealthy,
-                    nodejsUrl,
-                    nodejsStatus: nodejsStatus as SystemInfo['nodejsStatus'],
-                    environment: import.meta.env.MODE || 'production',
-                    ipv4List,
-                    gitInfo
-                });
-            } catch (error) {
-                console.error('获取系统信息失败:', error);
-            } finally {
-                setLoading(false);
-            }
-        }
-
-        fetchSystemInfo();
-    }, []);
-
-    if (loading) {
+    if (loading || !staticInfo || !dynamicInfo) {
         return (
             <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ textAlign: 'center' }}>
@@ -197,6 +65,8 @@ function SystemInfoPage() {
             </div>
         );
     }
+
+    const systemInfo = { ...staticInfo, ...dynamicInfo };
 
     return (
         <div className="container system-info-page">
@@ -212,7 +82,7 @@ function SystemInfoPage() {
                         </div>
                     </div>
                     <div className="card-content">
-                        {systemInfo?.ipv4List && systemInfo.ipv4List.length > 0 ? (
+                        {systemInfo.ipv4List.length > 0 ? (
                             <div className="info-item-list">
                                 {systemInfo.ipv4List.map((ip, index) => (
                                     <div key={index} className="info-item">
@@ -239,20 +109,20 @@ function SystemInfoPage() {
                         <div className="info-item-list">
                             <div className="info-item">
                                 <span className="info-label">前端地址</span>
-                                <span className="info-value">{systemInfo?.frontendUrl || 'N/A'}</span>
+                                <span className="info-value">{systemInfo.frontendUrl}</span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">API 地址</span>
-                                <span className="info-value">{systemInfo?.nodejsUrl || 'N/A'}</span>
+                                <span className="info-value">{systemInfo.nodejsUrl || 'N/A'}</span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">API 文档</span>
                                 <span
                                     className="info-link"
                                     style={{ cursor: 'pointer' }}
-                                    onClick={() => window.open(`${systemInfo?.nodejsUrl || ''}/v1/docs`, '_blank')}
+                                    onClick={() => window.open(`${systemInfo.nodejsUrl || ''}/v1/docs`, '_blank')}
                                 >
-                                    {`${systemInfo?.nodejsUrl || 'N/A'}/v1/docs`}
+                                    {`${systemInfo.nodejsUrl || 'N/A'}/v1/docs`}
                                 </span>
                             </div>
                         </div>
@@ -271,18 +141,18 @@ function SystemInfoPage() {
                         <div className="info-item-list">
                             <div className="info-item">
                                 <span className="info-label">应用版本</span>
-                                <span className={`info-status success`}>v{systemInfo?.appVersion || 'N/A'}</span>
+                                <span className="info-status success">{systemInfo.appVersion}</span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">运行环境</span>
                                 <span className="info-status" style={{ background: 'color-mix(in srgb, #17a2b8 20%, var(--color-bg))', color: '#17a2b8' }}>
-                                    {systemInfo?.environment || 'N/A'}
+                                    {systemInfo.environment}
                                 </span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">应用描述</span>
                                 <span className="info-value" style={{ maxWidth: '60%', textAlign: 'right' }}>
-                                    {systemInfo?.appDescription || 'N/A'}
+                                    {systemInfo.appDescription}
                                 </span>
                             </div>
                         </div>
@@ -301,23 +171,23 @@ function SystemInfoPage() {
                         <div className="info-item-list">
                             <div className="info-item">
                                 <span className="info-label">Node.js 服务</span>
-                                <span className={`info-status ${systemInfo?.nodejsStatus?.isRunning ? 'success' : 'danger'}`}>
-                                    {systemInfo?.nodejsStatus?.isRunning ? '运行中' : '未运行'}
+                                <span className={`info-status ${systemInfo.nodejsStatus.isRunning ? 'success' : 'danger'}`}>
+                                    {systemInfo.nodejsStatus.isRunning ? '运行中' : '未运行'}
                                 </span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">服务健康状态</span>
-                                <span className={`info-status ${systemInfo?.nodejsStatus?.isHealthy ? 'success' : 'danger'}`}>
-                                    {systemInfo?.nodejsStatus?.isHealthy ? '健康' : '异常'}
+                                <span className={`info-status ${systemInfo.nodejsStatus.isHealthy ? 'success' : 'danger'}`}>
+                                    {systemInfo.nodejsStatus.isHealthy ? '健康' : '异常'}
                                 </span>
                             </div>
-                            {systemInfo?.nodejsStatus?.pid && (
+                            {systemInfo.nodejsStatus.pid && (
                                 <div className="info-item">
                                     <span className="info-label">进程 PID</span>
                                     <span className="info-value">{systemInfo.nodejsStatus.pid}</span>
                                 </div>
                             )}
-                            {systemInfo?.nodejsStatus?.uptime && (
+                            {systemInfo.nodejsStatus.uptime && (
                                 <div className="info-item">
                                     <span className="info-label">运行时长</span>
                                     <span className="info-value">{systemInfo.nodejsStatus.uptime}</span>
@@ -339,14 +209,14 @@ function SystemInfoPage() {
                         <div className="info-item-list">
                             <div className="info-item">
                                 <span className="info-label">数据库状态</span>
-                                <span className={`info-status ${systemInfo?.databaseHealthy ? 'success' : 'danger'}`}>
-                                    {systemInfo?.databaseHealthy ? '正常' : '异常'}
+                                <span className={`info-status ${systemInfo.databaseHealthy ? 'success' : 'danger'}`}>
+                                    {systemInfo.databaseHealthy ? '正常' : '异常'}
                                 </span>
                             </div>
                             <div className="info-item" style={{ alignItems: 'flex-start' }}>
                                 <span className="info-label">数据库路径</span>
                                 <span className="info-path">
-                                    {systemInfo?.databasePath || 'N/A'}
+                                    {systemInfo.databasePath}
                                 </span>
                             </div>
                         </div>
@@ -354,7 +224,7 @@ function SystemInfoPage() {
                 </div>
 
                 {/* Git 信息 */}
-                {systemInfo?.gitInfo && (
+                {systemInfo.gitInfo && (
                     <div className="card">
                         <div className="card-header">
                             <div className="flex items-center gap-8">
