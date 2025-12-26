@@ -14,6 +14,13 @@ const systemController = require('../../controller/system.controller.js');
 router.get('/ipv4-list', systemController.getIPv4List);
 
 
+/**
+ * 获取 Git 信息
+ * GET /v1/system/git-info
+ */
+router.get('/git-info', systemController.getGitInfo);
+
+
 module.exports = router;
 
 /**

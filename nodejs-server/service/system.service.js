@@ -20,6 +20,17 @@ const getIPv4List = () => {
 };
 
 
+/**
+ * 获取 Git 信息
+ * @returns {object} Git 信息对象
+ */
+const getGitInfo = () => {
+  // 从全局对象获取 git 信息（由 jobs/git.js 在启动时写入）
+  return (global && global.GIT_INFO) || null;
+};
+
+
 module.exports = {
-  getIPv4List
+  getIPv4List,
+  getGitInfo
 };

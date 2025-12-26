@@ -27,6 +27,37 @@ const getIPv4List = (req, res) => {
 };
 
 
+/**
+ * 获取 Git 信息
+ */
+const getGitInfo = (req, res) => {
+  try {
+    const gitInfo = systemService.getGitInfo();
+    if (!gitInfo) {
+      res.status(500).send({
+        status: 'error',
+        code: 500,
+        message: 'Git 信息未初始化'
+      });
+      return;
+    }
+    res.send({
+      status: 'success',
+      code: 200,
+      data: gitInfo
+    });
+  } catch (error) {
+    res.status(500).send({
+      status: 'error',
+      code: 500,
+      message: '获取 Git 信息失败',
+      error: error.message
+    });
+  }
+};
+
+
 module.exports = {
-  getIPv4List
+  getIPv4List,
+  getGitInfo
 };

@@ -1,12 +1,21 @@
 import { useState, useEffect } from 'react';
 import {
-    GetAppVersion,
     GetAppDescription,
     GetDatabasePath,
     IsDatabaseHealthy,
     GetNodejsServiceURL,
     GetNodejsServiceStatus
 } from '../../wailsjs/go/main/App';
+
+interface GitInfo {
+    branch: string;
+    tag: string;
+    commitHash: string;
+    commitAuthor: string;
+    commitDate: string;
+    commitMessage: string;
+    timestamp: string;
+}
 
 interface SystemInfo {
     frontendUrl: string;
@@ -26,6 +35,7 @@ interface SystemInfo {
     };
     environment: string;
     ipv4List: string[];
+    gitInfo?: GitInfo;
 }
 
 // 图标组件
@@ -62,6 +72,18 @@ const IconDatabase = () => (
     </svg>
 );
 
+const IconGit = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <line x1="12" y1="3" x2="12" y2="9"/>
+        <line x1="12" y1="15" x2="12" y2="21"/>
+        <circle cx="12" cy="3" r="1"/>
+        <circle cx="12" cy="21" r="1"/>
+        <line x1="12" y1="12" x2="5" y2="5"/>
+        <line x1="12" y1="12" x2="19" y2="5"/>
+    </svg>
+);
+
 // 等待 Node.js 服务健康检查，最多等待 10 秒
 async function waitForNodejsHealthy(nodejsUrl: string, maxRetries: number = 10): Promise<boolean> {
     for (let i = 0; i < maxRetries; i++) {
@@ -88,8 +110,7 @@ function SystemInfoPage() {
     useEffect(() => {
         async function fetchSystemInfo() {
             try {
-                const [appVersion, appDescription, databasePath, databaseHealthy, nodejsUrl, nodejsStatus] = await Promise.all([
-                    GetAppVersion(),
+                const [appDescription, databasePath, databaseHealthy, nodejsUrl, nodejsStatus] = await Promise.all([
                     GetAppDescription(),
                     GetDatabasePath(),
                     IsDatabaseHealthy(),
@@ -97,19 +118,47 @@ function SystemInfoPage() {
                     GetNodejsServiceStatus()
                 ]);
 
-                // 等待 Node.js 服务健康后再请求 IPv4 列表
+                // 等待 Node.js 服务健康后再请求 IPv4 列表和 Git 信息
                 let ipv4List: string[] = [];
+                let gitInfo: GitInfo | undefined;
+                let appVersion = 'unknown';
+
                 if (nodejsUrl && (nodejsStatus as SystemInfo['nodejsStatus'])?.isRunning) {
                     const isHealthy = await waitForNodejsHealthy(nodejsUrl, 10);
                     if (isHealthy) {
-                        try {
-                            const ipResponse = await fetch(`${nodejsUrl}/v1/system/ipv4-list`);
-                            const ipData = await ipResponse.json();
-                            if (ipData.code === 200 && Array.isArray(ipData.data)) {
-                                ipv4List = ipData.data;
+                        // 并行请求 IPv4 列表和 Git 信息
+                        const [ipResponse, gitResponse] = await Promise.allSettled([
+                            fetch(`${nodejsUrl}/v1/system/ipv4-list`),
+                            fetch(`${nodejsUrl}/v1/system/git-info`)
+                        ]);
+
+                        // 处理 IPv4 列表响应
+                        if (ipResponse.status === 'fulfilled' && ipResponse.value) {
+                            try {
+                                const ipData = await ipResponse.value.json();
+                                if (ipData.code === 200 && Array.isArray(ipData.data)) {
+                                    ipv4List = ipData.data;
+                                }
+                            } catch (error) {
+                                console.error('解析 IP 地址列表失败:', error);
                             }
-                        } catch (error) {
-                            console.error('获取 IP 地址列表失败:', error);
+                        } else {
+                            console.error('获取 IP 地址列表失败:', ipResponse.status === 'rejected' ? ipResponse.reason : 'Unknown error');
+                        }
+
+                        // 处理 Git 信息响应
+                        if (gitResponse.status === 'fulfilled' && gitResponse.value) {
+                            try {
+                                const gitData = await gitResponse.value.json();
+                                if (gitData.code === 200 && gitData.data) {
+                                    gitInfo = gitData.data as GitInfo;
+                                    appVersion = gitInfo?.tag || appVersion;
+                                }
+                            } catch (error) {
+                                console.error('解析 Git 信息失败:', error);
+                            }
+                        } else {
+                            console.error('获取 Git 信息失败:', gitResponse.status === 'rejected' ? gitResponse.reason : 'Unknown error');
                         }
                     } else {
                         console.warn('Node.js 服务健康检查超时');
@@ -125,7 +174,8 @@ function SystemInfoPage() {
                     nodejsUrl,
                     nodejsStatus: nodejsStatus as SystemInfo['nodejsStatus'],
                     environment: import.meta.env.MODE || 'production',
-                    ipv4List
+                    ipv4List,
+                    gitInfo
                 });
             } catch (error) {
                 console.error('获取系统信息失败:', error);
@@ -302,6 +352,50 @@ function SystemInfoPage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Git 信息 */}
+                {systemInfo?.gitInfo && (
+                    <div className="card">
+                        <div className="card-header">
+                            <div className="flex items-center gap-8">
+                                <IconGit />
+                                <span>Git 信息</span>
+                            </div>
+                        </div>
+                        <div className="card-content">
+                            <div className="info-item-list">
+                                <div className="info-item">
+                                    <span className="info-label">分支</span>
+                                    <span className="info-value">{systemInfo.gitInfo.branch || 'N/A'}</span>
+                                </div>
+                                <div className="info-item">
+                                    <span className="info-label">Tag</span>
+                                    <span className="info-value">{systemInfo.gitInfo.tag || 'N/A'}</span>
+                                </div>
+                                <div className="info-item">
+                                    <span className="info-label">提交哈希</span>
+                                    <span className="info-value" style={{ fontFamily: 'monospace', fontSize: 'var(--text-sm)' }}>
+                                        {systemInfo.gitInfo.commitHash?.substring(0, 7) || 'N/A'}
+                                    </span>
+                                </div>
+                                <div className="info-item">
+                                    <span className="info-label">提交作者</span>
+                                    <span className="info-value">{systemInfo.gitInfo.commitAuthor || 'N/A'}</span>
+                                </div>
+                                <div className="info-item">
+                                    <span className="info-label">提交日期</span>
+                                    <span className="info-value">{systemInfo.gitInfo.commitDate || 'N/A'}</span>
+                                </div>
+                                <div className="info-item" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: '4px' }}>
+                                    <span className="info-label">提交信息</span>
+                                    <span className="info-value" style={{ width: '100%', textAlign: 'left' }}>
+                                        {systemInfo.gitInfo.commitMessage || 'N/A'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

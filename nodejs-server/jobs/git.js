@@ -94,12 +94,32 @@ function getLatestCommitMessage() {
 }
 
 /**
+ * 获取最新的 Git tag
+ * @returns {string} 最新 tag，获取失败时返回'unknown'
+ */
+function getLatestTag() {
+    try {
+        // 获取最新的 tag，如果没有 tag 则返回 commit hash 的短格式
+        const tag = execSync('git describe --tags --abbrev=0 2>/dev/null || git rev-parse --short HEAD', {
+            encoding: 'utf8',
+            cwd: process.cwd(),
+            shell: '/bin/bash'
+        }).trim();
+        return tag;
+    } catch (error) {
+        console.error('获取Git tag失败:', error.message);
+        return 'unknown';
+    }
+}
+
+/**
  * 获取完整的Git信息对象
  * @returns {object} 包含所有Git信息的对象
  */
 function getGitInfo() {
     const gitInfo = {
         branch: getCurrentBranch(),
+        tag: getLatestTag(),
         commitHash: getLatestCommitHash(),
         commitAuthor: getLatestCommitAuthor(),
         commitDate: getLatestCommitDate(),
@@ -119,6 +139,7 @@ function getGitInfo() {
 
     console.log('Git版本信息:');
     console.log(`  分支: ${gitInfo.branch}`);
+    console.log(`  Tag: ${gitInfo.tag}`);
     console.log(`  提交: ${gitInfo.commitHash}`);
     console.log(`  作者: ${gitInfo.commitAuthor}`);
     console.log(`  日期: ${gitInfo.commitDate}`);
@@ -148,6 +169,7 @@ function getGitInfo() {
 
 module.exports = {
     getCurrentBranch,
+    getLatestTag,
     getLatestCommitHash,
     getLatestCommitAuthor,
     getLatestCommitDate,
