@@ -266,9 +266,7 @@ func (s *NodejsService) goLogListener(stdout io.Reader, stderr io.Reader) {
         go func() {
             scanner := bufio.NewScanner(stdout)
             for scanner.Scan() {
-                line := scanner.Text()
-                s.log.Debug("[Node.js] " + line)
-                writeLog("[stdout]", line)
+                writeLog("[stdout]", scanner.Text())
             }
         }()
     }
@@ -277,9 +275,7 @@ func (s *NodejsService) goLogListener(stdout io.Reader, stderr io.Reader) {
         go func() {
             scanner := bufio.NewScanner(stderr)
             for scanner.Scan() {
-                line := scanner.Text()
-                s.log.Error("[Node.js] " + line)
-                writeLog("[stderr]", line)
+                writeLog("[stderr]", scanner.Text())
             }
         }()
     }

@@ -44,13 +44,16 @@ func (a *App) initLogger() {
         logLevel = slog.LevelDebug
     }
 
-    var writer io.Writer = os.Stdout
+    var writer io.Writer
     if logDir := os.Getenv("PPLL_LOG_DIR"); logDir != "" {
         os.MkdirAll(logDir, 0755)
         if f, err := os.OpenFile(filepath.Join(logDir, "go.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644); err == nil {
             a.logFile = f
-            writer = io.MultiWriter(os.Stdout, f)
+            writer = f
         }
+    }
+    if writer == nil {
+        writer = os.Stdout
     }
     a.log = slog.New(slog.NewTextHandler(writer, &slog.HandlerOptions{Level: logLevel}))
 }
