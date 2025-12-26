@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Card, Text, Badge, Group, Stack, Title, Loader, Center, Grid } from '@mantine/core';
+import { IconServer, IconDatabase, IconWorld, IconNetwork } from '@tabler/icons-react';
 import {
     GetAppVersion,
     GetAppDescription,
@@ -25,6 +27,7 @@ interface SystemInfo {
         pid?: number;
     };
     environment: string;
+    ipv4List: string[];
 }
 
 function SystemInfoPage() {
@@ -43,6 +46,18 @@ function SystemInfoPage() {
                     GetNodejsServiceStatus()
                 ]);
 
+                // 从 Node.js API 获取 IP 地址列表
+                let ipv4List: string[] = [];
+                try {
+                    const ipResponse = await fetch(`${nodejsUrl}/v1/system/ipv4-list`);
+                    const ipData = await ipResponse.json();
+                    if (ipData.code === 200 && Array.isArray(ipData.data)) {
+                        ipv4List = ipData.data;
+                    }
+                } catch (error) {
+                    console.error('获取 IP 地址列表失败:', error);
+                }
+
                 setSystemInfo({
                     frontendUrl: window.location.origin,
                     appVersion,
@@ -51,7 +66,8 @@ function SystemInfoPage() {
                     databaseHealthy,
                     nodejsUrl,
                     nodejsStatus: nodejsStatus as SystemInfo['nodejsStatus'],
-                    environment: import.meta.env.MODE || 'production'
+                    environment: import.meta.env.MODE || 'production',
+                    ipv4List
                 });
             } catch (error) {
                 console.error('获取系统信息失败:', error);
@@ -65,149 +81,176 @@ function SystemInfoPage() {
 
     if (loading) {
         return (
-            <div className="container">
-                <div className="card">
-                    <div className="card-content" style={{ textAlign: 'center', padding: '40px' }}>
-                        <div className="loading"></div>
-                        <p className="text-muted" style={{ marginTop: '16px' }}>加载中...</p>
-                    </div>
-                </div>
-            </div>
+            <Center h="100vh">
+                <Stack align="center" gap="md">
+                    <Loader size="lg" />
+                    <Text c="dimmed">加载中...</Text>
+                </Stack>
+            </Center>
         );
     }
 
     return (
-        <div className="container">
-            <div className="system-info-page">
-                <h1 style={{ marginBottom: '24px', color: 'var(--color-primary)' }}>系统信息</h1>
+        <Stack p="xl" gap="xl">
+            <Title order={2}>系统信息</Title>
 
-                <div className="system-info-grid">
-                    {/* 服务地址卡片 */}
-                    <div className="card">
-                        <div className="card-header">
-                            <h3 style={{ margin: 0 }}>服务地址</h3>
-                        </div>
-                        <div className="card-content">
-                            <div className="info-item-list">
-                                <InfoItem label="前端地址" value={systemInfo?.frontendUrl || 'N/A'} />
-                                <InfoItem label="API 地址" value={systemInfo?.nodejsUrl || 'N/A'} />
-                                <InfoItem label="API 文档" value={`${systemInfo?.nodejsUrl || 'N/A'}/v1/docs`} isLink />
-                            </div>
-                        </div>
-                    </div>
+            <Grid>
+                {/* 本机 IPv4 地址列表 - 大卡片 */}
+                <Grid.Col span={12}>
+                    <Card shadow="sm" padding="lg" radius="md" withBorder>
+                        <Group mb="md">
+                            <IconNetwork size={24} />
+                            <Text fw={600} size="lg">本机 IPv4 地址</Text>
+                        </Group>
+                        {systemInfo?.ipv4List && systemInfo.ipv4List.length > 0 ? (
+                            <Stack gap="xs">
+                                {systemInfo.ipv4List.map((ip, index) => (
+                                    <Group key={index} justify="space-between">
+                                        <Text size="sm" c="dimmed">网卡 {index + 1}</Text>
+                                        <Badge size="lg" variant="light" color="blue">
+                                            {ip}
+                                        </Badge>
+                                    </Group>
+                                ))}
+                            </Stack>
+                        ) : (
+                            <Text c="dimmed" size="sm">未检测到 IPv4 地址</Text>
+                        )}
+                    </Card>
+                </Grid.Col>
 
-                    {/* 环境信息卡片 */}
-                    <div className="card">
-                        <div className="card-header">
-                            <h3 style={{ margin: 0 }}>环境信息</h3>
-                        </div>
-                        <div className="card-content">
-                            <div className="info-item-list">
-                                <InfoItem label="应用版本" value={`v${systemInfo?.appVersion || 'N/A'}`} />
-                                <InfoItem label="运行环境" value={systemInfo?.environment || 'N/A'} />
-                                <InfoItem label="应用描述" value={systemInfo?.appDescription || 'N/A'} />
-                            </div>
-                        </div>
-                    </div>
+                {/* 服务地址卡片 */}
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                    <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
+                        <Group mb="md">
+                            <IconWorld size={24} />
+                            <Text fw={600} size="lg">服务地址</Text>
+                        </Group>
+                        <Stack gap="sm">
+                            <Group justify="space-between">
+                                <Text size="sm" c="dimmed">前端地址</Text>
+                                <Text size="sm" fw={500}>{systemInfo?.frontendUrl || 'N/A'}</Text>
+                            </Group>
+                            <Group justify="space-between">
+                                <Text size="sm" c="dimmed">API 地址</Text>
+                                <Text size="sm" fw={500}>{systemInfo?.nodejsUrl || 'N/A'}</Text>
+                            </Group>
+                            <Group justify="space-between">
+                                <Text size="sm" c="dimmed">API 文档</Text>
+                                <Text
+                                    size="sm"
+                                    fw={500}
+                                    c="blue"
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => window.open(`${systemInfo?.nodejsUrl || ''}/v1/docs`, '_blank')}
+                                >
+                                    {`${systemInfo?.nodejsUrl || 'N/A'}/v1/docs`}
+                                </Text>
+                            </Group>
+                        </Stack>
+                    </Card>
+                </Grid.Col>
 
-                    {/* 后端服务卡片 */}
-                    <div className="card">
-                        <div className="card-header">
-                            <h3 style={{ margin: 0 }}>后端服务</h3>
-                        </div>
-                        <div className="card-content">
-                            <div className="info-item-list">
-                                <InfoItem
-                                    label="Node.js 服务"
-                                    value={systemInfo?.nodejsStatus?.isRunning ? '运行中' : '未运行'}
-                                    status={systemInfo?.nodejsStatus?.isRunning ? 'success' : 'danger'}
-                                />
-                                <InfoItem
-                                    label="服务健康状态"
-                                    value={systemInfo?.nodejsStatus?.isHealthy ? '健康' : '异常'}
-                                    status={systemInfo?.nodejsStatus?.isHealthy ? 'success' : 'danger'}
-                                />
-                                <InfoItem label="服务端口" value={systemInfo?.nodejsStatus?.port?.toString() || 'N/A'} />
-                                {systemInfo?.nodejsStatus?.pid && (
-                                    <InfoItem label="进程 PID" value={systemInfo.nodejsStatus.pid.toString()} />
-                                )}
-                                {systemInfo?.nodejsStatus?.uptime && (
-                                    <InfoItem label="运行时长" value={systemInfo.nodejsStatus.uptime} />
-                                )}
-                            </div>
-                        </div>
-                    </div>
+                {/* 环境信息卡片 */}
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                    <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
+                        <Group mb="md">
+                            <IconServer size={24} />
+                            <Text fw={600} size="lg">环境信息</Text>
+                        </Group>
+                        <Stack gap="sm">
+                            <Group justify="space-between">
+                                <Text size="sm" c="dimmed">应用版本</Text>
+                                <Badge variant="light" color="green">v{systemInfo?.appVersion || 'N/A'}</Badge>
+                            </Group>
+                            <Group justify="space-between">
+                                <Text size="sm" c="dimmed">运行环境</Text>
+                                <Badge variant="light" color="cyan">{systemInfo?.environment || 'N/A'}</Badge>
+                            </Group>
+                            <Group justify="space-between">
+                                <Text size="sm" c="dimmed">应用描述</Text>
+                                <Text size="sm" fw={500} style={{ maxWidth: '60%', textAlign: 'right' }}>
+                                    {systemInfo?.appDescription || 'N/A'}
+                                </Text>
+                            </Group>
+                        </Stack>
+                    </Card>
+                </Grid.Col>
 
-                    {/* 数据存储卡片 */}
-                    <div className="card">
-                        <div className="card-header">
-                            <h3 style={{ margin: 0 }}>数据存储</h3>
-                        </div>
-                        <div className="card-content">
-                            <div className="info-item-list">
-                                <InfoItem
-                                    label="数据库状态"
-                                    value={systemInfo?.databaseHealthy ? '正常' : '异常'}
-                                    status={systemInfo?.databaseHealthy ? 'success' : 'danger'}
-                                />
-                                <InfoItem
-                                    label="数据库路径"
-                                    value={systemInfo?.databasePath || 'N/A'}
-                                    isPath
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                {/* 后端服务卡片 */}
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                    <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
+                        <Group mb="md">
+                            <IconServer size={24} />
+                            <Text fw={600} size="lg">后端服务</Text>
+                        </Group>
+                        <Stack gap="sm">
+                            <Group justify="space-between">
+                                <Text size="sm" c="dimmed">Node.js 服务</Text>
+                                <Badge
+                                    variant="filled"
+                                    color={systemInfo?.nodejsStatus?.isRunning ? 'green' : 'red'}
+                                >
+                                    {systemInfo?.nodejsStatus?.isRunning ? '运行中' : '未运行'}
+                                </Badge>
+                            </Group>
+                            <Group justify="space-between">
+                                <Text size="sm" c="dimmed">服务健康状态</Text>
+                                <Badge
+                                    variant="filled"
+                                    color={systemInfo?.nodejsStatus?.isHealthy ? 'green' : 'red'}
+                                >
+                                    {systemInfo?.nodejsStatus?.isHealthy ? '健康' : '异常'}
+                                </Badge>
+                            </Group>
+                            {systemInfo?.nodejsStatus?.pid && (
+                                <Group justify="space-between">
+                                    <Text size="sm" c="dimmed">进程 PID</Text>
+                                    <Text size="sm" fw={500}>{systemInfo.nodejsStatus.pid}</Text>
+                                </Group>
+                            )}
+                            {systemInfo?.nodejsStatus?.uptime && (
+                                <Group justify="space-between">
+                                    <Text size="sm" c="dimmed">运行时长</Text>
+                                    <Text size="sm" fw={500}>{systemInfo.nodejsStatus.uptime}</Text>
+                                </Group>
+                            )}
+                        </Stack>
+                    </Card>
+                </Grid.Col>
 
-            <div style={{ height: '16px' }}></div>
-        </div>
-    );
-}
-
-interface InfoItemProps {
-    label: string;
-    value: string;
-    status?: 'success' | 'danger';
-    isLink?: boolean;
-    isPath?: boolean;
-}
-
-function InfoItem({ label, value, status, isLink, isPath }: InfoItemProps) {
-    const renderValue = () => {
-        if (!value || value === 'N/A') {
-            return <span className="text-muted">N/A</span>;
-        }
-
-        if (status === 'success') {
-            return <span className="info-status success">{value}</span>;
-        }
-
-        if (status === 'danger') {
-            return <span className="info-status danger">{value}</span>;
-        }
-
-        if (isLink) {
-            return (
-                <a href={value} target="_blank" rel="noopener noreferrer" className="info-link">
-                    {value}
-                </a>
-            );
-        }
-
-        if (isPath) {
-            return <span className="info-path">{value}</span>;
-        }
-
-        return <span className="info-value">{value}</span>;
-    };
-
-    return (
-        <div className="info-item">
-            <span className="info-label">{label}</span>
-            {renderValue()}
-        </div>
+                {/* 数据存储卡片 */}
+                <Grid.Col span={{ base: 12, md: 6 }}>
+                    <Card shadow="sm" padding="lg" radius="md" withBorder h="100%">
+                        <Group mb="md">
+                            <IconDatabase size={24} />
+                            <Text fw={600} size="lg">数据存储</Text>
+                        </Group>
+                        <Stack gap="sm">
+                            <Group justify="space-between">
+                                <Text size="sm" c="dimmed">数据库状态</Text>
+                                <Badge
+                                    variant="filled"
+                                    color={systemInfo?.databaseHealthy ? 'green' : 'red'}
+                                >
+                                    {systemInfo?.databaseHealthy ? '正常' : '异常'}
+                                </Badge>
+                            </Group>
+                            <Group justify="space-between" align="flex-start">
+                                <Text size="sm" c="dimmed">数据库路径</Text>
+                                <Text
+                                    size="xs"
+                                    fw={500}
+                                    style={{ maxWidth: '70%', textAlign: 'right', wordBreak: 'break-all' }}
+                                >
+                                    {systemInfo?.databasePath || 'N/A'}
+                                </Text>
+                            </Group>
+                        </Stack>
+                    </Card>
+                </Grid.Col>
+            </Grid>
+        </Stack>
     );
 }
 

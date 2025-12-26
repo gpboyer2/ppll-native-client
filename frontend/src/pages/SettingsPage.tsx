@@ -217,110 +217,6 @@ function SettingsPage() {
 
     return (
         <div className="container">
-            {/* 更新设置 */}
-            <div className="card mb-16">
-                <div className="card-header">
-                    <h3 style={{ margin: 0 }}>自动更新设置</h3>
-                </div>
-                <div className="card-content">
-                    <div className="form-row">
-                        <label className="label">更新源 Feed URL</label>
-                        <input
-                            className="input"
-                            placeholder="请输入更新源地址"
-                            value={feedURL}
-                            onChange={e => setFeedURL(e.target.value)}
-                        />
-                        <div className="help">
-                            <div style={{ marginBottom: '8px' }}>常用示例（点击快速填入）：</div>
-                            <div className="flex gap-8" style={{ flexWrap: 'wrap' }}>
-                                {feedURLExamples.map((example, index) => (
-                                    <button
-                                        key={index}
-                                        className="btn btn-ghost"
-                                        style={{ height: '28px', padding: '0 8px', fontSize: 'var(--text-xs)' }}
-                                        onClick={() => setFeedURL(example.url)}
-                                        title={example.description}
-                                    >
-                                        {example.name}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-16" style={{ flexWrap: 'wrap', marginBottom: '16px' }}>
-                        <label className="flex items-center gap-8">
-                            <input
-                                type="checkbox"
-                                checked={autoCheck}
-                                onChange={e => setAutoCheck(e.target.checked)}
-                            />
-                            <span>自动检查更新</span>
-                        </label>
-
-                        <div className="flex items-center gap-8">
-                            <span className="label">检查间隔（分钟）:</span>
-                            <input
-                                type="number"
-                                className="input"
-                                style={{ width: '100px' }}
-                                value={checkIntervalMinute}
-                                onChange={e => setCheckIntervalMinute(Number(e.target.value) || 0)}
-                                min="1"
-                                max="1440"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="flex gap-16" style={{ flexWrap: 'wrap', marginBottom: '16px' }}>
-                        <label className="flex items-center gap-8">
-                            <input
-                                type="checkbox"
-                                checked={autoDownload}
-                                onChange={e => setAutoDownload(e.target.checked)}
-                            />
-                            <span>自动下载更新</span>
-                        </label>
-
-                        <label className="flex items-center gap-8">
-                            <input
-                                type="checkbox"
-                                checked={silentInstall}
-                                onChange={e => setSilentInstall(e.target.checked)}
-                            />
-                            <span>静默安装</span>
-                        </label>
-                    </div>
-
-                    <div className="flex gap-8">
-                        <button
-                            className={`btn ${saveStatus === 'saving' ? 'btn-outline' : 'btn-primary'}`}
-                            onClick={saveUpdateConfig}
-                            disabled={saveStatus === 'saving'}
-                        >
-                            {saveStatus === 'saving' ? '保存中...' : '保存设置'}
-                        </button>
-
-                        <button className="btn btn-outline" onClick={checkUpdateNow}>
-                            立即检查更新
-                        </button>
-                    </div>
-
-                    {saveStatus === 'success' && (
-                        <div className="mt-8 p-8 rounded" style={{ backgroundColor: 'var(--color-primary-50)', color: 'var(--color-success)' }}>
-                            ✅ 设置保存成功
-                        </div>
-                    )}
-
-                    {saveStatus === 'error' && (
-                        <div className="mt-8 p-8 rounded" style={{ backgroundColor: 'color-mix(in srgb, var(--color-danger) 10%, var(--color-bg))', color: 'var(--color-danger)' }}>
-                            ❌ 保存失败，请重试
-                        </div>
-                    )}
-                </div>
-            </div>
-
             {/* Binance ApiKey 管理 */}
             <div className="card mb-16">
                 <div className="card-header">
@@ -454,6 +350,110 @@ function SettingsPage() {
                                     </div>
                                 )}
                             </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* 更新设置 */}
+            <div className="card mb-16">
+                <div className="card-header">
+                    <h3 style={{ margin: 0 }}>自动更新设置</h3>
+                </div>
+                <div className="card-content">
+                    <div className="form-row">
+                        <label className="label">更新源 Feed URL</label>
+                        <input
+                            className="input"
+                            placeholder="请输入更新源地址"
+                            value={feedURL}
+                            onChange={e => setFeedURL(e.target.value)}
+                        />
+                        <div className="help">
+                            <div style={{ marginBottom: '8px' }}>常用示例（点击快速填入）：</div>
+                            <div className="flex gap-8" style={{ flexWrap: 'wrap' }}>
+                                {feedURLExamples.map((example, index) => (
+                                    <button
+                                        key={index}
+                                        className="btn btn-ghost"
+                                        style={{ height: '28px', padding: '0 8px', fontSize: 'var(--text-xs)' }}
+                                        onClick={() => setFeedURL(example.url)}
+                                        title={example.description}
+                                    >
+                                        {example.name}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-16" style={{ flexWrap: 'wrap', marginBottom: '16px' }}>
+                        <label className="flex items-center gap-8">
+                            <input
+                                type="checkbox"
+                                checked={autoCheck}
+                                onChange={e => setAutoCheck(e.target.checked)}
+                            />
+                            <span>自动检查更新</span>
+                        </label>
+
+                        <div className="flex items-center gap-8">
+                            <span className="label">检查间隔（分钟）:</span>
+                            <input
+                                type="number"
+                                className="input"
+                                style={{ width: '100px' }}
+                                value={checkIntervalMinute}
+                                onChange={e => setCheckIntervalMinute(Number(e.target.value) || 0)}
+                                min="1"
+                                max="1440"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-16" style={{ flexWrap: 'wrap', marginBottom: '16px' }}>
+                        <label className="flex items-center gap-8">
+                            <input
+                                type="checkbox"
+                                checked={autoDownload}
+                                onChange={e => setAutoDownload(e.target.checked)}
+                            />
+                            <span>自动下载更新</span>
+                        </label>
+
+                        <label className="flex items-center gap-8">
+                            <input
+                                type="checkbox"
+                                checked={silentInstall}
+                                onChange={e => setSilentInstall(e.target.checked)}
+                            />
+                            <span>静默安装</span>
+                        </label>
+                    </div>
+
+                    <div className="flex gap-8">
+                        <button
+                            className={`btn ${saveStatus === 'saving' ? 'btn-outline' : 'btn-primary'}`}
+                            onClick={saveUpdateConfig}
+                            disabled={saveStatus === 'saving'}
+                        >
+                            {saveStatus === 'saving' ? '保存中...' : '保存设置'}
+                        </button>
+
+                        <button className="btn btn-outline" onClick={checkUpdateNow}>
+                            立即检查更新
+                        </button>
+                    </div>
+
+                    {saveStatus === 'success' && (
+                        <div className="mt-8 p-8 rounded" style={{ backgroundColor: 'var(--color-primary-50)', color: 'var(--color-success)' }}>
+                            ✅ 设置保存成功
+                        </div>
+                    )}
+
+                    {saveStatus === 'error' && (
+                        <div className="mt-8 p-8 rounded" style={{ backgroundColor: 'color-mix(in srgb, var(--color-danger) 10%, var(--color-bg))', color: 'var(--color-danger)' }}>
+                            ❌ 保存失败，请重试
                         </div>
                     )}
                 </div>

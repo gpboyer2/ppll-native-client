@@ -27,6 +27,7 @@ const loginLogRoute = require("./v1/login-logs.route");
 const operationLogsRoute = require("./v1/operation-logs.route");
 const systemLogsRoute = require("./v1/system-logs.route");
 const binanceAccountRoute = require("./v1/binance-account.route");
+const systemRoute = require("./v1/system.route");
 
 const routeManager = (app) => {
   // API V1 Routes
@@ -55,6 +56,7 @@ const routeManager = (app) => {
   app.use("/v1/operation-logs", operationLogsRoute);
   app.use("/v1/system-logs", systemLogsRoute);
   app.use("/v1/binance-account", binanceAccountRoute);
+  app.use("/v1/system", systemRoute);
 };
 
 module.exports = routeManager;
