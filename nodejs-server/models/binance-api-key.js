@@ -14,11 +14,12 @@ module.exports = (sequelize, DataTypes) => {
      * This method is not a part of Sequelize lifecycle.
      */
     static associate(models) {
-      // ApiKey 属于一个用户
+      // ApiKey 属于一个用户（禁用外键约束）
       binance_api_keys.belongsTo(models.users, {
         foreignKey: 'user_id',
         targetKey: 'id',
-        as: 'userInfo'
+        as: 'userInfo',
+        constraints: false
       });
     }
   }
