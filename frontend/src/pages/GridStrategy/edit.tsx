@@ -278,7 +278,6 @@ function GridStrategyEditPage() {
                                 placeholder="搜索选择交易对"
                                 searchable
                                 clearable
-                                nothingFound="没有找到匹配的交易对"
                                 data={usdtPairs}
                                 value={formData.tradingPair}
                                 onChange={(value) => updateFormField('tradingPair', value || '')}
@@ -314,7 +313,6 @@ function GridStrategyEditPage() {
                             <Select
                                 placeholder="选择API Key"
                                 clearable
-                                nothingFound={apiKeyList.length === 0 ? '暂无API Key，请先在设置页面添加' : '没有找到匹配的API Key'}
                                 data={apiKeyOptions}
                                 value={currentApiKeyValue}
                                 onChange={handleApiKeyChange}
