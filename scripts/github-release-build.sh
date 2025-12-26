@@ -303,7 +303,8 @@ main() {
     echo ""
     echo "请输入本次发布的主要内容（留空则使用默认说明）："
     echo ""
-    read -e -i "Release $NEW_VERSION - 自动构建多平台版本" release_notes
+    read -p "发布说明 [默认: Release $NEW_VERSION - 自动构建多平台版本]: " release_notes
+    release_notes=${release_notes:-"Release $NEW_VERSION - 自动构建多平台版本"}
 
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
