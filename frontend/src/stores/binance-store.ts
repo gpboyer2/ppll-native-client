@@ -40,9 +40,9 @@ interface BinanceStore {
 // 获取 auth token
 async function getAuthToken(): Promise<string> {
     try {
-        const tokenRes = await GetConfig('auth_token');
+        const tokenRes = await GetConfig('auth_token') as any;
         if (tokenRes && typeof tokenRes === 'object') {
-            if ('code' in tokenRes && tokenRes.code === 0 && tokenRes.data) {
+            if (tokenRes.code === 0 && tokenRes.data) {
                 return String(tokenRes.data);
             }
         } else if (typeof tokenRes === 'string') {
