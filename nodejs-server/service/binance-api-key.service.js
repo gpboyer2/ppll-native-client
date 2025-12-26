@@ -21,26 +21,37 @@ const BinanceApiKey = db.binance_api_keys;
 const createApiKey = async (params) => {
   const { userId, name, apiKey, secretKey, status = 2, remark } = params;
 
-  // 检查同一用户下 API Key 是否已存在
+  // 构建查询条件
+  const keyCondition = {
+    api_key: apiKey,
+    deleted: { [db.Sequelize.Op.ne]: 1 }
+  };
+  const nameCondition = {
+    name: name,
+    deleted: { [db.Sequelize.Op.ne]: 1 }
+  };
+
+  // 如果有 userId，添加 user_id 条件；否则检查 NULL 值
+  if (userId !== undefined && userId !== null) {
+    keyCondition.user_id = userId;
+    nameCondition.user_id = userId;
+  } else {
+    keyCondition.user_id = { [db.Sequelize.Op.is]: null };
+    nameCondition.user_id = { [db.Sequelize.Op.is]: null };
+  }
+
+  // 检查 API Key 是否已存在
   const existingKey = await BinanceApiKey.findOne({
-    where: {
-      user_id: userId,
-      api_key: apiKey,
-      deleted: { [db.Sequelize.Op.ne]: 1 }
-    }
+    where: keyCondition
   });
 
   if (existingKey) {
     throw new ApiError(httpStatus.CONFLICT, '该 API Key 已存在');
   }
 
-  // 检查同一用户下名称是否重复
+  // 检查名称是否重复
   const existingName = await BinanceApiKey.findOne({
-    where: {
-      user_id: userId,
-      name: name,
-      deleted: { [db.Sequelize.Op.ne]: 1 }
-    }
+    where: nameCondition
   });
 
   if (existingName) {
