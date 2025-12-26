@@ -59,7 +59,6 @@ const createApiKey = async (params) => {
   }
 
   const keyData = {
-    user_id: userId || null,
     name,
     api_key: apiKey,
     secret_key: secretKey,
@@ -67,6 +66,11 @@ const createApiKey = async (params) => {
     deleted: 0,
     remark
   };
+
+  // 只有在有 userId 时才设置 user_id 字段
+  if (userId !== undefined && userId !== null) {
+    keyData.user_id = userId;
+  }
 
   const createdKey = await BinanceApiKey.create(keyData, {
     validate: false
