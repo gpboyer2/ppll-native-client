@@ -112,15 +112,25 @@ tag_exists() {
 push_tag_to_github() {
     local tag=$1
 
-    print_step "正在推送标签 $tag 到 GitHub..."
+    print_step "正在推送提交和标签到 GitHub..."
 
     local output
+    # 先推送当前分支的 commit（包含版本号更新）
+    if output=$(git push github $(get_current_branch) 2>&1); then
+        print_success "提交已推送到 GitHub"
+    else
+        print_error "推送提交失败"
+        echo "$output"
+        return 1
+    fi
+
+    # 再推送标签
     if output=$(git push github "$tag" 2>&1); then
         print_success "标签 $tag 已推送到 GitHub"
         print_info "GitHub Actions 正在构建，请稍候..."
         return 0
     else
-        print_error "推送失败"
+        print_error "推送标签失败"
         echo "$output"
         return 1
     fi
@@ -323,6 +333,33 @@ main() {
     if [[ $confirm == "n" || $confirm == "N" ]]; then
         print_info "已取消"
         exit 0
+    fi
+
+    # 提取纯版本号（去掉 v 前缀）
+    VERSION_NUMBER=${NEW_VERSION#v}
+
+    # 更新 wails.json 中的版本号
+    echo ""
+    print_step "正在更新 wails.json 版本号为 $VERSION_NUMBER..."
+
+    if [ -f "wails.json" ]; then
+        # 使用 sed 替换 productVersion
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            # macOS 的 sed 语法
+            sed -i '' "s/\"productVersion\": \".*\"/\"productVersion\": \"$VERSION_NUMBER\"/" wails.json
+        else
+            # Linux 的 sed 语法
+            sed -i "s/\"productVersion\": \".*\"/\"productVersion\": \"$VERSION_NUMBER\"/" wails.json
+        fi
+        print_success "wails.json 已更新"
+
+        # 提交版本号更新
+        print_step "正在提交版本号更新..."
+        git add wails.json
+        git commit -m "chore: bump version to $VERSION_NUMBER"
+        print_success "版本号更新已提交"
+    else
+        print_warning "未找到 wails.json，跳过版本号更新"
     fi
 
     echo ""
