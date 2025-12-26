@@ -29,6 +29,7 @@ const systemLogsRoute = require("./v1/system-logs.route");
 const binanceAccountRoute = require("./v1/binance-account.route");
 const binanceApiKeyRoute = require("./v1/binance-api-key.route");
 const systemRoute = require("./v1/system.route");
+const databaseAdminRoute = require("./v1/database-admin.route");
 
 const routeManager = (app) => {
   // API V1 Routes
@@ -59,6 +60,7 @@ const routeManager = (app) => {
   app.use("/v1/binance-account", binanceAccountRoute);
   app.use("/v1/binance-api-key", binanceApiKeyRoute);
   app.use("/v1/system", systemRoute);
+  app.use("/v1/database-admin", databaseAdminRoute);
 };
 
 module.exports = routeManager;
