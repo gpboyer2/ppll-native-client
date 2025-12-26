@@ -173,11 +173,15 @@ async function fetchCookiesWithPlaywright() {
  */
 async function fetchCookiesWithAxios() {
     const axios = require('axios');
+    const { HttpsProxyAgent } = require('https-proxy-agent');
 
     try {
         console.log('🌐 使用 HTTP 方式访问 Gate.io...');
 
-        const response = await axios({
+        // 检查是否配置了代理（支持环境变量或系统代理）
+        const proxyUrl = process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy;
+        
+        const axiosConfig = {
             method: 'get',
             url: 'https://www.gate.com/zh/price',
             headers: {
@@ -197,7 +201,15 @@ async function fetchCookiesWithAxios() {
             maxRedirects: 5,
             timeout: 15000,
             validateStatus: () => true // 接受所有状态码
-        });
+        };
+
+        // 如果有代理配置，添加代理
+        if (proxyUrl) {
+            console.log('🔗 使用代理:', proxyUrl);
+            axiosConfig.httpsAgent = new HttpsProxyAgent(proxyUrl);
+        }
+
+        const response = await axios(axiosConfig);
 
         console.log('📊 HTTP 响应状态:', response.status);
         console.log('📋 响应头中的 set-cookie:', response.headers['set-cookie'] || []);

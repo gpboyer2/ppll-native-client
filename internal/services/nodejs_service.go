@@ -215,6 +215,30 @@ func (s *NodejsService) buildEnv(baseEnv []string) []string {
 		env = append(env, "SQLITE_PATH="+s.dbPath)
 	}
 
+	// 代理环境变量处理
+	// 优先使用系统环境变量，如果未设置则使用默认的 Clash 代理
+	defaultProxyURL := "http://127.0.0.1:7890"
+	proxyVars := []struct {
+		name    string
+		default string
+	}{
+		{"HTTPS_PROXY", defaultProxyURL},
+		{"https_proxy", defaultProxyURL},
+		{"HTTP_PROXY", defaultProxyURL},
+		{"http_proxy", defaultProxyURL},
+	}
+
+	for _, pv := range proxyVars {
+		value := os.Getenv(pv.name)
+		if value == "" {
+			// 系统环境变量未设置，使用默认代理
+			env = append(env, pv.name+"="+pv.default)
+		} else {
+			// 使用系统环境变量
+			env = append(env, pv.name+"="+value)
+		}
+	}
+
 	return env
 }
 

@@ -5,8 +5,21 @@
  */
 const { WebsocketClient, DefaultLogger } = require('binance');
 const { SocksProxyAgent } = require('socks-proxy-agent');
-const { ws_proxy } = require('../binance/config.js');
-const agent = new SocksProxyAgent(ws_proxy);
+const proxy = require('../utils/proxy.js');
+
+// 创建 WebSocket 代理 agent（如果配置了代理）
+const getWsAgent = () => {
+  const proxyConfig = proxy.getBinanceProxyConfig();
+  if (proxyConfig.ws_proxy) {
+    try {
+      return new SocksProxyAgent(proxyConfig.ws_proxy);
+    } catch (error) {
+      console.warn('[WebSocket] 创建代理 agent 失败:', error.message);
+      return undefined;
+    }
+  }
+  return undefined;
+};
 
 const logger = {
   ...DefaultLogger,
@@ -30,12 +43,15 @@ function createWsClient(options = {}) {
     beautify = true,
   } = options;
 
+  const wsAgent = getWsAgent();
+  const wsOptions = wsAgent ? { agent: wsAgent } : {};
+
   return new WebsocketClient(
     {
       api_key: apiKey,
       api_secret: apiSecret,
       beautify: beautify,
-      wsOptions: process.env.NODE_ENV === "production" ? {} : { agent },
+      wsOptions,
     },
     logger,
   );

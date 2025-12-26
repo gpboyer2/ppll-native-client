@@ -10,6 +10,18 @@ const UtilRecord = require("../utils/record-log.js");
 const CrawlerLog = require("../utils/crawler-log.js");
 const { getValidCookies } = require("../utils/cookieManager.js");
 const rateLimitConfig = require("../config/gate-api-rate-limit.config.js");
+const proxy = require("../utils/proxy.js");
+
+// 获取代理配置
+const httpsAgent = proxy.getHttpsProxyAgent();
+const proxyUrl = proxy.getProxyUrlString();
+
+// 启动时打印代理配置状态
+if (proxyUrl) {
+    console.log(`[Gate Coin Cache] 代理已配置: ${proxyUrl}`);
+} else {
+    console.log('[Gate Coin Cache] 警告: 未配置代理，在中国大陆可能无法访问 Gate.io');
+}
 
 // 创建 Gate.io 爬虫日志记录器
 // consoleOutput: false 表示不输出到终端，只写入日志文件
@@ -243,7 +255,7 @@ async function fetchGateCoinList(tab = 'trade', sort = 'dimension_24h', order = 
     const fetchPageData = async (currentPage) => {
         const requestStartTime = Date.now();
 
-        const response = await axios({
+        const axiosConfig = {
             method: 'post',
             url: 'https://www.gate.com/api-price/api/inner/v3/price/getAllCoinList',
             headers: {
@@ -265,7 +277,14 @@ async function fetchGateCoinList(tab = 'trade', sort = 'dimension_24h', order = 
                 'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36'
             },
             data: `page=${currentPage}&pageSize=${pageSize}&tab=${tab}&is_gate=1000001${sort ? `&sort=${sort}` : ''}${order ? `&order=${order}` : ''}`
-        });
+        };
+
+        // 如果有代理配置，添加代理
+        if (httpsAgent) {
+            axiosConfig.httpsAgent = httpsAgent;
+        }
+
+        const response = await axios(axiosConfig);
 
         return {
             responseTime: Date.now() - requestStartTime,

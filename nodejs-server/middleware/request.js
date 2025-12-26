@@ -4,6 +4,7 @@ const path = require("path");
 const rateLimit =
   require("express-rate-limit").default || require("express-rate-limit");
 const { ipKeyGenerator } = require("express-rate-limit");
+const proxyUtil = require("../utils/proxy.js");
 
 /**
  * 将 -103 的错误信息写入到文件中。
@@ -48,6 +49,8 @@ const limiter = rateLimit({
 });
 
 module.exports = function (options, callback) {
+  // 自动应用代理配置（如果环境变量中设置了代理）
+  proxyUtil.applyProxyToRequestOptions(options);
   return request(options, function (error, response, body) {
     // 处理重定向
     if (

@@ -12,6 +12,7 @@ const {
   DefaultLogger,
 } = require("binance");
 const config = require("../binance/config.js");
+const proxy = require("../utils/proxy.js");
 const request = require("../middleware/request.js");
 const ApiError = require("../utils/ApiError");
 
@@ -35,9 +36,10 @@ const createUsdmClient = (apiKey, apiSecret) => {
     timeout: 10000,
   };
 
-  // 非生产环境才添加proxy配置
-  if (process.env.NODE_ENV !== "production") {
-    requestOptions.proxy = config.proxy_obj;
+  // 从环境变量读取代理配置
+  const proxyConfig = proxy.getProxyConfig();
+  if (proxyConfig) {
+    requestOptions.proxy = proxyConfig;
   }
 
   return new USDMClient(options, requestOptions);
@@ -65,10 +67,8 @@ const fetchExchangeInfo = async (apiKey, apiSecret) => {
         json: true,
       };
 
-      // 非生产环境才添加proxy配置
-      if (process.env.NODE_ENV !== "production") {
-        requestOptions.proxy = config.proxy_obj;
-      }
+      // 从环境变量读取代理配置
+      proxy.applyProxyToRequestOptions(requestOptions);
 
       return await new Promise((resolve, reject) => {
         request(requestOptions, (error, response, body) => {
@@ -220,10 +220,8 @@ const fetchPremiumIndex = async (apiKey, apiSecret) => {
       json: true,
     };
 
-    // 非生产环境才添加proxy配置
-    if (process.env.NODE_ENV !== "production") {
-      requestOptions.proxy = config.proxy_obj;
-    }
+    // 从环境变量读取代理配置
+    proxy.applyProxyToRequestOptions(requestOptions);
 
     return await new Promise((resolve, reject) => {
       request(requestOptions, (error, response, body) => {
@@ -271,10 +269,8 @@ const fetchDelistSchedule = async (apiKey, apiSecret) => {
       json: true,
     };
 
-    // 非生产环境才添加proxy配置
-    if (process.env.NODE_ENV !== "production") {
-      requestOptions.proxy = config.proxy_obj;
-    }
+    // 从环境变量读取代理配置
+    proxy.applyProxyToRequestOptions(requestOptions);
 
     return await new Promise((resolve, reject) => {
       request(requestOptions, (error, response, body) => {

@@ -4,6 +4,7 @@
  */
 const { MainClient, USDMClient, CoinMClient } = require("binance");
 const config = require("../binance/config.js");
+const proxy = require("../utils/proxy.js");
 const path = require("path");
 const { readJsonSafe, writeJsonSafe } = require("../utils/file.js");
 const UtilRecord = require('../utils/record-log.js');
@@ -54,9 +55,10 @@ const createClient = (marketType, apiKey, apiSecret) => {
     timeout: 10000,
   };
 
-  // 非生产环境才添加proxy配置
-  if (process.env.NODE_ENV !== "production") {
-    requestOptions.proxy = config.proxy_obj;
+  // 从环境变量读取代理配置
+  const proxyConfig = proxy.getProxyConfig();
+  if (proxyConfig) {
+    requestOptions.proxy = proxyConfig;
   }
 
   return new ClientClass(options, requestOptions);

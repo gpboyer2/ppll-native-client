@@ -174,7 +174,8 @@ func (s *UpdateService) Download(info UpdateInfo) Response[any] {
         wruntime.EventsEmit(s.ctx, "update:error", "临时目录创建失败")
         return Err[any](9, "临时目录创建失败")
     }
-    resp, err := http.DefaultClient.Do(req)
+    client := GetHTTPClient()
+    resp, err := client.Do(req)
     if err != nil {
         wruntime.EventsEmit(s.ctx, "update:error", fmt.Sprintf("%v", err))
         return Err[any](7, "下载失败")
@@ -330,9 +331,10 @@ func equalMD5(a, b string) bool { return strings.EqualFold(strings.TrimSpace(a),
 func (s *UpdateService) httpGetWithRetry(url string, tries int) (*http.Response, error) {
     var last error
     backoff := 500 * time.Millisecond
+    client := GetHTTPClient()
     for i := 0; i < tries; i++ {
         req, _ := http.NewRequestWithContext(s.ctx, http.MethodGet, url, nil)
-        resp, err := http.DefaultClient.Do(req)
+        resp, err := client.Do(req)
         if err == nil && resp != nil && resp.StatusCode == 200 {
             return resp, nil
         }
