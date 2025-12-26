@@ -33,6 +33,11 @@ PROJECT_ROOT="$(cd "$(dirname "$0")" && pwd)"
 FRONTEND_DIR="${PROJECT_ROOT}/frontend"
 ENV_CHECK_FILE="${PROJECT_ROOT}/.env_checked"
 
+# 日志目录配置
+LOG_TIMESTAMP=$(date +%Y%m%d%H%M%S)
+LOG_DIR="${PROJECT_ROOT}/process-monitoring/${LOG_TIMESTAMP}"
+export PPLL_LOG_DIR="${LOG_DIR}"
+
 # 颜色输出
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -54,6 +59,12 @@ print_warning() {
 
 print_error() {
     echo -e "${RED}✗ $1${NC}"
+}
+
+# 初始化日志目录
+init_log_dir() {
+    mkdir -p "${LOG_DIR}"
+    print_info "日志目录: ${LOG_DIR}"
 }
 
 # 检查 Wails 是否安装
@@ -133,6 +144,7 @@ cleanup() {
     echo ""
     print_warning "正在停止服务..."
     print_success "服务已停止"
+    print_info "日志文件位置: ${LOG_DIR}"
     exit 0
 }
 
@@ -185,11 +197,17 @@ main() {
     fi
 
     print_info "启动 Wails 开发服务器..."
+    print_info "Go/Wails 日志: ${LOG_DIR}/go.log"
+    print_info "Node.js 日志: ${LOG_DIR}/nodejs-server.log"
+    print_info "Web 前端日志: ${LOG_DIR}/web.log"
     echo ""
 
-    # 启动 Wails 开发模式
+    # 初始化日志目录
+    init_log_dir
+
+    # 启动 Wails 开发模式，日志输出到文件
     cd "${PROJECT_ROOT}"
-    wails dev
+    wails dev 2>&1 | tee -a "${LOG_DIR}/go.log"
 }
 
 main "$@"

@@ -3,8 +3,10 @@ package main
 import (
     "context"
     "fmt"
+    "io"
     "log/slog"
     "os"
+    "path/filepath"
 
     "ppll-native-client/internal/services"
 )
@@ -24,6 +26,9 @@ type App struct {
     // 新增：数据库服务和 Node.js 服务
     db  *services.DatabaseStore
     njs *services.NodejsService
+
+    // 日志文件句柄（用于关闭）
+    logFile *os.File
 }
 
 // NewApp 创建新的 App 实例
@@ -31,17 +36,34 @@ func NewApp() *App {
 	return &App{}
 }
 
-// startup 应用启动时调用，保存上下文以便调用运行时方法
-func (a *App) startup(ctx context.Context) {
-    a.ctx = ctx
-
-    // 初始化日志：根据 DEBUG 环境变量设置日志级别
-    // DEBUG=1 或 DEBUG=true 启用 debug 模式
+// initLogger 初始化日志系统
+// 如果设置了 PPLL_LOG_DIR 环境变量，日志输出到文件；否则输出到 stdout
+func (a *App) initLogger() {
     logLevel := slog.LevelInfo
     if os.Getenv("DEBUG") == "true" || os.Getenv("DEBUG") == "1" {
         logLevel = slog.LevelDebug
     }
-    a.log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: logLevel}))
+
+    var writer io.Writer = os.Stdout
+
+    // 检查是否需要输出到文件
+    if logDir := os.Getenv("PPLL_LOG_DIR"); logDir != "" {
+        logPath := filepath.Join(logDir, "go.log")
+        if f, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644); err == nil {
+            a.logFile = f
+            writer = io.MultiWriter(os.Stdout, f) // 同时输出到控制台和文件
+        }
+    }
+
+    a.log = slog.New(slog.NewTextHandler(writer, &slog.HandlerOptions{Level: logLevel}))
+}
+
+// startup 应用启动时调用，保存上下文以便调用运行时方法
+func (a *App) startup(ctx context.Context) {
+    a.ctx = ctx
+
+    // 初始化日志系统
+    a.initLogger()
 
     // 1. 初始化数据库服务（必须在最前面，因为其他服务可能依赖）
     a.log.Info("正在初始化 SQLite 数据库...")
@@ -103,6 +125,11 @@ func (a *App) shutdown(ctx context.Context) {
         if err := a.db.Close(); err != nil {
             a.log.Error("关闭数据库失败", "error", err)
         }
+    }
+
+    // 关闭日志文件
+    if a.logFile != nil {
+        a.logFile.Close()
     }
 
     a.log.Info("应用已关闭")

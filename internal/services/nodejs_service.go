@@ -38,6 +38,9 @@ type NodejsService struct {
 	cancel         context.CancelFunc
 	outputDone     chan struct{}
 	healthCheckDone chan struct{}
+
+	// 日志文件句柄
+	logFile *os.File
 }
 
 // Config NodejsService 配置
@@ -246,24 +249,40 @@ func (s *NodejsService) buildEnv(baseEnv []string) []string {
 // stdout: 仅在 debug 模式打印
 // stderr: 始终打印（错误日志）
 func (s *NodejsService) goLogListener(stdout io.Reader, stderr io.Reader) {
-	// stdout 监听：仅 debug 模式打印
+	// 尝试打开日志文件
+	var logWriter io.Writer
+	if logDir := os.Getenv("PPLL_LOG_DIR"); logDir != "" {
+		logPath := filepath.Join(logDir, "nodejs-server.log")
+		if f, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644); err == nil {
+			s.logFile = f
+			logWriter = f
+		}
+	}
+
+	// stdout 监听
 	if stdout != nil {
 		go func() {
 			scanner := bufio.NewScanner(stdout)
 			for scanner.Scan() {
 				line := scanner.Text()
 				s.log.Debug("[Node.js stdout] " + line)
+				if logWriter != nil {
+					fmt.Fprintln(logWriter, time.Now().Format("2006-01-02 15:04:05")+" [stdout] "+line)
+				}
 			}
 		}()
 	}
 
-	// stderr 监听：始终打印（错误日志）
+	// stderr 监听
 	if stderr != nil {
 		go func() {
 			scanner := bufio.NewScanner(stderr)
 			for scanner.Scan() {
 				line := scanner.Text()
 				s.log.Error("[Node.js stderr] " + line)
+				if logWriter != nil {
+					fmt.Fprintln(logWriter, time.Now().Format("2006-01-02 15:04:05")+" [stderr] "+line)
+				}
 			}
 		}()
 	}
@@ -278,6 +297,11 @@ func (s *NodejsService) goWaitForExit() {
 		s.isRunning = false
 		s.isHealthy = false
 		s.process = nil
+		// 关闭日志文件
+		if s.logFile != nil {
+			s.logFile.Close()
+			s.logFile = nil
+		}
 		s.mu.Unlock()
 
 		close(s.outputDone)
