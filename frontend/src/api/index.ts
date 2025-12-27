@@ -11,6 +11,10 @@
 export { SystemApi } from './modules/system'
 export { AuthApi } from './modules/auth'
 export { DatabaseApi } from './modules/database'
+export { PluginApi } from './modules/plugin'
+export { NotificationApi } from './modules/notification'
+export { SettingsApi } from './modules/settings'
+export { GridStrategyApi } from './modules/grid-strategy'
 
 // ============== 原有API（兼容保留） ==============
 export * from './client'
