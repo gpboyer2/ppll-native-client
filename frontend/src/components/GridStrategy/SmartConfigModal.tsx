@@ -246,9 +246,154 @@ export function SmartConfigModal({
 
       {step === 'result' && optimizationResult && (
         <div className="smart-config-result">
-          {/* TODO: Task 4 - 添加结果展示 */}
-          <div style={{ padding: '200px', textAlign: 'center' }}>
-            结果展示内容（Task 4）
+          {/* 市场分析 */}
+          <div className="smart-config-section">
+            <h3 className="smart-config-section-title">
+              <span>📊</span>
+              市场分析（{optimizationResult.intervalLabel}）
+            </h3>
+            <div className="smart-config-market-analysis">
+              <div className="smart-config-analysis-item">
+                <span className="label">支撑位</span>
+                <span className="value">{optimizationResult.market.support} USDT</span>
+              </div>
+              <div className="smart-config-analysis-item">
+                <span className="label">阻力位</span>
+                <span className="value">{optimizationResult.market.resistance} USDT</span>
+              </div>
+              <div className="smart-config-analysis-item">
+                <span className="label">当前价格波动率</span>
+                <span className="value">{optimizationResult.market.volatility}</span>
+              </div>
+              <div className="smart-config-analysis-item">
+                <span className="label">风险等级</span>
+                <span className="value">{optimizationResult.risk.level}</span>
+              </div>
+              <div className="smart-config-analysis-item full-width">
+                <span className="icon">✓</span>
+                <span className="advice">{optimizationResult.market.volatilityAdvice}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* 推荐交易区间 */}
+          <div className="smart-config-section">
+            <h3 className="smart-config-section-title">
+              <span>🎯</span>
+              推荐交易区间
+            </h3>
+            <div className="smart-config-trading-range">
+              {defaultParams?.positionSide === 'LONG' ? (
+                <>
+                  <div className="smart-config-range-rule">
+                    价格高于 {optimizationResult.market.resistance} USDT，暂停开仓，规避上涨风险
+                  </div>
+                  <div className="smart-config-range-rule">
+                    价格低于 {optimizationResult.market.support} USDT，继续网格，持续更高收益
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="smart-config-range-rule">
+                    价格高于 {optimizationResult.market.resistance} USDT，继续网格，持续更高收益
+                  </div>
+                  <div className="smart-config-range-rule">
+                    价格低于 {optimizationResult.market.support} USDT，暂停开仓，规避下跌风险
+                  </div>
+                </>
+              )}
+              <div className="smart-config-range-tip">
+                基于近期K线数据分析，在此区间内网格交易效率最高
+              </div>
+            </div>
+          </div>
+
+          {/* 配置对比 */}
+          <div className="smart-config-section">
+            <h3 className="smart-config-section-title">
+              <span>⚖️</span>
+              配置对比 - {optimizationResult.optimizeTargetLabel}
+            </h3>
+            <Table className="smart-config-table">
+              <thead>
+                <tr>
+                  <th>间距</th>
+                  <th>每笔金额 (USDT)</th>
+                  <th>预期日频 (次)</th>
+                  <th>预期日收益 (USDT)</th>
+                  <th>日收益率</th>
+                </tr>
+              </thead>
+              <tbody>
+                {optimizationResult.recommended.analysis?.topList?.map((config: GridConfigOption, index: number) => (
+                  <tr
+                    key={index}
+                    className={selectedConfigIndex === index ? 'selected' : ''}
+                    onClick={() => setSelectedConfigIndex(index)}
+                  >
+                    <td>{config.gridSpacingPercent}</td>
+                    <td>{config.tradeValue}</td>
+                    <td>{config.expectedDailyFrequency}</td>
+                    <td>{config.expectedDailyProfit}</td>
+                    <td>{config.expectedDailyROI}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </Table>
+          </div>
+
+          {/* 当前选中配置 */}
+          {optimizationResult.recommended.analysis?.topList?.[selectedConfigIndex] && (
+            <div className="smart-config-section">
+              <h3 className="smart-config-section-title">
+                <span>✅</span>
+                当前选中配置
+              </h3>
+              <div className="smart-config-selected">
+                <div className="smart-config-selected-item">
+                  <span className="label">网格区间</span>
+                  <span className="value">
+                    {optimizationResult.market.support} ~ {optimizationResult.market.resistance} USDT
+                  </span>
+                </div>
+                <div className="smart-config-selected-item">
+                  <span className="label">每笔交易</span>
+                  <span className="value">
+                    {optimizationResult.recommended.analysis.topList[selectedConfigIndex].tradeQuantity}
+                  </span>
+                </div>
+                <div className="smart-config-selected-item">
+                  <span className="label">预期日频</span>
+                  <span className="value">
+                    {optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyFrequency} 次/天
+                  </span>
+                </div>
+                <div className="smart-config-selected-item">
+                  <span className="label">预期日收益</span>
+                  <span className="value">
+                    {optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyProfit} USDT
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 操作按钮 */}
+          <div className="smart-config-actions">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={handleRecalculate}
+            >
+              重新计算
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={handleApplyConfig}
+            >
+              应用配置
+            </button>
           </div>
         </div>
       )}
