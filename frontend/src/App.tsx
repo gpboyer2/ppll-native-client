@@ -15,6 +15,8 @@ import GridStrategyEditPage from './pages/GridStrategy/edit';
 import { navItems, ROUTES } from './router';
 import { ThemeToggle } from './components/ThemeToggle';
 import { useThemeStore } from './stores/theme-store';
+import { GlobalLoading } from './components/GlobalLoading';
+import { useAppInitStore } from './stores/app-init-store';
 
 // 导航组件
 function Navigation() {
@@ -70,6 +72,16 @@ function Navigation() {
 function App() {
     const mantineTheme = getPPLLMantineTheme();
     const { theme } = useThemeStore();
+    const { appReady } = useAppInitStore();
+
+    // 如果应用环境未就绪，显示全局 loading
+    if (!appReady) {
+        return (
+            <>
+                <GlobalLoading />
+            </>
+        );
+    }
 
     return (
         <MantineProvider theme={mantineTheme} defaultColorScheme={theme}>

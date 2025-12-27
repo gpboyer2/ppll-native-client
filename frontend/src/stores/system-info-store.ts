@@ -114,6 +114,52 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
             set({ loading: true });
 
             try {
+                // 检查 Wails 环境是否可用
+                const isWailsAvailable = typeof window !== 'undefined' &&
+                                       (window as any).go &&
+                                       (window as any).go.main;
+
+                if (!isWailsAvailable) {
+                    console.warn('Wails 环境未就绪，使用浏览器模式初始化');
+
+                    // 浏览器模式：使用默认 Node.js 服务地址
+                    const nodejsUrl = 'http://localhost:54321';
+
+                    // 设置 staticInfo
+                    set({
+                        staticInfo: {
+                            ...defaultStaticInfo,
+                            nodejsUrl
+                        },
+                        loading: false
+                    });
+
+                    // 尝试获取健康检查数据
+                    try {
+                        const response = await fetch(`${nodejsUrl}/v1/system/health`);
+                        if (response.ok) {
+                            const result = await response.json();
+                            if (result.code === 200 && result.data) {
+                                set({
+                                    dynamicInfo: { health: result.data },
+                                    initialized: true
+                                });
+                                return;
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('获取健康检查数据失败:', error);
+                    }
+
+                    // 如果获取健康检查失败，仍然标记为已初始化
+                    set({
+                        dynamicInfo: defaultDynamicInfo,
+                        initialized: true
+                    });
+                    return;
+                }
+
+                // Wails 桌面客户端模式
                 const [appDescription, databasePath, nodejsUrl] = await Promise.all([
                     GetAppDescription(),
                     GetDatabasePath(),
@@ -203,7 +249,13 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
                 }, 10000);
             } catch (error) {
                 console.error('初始化系统信息失败:', error);
-                set({ loading: false });
+                // 设置默认值，确保应用可以正常运行
+                set({
+                    staticInfo: defaultStaticInfo,
+                    dynamicInfo: defaultDynamicInfo,
+                    initialized: true,
+                    loading: false
+                });
             } finally {
                 initPromise = null;
             }

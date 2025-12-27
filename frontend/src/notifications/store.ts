@@ -19,11 +19,20 @@ const state = {
 export const notifications = {
   get list() { return state.list },
   init() {
-    EventsOn('notify:push', (n: Notification) => {
-      state.list = [n, ...state.list]
-    })
-    EventsOn('notify:dismiss', ({ id }: { id: string }) => {
-      state.list = state.list.filter(x => x.id !== id)
-    })
+    try {
+      // 检查 Wails 运行时是否可用
+      if (typeof window !== 'undefined' && (window as any).runtime) {
+        EventsOn('notify:push', (n: Notification) => {
+          state.list = [n, ...state.list]
+        })
+        EventsOn('notify:dismiss', ({ id }: { id: string }) => {
+          state.list = state.list.filter(x => x.id !== id)
+        })
+      } else {
+        console.warn('Wails 运行时未就绪，通知系统暂时不可用')
+      }
+    } catch (error) {
+      console.error('初始化通知系统失败:', error)
+    }
   }
 }

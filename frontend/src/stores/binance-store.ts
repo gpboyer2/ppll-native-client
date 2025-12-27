@@ -41,6 +41,11 @@ interface BinanceStore {
 // 获取 auth token
 async function getAuthToken(): Promise<string> {
     try {
+        // 检查 Wails 环境是否可用
+        if (typeof window === 'undefined' || !(window as any).go || !(window as any).go.main) {
+            return '';
+        }
+
         const tokenRes = await GetConfig('auth_token') as any;
         if (tokenRes && typeof tokenRes === 'object') {
             if (tokenRes.code === 0 && tokenRes.data) {
@@ -56,9 +61,16 @@ async function getAuthToken(): Promise<string> {
 // 获取 Node.js URL
 async function getNodejsUrl(): Promise<string> {
     try {
+        // 检查 Wails 环境是否可用
+        if (typeof window === 'undefined' || !(window as any).go || !(window as any).go.main) {
+            // 浏览器模式：返回默认 URL（后端服务端口）
+            return 'http://localhost:54321';
+        }
+
         return await GetNodejsServiceURL();
     } catch {}
-    return '';
+    // 发生错误时返回默认 URL（后端服务端口）
+    return 'http://localhost:54321';
 }
 
 export const useBinanceStore = create<BinanceStore>((set, get) => ({
@@ -118,7 +130,13 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
             const result = await response.json();
             if (result.status === 'success' && result.data?.list) {
-                set({ apiKeyList: result.data.list });
+                // 转换字段名：下划线命名 -> 驼峰命名
+                const convertedList = result.data.list.map((item: any) => ({
+                    ...item,
+                    apiKey: item.api_key,
+                    secretKey: item.secret_key
+                }));
+                set({ apiKeyList: convertedList });
             }
         } catch (error) {
             // 静默处理错误

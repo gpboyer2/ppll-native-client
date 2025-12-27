@@ -13,8 +13,22 @@ interface StorageAdapter {
 
 // Go 后端存储适配器
 class GoStorageAdapter implements StorageAdapter {
+  // 检查 Wails 环境是否可用
+  private isWailsAvailable(): boolean {
+    return typeof window !== 'undefined' &&
+           (window as any).go &&
+           (window as any).go.main &&
+           (window as any).go.main.App;
+  }
+
   async getItem(key: string): Promise<string | null> {
     try {
+      // 检查 Wails 环境是否可用
+      if (!this.isWailsAvailable()) {
+        console.warn(`Wails 环境未就绪，无法获取配置 [${key}]`);
+        return null;
+      }
+
       // 调用 Wails 的 Go 方法
       const result = await (window as any).go.main.App.GetConfig(key);
       return result || null;
@@ -26,6 +40,12 @@ class GoStorageAdapter implements StorageAdapter {
 
   async setItem(key: string, value: string): Promise<void> {
     try {
+      // 检查 Wails 环境是否可用
+      if (!this.isWailsAvailable()) {
+        console.warn(`Wails 环境未就绪，无法保存配置 [${key}]`);
+        throw new Error('Wails 环境未就绪');
+      }
+
       await (window as any).go.main.App.SetConfig(key, value);
     } catch (error) {
       console.error(`保存配置失败 [${key}]:`, error);
@@ -35,6 +55,12 @@ class GoStorageAdapter implements StorageAdapter {
 
   async removeItem(key: string): Promise<void> {
     try {
+      // 检查 Wails 环境是否可用
+      if (!this.isWailsAvailable()) {
+        console.warn(`Wails 环境未就绪，无法删除配置 [${key}]`);
+        throw new Error('Wails 环境未就绪');
+      }
+
       await (window as any).go.main.App.RemoveConfig(key);
     } catch (error) {
       console.error(`删除配置失败 [${key}]:`, error);

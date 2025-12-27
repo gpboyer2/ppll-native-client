@@ -55,10 +55,12 @@ function SettingsPage() {
     const [showClearConfirm, setShowClearConfirm] = useState(false);
 
     useEffect(() => {
-        // 订阅更新事件
-        EventsOn('update:available', (info: any) => setUpdateInfo(info));
-        EventsOn('update:progress', (p: any) => setProgress(p));
-        EventsOn('update:downloaded', (p: any) => setProgress({ ...p, percent: 100 }));
+        // 订阅更新事件（仅在 Wails 运行时可用时）
+        if (typeof window !== 'undefined' && (window as any).runtime) {
+            EventsOn('update:available', (info: any) => setUpdateInfo(info));
+            EventsOn('update:progress', (p: any) => setProgress(p));
+            EventsOn('update:downloaded', (p: any) => setProgress({ ...p, percent: 100 }));
+        }
     }, []);
 
     // 初始化 binance store
@@ -67,6 +69,12 @@ function SettingsPage() {
     }, []);
 
     async function saveUpdateConfig() {
+        // 检查 Wails 环境是否可用
+        if (typeof window === 'undefined' || !(window as any).go || !(window as any).go.main) {
+            alert('此功能仅在桌面客户端中可用');
+            return;
+        }
+
         setSaveStatus('saving');
         try {
             const cfg = { feedURL, channel: 'stable', autoCheck, checkIntervalMinute, autoDownload, silentInstall, hashAlgo: 'md5' };
@@ -85,6 +93,12 @@ function SettingsPage() {
     }
 
     async function checkUpdateNow() {
+        // 检查 Wails 环境是否可用
+        if (typeof window === 'undefined' || !(window as any).go || !(window as any).go.main) {
+            alert('此功能仅在桌面客户端中可用');
+            return;
+        }
+
         try {
             const res: Response<any> = await UpdateCheckNow();
             if (res.code === 0) {
@@ -141,7 +155,12 @@ function SettingsPage() {
 
         setApiKeyStatus('saving');
         try {
-            const nodejsUrl = await GetNodejsServiceURL();
+            // 获取 Node.js 服务 URL（支持浏览器模式和桌面客户端模式）
+            let nodejsUrl = 'http://localhost:54321'; // 浏览器模式默认 URL（后端服务端口）
+            if (typeof window !== 'undefined' && (window as any).go && (window as any).go.main) {
+                nodejsUrl = await GetNodejsServiceURL(); // 桌面客户端模式
+            }
+
             const url = editingApiKey
                 ? `${nodejsUrl}/v1/binance-api-key/update`
                 : `${nodejsUrl}/v1/binance-api-key/create`;
@@ -150,15 +169,15 @@ function SettingsPage() {
                 ? {
                     id: editingApiKey.id,
                     name: apiKeyForm.name,
-                    apiKey: apiKeyForm.api_key,
-                    secretKey: apiKeyForm.secret_key,
+                    api_key: apiKeyForm.api_key, // 下划线命名
+                    secret_key: apiKeyForm.secret_key, // 下划线命名
                     status: apiKeyForm.status,
                     remark: apiKeyForm.remark
                 }
                 : {
                     name: apiKeyForm.name,
-                    apiKey: apiKeyForm.api_key,
-                    secretKey: apiKeyForm.secret_key,
+                    api_key: apiKeyForm.api_key, // 下划线命名
+                    secret_key: apiKeyForm.secret_key, // 下划线命名
                     status: apiKeyForm.status,
                     remark: apiKeyForm.remark
                 };
@@ -199,7 +218,12 @@ function SettingsPage() {
         }
 
         try {
-            const nodejsUrl = await GetNodejsServiceURL();
+            // 获取 Node.js 服务 URL（支持浏览器模式和桌面客户端模式）
+            let nodejsUrl = 'http://localhost:54321'; // 浏览器模式默认 URL（后端服务端口）
+            if (typeof window !== 'undefined' && (window as any).go && (window as any).go.main) {
+                nodejsUrl = await GetNodejsServiceURL(); // 桌面客户端模式
+            }
+
             const response = await fetch(`${nodejsUrl}/v1/binance-api-key/delete`, {
                 method: 'POST',
                 headers: {
@@ -232,6 +256,11 @@ function SettingsPage() {
     // 数据清理相关函数
     async function loadDataSize() {
         try {
+            // 检查 Wails 环境是否可用
+            if (typeof window === 'undefined' || !(window as any).go || !(window as any).go.main) {
+                return;
+            }
+
             const size = await GetDataSize();
             setDataSize(size);
         } catch (error) {
@@ -240,6 +269,12 @@ function SettingsPage() {
     }
 
     async function handleClearAllData() {
+        // 检查 Wails 环境是否可用
+        if (typeof window === 'undefined' || !(window as any).go || !(window as any).go.main) {
+            alert('此功能仅在桌面客户端中可用');
+            return;
+        }
+
         setClearDataStatus('loading');
         try {
             await ClearAllData();

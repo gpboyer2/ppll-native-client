@@ -71,7 +71,8 @@ function SystemInfoPage() {
     const { staticInfo, dynamicInfo, loading } = useSystemInfoStore();
     const health = dynamicInfo?.health;
 
-    if (loading || !staticInfo || !health) {
+    // 只在加载中且未初始化时显示 loading
+    if (loading || !staticInfo) {
         return (
             <div className="container" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ textAlign: 'center' }}>
