@@ -30,7 +30,7 @@ export async function isNodejsServiceAvailable(baseUrl?: string): Promise<boolea
   }
 
   try {
-    const response = await fetch(`${baseUrl}/v1/system/health`, {
+    const response = await fetch(`${baseUrl}/api/v1/system/health`, {
       method: 'GET',
       signal: AbortSignal.timeout(3000), // 3秒超时
     });

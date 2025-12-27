@@ -174,7 +174,7 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
 
                     // 尝试获取健康检查数据
                     try {
-                        const response = await fetch(`${nodejsUrl}/v1/system/health`);
+                        const response = await fetch(`${nodejsUrl}/api/v1/system/health`);
                         if (response.ok) {
                             const result = await response.json();
                             if (result.code === 200 && result.data) {

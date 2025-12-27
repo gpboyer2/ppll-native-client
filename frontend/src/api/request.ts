@@ -104,8 +104,8 @@ export class RequestWrapper {
    * GET请求
    */
   static async get<T = any>(url: string, params?: Record<string, any>): Promise<Response<T>> {
-    // 如果是 v1 开头的路径，使用 Node.js 服务
-    if (url.startsWith('/v1/')) {
+    // 如果是 api/v1 开头的路径，使用 Node.js 服务
+    if (url.startsWith('/api/v1/')) {
       return this.fetchNodejs<T>('GET', url, params)
     }
     return this.wrapRequest<T>(apiClient.get<T>(url, params))
@@ -115,8 +115,8 @@ export class RequestWrapper {
    * POST请求
    */
   static async post<T = any>(url: string, data?: any): Promise<Response<T>> {
-    // 如果是 v1 开头的路径，使用 Node.js 服务
-    if (url.startsWith('/v1/')) {
+    // 如果是 api/v1 开头的路径，使用 Node.js 服务
+    if (url.startsWith('/api/v1/')) {
       return this.fetchNodejs<T>('POST', url, data)
     }
     return this.wrapRequest<T>(apiClient.post<T>(url, data))
@@ -126,8 +126,8 @@ export class RequestWrapper {
    * PUT请求
    */
   static async put<T = any>(url: string, data?: any): Promise<Response<T>> {
-    // 如果是 v1 开头的路径，使用 Node.js 服务
-    if (url.startsWith('/v1/')) {
+    // 如果是 api/v1 开头的路径，使用 Node.js 服务
+    if (url.startsWith('/api/v1/')) {
       return this.fetchNodejs<T>('PUT', url, data)
     }
     return this.wrapRequest<T>(apiClient.put<T>(url, data))
@@ -137,8 +137,8 @@ export class RequestWrapper {
    * DELETE请求
    */
   static async delete<T = any>(url: string, data?: any): Promise<Response<T>> {
-    // 如果是 v1 开头的路径，使用 Node.js 服务
-    if (url.startsWith('/v1/')) {
+    // 如果是 api/v1 开头的路径，使用 Node.js 服务
+    if (url.startsWith('/api/v1/')) {
       return this.fetchNodejs<T>('DELETE', url, data)
     }
     return this.wrapRequest<T>(apiClient.delete<T>(url, { data }))
@@ -148,8 +148,8 @@ export class RequestWrapper {
    * PATCH请求
    */
   static async patch<T = any>(url: string, data?: any): Promise<Response<T>> {
-    // 如果是 v1 开头的路径，使用 Node.js 服务
-    if (url.startsWith('/v1/')) {
+    // 如果是 api/v1 开头的路径，使用 Node.js 服务
+    if (url.startsWith('/api/v1/')) {
       return this.fetchNodejs<T>('PATCH', url, data)
     }
     return this.wrapRequest<T>(apiClient.patch<T>(url, data))
