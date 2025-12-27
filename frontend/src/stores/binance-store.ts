@@ -163,8 +163,8 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
             if (!response.ok) return;
 
             const result = await response.json();
-            if (result.code === 200 && result.data?.exchangeInfo?.symbols) {
-                const symbols = result.data.exchangeInfo.symbols;
+            if (result.code === 200 && result.data?.symbols) {
+                const symbols = result.data.symbols;
                 const tradingSymbols = symbols.filter((s: any) => s.status === 'TRADING');
                 const allPairs = tradingSymbols.map((s: any) => s.symbol);
                 const usdtPairs = tradingSymbols

@@ -18,7 +18,7 @@ function GridStrategyEditPage() {
     const isEditing = Boolean(id);
 
     // 使用币安 store
-    const { apiKeyList, usdtPairs, init, loading } = useBinanceStore();
+    const { apiKeyList, usdtPairs, init, loading, refreshTradingPairs } = useBinanceStore();
 
     // 表单数据状态
     const [formData, setFormData] = useState<GridStrategyForm>(defaultGridStrategy);
@@ -158,6 +158,8 @@ function GridStrategyEditPage() {
                 apiSecret: selectedKey.secretKey,
                 _apiKeyId: selectedKey.id
             }));
+            // 选择API Key后自动刷新交易对列表
+            refreshTradingPairs();
         } else {
             setFormData(prev => ({
                 ...prev,

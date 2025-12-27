@@ -6,6 +6,7 @@ const httpStatus = require("http-status");
 const catchAsync = require("../utils/catchAsync");
 const binanceExchangeInfoService = require("../service/binance-exchange-info.service");
 const { extractApiCredentials } = require("../utils");
+const { filterUsdtPerpetualContracts } = require("../utils/trading-pairs");
 
 /**
  * 通用错误处理函数
@@ -50,6 +51,11 @@ const getExchangeInfo = catchAsync(async (req, res) => {
       });
     }
 
+    // 过滤交易对：只保留USDT永续合约
+    if (latestInfo.symbols && Array.isArray(latestInfo.symbols)) {
+      latestInfo.symbols = filterUsdtPerpetualContracts(latestInfo.symbols);
+    }
+
     res.status(httpStatus.OK).send({
       status: "success",
       code: httpStatus.OK,
@@ -72,6 +78,11 @@ const forceUpdate = catchAsync(async (req, res) => {
         apiKey,
         apiSecret
       );
+
+    // 过滤交易对：只保留USDT永续合约
+    if (exchangeInfo.symbols && Array.isArray(exchangeInfo.symbols)) {
+      exchangeInfo.symbols = filterUsdtPerpetualContracts(exchangeInfo.symbols);
+    }
 
     res.status(httpStatus.OK).send({
       status: "success",

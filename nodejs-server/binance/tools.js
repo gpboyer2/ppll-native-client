@@ -70,9 +70,9 @@ function getHeaders(apiKey) {
 /**
  * 工具函数
  * 通过get方法请求接口, 获得数据后通过回调函数处理数据
- * @param {*} options 
- * @param {*} callback 
- * 
+ * @param {*} options
+ * @param {*} callback
+ *
  */
 async function getBinanceData(options) {
   return new Promise((resolve, reject) => {
