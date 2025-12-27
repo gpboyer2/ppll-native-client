@@ -103,7 +103,7 @@ const plugin: Plugin = {
     }
     loadBtn && (loadBtn.onclick = async () => {
       const res: any = await PluginGetConfig('coin-funding-rate-arbitrage')
-      if (res && res.code === 0) applyCfg(res.data)
+      if (res && res.code === 200) applyCfg(res.data)
       log().textContent = `[${new Date().toLocaleTimeString()}] 已读取配置\n` + (log().textContent || '')
     })
     // 初次挂载：若无配置则写入默认值后应用
@@ -116,7 +116,7 @@ const plugin: Plugin = {
       strategyType: 'positive'
     }
     PluginGetConfig('coin-funding-rate-arbitrage').then(async (res: any) => {
-      let cfg = (res && res.code === 0 && res.data) ? res.data : null
+      let cfg = (res && res.code === 200 && res.data) ? res.data : null
       if (!cfg || cfg.symbol == null) {
         await PluginSaveConfig('coin-funding-rate-arbitrage', defaults as any)
         cfg = defaults

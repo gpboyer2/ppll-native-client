@@ -3,7 +3,7 @@
  * 提供登录日志的查询与（可选）写入能力
  */
 const httpStatus = require('http-status');
-const ApiError = require('../utils/ApiError');
+const ApiError = require('../utils/api-error');
 const db = require('../models');
 const { Op } = require('sequelize');
 
@@ -49,7 +49,7 @@ function buildWhere(filter = {}) {
 // 分页查询
 async function list(filter = {}, options = {}) {
   const whereBase = buildWhere(filter);
-  const page = Math.max(parseInt(options.page || 1, 10), 1);
+  const currentPage = Math.max(parseInt(options.currentPage || 1, 10), 1);
   const pageSize = Math.min(Math.max(parseInt(options.pageSize || 20, 10), 1), 200);
 
   // 如携带 id/ids，则忽略分页，返回匹配集合，保持统一 list 结构
@@ -60,10 +60,12 @@ async function list(filter = {}, options = {}) {
       order: [['login_time', 'DESC'], ['id', 'DESC']],
     });
     return {
-      page: 1,
-      pageSize: rows.length,
-      total: rows.length,
       list: rows.map(sanitize),
+      pagination: {
+        currentPage: 1,
+        pageSize: rows.length,
+        total: rows.length
+      }
     };
   }
 
@@ -71,14 +73,16 @@ async function list(filter = {}, options = {}) {
     where: whereBase,
     order: [['login_time', 'DESC'], ['id', 'DESC']],
     limit: pageSize,
-    offset: (page - 1) * pageSize,
+    offset: (currentPage - 1) * pageSize,
   });
 
   return {
-    page,
-    pageSize,
-    total: count,
     list: rows.map(sanitize),
+    pagination: {
+      currentPage,
+      pageSize,
+      total: count
+    }
   };
 }
 

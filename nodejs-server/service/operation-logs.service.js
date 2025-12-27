@@ -3,7 +3,7 @@
  * 基于 operation_logs 表，提供查询、详情、写入与批量写入能力
  */
 const httpStatus = require('http-status');
-const ApiError = require('../utils/ApiError');
+const ApiError = require('../utils/api-error');
 const db = require('../models');
 const { Op } = require('sequelize');
 const AnalyticsService = require('./analytics.service.js');
@@ -154,7 +154,7 @@ function buildWhere(filter = {}) {
  */
 async function list(filter = {}, options = {}) {
   const where = buildWhere(filter);
-  const page = Math.max(parseInt(options.page || 1, 10), 1);
+  const currentPage = Math.max(parseInt(options.currentPage || 1, 10), 1);
   const pageSize = Math.min(Math.max(parseInt(options.pageSize || 20, 10), 1), 200);
 
   // 如包含按ID条件查询，则忽略分页，直接返回匹配集合
@@ -167,10 +167,12 @@ async function list(filter = {}, options = {}) {
     const userIdList = plainRows.map(r => r.user_id);
     const userNameMap = await buildUserNameMap(userIdList);
     return {
-      page: 1,
-      pageSize: plainRows.length,
-      total: plainRows.length,
       list: plainRows.map(r => toViewObject(r, userNameMap)),
+      pagination: {
+        currentPage: 1,
+        pageSize: plainRows.length,
+        total: plainRows.length
+      }
     };
   }
 
@@ -178,7 +180,7 @@ async function list(filter = {}, options = {}) {
     where,
     order: [['operation_time', 'DESC']],
     limit: pageSize,
-    offset: (page - 1) * pageSize,
+    offset: (currentPage - 1) * pageSize,
   });
 
   const plainRows = rows.map(sanitize);
@@ -186,10 +188,12 @@ async function list(filter = {}, options = {}) {
   const userNameMap = await buildUserNameMap(userIdList);
 
   return {
-    page,
-    pageSize,
-    total: count,
     list: plainRows.map(r => toViewObject(r, userNameMap)),
+    pagination: {
+      currentPage,
+      pageSize,
+      total: count
+    }
   };
 }
 

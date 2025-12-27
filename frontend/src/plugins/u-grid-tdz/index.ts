@@ -85,13 +85,13 @@ const plugin: Plugin = {
     }
     loadBtn && (loadBtn.onclick = async () => {
       const res: any = await PluginGetConfig('u-grid-tdz')
-      if (res && res.code === 0) applyCfg(res.data)
+      if (res && res.code === 200) applyCfg(res.data)
       log().textContent = `[${new Date().toLocaleTimeString()}] 已读取配置\n` + (log().textContent || '')
     })
     // 初次挂载：无配置则写入默认值后应用
     const defaults = { symbol: 'ETHUSDT', top: 2500, bottom: 2000, step: 0.5 }
     PluginGetConfig('u-grid-tdz').then(async (res: any) => {
-      let cfg = (res && res.code === 0 && res.data) ? res.data : null
+      let cfg = (res && res.code === 200 && res.data) ? res.data : null
       if (!cfg || cfg.symbol == null) {
         await PluginSaveConfig('u-grid-tdz', defaults as any)
         cfg = defaults

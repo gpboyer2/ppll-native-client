@@ -3,8 +3,9 @@
  * 单用户系统：处理登录、退出等认证相关的HTTP请求
  */
 const authService = require("../service/auth.service");
-const catchAsync = require("../utils/catchAsync");
+const catchAsync = require("../utils/catch-async");
 const httpStatus = require("http-status");
+const { sendSuccess, sendError } = require("../utils/api-response");
 // 引入日志服务
 const LoginLogsService = require("../service/login-logs.service");
 const SystemLogsService = require("../service/system-logs.service");
@@ -213,24 +214,15 @@ const adminLogin = catchAsync(async (req, res) => {
     if (captchaId || captchaCode) {
         // 如果提供了任一验证码参数，则两个都必须提供
         if (!captchaId || !captchaCode) {
-            const code = httpStatus.BAD_REQUEST;
-            res.status(code).send({
-                code,
-                message: "验证码ID和验证码必须同时提供",
-            });
-            return;
+            await logLoginAttempt(req, { user: null, success: false, failReason: "验证码ID和验证码必须同时提供", statusCode: httpStatus.BAD_REQUEST });
+            return sendError(res, "验证码ID和验证码必须同时提供", httpStatus.BAD_REQUEST);
         }
 
         const isCaptchaValid = authService.verifyCaptcha(captchaId, captchaCode);
         if (!isCaptchaValid) {
-            const code = httpStatus.BAD_REQUEST;
             // 记录登录失败日志（验证码失败）
-            await logLoginAttempt(req, { user: null, success: false, failReason: "验证码错误或已过期", statusCode: code });
-            res.status(code).send({
-                code,
-                message: "验证码错误或已过期",
-            });
-            return;
+            await logLoginAttempt(req, { user: null, success: false, failReason: "验证码错误或已过期", statusCode: httpStatus.BAD_REQUEST });
+            return sendError(res, "验证码错误或已过期", httpStatus.BAD_REQUEST);
         }
     }
 
@@ -250,32 +242,25 @@ const adminLogin = catchAsync(async (req, res) => {
     }
 
     if (!user) {
-        const code = httpStatus.UNAUTHORIZED;
         // 记录登录失败（账号或密码/apiSecret错误）
-        await logLoginAttempt(req, { user: null, success: false, failReason: username ? "用户名或密码错误" : "apiKey或apiSecret错误", statusCode: code });
-        res.status(code).send({
-            code,
-            message: username ? "用户名或密码错误" : "apiKey或apiSecret错误",
-        });
-        return;
+        await logLoginAttempt(req, { user: null, success: false, failReason: username ? "用户名或密码错误" : "apiKey或apiSecret错误", statusCode: httpStatus.UNAUTHORIZED });
+        return sendError(res, username ? "用户名或密码错误" : "apiKey或apiSecret错误", httpStatus.UNAUTHORIZED);
     }
 
     // 单用户系统：生成简单的 token
     const token = Buffer.from(`${apiKey}:${Date.now()}`).toString('base64');
 
-    const code = 200;
     // 记录登录成功
-    await logLoginAttempt(req, { user, success: true, statusCode: code });
-    res.send({
-        code,
-        user: user,
+    await logLoginAttempt(req, { user, success: true, statusCode: 200 });
+    return sendSuccess(res, {
+        user,
         tokens: {
             accessToken: token,
             refreshToken: token,
             accessTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
             refreshTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
         }
-    });
+    }, "登录成功");
 });
 
 // App端用户登录
@@ -297,39 +282,28 @@ const appLogin = catchAsync(async (req, res) => {
     }
 
     if (!user) {
-        const code = httpStatus.UNAUTHORIZED;
-        await logLoginAttempt(req, { user: null, success: false, failReason: "账号或密码错误", statusCode: code });
-        res.status(code).send({
-            code,
-            message: "账号或密码错误",
-        });
-        return;
+        await logLoginAttempt(req, { user: null, success: false, failReason: "账号或密码错误", statusCode: httpStatus.UNAUTHORIZED });
+        return sendError(res, "账号或密码错误", httpStatus.UNAUTHORIZED);
     }
 
     // 单用户系统：生成简单的 token
     const token = Buffer.from(`${apiKey}:${Date.now()}`).toString('base64');
 
-    const code = 200;
-    await logLoginAttempt(req, { user, success: true, statusCode: code });
-    res.send({
-        code,
-        user: user,
+    await logLoginAttempt(req, { user, success: true, statusCode: 200 });
+    return sendSuccess(res, {
+        user,
         tokens: {
             accessToken: token,
             refreshToken: token,
             accessTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
             refreshTokenExpires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
         }
-    });
+    }, "登录成功");
 });
 
 const register = catchAsync(async (req, res) => {
     // 单用户系统：不支持注册
-    const code = httpStatus.FORBIDDEN;
-    res.status(200).send({
-        code,
-        message: "单用户系统，不支持注册",
-    })
+    return sendError(res, "单用户系统，不支持注册", httpStatus.FORBIDDEN);
 });
 
 const logout = catchAsync(async (req, res) => {
@@ -339,11 +313,7 @@ const logout = catchAsync(async (req, res) => {
 });
 
 const refreshTokens = catchAsync(async (req, res) => {
-    const code = httpStatus.UNAUTHORIZED;
-    res.status(code).send({
-        code,
-        message: "单用户系统，请重新登录",
-    });
+    return sendError(res, "单用户系统，请重新登录", httpStatus.UNAUTHORIZED);
 });
 
 
@@ -351,23 +321,13 @@ const refreshTokens = catchAsync(async (req, res) => {
 // 获取用户详细信息
 const getUserProfile = catchAsync(async (req, res) => {
     const user = await authService.getUserProfile(1);
-
-    const code = 200;
-    res.send({
-        code,
-        user: user
-    });
+    return sendSuccess(res, { user }, "获取用户信息成功");
 });
 
 // 生成验证码
 const getCaptcha = catchAsync(async (req, res) => {
     const captcha = await authService.generateCaptcha();
-
-    const code = 200;
-    res.send({
-        code,
-        data: captcha
-    });
+    return sendSuccess(res, captcha, "生成验证码成功");
 });
 
 module.exports = {

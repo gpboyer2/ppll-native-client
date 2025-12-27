@@ -4,34 +4,27 @@
  */
 const orderService = require("../service/template.service");
 const httpStatus = require("http-status");
-const catchAsync = require("../utils/catchAsync");
+const catchAsync = require("../utils/catch-async");
+const { sendSuccess, sendError } = require("../utils/api-response");
 
 const createOrder = catchAsync(async (req, res) => {
     let errorMsg = null;
     const { apiKey, apiSecret } = req.body;
 
-    const result = await orderService.createOrder(req.body).catch(error => {
-        if (typeof error === 'string') {
-            errorMsg = JSON.parse(error);
+    const result = await orderService.createOrder(req.body).catch(err => {
+        if (typeof err === 'string') {
+            errorMsg = JSON.parse(err);
         }
-        if (typeof error === 'object') {
-            errorMsg = error;
+        if (typeof err === 'object') {
+            errorMsg = err;
         }
     });
 
     if (errorMsg) {
-        res.send({
-            status: 'error',
-            code: 400,
-            message: errorMsg.msg || errorMsg.message
-        })
-        return;
+        return sendError(res, errorMsg.msg || errorMsg.message, 400);
     }
 
-    res.send({
-        status: 1,
-        data: result
-    })
+    return sendSuccess(res, result, '创建订单成功', 201);
 });
 
 const updateOrder = catchAsync(async (req, res) => {
@@ -39,53 +32,29 @@ const updateOrder = catchAsync(async (req, res) => {
 
     // 检查必需参数
     if (!id) {
-        res.send({
-            status: 'error',
-            code: 400,
-            message: '订单ID不能为空'
-        });
-        return;
+        return sendError(res, '订单ID不能为空', 400);
     }
 
     // 检查订单是否存在
     const existingOrder = await orderService.getOrderById(id);
     if (!existingOrder) {
-        res.send({
-            status: 'error',
-            code: 404,
-            message: '订单不存在'
-        });
-        return;
+        return sendError(res, '订单不存在', 404);
     }
 
     try {
         const result = await orderService.updateOrderById(id, updateBody);
-
-        res.send({
-            status: 'success',
-            code: 200,
-            message: '订单更新成功',
-            data: {
-                affectedRows: result[0] // Sequelize update 返回数组，第一个元素是受影响的行数
-            }
-        });
-    } catch (error) {
-        res.send({
-            status: 'error',
-            code: 500,
-            message: error.message || '服务器内部错误'
-        });
+        return sendSuccess(res, { affectedRows: result[0] }, '订单更新成功');
+    } catch (err) {
+        return sendError(res, err.message || '服务器内部错误', 500);
     }
 });
 
 const deleteOrder = catchAsync(async (req, res) => {
     const deleted = await orderService.deleteOrderById(req.body.id);
     if (!deleted) {
-        res.send({
-            "message": "Order not found",
-        })
+        return sendError(res, '订单不存在', 404);
     }
-    res.status(httpStatus.NO_CONTENT).send();
+    return sendSuccess(res, null, '删除订单成功', 204);
 });
 
 // 列表查询（分页 + 过滤）
@@ -101,7 +70,7 @@ const queryOrders = catchAsync(async (req, res) => {
     const options = { page: parseInt(currentPage, 10) || 1, pageSize: parseInt(pageSize, 10) || 10 };
 
     const data = await orderService.queryOrders(filter, options);
-    res.status(200).send({ status: 'success', code: 200, data });
+    return sendSuccess(res, data, '获取订单列表成功');
 });
 
 

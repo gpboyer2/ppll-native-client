@@ -8,7 +8,7 @@
  */
 export interface Response<T = any> {
   code: number
-  msg: string
+  message: string
   data: T
 }
 
@@ -20,7 +20,7 @@ export interface Response<T = any> {
 export function ok<T>(data: T): Response<T> {
   return {
     code: 200,
-    msg: '操作成功',
+    message: '操作成功',
     data
   }
 }
@@ -28,13 +28,13 @@ export function ok<T>(data: T): Response<T> {
 /**
  * 创建错误响应
  * @param code 错误码
- * @param msg 错误信息
+ * @param message 错误信息
  * @returns Response 对象
  */
-export function error(code: number, msg: string): Response<undefined> {
+export function error(code: number, message: string): Response<undefined> {
   return {
     code,
-    msg,
+    message,
     data: undefined
   }
 }

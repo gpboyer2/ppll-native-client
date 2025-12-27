@@ -132,10 +132,10 @@ Vue Router 使用 hash 模式，URL 格式必须为：
 - 入参默认为数组，天然支持批量操作
 - 例如：`POST /api/users/delete` + `{ data: [1, 2, 3] }`
 
-出参规范（分页）：
+出参规范1：
 ```json
 {
-    "code": 200,
+    "status": "success",
     "message": "操作成功",
     "data": {
         "list": [],
@@ -145,6 +145,15 @@ Vue Router 使用 hash 模式，URL 格式必须为：
             "total": 2
         }
     }
+}
+```
+
+出参规范2：
+```json
+{
+    "status": "error",
+    "message": "xxxx",
+    "data": null
 }
 ```
 

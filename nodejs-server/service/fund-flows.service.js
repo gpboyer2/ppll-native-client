@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
 const db = require('../models');
 const { Op } = require('sequelize');
-const ApiError = require('../utils/ApiError');
+const ApiError = require('../utils/api-error');
 
 /**
  * 获取合约资金流向数据

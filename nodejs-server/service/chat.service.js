@@ -1,6 +1,6 @@
 const db = require("../models");
 const Chat = db.chats;
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/api-error");
 
 const createChat = async (params) => {
   const { chatname, apiKey, message } = params;

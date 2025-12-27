@@ -14,7 +14,7 @@ const {
 const config = require("../binance/config.js");
 const proxy = require("../utils/proxy.js");
 const request = require("../middleware/request.js");
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/api-error");
 
 const BinanceTools = require("../binance/tools.js");
 

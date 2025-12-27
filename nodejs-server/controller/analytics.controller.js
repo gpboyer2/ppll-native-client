@@ -1,6 +1,7 @@
 const db = require('../models');
-const catchAsync = require('../utils/catchAsync');
-const ApiError = require('../utils/ApiError');
+const catchAsync = require('../utils/catch-async');
+const ApiError = require('../utils/api-error');
+const { success } = require('../utils/api-response');
 
 /**
  * 获取系统分析数据概览
@@ -27,10 +28,7 @@ const getSystemOverview = catchAsync(async (req, res) => {
         // 可以添加更多分析数据...
     };
 
-    res.json({
-        status: 'success',
-        data: overview
-    });
+    return sendSuccess(res, overview, '获取系统概览成功');
 });
 
 /**
@@ -49,10 +47,7 @@ const getPerformanceMetrics = catchAsync(async (req, res) => {
         // 可以添加更多性能指标...
     };
 
-    res.json({
-        status: 'success',
-        data: metrics
-    });
+    return sendSuccess(res, metrics, '获取性能指标成功');
 });
 
 /**
@@ -71,10 +66,7 @@ const getUserBehaviorAnalytics = catchAsync(async (req, res) => {
         // 更多用户行为数据...
     };
 
-    res.json({
-        status: 'success',
-        data: userBehavior
-    });
+    return sendSuccess(res, userBehavior, '获取用户行为分析成功');
 });
 
 /**
@@ -92,10 +84,7 @@ const getAPIUsageStats = catchAsync(async (req, res) => {
         // 更多API使用数据...
     };
 
-    res.json({
-        status: 'success',
-        data: apiUsage
-    });
+    return sendSuccess(res, apiUsage, '获取API使用统计成功');
 });
 
 module.exports = {

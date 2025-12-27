@@ -80,8 +80,8 @@ function SettingsPage() {
         setSaveStatus('saving');
         try {
             const cfg = { feedURL, channel: 'stable', autoCheck, checkIntervalMinute, autoDownload, silentInstall, hashAlgo: 'md5' };
-            const res: Response<any> = await UpdateSaveConfig(cfg as any);
-            if (res.code === 0) {
+            const res = await UpdateSaveConfig(cfg as any);
+            if (res.code === 200) {
                 setSaveStatus('success');
                 setTimeout(() => setSaveStatus('idle'), 500);
             } else {
@@ -102,8 +102,8 @@ function SettingsPage() {
         }
 
         try {
-            const res: Response<any> = await UpdateCheckNow();
-            if (res.code === 0) {
+            const res = await UpdateCheckNow();
+            if (res.code === 200) {
                 setUpdateInfo(res.data);
             }
         } catch (error) {
@@ -187,7 +187,7 @@ function SettingsPage() {
                     resetApiKeyForm();
                 }, 500);
             } else {
-                console.error('保存 API Key 失败:', response.msg);
+                console.error('保存 API Key 失败:', response.message);
                 setApiKeyStatus('error');
                 setTimeout(() => setApiKeyStatus('idle'), 500);
             }
@@ -210,8 +210,8 @@ function SettingsPage() {
                 // 刷新列表
                 await refreshApiKeys();
             } else {
-                console.error('删除 API Key 失败:', response.msg);
-                alert('删除失败: ' + (response.msg || '未知错误'));
+                console.error('删除 API Key 失败:', response.message);
+                alert('删除失败: ' + (response.message || '未知错误'));
             }
         } catch (error) {
             console.error('删除 API Key 失败:', error);

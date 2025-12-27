@@ -4,7 +4,7 @@
  */
 const passport = require('passport');
 const httpStatus = require('http-status');
-const ApiError = require('../utils/ApiError');
+const ApiError = require('../utils/api-error');
 
 const verifyCallback = (req, resolve, reject, requiredRights) => async (err, user, info) => {
     // 单用户系统：默认通过认证

@@ -1,6 +1,6 @@
 const db = require("../models/index.js");
 const GridTradeHistory = db["grid_trade_history"]; // 模型名与 models/grid-trade-history.js 的 modelName 一致
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/api-error");
 
 
 /**
@@ -34,34 +34,36 @@ const createTradeHistory = async (body) => {
 /**
  * 分页查询交易历史
  * @param {Object} filter 过滤条件（必须是模型字段）
- * @param {{page?: number, limit?: number}} options 分页参数
- * @returns {Promise<{total:number,totalPages:number,currentPage:number,rows:any[]}>}
+ * @param {{currentPage?: number, pageSize?: number}} options 分页参数
+ * @returns {Promise<{list:any[], pagination:{currentPage:number, pageSize:number, total:number}}>}
  */
-const getAllTradeHistories = async (filter = {}, options = { page: 1, limit: 10 }) => {
+const getAllTradeHistories = async (filter = {}, options = { currentPage: 1, pageSize: 10 }) => {
   try {
-    const { page = 1, limit = 10 } = options;
-    const offset = page ? (page - 1) * limit : 0;
+    const { currentPage = 1, pageSize = 10 } = options;
+    const offset = currentPage ? (currentPage - 1) * pageSize : 0;
 
     // 过滤出模型允许的 where 字段
     const where = filterParams(filter, GridTradeHistory);
 
     const { count, rows } = await GridTradeHistory.findAndCountAll({
       where,
-      limit,
+      limit: pageSize,
       offset,
       order: [["id", "DESC"]],
     });
 
     return {
-      total: count,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page,
-      rows,
+      list: rows,
+      pagination: {
+        total: count,
+        currentPage,
+        pageSize
+      }
     };
   } catch (error) {
     console.error("⚠️ 获取交易历史失败:", error);
     if (error instanceof ApiError) throw error; // 如果错误已经是ApiError，直接抛出，避免覆盖具体错误信息
-    return { total: 0, totalPages: 0, currentPage: 1, rows: [] };
+    return { list: [], pagination: { total: 0, currentPage: 1, pageSize: 10 } };
   }
 };
 

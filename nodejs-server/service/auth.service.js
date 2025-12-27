@@ -4,7 +4,7 @@
  */
 const httpStatus = require('http-status');
 const captchaService = require('./captcha.service.js');
-const ApiError = require('../utils/ApiError');
+const ApiError = require('../utils/api-error');
 const db = require("../models");
 const BinanceApiKey = db.binance_api_keys;
 

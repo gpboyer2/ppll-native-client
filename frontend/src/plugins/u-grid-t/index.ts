@@ -82,13 +82,13 @@ const plugin: Plugin = {
     }
     loadBtn && (loadBtn.onclick = async () => {
       const res: any = await PluginGetConfig('u-grid-t')
-      if (res && res.code === 0) applyCfg(res.data)
+      if (res && res.code === 200) applyCfg(res.data)
       log().textContent = `[${new Date().toLocaleTimeString()}] 已读取配置\n` + (log().textContent || '')
     })
     // 初次挂载：若无配置则写入默认值后应用
     const defaults = { symbol: 'BTCUSDT', gridCount: 10, gridFunds: 100 }
     PluginGetConfig('u-grid-t').then(async (res: any) => {
-      let cfg = (res && res.code === 0 && res.data) ? res.data : null
+      let cfg = (res && res.code === 200 && res.data) ? res.data : null
       if (!cfg || cfg.symbol == null) {
         await PluginSaveConfig('u-grid-t', defaults as any)
         cfg = defaults

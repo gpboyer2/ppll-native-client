@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 const UtilRecord = require("../utils/record-log.js");
 const CrawlerLog = require("../utils/crawler-log.js");
-const { getValidCookies } = require("../utils/cookieManager.js");
+const { getValidCookies } = require("../utils/cookie-manager.js");
 const rateLimitConfig = require("../config/gate-api-rate-limit.config.js");
 const proxy = require("../utils/proxy.js");
 

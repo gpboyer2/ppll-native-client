@@ -1,12 +1,13 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
+const catchAsync = require('../utils/catch-async');
+const { sendSuccess, sendError } = require('../utils/api-response');
 const twitterService = require('../service/twitter.service.js');
 
 const downloadMedia = catchAsync(async (req, res) => {
   const { downloadUrl, fileName } = req.query;
 
   if (!downloadUrl || !fileName) {
-    return res.status(httpStatus.BAD_REQUEST).send({ error: 'downloadUrl and fileName are required' });
+    return sendError(res, 'downloadUrl and fileName are required', 400);
   }
 
   // 基础的文件名清理，防止路径遍历攻击
@@ -16,23 +17,14 @@ const downloadMedia = catchAsync(async (req, res) => {
     const result = await twitterService.downloadMedia(downloadUrl, sanitizedFileName);
 
     if (result.status === 'exists') {
-      return res.status(httpStatus.OK).send({
-        message: 'File with the same name already exists. Download skipped.',
-        path: result.path
-      });
+      return sendSuccess(res, { path: result.path }, 'File with the same name already exists. Download skipped.');
     }
 
     // Presuming the other status is 'downloaded'
-    res.status(httpStatus.OK).send({
-      message: 'File downloaded successfully',
-      path: result.path
-    });
+    return sendSuccess(res, { path: result.path }, 'File downloaded successfully');
 
-  } catch (error) {
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
-      error: 'Failed to download file',
-      details: error.message
-    });
+  } catch (err) {
+    return sendError(res, err.message || 'Failed to download file', 500);
   }
 });
 

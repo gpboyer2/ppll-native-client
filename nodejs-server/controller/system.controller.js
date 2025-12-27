@@ -3,80 +3,38 @@
  * 处理系统相关的请求和响应
  */
 const systemService = require('../service/system.service.js');
+const catchAsync = require('../utils/catch-async');
+const { sendSuccess, sendError } = require('../utils/api-response');
 
 
 /**
  * 获取本机 IPv4 地址列表
  */
-const getIPv4List = (req, res) => {
-  try {
-    const ipList = systemService.getIPv4List();
-    res.send({
-      status: 'success',
-      code: 200,
-      data: ipList
-    });
-  } catch (error) {
-    res.status(500).send({
-      status: 'error',
-      code: 500,
-      message: '获取 IPv4 地址列表失败',
-      error: error.message
-    });
-  }
-};
+const getIPv4List = catchAsync((req, res) => {
+  const ipList = systemService.getIPv4List();
+  return sendSuccess(res, ipList, '获取 IPv4 地址列表成功');
+});
 
 
 /**
  * 获取 Git 信息
  */
-const getGitInfo = (req, res) => {
-  try {
-    const gitInfo = systemService.getGitInfo();
-    if (!gitInfo) {
-      res.status(500).send({
-        status: 'error',
-        code: 500,
-        message: 'Git 信息未初始化'
-      });
-      return;
-    }
-    res.send({
-      status: 'success',
-      code: 200,
-      data: gitInfo
-    });
-  } catch (error) {
-    res.status(500).send({
-      status: 'error',
-      code: 500,
-      message: '获取 Git 信息失败',
-      error: error.message
-    });
+const getGitInfo = catchAsync((req, res) => {
+  const gitInfo = systemService.getGitInfo();
+  if (!gitInfo) {
+    return sendError(res, 'Git 信息未初始化', 500);
   }
-};
+  return sendSuccess(res, gitInfo, '获取 Git 信息成功');
+});
 
 
 /**
  * 获取系统健康状态
  */
-const getHealth = async (req, res) => {
-  try {
-    const healthData = await systemService.getHealth();
-    res.send({
-      status: 'success',
-      code: 200,
-      data: healthData
-    });
-  } catch (error) {
-    res.status(500).send({
-      status: 'error',
-      code: 500,
-      message: '获取健康状态失败',
-      error: error.message
-    });
-  }
-};
+const getHealth = catchAsync(async (req, res) => {
+  const healthData = await systemService.getHealth();
+  return sendSuccess(res, healthData, '获取健康状态成功');
+});
 
 
 module.exports = {

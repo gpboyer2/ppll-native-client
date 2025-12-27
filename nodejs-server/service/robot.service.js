@@ -7,7 +7,7 @@ const Robot = db.robots;
 const httpStatus = require('http-status');
 const InfiniteLongGrid = require('../plugin/umInfiniteGrid.js');
 const { createWsClient } = require("../plugin/websocketClient.js");
-const ApiError = require('../utils/ApiError');
+const ApiError = require('../utils/api-error');
 
 
 const createRobot = async (params) => {

@@ -3,7 +3,7 @@
  * 提供验证码生成、验证等功能
  */
 const crypto = require('crypto');
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/api-error");
 
 // 内存存储验证码（生产环境建议使用Redis）
 const captchaStorage = new Map();

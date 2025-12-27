@@ -3,7 +3,7 @@
  * 单用户系统：binance_api_keys 表即为用户表，支持多个 API Key
  */
 const httpStatus = require("http-status");
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/api-error");
 const db = require("../models");
 const BinanceApiKey = db.binance_api_keys;
 

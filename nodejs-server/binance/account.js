@@ -12,7 +12,7 @@ const BinanceTools = require("./tools");
 const Config = require("./config");
 const UtilRecord = require("../utils/record-log.js");
 const bigNumber = require('bignumber.js');
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/api-error");
 
 const proxy = Config.proxy;
 

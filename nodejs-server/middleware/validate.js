@@ -5,7 +5,7 @@
 const Joi = require('joi');
 const httpStatus = require('http-status');
 const { pick } = require('../utils/pick');
-const ApiError = require('../utils/ApiError');
+const ApiError = require('../utils/api-error');
 
 /**
  * 验证请求参数的中间件函数

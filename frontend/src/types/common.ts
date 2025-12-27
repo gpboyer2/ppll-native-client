@@ -2,17 +2,21 @@
 
 // 分页请求参数
 export interface PageRequest {
-  page: number
+  currentPage: number
   pageSize: number
+}
+
+// 分页信息
+export interface Pagination {
+  currentPage: number
+  pageSize: number
+  total: number
 }
 
 // 分页响应数据
 export interface PageData<T> {
   list: T[]
-  total: number
-  page: number
-  pageSize: number
-  totalPages: number
+  pagination: Pagination
 }
 
 // 通用键值对

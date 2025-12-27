@@ -1,7 +1,7 @@
 const { MainClient, USDMClient, CoinMClient } = require("binance");
 const { HttpsProxyAgent } = require("https-proxy-agent");
 const config = require("../binance/config.js");
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/api-error");
 
 
 // 缓存配置 - 1小时缓存时间

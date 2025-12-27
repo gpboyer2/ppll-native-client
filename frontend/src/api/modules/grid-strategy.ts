@@ -1,5 +1,6 @@
 import { RequestWrapper } from '../request'
 import { Response } from '../../core/response'
+import { PageData, PageRequest } from '../../types/common'
 
 /**
  * 网格策略API接口
@@ -10,14 +11,20 @@ export class GridStrategyApi {
   /**
    * 获取网格策略列表
    */
-  static async getList(params?: any): Promise<Response<any>> {
+  static async list(params?: PageRequest & {
+    apiKey?: string
+    apiSecret?: string
+  }): Promise<Response<PageData<any>>> {
     return RequestWrapper.get(`${this.BASE_PATH}/`, params)
   }
 
   /**
    * 查询网格策略
    */
-  static async query(params?: any): Promise<Response<any>> {
+  static async query(params?: PageRequest & {
+    apiKey?: string
+    apiSecret?: string
+  }): Promise<Response<PageData<any>>> {
     return RequestWrapper.get(`${this.BASE_PATH}/query`, params)
   }
 

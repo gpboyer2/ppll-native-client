@@ -24,27 +24,15 @@ function getNodejsUrl(): string {
 export class RequestWrapper {
   /**
    * 包装请求，统一处理响应格式
+   * 后端统一返回 {code: number, message: string, data: any}
    */
   private static async wrapRequest<T>(request: Promise<any>): Promise<Response<T>> {
     try {
       const response = await request
 
-      // 如果后端返回的是 Response 格式
+      // 后端统一返回 {code, message, data} 格式
       if (response && typeof response === 'object' && 'code' in response) {
         return response as Response<T>
-      }
-
-      // 如果是 fetch 的 ApiResponse 格式
-      if (response && 'success' in response) {
-        if (response.success) {
-          return ok(response.data)
-        } else {
-          return {
-            code: response.code || 500,
-            msg: response.message || '请求失败',
-            data: undefined
-          }
-        }
       }
 
       // 其他情况直接返回成功
@@ -52,7 +40,7 @@ export class RequestWrapper {
     } catch (error: any) {
       return {
         code: error.code || 500,
-        msg: error.message || '网络请求失败',
+        message: error.message || '网络请求失败',
         data: undefined
       }
     }
@@ -86,15 +74,17 @@ export class RequestWrapper {
       const response = await fetch(url, options)
       const result = await response.json()
 
+      // 后端统一返回 {code, message, data} 格式
       if (result && typeof result === 'object' && 'code' in result) {
         return result as Response<T>
       }
 
+      // 其他情况直接包装为成功
       return ok(result)
     } catch (error: any) {
       return {
         code: 500,
-        msg: error.message || '网络请求失败',
+        message: error.message || '网络请求失败',
         data: undefined
       }
     }

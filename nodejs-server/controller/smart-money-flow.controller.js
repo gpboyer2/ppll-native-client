@@ -1,7 +1,7 @@
 const httpStatus = require('http-status');
 const { pick } = require('../utils/pick');
-const ApiError = require('../utils/ApiError');
-const catchAsync = require('../utils/catchAsync');
+const catchAsync = require('../utils/catch-async');
+const { sendSuccess } = require('../utils/api-response');
 const smartMoneyFlowService = require("../service/smart-money-flow.service.js");
 
 
@@ -12,10 +12,7 @@ const smartMoneyFlowService = require("../service/smart-money-flow.service.js");
  */
 const getKolVcHoldings = catchAsync(async (req, res) => {
   const data = await smartMoneyFlowService.getKolVcHoldings();
-  res.status(httpStatus.OK).send({
-    status: 'success',
-    data
-  });
+  return sendSuccess(res, data, '获取KOL/VC持仓数据成功');
 });
 
 /**
@@ -26,10 +23,7 @@ const getKolVcHoldings = catchAsync(async (req, res) => {
 const getTwitterResonanceSignal = catchAsync(async (req, res) => {
   const { chain_name } = req.query;
   const data = await smartMoneyFlowService.getTwitterResonanceSignal(chain_name);
-  res.status(httpStatus.OK).send({
-    status: 'success',
-    data
-  });
+  return sendSuccess(res, data, '获取推特聪明钱共振信号成功');
 });
 
 
@@ -40,10 +34,7 @@ const getTwitterResonanceSignal = catchAsync(async (req, res) => {
 const getKolVcTopList = catchAsync(async (req, res) => {
   const { chain_name } = req.query;
   const data = await smartMoneyFlowService.getKolVcTopList(chain_name);
-  res.status(httpStatus.OK).send({
-    status: 'success',
-    data
-  });
+  return sendSuccess(res, data, '获取KOL/VC盈亏排行榜成功');
 });
 
 
@@ -55,10 +46,7 @@ const getKolVcTopList = catchAsync(async (req, res) => {
 const get24hTradeVolume = catchAsync(async (req, res) => {
   const { chain_name = 'all' } = req.query;
   const data = await smartMoneyFlowService.get24hTradeVolume(chain_name);
-  res.status(httpStatus.OK).send({
-    status: 'success',
-    data
-  });
+  return sendSuccess(res, data, '获取24小时交易量数据成功');
 });
 
 
@@ -70,10 +58,7 @@ const get24hTradeVolume = catchAsync(async (req, res) => {
 const get30DayProfitDistribution = catchAsync(async (req, res) => {
   const { chain_name } = req.query;
   const data = await smartMoneyFlowService.get30DayProfitDistribution(chain_name);
-  res.status(httpStatus.OK).send({
-    status: 'success',
-    data
-  });
+  return sendSuccess(res, data, '获取30日盈亏分布数据成功');
 });
 
 

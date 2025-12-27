@@ -1,7 +1,8 @@
 const httpStatus = require('http-status');
-const catchAsync = require('../utils/catchAsync');
+const catchAsync = require('../utils/catch-async');
 const { banned_ips: BannedIP } = require('../models');
-const ApiError = require('../utils/ApiError');
+const ApiError = require('../utils/api-error');
+const { sendSuccess, sendError } = require('../utils/api-response');
 const {
   getIPStats,
   getMemoryStats,
@@ -17,8 +18,8 @@ const {
  * @access Admin
  */
 const getBannedIps = catchAsync(async (req, res) => {
-  const { page = 1, limit = 20, status } = req.query;
-  const offset = (page - 1) * limit;
+  const { currentPage = 1, pageSize = 20, status } = req.query;
+  const offset = (currentPage - 1) * pageSize;
 
   const whereClause = {};
   if (status !== undefined) {
@@ -29,7 +30,7 @@ const getBannedIps = catchAsync(async (req, res) => {
   const { count, rows } = await BannedIP.findAndCountAll({
     where: whereClause,
     order: [['created_at', 'DESC']],
-    limit: parseInt(limit),
+    limit: parseInt(pageSize),
     offset: parseInt(offset)
   });
 
@@ -37,26 +38,22 @@ const getBannedIps = catchAsync(async (req, res) => {
   const memoryStats = getIPStats();
   const systemMemoryStats = getMemoryStats();
 
-  res.json({
-    status: 'success',
-    data: {
-      bannedIPs: rows,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total: count,
-        totalPages: Math.ceil(count / limit)
-      },
-      memoryStats,
-      systemMemoryStats,
-      summary: {
-        totalBanned: count,
-        activeBanned: rows.filter(ip => ip.status === 1).length,
-        memoryTracked: Object.keys(memoryStats).length,
-        trustedIPs: Array.from(TRUSTED_IPS)
-      }
+  return sendSuccess(res, {
+    bannedIPs: rows,
+    pagination: {
+      currentPage: parseInt(currentPage),
+      pageSize: parseInt(pageSize),
+      total: count
+    },
+    memoryStats,
+    systemMemoryStats,
+    summary: {
+      totalBanned: count,
+      activeBanned: rows.filter(ip => ip.status === 1).length,
+      memoryTracked: Object.keys(memoryStats).length,
+      trustedIPs: Array.from(TRUSTED_IPS)
     }
-  });
+  }, '获取IP封禁列表成功');
 });
 
 /**
@@ -73,8 +70,7 @@ const unbanIp = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.NOT_FOUND, '该IP未被封禁或记录不存在');
   }
 
-  // 对于成功的DELETE操作，返回 204 No Content 是标准的做法
-  res.status(httpStatus.NO_CONTENT).send();
+  return sendSuccess(res, null, '解封成功', 204);
 });
 
 /**
@@ -86,13 +82,13 @@ const banIP = catchAsync(async (req, res) => {
   const { ip, reason, remark, duration = 24 } = req.body;
 
   if (!ip || !reason) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'IP地址和封禁原因不能为空');
+    return sendError(res, 'IP地址和封禁原因不能为空', 400);
   }
 
   // 验证IP格式
   const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
   if (!ipRegex.test(ip)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'IP地址格式不正确');
+    return sendError(res, 'IP地址格式不正确', 400);
   }
 
   const bannedRecord = await BannedIP.banIP(
@@ -102,11 +98,7 @@ const banIP = catchAsync(async (req, res) => {
     remark || ''
   );
 
-  res.status(httpStatus.CREATED).json({
-    status: 'success',
-    message: `IP ${ip} 已被永久封禁`,
-    data: bannedRecord
-  });
+  return sendSuccess(res, bannedRecord, `IP ${ip} 已被永久封禁`, 201);
 });
 
 /**
@@ -118,7 +110,7 @@ const batchUnbanIP = catchAsync(async (req, res) => {
   const { ips } = req.body;
 
   if (!Array.isArray(ips) || ips.length === 0) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'IP地址列表不能为空');
+    return sendError(res, 'IP地址列表不能为空', 400);
   }
 
   const results = [];
@@ -133,11 +125,7 @@ const batchUnbanIP = catchAsync(async (req, res) => {
 
   const successCount = results.filter(r => r.success).length;
 
-  res.json({
-    status: 'success',
-    message: `成功解封 ${successCount}/${ips.length} 个IP的封禁`,
-    data: { results }
-  });
+  return sendSuccess(res, { results }, `成功解封 ${successCount}/${ips.length} 个IP的封禁`);
 });
 
 /**
@@ -148,11 +136,7 @@ const batchUnbanIP = catchAsync(async (req, res) => {
 const cleanupExpiredBans = catchAsync(async (req, res) => {
   const cleanedCount = await BannedIP.cleanupExpiredRecords();
 
-  res.json({
-    status: 'success',
-    message: `清理了 ${cleanedCount} 条过期封禁记录`,
-    data: { cleanedCount }
-  });
+  return sendSuccess(res, { cleanedCount }, `清理了 ${cleanedCount} 条过期封禁记录`);
 });
 
 /**
@@ -164,19 +148,16 @@ const getIPBanDetail = catchAsync(async (req, res) => {
   const { ip } = req.params;
 
   if (!ip) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'IP地址不能为空');
+    return sendError(res, 'IP地址不能为空', 400);
   }
 
   const bannedRecord = await BannedIP.findByIp(ip);
 
   if (!bannedRecord) {
-    throw new ApiError(httpStatus.NOT_FOUND, '未找到该IP的封禁记录');
+    return sendError(res, '未找到该IP的封禁记录', 404);
   }
 
-  res.json({
-    status: 'success',
-    data: bannedRecord
-  });
+  return sendSuccess(res, bannedRecord, '获取IP封禁详情成功');
 });
 
 /**
@@ -189,15 +170,11 @@ const executeEmergencyCleanup = catchAsync(async (req, res) => {
   emergencyCleanup();
   const afterCount = getMemoryStats().ipCount;
 
-  res.json({
-    status: 'success',
-    message: `执行紧急清理成功`,
-    data: {
-      beforeCount,
-      afterCount,
-      cleanedCount: beforeCount - afterCount
-    }
-  });
+  return sendSuccess(res, {
+    beforeCount,
+    afterCount,
+    cleanedCount: beforeCount - afterCount
+  }, '执行紧急清理成功');
 });
 
 /**
@@ -209,25 +186,21 @@ const addTrustedIPAddress = catchAsync(async (req, res) => {
   const { ip } = req.body;
 
   if (!ip) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'IP地址不能为空');
+    return sendError(res, 'IP地址不能为空', 400);
   }
 
   // 验证IP格式
   const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
   if (!ipRegex.test(ip)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'IP地址格式不正确');
+    return sendError(res, 'IP地址格式不正确', 400);
   }
 
   addTrustedIP(ip);
 
-  res.status(httpStatus.CREATED).json({
-    status: 'success',
-    message: `IP ${ip} 已添加到可信列表`,
-    data: {
-      ip,
-      trustedIPs: Array.from(TRUSTED_IPS)
-    }
-  });
+  return sendSuccess(res, {
+    ip,
+    trustedIPs: Array.from(TRUSTED_IPS)
+  }, `IP ${ip} 已添加到可信列表`, 201);
 });
 
 /**
@@ -239,23 +212,19 @@ const removeTrustedIPAddress = catchAsync(async (req, res) => {
   const { ip } = req.params;
 
   if (!ip) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'IP地址不能为空');
+    return sendError(res, 'IP地址不能为空', 400);
   }
 
   const removed = removeTrustedIP(ip);
 
   if (!removed) {
-    throw new ApiError(httpStatus.NOT_FOUND, '该IP不在可信列表中');
+    return sendError(res, '该IP不在可信列表中', 404);
   }
 
-  res.json({
-    status: 'success',
-    message: `IP ${ip} 已从可信列表移除`,
-    data: {
-      ip,
-      trustedIPs: Array.from(TRUSTED_IPS)
-    }
-  });
+  return sendSuccess(res, {
+    ip,
+    trustedIPs: Array.from(TRUSTED_IPS)
+  }, `IP ${ip} 已从可信列表移除`);
 });
 
 /**
@@ -264,13 +233,10 @@ const removeTrustedIPAddress = catchAsync(async (req, res) => {
  * @access Admin
  */
 const getTrustedIPs = catchAsync(async (req, res) => {
-  res.json({
-    status: 'success',
-    data: {
-      trustedIPs: Array.from(TRUSTED_IPS),
-      count: TRUSTED_IPS.size
-    }
-  });
+  return sendSuccess(res, {
+    trustedIPs: Array.from(TRUSTED_IPS),
+    count: TRUSTED_IPS.size
+  }, '获取可信IP列表成功');
 });
 
 module.exports = {

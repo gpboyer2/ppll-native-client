@@ -159,7 +159,7 @@ function DatabaseManagerPage() {
         } else {
             notifications.show({
                 title: '查询失败',
-                message: response.msg || '执行失败',
+                message: response.message || '执行失败',
                 color: 'red'
             });
         }
@@ -252,7 +252,7 @@ function DatabaseManagerPage() {
         } else {
             notifications.show({
                 title: '重命名失败',
-                message: response.msg || '操作失败',
+                message: response.message || '操作失败',
                 color: 'red'
             });
         }
@@ -277,7 +277,7 @@ function DatabaseManagerPage() {
         } else {
             notifications.show({
                 title: '复制失败',
-                message: response.msg || '操作失败',
+                message: response.message || '操作失败',
                 color: 'red'
             });
         }
@@ -297,7 +297,7 @@ function DatabaseManagerPage() {
         } else {
             notifications.show({
                 title: '清空失败',
-                message: response.msg || '操作失败',
+                message: response.message || '操作失败',
                 color: 'red'
             });
         }
@@ -323,7 +323,7 @@ function DatabaseManagerPage() {
         } else {
             notifications.show({
                 title: '重命名失败',
-                message: response.msg || '操作失败',
+                message: response.message || '操作失败',
                 color: 'red'
             });
         }
@@ -366,7 +366,7 @@ function DatabaseManagerPage() {
         } else {
             notifications.show({
                 title: '创建失败',
-                message: response.msg || '操作失败',
+                message: response.message || '操作失败',
                 color: 'red'
             });
         }
@@ -386,7 +386,7 @@ function DatabaseManagerPage() {
         } else {
             notifications.show({
                 title: '删除失败',
-                message: response.msg || '操作失败',
+                message: response.message || '操作失败',
                 color: 'red'
             });
         }

@@ -4,7 +4,7 @@
  */
 const db = require("../models");
 const Order = db.orders;
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/api-error");
 const httpStatus = require("http-status");
 
 
@@ -50,10 +50,12 @@ const getAllOrders = async (filter = {}, options = { page: 1, limit: 10 }) => {
         });
 
         return {
-            total: count,
-            totalPages: Math.ceil(count / limit),
-            currentPage: page,
-            rows,
+            list: rows,
+            pagination: {
+                total: count,
+                currentPage: page,
+                pageSize: limit
+            }
         };
     } catch (error) {
         console.error("⚠️ 获取订单失败:", error);
@@ -108,9 +110,11 @@ const queryOrders = async (filter = {}, options = {}) => {
             const order = await Order.findOne({ where });
             return {
                 list: order ? [order.toJSON()] : [],
-                total: order ? 1 : 0,
-                currentPage: 1,
-                pageSize: 1
+                pagination: {
+                    total: order ? 1 : 0,
+                    currentPage: 1,
+                    pageSize: 1
+                }
             };
         }
         
@@ -125,9 +129,11 @@ const queryOrders = async (filter = {}, options = {}) => {
         
         return {
             list: rows.map(row => row.toJSON()),
-            total: count,
-            currentPage: page,
-            pageSize: pageSize
+            pagination: {
+                total: count,
+                currentPage: page,
+                pageSize: pageSize
+            }
         };
     } catch (error) {
         console.error("⚠️ 查询订单失败:", error);

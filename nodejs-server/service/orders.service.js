@@ -3,7 +3,7 @@ const { USDMClient } = require('binance');
 const { proxy_obj } = require('../binance/config.js');
 const UtilRecord = require("../utils/record-log.js");
 const binancePrecision = require("../utils/binance-precision");
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/api-error");
 
 
 // 常量定义

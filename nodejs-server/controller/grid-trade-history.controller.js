@@ -3,7 +3,8 @@
  * 单用户系统：处理网格交易历史相关的业务逻辑，提供交易记录查询和统计功能
  */
 const httpStatus = require("http-status");
-const catchAsync = require("../utils/catchAsync");
+const catchAsync = require("../utils/catch-async");
+const { sendSuccess, sendError } = require("../utils/api-response");
 const service = require("../service/grid-trade-history.service");
 
 /**
@@ -15,9 +16,9 @@ const create = catchAsync(async (req, res) => {
 
   try {
     const row = await service.createTradeHistory(body);
-    res.send({ code: 200, data: row, message: "创建成功" });
+    return sendSuccess(res, row, "创建成功");
   } catch (e) {
-    res.status(400).send({ code: 400, message: e.message || "参数校验失败" });
+    return sendError(res, e.message || "参数校验失败", 400);
   }
 });
 
@@ -25,11 +26,11 @@ const create = catchAsync(async (req, res) => {
  * 查询交易历史（分页）
  */
 const query = catchAsync(async (req, res) => {
-  const { apiKey, apiSecret, page, limit, ...filters } = req.query || {};
+  const { apiKey, apiSecret, currentPage, pageSize, ...filters } = req.query || {};
 
   // 强制把 apiKey 放入过滤，避免越权
-  const resp = await service.getAllTradeHistories({ ...filters, apiKey }, { page: Number(page) || 1, limit: Number(limit) || 10 });
-  res.send({ code: 200, data: resp });
+  const resp = await service.getAllTradeHistories({ ...filters, apiKey }, { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 });
+  return sendSuccess(res, resp, "查询交易历史成功");
 });
 
 /**
@@ -38,13 +39,13 @@ const query = catchAsync(async (req, res) => {
 const detail = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { apiKey, apiSecret } = req.query || {};
-  if (!id) return res.status(400).send({ code: 400, message: "缺少参数: id" });
+  if (!id) return sendError(res, "缺少参数: id", 400);
 
   const row = await service.getTradeHistoryById(Number(id));
   if (!row || row.apiKey !== apiKey) {
-    return res.status(404).send({ code: 404, message: "未找到该记录或无权限访问" });
+    return sendError(res, "未找到该记录或无权限访问", 404);
   }
-  res.send({ code: 200, data: row });
+  return sendSuccess(res, row, "获取交易历史详情成功");
 });
 
 /**
@@ -53,17 +54,17 @@ const detail = catchAsync(async (req, res) => {
 const update = catchAsync(async (req, res) => {
   const body = req.body || {};
   const { id, apiKey, apiSecret } = body;
-  if (!id) return res.status(400).send({ code: 400, message: "缺少参数: id" });
+  if (!id) return sendError(res, "缺少参数: id", 400);
 
   try {
     const result = await service.updateTradeHistoryById(body);
     if (result.affected > 0) {
-      res.send({ code: 200, data: result.data, message: "更新成功" });
+      return sendSuccess(res, result.data, "更新成功");
     } else {
-      res.status(400).send({ code: 400, message: "未找到或无权限更新该记录" });
+      return sendError(res, "未找到或无权限更新该记录", 400);
     }
   } catch (e) {
-    res.status(400).send({ code: 400, message: e.message || "更新失败" });
+    return sendError(res, e.message || "更新失败", 400);
   }
 });
 
@@ -73,11 +74,11 @@ const update = catchAsync(async (req, res) => {
 const deletes = catchAsync(async (req, res) => {
   const { ids, apiKey, apiSecret } = req.body || {};
   if (!Array.isArray(ids) || ids.length === 0) {
-    return res.status(400).send({ code: 400, message: "缺少参数: ids" });
+    return sendError(res, "缺少参数: ids", 400);
   }
 
   const result = await service.deleteTradeHistoriesByIds({ ids, apiKey });
-  res.send({ code: 200, data: { affected: result.affected }, message: "删除完成" });
+  return sendSuccess(res, { affected: result.affected }, "删除完成");
 });
 
 module.exports = {

@@ -14,7 +14,7 @@ const { mapKeys, camelCase } = require('lodash');
 const { createTradeHistory } = require('./grid-trade-history.service.js');
 const dayjs = require("dayjs");
 const UtilRecord = require('../utils/record-log.js');
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/api-error");
 
 
 const gridMap = {}; // 存储所有网格实例：id -> grid 实例
@@ -349,16 +349,16 @@ const isAdmin = (user) => {
  * @param {Object} filter - 查询条件
  * @param {Object} options - 分页选项
  * @param {Object} currentUser - 当前用户（来自 req.vipUser）
- * @returns {Object} 包含网格策略总数，总页数，当前页码，以及网格策略数据的对象
+ * @returns {Object} 包含网格策略数据和分页信息的对象
  */
 const getAllGridStrategys = async (
   filter = {},
-  options = { page: 1, limit: 10 },
+  options = { currentPage: 1, pageSize: 10 },
   currentUser = null
 ) => {
   try {
-    const { page = 1, limit = 10 } = options;
-    const offset = page ? (page - 1) * limit : 0;
+    const { currentPage = 1, pageSize = 10 } = options;
+    const offset = currentPage ? (currentPage - 1) * pageSize : 0;
 
     // 数据隔离：非管理员只能查看自己的数据
     const whereCondition = { ...filter };
@@ -368,25 +368,29 @@ const getAllGridStrategys = async (
 
     const { count, rows } = await GridStrategy.findAndCountAll({
       where: whereCondition,
-      limit,
+      limit: pageSize,
       offset,
       order: [["id", "DESC"]],
     });
 
     return {
-      total: count,
-      totalPages: Math.ceil(count / limit),
-      currentPage: page,
-      rows,
+      list: rows,
+      pagination: {
+        total: count,
+        currentPage,
+        pageSize
+      }
     };
   } catch (error) {
     console.error("⚠️ 获取网格策略失败:", error);
     if (error instanceof ApiError) throw error;
     return {
-      total: 0,
-      totalPages: 0,
-      currentPage: 1,
-      rows: [],
+      list: [],
+      pagination: {
+        total: 0,
+        currentPage: 1,
+        pageSize: 10
+      }
     };
   }
 };

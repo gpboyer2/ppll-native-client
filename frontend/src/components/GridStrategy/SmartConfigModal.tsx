@@ -86,7 +86,7 @@ export function SmartConfigModal({
       });
 
       if (response.code !== 200) {
-        throw new Error(response.msg || '优化失败');
+        throw new Error(response.message || '优化失败');
       }
 
       // 保存结果，切换到结果展示

@@ -42,8 +42,8 @@ const DEFAULT_ERROR_MESSAGES: Record<number, string> = {
 /**
  * 获取错误消息
  */
-function getErrorMessage(code: number, msg?: string): string {
-  return msg || DEFAULT_ERROR_MESSAGES[code] || `请求失败 (错误码: ${code})`
+function getErrorMessage(code: number, message?: string): string {
+  return message || DEFAULT_ERROR_MESSAGES[code] || `请求失败 (错误码: ${code})`
 }
 
 /**
@@ -61,12 +61,12 @@ export function showSuccess(message: string, options?: NotifyOptions) {
 /**
  * 显示错误提示
  */
-export function showError(code: number, msg: string, options?: NotifyOptions) {
-  const message = getErrorMessage(code, msg)
+export function showError(code: number, message: string, options?: NotifyOptions) {
+  const errorMessage = getErrorMessage(code, message)
   notifications.show({
     color: 'red',
     title: options?.title || '操作失败',
-    message: options?.description || message,
+    message: options?.description || errorMessage,
     withBorder: true
   })
 }
@@ -85,27 +85,27 @@ export function showWarning(message: string, options?: NotifyOptions) {
 
 /**
  * 处理 API 响应
- * - 如果 code !== 0，显示错误提示并抛出异常
+ * - 如果 code !== 200，显示错误提示并抛出异常
  * - 返回 data 或 undefined
  */
 export function handleResponse<T>(response: Response<T>, options?: NotifyOptions): T {
-  if (response.code !== 0) {
+  if (response.code !== 200) {
     if (options?.show !== false) {
-      showError(response.code, response.msg, options)
+      showError(response.code, response.message, options)
     }
-    throw new ApiError(response.code, response.msg, response.traceID)
+    throw new ApiError(response.code, response.message, response.traceID)
   }
   return response.data as T
 }
 
 /**
  * 静默处理 API 响应（不显示提示）
- * - 如果 code !== 0，抛出异常但不显示提示
+ * - 如果 code !== 200，抛出异常但不显示提示
  * - 返回 data 或 undefined
  */
 export function handleResponseSilent<T>(response: Response<T>): T {
-  if (response.code !== 0) {
-    throw new ApiError(response.code, response.msg, response.traceID)
+  if (response.code !== 200) {
+    throw new ApiError(response.code, response.message, response.traceID)
   }
   return response.data as T
 }

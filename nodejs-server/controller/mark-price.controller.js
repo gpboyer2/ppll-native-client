@@ -4,8 +4,9 @@
  */
 const httpStatus = require('http-status');
 const { pick } = require('../utils/pick');
-const ApiError = require('../utils/ApiError');
-const catchAsync = require('../utils/catchAsync');
+const ApiError = require('../utils/api-error');
+const catchAsync = require('../utils/catch-async');
+const { sendSuccess } = require('../utils/api-response');
 const markPriceService = require("../service/mark-price.service.js");
 
 
@@ -14,11 +15,7 @@ const markPriceService = require("../service/mark-price.service.js");
  */
 const createMarkPrice = catchAsync(async (req, res) => {
   const markPrice = await markPriceService.createMarkPrice(req.body);
-  res.status(httpStatus.CREATED).send({
-    code: httpStatus.CREATED,
-    data: markPrice,
-    message: '创建成功'
-  });
+  return sendSuccess(res, markPrice, '创建成功', 201);
 });
 
 /**
@@ -26,13 +23,9 @@ const createMarkPrice = catchAsync(async (req, res) => {
  */
 const getMarkPrices = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['symbol']);
-  const options = pick(req.query, ['sortBy', 'limit', 'page']);
+  const options = pick(req.query, ['sortBy', 'limit', 'currentPage']);
   const result = await markPriceService.queryMarkPrices(filter, options);
-  res.send({
-    code: httpStatus.OK,
-    data: result,
-    message: '查询成功'
-  });
+  return sendSuccess(res, result, '查询成功');
 });
 
 /**
@@ -40,11 +33,7 @@ const getMarkPrices = catchAsync(async (req, res) => {
  */
 const updateMarkPrice = catchAsync(async (req, res) => {
   const markPrice = await markPriceService.updateMarkPriceById(req.body.id, req.body);
-  res.send({
-    code: httpStatus.OK,
-    data: markPrice,
-    message: '更新成功'
-  });
+  return sendSuccess(res, markPrice, '更新成功');
 });
 
 /**
@@ -52,10 +41,7 @@ const updateMarkPrice = catchAsync(async (req, res) => {
  */
 const deleteMarkPrice = catchAsync(async (req, res) => {
   await markPriceService.deleteMarkPriceById(req.body.id);
-  res.status(httpStatus.NO_CONTENT).send({
-    code: httpStatus.NO_CONTENT,
-    message: '删除成功'
-  });
+  return sendSuccess(res, null, '删除成功', 204);
 });
 
 module.exports = {

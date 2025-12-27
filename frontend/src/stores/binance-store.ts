@@ -49,7 +49,7 @@ async function getAuthToken(): Promise<string> {
 
         const tokenRes = await GetConfig('auth_token') as any;
         if (tokenRes && typeof tokenRes === 'object') {
-            if (tokenRes.code === 0 && tokenRes.data) {
+            if (tokenRes.code === 200 && tokenRes.data) {
                 return String(tokenRes.data);
             }
         } else if (typeof tokenRes === 'string') {

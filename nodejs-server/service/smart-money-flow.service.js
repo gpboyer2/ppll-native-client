@@ -6,7 +6,7 @@ const httpStatus = require('http-status');
 const db = require('../models');
 const User = db.User;
 const { Op } = require('sequelize');
-const ApiError = require('../utils/ApiError');
+const ApiError = require('../utils/api-error');
 const axios = require('axios');
 
 

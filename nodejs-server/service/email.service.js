@@ -5,7 +5,7 @@
 const nodemailer = require('nodemailer');
 const database = require('../config/database.json');
 const UtilRecord = require('../utils/record-log.js');
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/api-error");
 
 const transport = nodemailer.createTransport(
     {

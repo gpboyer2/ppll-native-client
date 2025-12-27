@@ -1,5 +1,5 @@
 const httpStatus = require('http-status');
-const ApiError = require('../utils/ApiError');
+const ApiError = require('../utils/api-error');
 const db = require('../models');
 const MarkPrice = db.MarkPrice;
 const UtilRecord = require('../utils/record-log.js');

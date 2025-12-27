@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const util = require('util');
 const stream = require('stream');
-const ApiError = require("../utils/ApiError");
+const ApiError = require("../utils/api-error");
 
 const pipeline = util.promisify(stream.pipeline);
 

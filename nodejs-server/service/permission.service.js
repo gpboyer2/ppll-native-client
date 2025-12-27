@@ -3,7 +3,7 @@
  * 提供权限管理相关的业务逻辑处理，包括权限信息查询、树形结构构建等功能
  */
 const httpStatus = require('http-status');
-const ApiError = require('../utils/ApiError');
+const ApiError = require('../utils/api-error');
 const db = require("../models");
 const Permission = db.permissions;
 

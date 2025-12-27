@@ -43,5 +43,6 @@ const extractApiCredentials = (req) => {
 module.exports = {
   randomDelay,
   extractApiCredentials,
+  ApiResponse: require('./api-response')
 }
 
