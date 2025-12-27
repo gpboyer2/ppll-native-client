@@ -1,25 +1,12 @@
 /**
- * 统一配置管理模块
- * 整合币安API配置和代理配置，提供统一的配置管理接口
- *
- * 功能：
- * 1. 币安API配置（baseUrl、wssBaseUrl、testBaseUrl）
- * 2. 代理配置管理（从环境变量动态读取）
+ * 统一代理配置工具模块
+ * 从环境变量读取代理配置，提供各 HTTP 客户端所需的代理格式
  *
  * 支持的代理环境变量（按优先级）:
  * HTTPS_PROXY, https_proxy, HTTP_PROXY, http_proxy, ALL_PROXY, all_proxy
  */
 const { HttpsProxyAgent } = require('https-proxy-agent');
-
-// ============================================
-// 币安API配置
-// ============================================
-
-const BINANCE_CONFIG = {
-  baseUrl: 'https://fapi.binance.com',
-  wssBaseUrl: 'wss://fstream.binance.com',
-  testBaseUrl: 'https://testnet.binancefuture.com',
-};
+const BINANCE_CONFIG = require('../binance/config.js');
 
 // ============================================
 // 代理配置
