@@ -3,6 +3,8 @@ import { Response } from '../../core/response'
 
 /**
  * 数据库管理API接口
+ *
+ * 注意：后端路由为 /api/v1/database-admin，前端使用 DatabaseApi 简化命名
  */
 export class DatabaseApi {
   private static readonly BASE_PATH = '/api/v1/database-admin'
