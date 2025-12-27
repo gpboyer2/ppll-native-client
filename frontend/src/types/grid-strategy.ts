@@ -142,3 +142,121 @@ export interface StrategyFilter {
   positionSide: 'all' | 'LONG' | 'SHORT';
   status: 'all' | StrategyStatus;
 }
+
+// ==================== 智能配置相关类型 ====================
+
+/**
+ * 优化目标类型
+ */
+export type OptimizeTarget = 'profit' | 'cost';
+
+/**
+ * 单个网格配置方案
+ */
+export interface GridConfigOption {
+  gridSpacing: string;
+  gridSpacingPercent: string;
+  tradeQuantity: string;
+  tradeValue: string;
+  expectedDailyFrequency: string;
+  expectedDailyProfit: string;
+  expectedDailyROI: string;
+  singleNetProfit: string;
+  turnoverRatio: string;
+}
+
+/**
+ * 市场分析数据
+ */
+export interface MarketAnalysis {
+  currentPrice: string;
+  support: string;
+  resistance: string;
+  avgPrice: string;
+  priceRange: string;
+  volatility: string;
+  volatilityLevel: string;
+  volatilityAdvice: string;
+  atr: string;
+  atrDesc: string;
+  klineCount: number;
+  algorithmStatus: string;
+  algorithmSource: string;
+  spreadStr?: string;
+  spreadRatio?: number;
+  identifyResult?: any;
+}
+
+/**
+ * 风险评估数据
+ */
+export interface RiskAssessment {
+  level: string;
+  score: number;
+}
+
+/**
+ * 推荐配置详情
+ */
+export interface RecommendedConfig {
+  gridSpacing: string;
+  gridSpacingPercent: string;
+  tradeQuantity: string;
+  tradeValue: string;
+  expectedDailyFrequency: string;
+  expectedDailyProfit: string;
+  expectedDailyFee: string;
+  expectedDailyROI: string;
+  singleNetProfit: string;
+  turnoverRatio: string;
+  analysis?: {
+    totalConfigCount: number;
+    topList: GridConfigOption[];
+    avgPrice: number;
+  };
+}
+
+/**
+ * 优化结果完整数据
+ */
+export interface OptimizationResult {
+  symbol: string;
+  interval: string;
+  intervalLabel: string;
+  optimizeTarget: string;
+  optimizeTargetLabel: string;
+  enableBoundaryDefense: boolean;
+  totalCapital: number;
+  minTradeValue: number;
+  maxTradeValue: number;
+  feeRate: number;
+  market: MarketAnalysis;
+  risk: RiskAssessment;
+  recommended: RecommendedConfig;
+  boundaryDefense?: RecommendedConfig;
+}
+
+/**
+ * 应用到表单的配置数据
+ */
+export interface OptimizedConfig {
+  gridPriceDifference: number;
+  gridTradeQuantity: number;
+  gtLimitationPrice?: number;
+  ltLimitationPrice?: number;
+}
+
+/**
+ * 智能配置弹窗 Props
+ */
+export interface SmartConfigModalProps {
+  opened: boolean;
+  onClose: () => void;
+  onApply: (config: OptimizedConfig) => void;
+  defaultParams?: {
+    tradingPair?: string;
+    positionSide?: PositionSide;
+    apiKey?: string;
+    apiSecret?: string;
+  };
+}
