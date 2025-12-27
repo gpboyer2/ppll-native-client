@@ -96,7 +96,7 @@ function SystemInfoPage() {
                         </div>
                     </div>
                     <div className="card-content">
-                        {staticInfo.ipv4List.length > 0 ? (
+                        {staticInfo.ipv4List && staticInfo.ipv4List.length > 0 ? (
                             <div className="info-item-list">
                                 {staticInfo.ipv4List.map((ip, index) => (
                                     <div key={index} className="info-item">
@@ -182,23 +182,23 @@ function SystemInfoPage() {
                         <div className="info-item-list">
                             <div className="info-item">
                                 <span className="info-label">Node.js 服务</span>
-                                <span className={`info-status ${health.service.isRunning ? 'success' : 'danger'}`}>
-                                    {health.service.isRunning ? '运行中' : '未运行'}
+                                <span className={`info-status ${health?.service?.isRunning ? 'success' : 'danger'}`}>
+                                    {health?.service?.isRunning ? '运行中' : '未运行'}
                                 </span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">服务健康状态</span>
-                                <span className={`info-status ${health.health.isHealthy ? 'success' : 'danger'}`}>
-                                    {health.health.isHealthy ? '健康' : '异常'}
+                                <span className={`info-status ${health?.health?.isHealthy ? 'success' : 'danger'}`}>
+                                    {health?.health?.isHealthy ? '健康' : '异常'}
                                 </span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">进程 PID</span>
-                                <span className="info-value">{health.service.pid}</span>
+                                <span className="info-value">{health?.service?.pid || '-'}</span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">运行时长</span>
-                                <span className="info-value">{health.service.uptime}</span>
+                                <span className="info-value">{health?.service?.uptime || '-'}</span>
                             </div>
                         </div>
                     </div>
@@ -215,14 +215,14 @@ function SystemInfoPage() {
                         <div className="info-item-list">
                             <div className="info-item">
                                 <span className="info-label">数据库状态</span>
-                                <span className={`info-status ${health.health.database.healthy ? 'success' : 'danger'}`}>
-                                    {health.health.database.healthy ? '正常' : '异常'}
+                                <span className={`info-status ${health?.health?.database?.healthy ? 'success' : 'danger'}`}>
+                                    {health?.health?.database?.healthy ? '正常' : '异常'}
                                 </span>
                             </div>
                             <div className="info-item" style={{ alignItems: 'flex-start' }}>
                                 <span className="info-label">数据库路径</span>
                                 <span className="info-path">
-                                    {staticInfo.databasePath}
+                                    {staticInfo.databasePath || '-'}
                                 </span>
                             </div>
                         </div>
@@ -240,26 +240,35 @@ function SystemInfoPage() {
                         <div className="info-item-list">
                             <div className="info-item">
                                 <span className="info-label">内存使用</span>
-                                <span className="info-value">{health.resources.memory.used} MB / {health.resources.memory.total} MB</span>
-                            </div>
-                            <div className="info-item">
-                                <span className="info-label">内存占比</span>
-                                <span className="info-status" style={{
-                                    background: health.resources.memory.percentage > 80
-                                        ? 'color-mix(in srgb, #dc3545 20%, var(--color-bg))'
-                                        : 'color-mix(in srgb, #28a745 20%, var(--color-bg))',
-                                    color: health.resources.memory.percentage > 80 ? '#dc3545' : '#28a745'
-                                }}>
-                                    {health.resources.memory.percentage}%
+                                <span className="info-value">
+                                    {health?.resources?.memory
+                                        ? `${health.resources.memory.used} MB / ${health.resources.memory.total} MB`
+                                        : '-'
+                                    }
                                 </span>
                             </div>
                             <div className="info-item">
+                                <span className="info-label">内存占比</span>
+                                {health?.resources?.memory ? (
+                                    <span className="info-status" style={{
+                                        background: health.resources.memory.percentage > 80
+                                            ? 'color-mix(in srgb, #dc3545 20%, var(--color-bg))'
+                                            : 'color-mix(in srgb, #28a745 20%, var(--color-bg))',
+                                        color: health.resources.memory.percentage > 80 ? '#dc3545' : '#28a745'
+                                    }}>
+                                        {health.resources.memory.percentage}%
+                                    </span>
+                                ) : (
+                                    <span className="info-value">-</span>
+                                )}
+                            </div>
+                            <div className="info-item">
                                 <span className="info-label">CPU 用户态</span>
-                                <span className="info-value">{health.resources.cpu.user} 秒</span>
+                                <span className="info-value">{health?.resources?.cpu?.user || '-'} 秒</span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">CPU 系统态</span>
-                                <span className="info-value">{health.resources.cpu.system} 秒</span>
+                                <span className="info-value">{health?.resources?.cpu?.system || '-'} 秒</span>
                             </div>
                         </div>
                     </div>
@@ -276,19 +285,19 @@ function SystemInfoPage() {
                         <div className="info-item-list">
                             <div className="info-item">
                                 <span className="info-label">WebSocket 活跃</span>
-                                <span className="info-value">{health.connections.websocket.active}</span>
+                                <span className="info-value">{health?.connections?.websocket?.active || '-'}</span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">WebSocket 累计</span>
-                                <span className="info-value">{health.connections.websocket.total}</span>
+                                <span className="info-value">{health?.connections?.websocket?.total || '-'}</span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">Socket.IO 活跃</span>
-                                <span className="info-value">{health.connections.socketio.active}</span>
+                                <span className="info-value">{health?.connections?.socketio?.active || '-'}</span>
                             </div>
                             <div className="info-item">
                                 <span className="info-label">Socket.IO 累计</span>
-                                <span className="info-value">{health.connections.socketio.total}</span>
+                                <span className="info-value">{health?.connections?.socketio?.total || '-'}</span>
                             </div>
                         </div>
                     </div>
