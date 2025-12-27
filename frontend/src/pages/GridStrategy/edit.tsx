@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { Select, NumberInput, Switch } from '../../components/mantine';
+import { SmartConfigModal } from '../../components/GridStrategy/SmartConfigModal';
 import { ROUTES } from '../../router';
 import { useBinanceStore } from '../../stores/binance-store';
-import type { GridStrategy, GridStrategyForm, PositionSide } from '../../types/grid-strategy';
+import type { GridStrategy, GridStrategyForm, PositionSide, OptimizedConfig } from '../../types/grid-strategy';
 import { defaultGridStrategy } from '../../types/grid-strategy';
 import { showWarning, showSuccess } from '../../utils/api-error';
 
@@ -25,6 +26,9 @@ function GridStrategyEditPage() {
 
     // 保存状态
     const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+
+    // 智能配置弹窗状态
+    const [smartConfigOpened, setSmartConfigOpened] = useState(false);
 
     // 初始化 store
     useEffect(() => {
@@ -228,6 +232,35 @@ function GridStrategyEditPage() {
         setFormData(prev => ({ ...prev, ...mockData }));
     }
 
+    // 打开智能配置弹窗
+    function handleOpenSmartConfig() {
+        // 验证必填字段
+        if (!formData.tradingPair.trim()) {
+            showWarning('请先选择交易对');
+            return;
+        }
+        if (!formData.apiKey.trim()) {
+            showWarning('请先选择币安API Key');
+            return;
+        }
+        if (!formData.apiSecret.trim()) {
+            showWarning('请先选择币安API Key');
+            return;
+        }
+        setSmartConfigOpened(true);
+    }
+
+    // 应用智能配置
+    function handleApplySmartConfig(config: OptimizedConfig) {
+        setFormData(prev => ({
+            ...prev,
+            gridPriceDifference: config.gridPriceDifference,
+            gridTradeQuantity: config.gridTradeQuantity,
+            gtLimitationPrice: config.gtLimitationPrice,
+            ltLimitationPrice: config.ltLimitationPrice
+        }));
+    }
+
     // API Key 下拉选项
     const apiKeyOptions = apiKeyList.map(k => ({
         value: String(k.id),
@@ -277,6 +310,28 @@ function GridStrategyEditPage() {
 
             {/* 表单 */}
             <form onSubmit={handleSubmit} className="grid-strategy-form">
+                {/* 智能配置按钮 */}
+                <div className="surface p-12 mb-16">
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <h3 style={{ margin: '0 0 8px 0', fontSize: 'var(--text-lg)' }}>
+                                还在为参数设置发愁？
+                            </h3>
+                            <p style={{ margin: 0, color: 'var(--color-text-muted)' }}>
+                                使用智能配置，基于历史数据自动计算最优参数
+                            </p>
+                        </div>
+                        <button
+                            type="button"
+                            className="btn btn-primary"
+                            onClick={handleOpenSmartConfig}
+                            style={{ height: '40px', padding: '0 24px' }}
+                        >
+                            智能配置
+                        </button>
+                    </div>
+                </div>
+
                 {/* 基础设置 */}
                 <div className="grid-strategy-form-section">
                     <h2 className="grid-strategy-form-section-title">
@@ -660,6 +715,19 @@ function GridStrategyEditPage() {
                     </div>
                 )}
             </form>
+
+            {/* 智能配置弹窗 */}
+            <SmartConfigModal
+                opened={smartConfigOpened}
+                onClose={() => setSmartConfigOpened(false)}
+                onApply={handleApplySmartConfig}
+                defaultParams={{
+                    tradingPair: formData.tradingPair,
+                    positionSide: formData.positionSide,
+                    apiKey: formData.apiKey,
+                    apiSecret: formData.apiSecret
+                }}
+            />
         </div>
     );
 }
