@@ -463,9 +463,7 @@ const getOpenInterestByExchange = catchAsync(async (req, res) => {
 
   const data = await fetchOpenInterestFromPage(coin_type.toLowerCase()); // 小写
 
-  return sendSuccess(res, data, `获取全网交易所持仓量数据成功`, 200, {
-    source: `https://www.gate.com/zh/crypto-market-data/funds/futures-open-interest/${coin_type}`
-  });
+  return sendSuccess(res, data, `获取全网交易所持仓量数据成功`+`https://www.gate.com/zh/crypto-market-data/funds/futures-open-interest/${coin_type}`);
 });
 
 

@@ -322,6 +322,7 @@ const optimizeParams = catchAsync(async (req, res) => {
       interval: interval || '4h',
       totalCapital: Number(totalCapital),
       optimizeTarget: optimizeTarget || 'profit',
+      enableBoundaryDefense: false,
       minTradeValue: minTradeValue ? Number(minTradeValue) : 20,
       maxTradeValue: maxTradeValue ? Number(maxTradeValue) : 100,
       apiKey,

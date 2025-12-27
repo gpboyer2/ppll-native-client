@@ -38,7 +38,7 @@ const createRobot = catchAsync(async (req, res) => {
   // 应该是先ws后入库？
   const tradeGrid = result && await robotService.createSymbolWebsocket(req.body).catch(err => { throw err; });
 
-  return sendSuccess(res, result, '创建机器人成功', 201);
+  return sendSuccess(res, result, '创建机器人成功');
 });
 
 

@@ -225,7 +225,7 @@ function killProcessOnPort(port) {
 const port = process.env.PORT || 54321;
 
 // 启动前清理占用端口的进程
-killProcessOnPort(port);
+killProcessOnPort(Number(port));
 
 const server = app.listen(port, () => {
   ipUtil.ipinfo();

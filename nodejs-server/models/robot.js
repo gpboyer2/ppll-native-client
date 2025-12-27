@@ -125,7 +125,7 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   robot.isEmailTaken = async (apiKey, excluderobotId) => {
-    const robot = await robot.findOne({
+    const robotRecord = await robot.findOne({
       where: {
         apiKey,
         robotId: {
@@ -133,7 +133,7 @@ module.exports = (sequelize, DataTypes) => {
         }
       }
     });
-    return robot;
+    return robotRecord;
   };
 
   return robot;

@@ -36,6 +36,8 @@
     "route/**/*.js",
     "models/**/*.js",
     "validations/**/*.js",
+    "plugin/**/*.js",
+    "managers/**/*.js",
     "app.js"
   ],
   "exclude": [

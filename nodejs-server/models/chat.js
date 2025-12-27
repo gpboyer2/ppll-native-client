@@ -70,7 +70,7 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   chat.isEmailTaken = async (apiKey, excludeChatId) => {
-    const chat = await chat.findOne({
+    const chatRecord = await chat.findOne({
       where: {
         apiKey,
         chatId: {
@@ -78,7 +78,7 @@ module.exports = (sequelize, DataTypes) => {
         }
       }
     });
-    return chat;
+    return chatRecord;
   };
 
   return chat;

@@ -87,7 +87,7 @@ const cleanupSubscriber = async (symbol, id, remark) => {
  * @param {string} params.position_side - 持仓方向
  * @returns {Promise<Object|null>} - 如果创建新策略则返回策略对象，否则返回null
  */
-const createGridStrategy = async (params) => {
+const createGridStrategy = async (/** @type {{api_key: string, api_secret: string, trading_pair: string, position_side: string, exchange_type?: string}} */ params) => {
   // 根据 api_key 和 api_secret 查询用户 ID
   const userId = await getUserIdByApiKey(params.api_key, params.api_secret);
   let validParams = sanitizeParams({ ...params, user_id: userId }, GridStrategy);

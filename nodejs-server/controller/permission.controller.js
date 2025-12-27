@@ -12,7 +12,7 @@ const { sendSuccess, sendError } = require("../utils/api-response");
  */
 const createPermission = catchAsync(async (req, res) => {
   const result = await permissionService.createPermission(req.body);
-  return sendSuccess(res, result, '创建权限成功', 201);
+  return sendSuccess(res, result, '创建权限成功');
 });
 
 /**

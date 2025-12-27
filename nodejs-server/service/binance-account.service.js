@@ -64,10 +64,29 @@ const createClient = (marketType, apiKey, apiSecret) => {
   return new ClientClass(options, requestOptions);
 };
 
-// 保留原有函数名以兼容现有调用
-const createSpotClient = (apiKey, apiSecret) => createClient('spot', apiKey, apiSecret);
-const createUSDMClient = (apiKey, apiSecret) => createClient('usdm', apiKey, apiSecret);
-const createCoinMClient = (apiKey, apiSecret) => createClient('coinm', apiKey, apiSecret);
+/**
+ * 创建现货客户端
+ * @param {string} apiKey - 用户API Key
+ * @param {string} apiSecret - 用户API Secret
+ * @returns {MainClient} 现货客户端实例
+ */
+const createSpotClient = (apiKey, apiSecret) => /** @type {MainClient} */ (createClient('spot', apiKey, apiSecret));
+
+/**
+ * 创建U本位合约客户端
+ * @param {string} apiKey - 用户API Key
+ * @param {string} apiSecret - 用户API Secret
+ * @returns {USDMClient} U本位合约客户端实例
+ */
+const createUSDMClient = (apiKey, apiSecret) => /** @type {USDMClient} */ (createClient('usdm', apiKey, apiSecret));
+
+/**
+ * 创建币本位合约客户端
+ * @param {string} apiKey - 用户API Key
+ * @param {string} apiSecret - 用户API Secret
+ * @returns {CoinMClient} 币本位合约客户端实例
+ */
+const createCoinMClient = (apiKey, apiSecret) => /** @type {CoinMClient} */ (createClient('coinm', apiKey, apiSecret));
 
 /**
  * 通用账户信息获取函数（内部使用）
@@ -191,7 +210,7 @@ const getSpotAccount = async (apiKey, apiSecret, userId, includeEmptyBalances = 
  * @returns {Promise<Object>} 币本位合约账户信息
  */
 const getCoinMFuturesAccount = async (apiKey, apiSecret, userId, includePositions = true) => {
-  return getAccountInfo('coinm', apiKey, apiSecret, userId, { includePositions });
+  return getAccountInfo('coinm', apiKey, apiSecret, userId, { includePositions, includeEmptyBalances: false });
 };
 
 /**
@@ -236,6 +255,7 @@ const getMaxLeverage = async (client, symbol) => {
     const response = await client.getNotionalAndLeverageBrackets({ symbol });
 
     // 处理不同的响应格式
+    /** @type {any[]} */
     let brackets = null;
     if (Array.isArray(response)) {
       brackets = response;
@@ -293,7 +313,7 @@ const batchSetLeverage = async (apiKey, apiSecret, leverageList, delay = 100) =>
 
     try {
       // 先获取交易对的最大支持杠杆倍数
-      const maxLeverage = await getMaxLeverage(client, symbol);
+      const maxLeverage = await getMaxLeverage(/** @type {import('binance').USDMClient} */ (client), symbol);
 
       // 如果获取到最大杠杆倍数，且用户设置的倍数超过最大值，则自动调整为最大值
       if (maxLeverage && requestedLeverage > maxLeverage) {
@@ -302,7 +322,7 @@ const batchSetLeverage = async (apiKey, apiSecret, leverageList, delay = 100) =>
       }
 
       // 调用 binance 包的 setLeverage 方法
-      const result = await client.setLeverage({
+      const result = await (/** @type {import('binance').USDMClient} */ (client)).setLeverage({
         symbol: symbol,
         leverage: actualLeverage
       });
@@ -326,7 +346,7 @@ const batchSetLeverage = async (apiKey, apiSecret, leverageList, delay = 100) =>
       // -4300: 新账户30天内最高20倍杠杆限制，自动降级重试
       if (error?.code === -4300 && actualLeverage > 20) {
         try {
-          const result = await client.setLeverage({ symbol, leverage: 20 });
+          const result = await (/** @type {import('binance').USDMClient} */ (client)).setLeverage({ symbol, leverage: 20 });
           results.push({
             symbol,
             leverage: 20,

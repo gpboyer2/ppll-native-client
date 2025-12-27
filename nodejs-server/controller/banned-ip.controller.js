@@ -70,7 +70,7 @@ const unbanIp = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.NOT_FOUND, '该IP未被封禁或记录不存在');
   }
 
-  return sendSuccess(res, null, '解封成功', 204);
+  return sendSuccess(res, null, '解封成功');
 });
 
 /**
@@ -98,7 +98,7 @@ const banIP = catchAsync(async (req, res) => {
     remark || ''
   );
 
-  return sendSuccess(res, bannedRecord, `IP ${ip} 已被永久封禁`, 201);
+  return sendSuccess(res, bannedRecord, `IP ${ip} 已被永久封禁`);
 });
 
 /**
@@ -200,7 +200,7 @@ const addTrustedIPAddress = catchAsync(async (req, res) => {
   return sendSuccess(res, {
     ip,
     trustedIPs: Array.from(TRUSTED_IPS)
-  }, `IP ${ip} 已添加到可信列表`, 201);
+  }, `IP ${ip} 已添加到可信列表`);
 });
 
 /**

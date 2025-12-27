@@ -15,7 +15,7 @@ const markPriceService = require("../service/mark-price.service.js");
  */
 const createMarkPrice = catchAsync(async (req, res) => {
   const markPrice = await markPriceService.createMarkPrice(req.body);
-  return sendSuccess(res, markPrice, '创建成功', 201);
+  return sendSuccess(res, markPrice, '创建成功');
 });
 
 /**
@@ -41,7 +41,7 @@ const updateMarkPrice = catchAsync(async (req, res) => {
  */
 const deleteMarkPrice = catchAsync(async (req, res) => {
   await markPriceService.deleteMarkPriceById(req.body.id);
-  return sendSuccess(res, null, '删除成功', 204);
+  return sendSuccess(res, null, '删除成功');
 });
 
 module.exports = {

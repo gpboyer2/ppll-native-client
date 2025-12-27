@@ -28,7 +28,7 @@ const detail = catchAsync(async (req, res) => {
 // 新增（可选：仅管理员）
 const create = catchAsync(async (req, res) => {
   const data = await service.create(req.body || {});
-  return sendSuccess(res, data, '创建登录日志成功', 201);
+  return sendSuccess(res, data, '创建登录日志成功');
 });
 
 // 更新

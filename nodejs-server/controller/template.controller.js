@@ -24,7 +24,7 @@ const createOrder = catchAsync(async (req, res) => {
     return sendError(res, errorMsg.msg, 400);
   }
 
-  return sendSuccess(res, result, '创建订单成功', 201);
+  return sendSuccess(res, result, '创建订单成功');
 });
 
 const updateOrder = catchAsync(async (req, res) => {
@@ -54,7 +54,7 @@ const deleteOrder = catchAsync(async (req, res) => {
   if (!deleted) {
     return sendError(res, '订单不存在', 404);
   }
-  return sendSuccess(res, null, '删除订单成功', 204);
+  return sendSuccess(res, null, '删除订单成功');
 });
 
 // 列表查询（分页 + 过滤）

@@ -11,7 +11,6 @@ const { getProxyConfig } = require('../utils/proxy.js');
 const UtilRecord = require('../utils/record-log.js');
 const StrategyLog = require('../utils/strategy-log.js');
 const { USDMClient } = require('binance');
-const { normalizeDatatypes } = require('../utils/data-types.ts');
 const binancePrecision = require('../utils/binance-precision');
 const db = require('../models');
 const binanceAccountService = require('../service/binance-account.service.js');

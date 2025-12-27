@@ -16,7 +16,7 @@ const chat = catchAsync((req, res) => {
 const signUp = catchAsync(async (req, res) => {
   const chat = await chatService.createChat(req.body);
   if (chat) {
-    return sendSuccess(res, { chat }, '注册聊天成功', 201);
+    return sendSuccess(res, { chat }, '注册聊天成功');
   }
   return sendError(res, '聊天已存在', 409);
 });
@@ -43,7 +43,7 @@ const sendMessage = catchAsync(async (req, res) => {
   }
 
   if (result?.dataValues) {
-    return sendSuccess(res, result?.dataValues, '发送消息成功', 201);
+    return sendSuccess(res, result?.dataValues, '发送消息成功');
   }
 
   return sendError(res, '发送消息失败', 500);
@@ -100,7 +100,7 @@ const deleteChat = catchAsync(async (req, res) => {
   if (!deleted) {
     return sendError(res, '聊天不存在', 404);
   }
-  return sendSuccess(res, null, '删除聊天成功', 204);
+  return sendSuccess(res, null, '删除聊天成功');
 });
 
 const getAllChats = catchAsync(async (req, res) => {

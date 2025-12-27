@@ -191,7 +191,7 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   order.isEmailTaken = async (email, excludeOrderId) => {
-    const order = await order.findOne({
+    const orderRecord = await order.findOne({
       where: {
         email,
         orderId: {
@@ -199,7 +199,7 @@ module.exports = (sequelize, DataTypes) => {
         }
       }
     });
-    return order;
+    return orderRecord;
   };
 
   order.isPasswordMatch = async (password, hash) => {

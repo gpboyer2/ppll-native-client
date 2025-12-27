@@ -156,13 +156,12 @@ const batchInspect = catchAsync(async (req, res) => {
   }
 });
 
-
 /**
  * 简化批量建仓（按价值下单）- 新增优化版本
  */
 const simpleBatchBuildPosition = catchAsync(async (req, res) => {
   const { apiKey, apiSecret, longAmount, shortAmount, positions } = req.body;
-  const result = await ordersService.simpleBatchBuildPosition(apiKey, apiSecret, longAmount, shortAmount, positions);
+  const result = await ordersService.batchBuildPosition(apiKey, apiSecret, longAmount, shortAmount, positions);
 
   return sendSuccess(res, {
     ...result,
@@ -183,7 +182,7 @@ const simpleBatchBuildPosition = catchAsync(async (req, res) => {
  */
 const simpleCustomBuildPosition = catchAsync(async (req, res) => {
   const { apiKey, apiSecret, positions } = req.body;
-  const result = await ordersService.simpleCustomBuildPosition(apiKey, apiSecret, positions);
+  const result = await ordersService.customBuildPosition(apiKey, apiSecret, positions);
 
   return sendSuccess(res, {
     ...result,

@@ -27,14 +27,14 @@ const detail = catchAsync(async (req, res) => {
 // 新增单条操作日志（复用 analytics.service 写入逻辑）
 const create = catchAsync(async (req, res) => {
   const data = await service.create(req);
-  return sendSuccess(res, data, '创建操作日志成功', 201);
+  return sendSuccess(res, data, '创建操作日志成功');
 });
 
 // 批量新增操作日志（复用 analytics.service 写入逻辑）
 const batchCreate = catchAsync(async (req, res) => {
   const logs = Array.isArray(req.body?.logs) ? req.body.logs : [];
   const data = await service.batchCreate(req, logs);
-  return sendSuccess(res, data, '批量创建操作日志成功', 201);
+  return sendSuccess(res, data, '批量创建操作日志成功');
 });
 
 // 删除（仅管理员使用）
