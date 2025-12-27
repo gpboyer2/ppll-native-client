@@ -183,7 +183,7 @@ export const feedURLExamples = [
   },
   {
     name: 'PPLL 官方源',
-    url: 'https://update.ppll.com/api/v1/releases/stable',
+    url: 'https://update.ppll.com/api/api/v1/releases/stable',
     description: 'PPLL 官方更新源'
   },
   {

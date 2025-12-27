@@ -163,8 +163,8 @@ function SettingsPage() {
             }
 
             const url = editingApiKey
-                ? `${nodejsUrl}/v1/binance-api-key/update`
-                : `${nodejsUrl}/v1/binance-api-key/create`;
+                ? `${nodejsUrl}/api/v1/binance-api-key/update`
+                : `${nodejsUrl}/api/v1/binance-api-key/create`;
 
             const body = editingApiKey
                 ? {
@@ -225,7 +225,7 @@ function SettingsPage() {
                 nodejsUrl = await GetNodejsServiceURL(); // 桌面客户端模式
             }
 
-            const response = await fetch(`${nodejsUrl}/v1/binance-api-key/delete`, {
+            const response = await fetch(`${nodejsUrl}/api/v1/binance-api-key/delete`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

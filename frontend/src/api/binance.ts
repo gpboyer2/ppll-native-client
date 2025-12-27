@@ -27,7 +27,7 @@ export class BinanceApi {
    */
   static async getUmAccountInfo(request: AccountInfoRequest): Promise<Response<BinanceApiResponse<AccountInfo>>> {
     return RequestWrapper.post<BinanceApiResponse<AccountInfo>>(
-      `${this.BASE_URL}/v1/dashboard/account`,
+      `${this.BASE_URL}/api/v1/dashboard/account`,
       request
     )
   }
@@ -44,7 +44,7 @@ export class BinanceApi {
    */
   static async customBuildPosition(request: CustomBuildPositionRequest): Promise<Response<BinanceApiResponse<OperationResult>>> {
     return RequestWrapper.post<BinanceApiResponse<OperationResult>>(
-      `${this.BASE_URL}/v1/orders/custom-build-position`,
+      `${this.BASE_URL}/api/v1/orders/custom-build-position`,
       request
     )
   }
@@ -59,7 +59,7 @@ export class BinanceApi {
    */
   static async batchClosePosition(request: BatchClosePositionRequest): Promise<Response<BinanceApiResponse<ClosePositionResponse>>> {
     return RequestWrapper.post<BinanceApiResponse<ClosePositionResponse>>(
-      `${this.BASE_URL}/v1/orders/batch-close-position`,
+      `${this.BASE_URL}/api/v1/orders/batch-close-position`,
       request
     )
   }

@@ -56,9 +56,9 @@ function SystemInfoPage() {
                             <InfoItem label="API 地址" value={staticInfo.nodejsUrl} />
                             <InfoItem
                                 label="API 文档"
-                                value={`${staticInfo.nodejsUrl}/v1/docs`}
+                                value={`${staticInfo.nodejsUrl}/api/v1/docs`}
                                 type="link"
-                                onClick={() => window.open(`${staticInfo.nodejsUrl}/v1/docs`, '_blank')}
+                                onClick={() => window.open(`${staticInfo.nodejsUrl}/api/v1/docs`, '_blank')}
                             />
                         </div>
                     </div>

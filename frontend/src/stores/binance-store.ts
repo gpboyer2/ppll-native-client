@@ -121,7 +121,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
                 headers['Authorization'] = `Bearer ${authToken}`;
             }
 
-            const response = await fetch(`${nodejsUrl}/v1/binance-api-key/query`, {
+            const response = await fetch(`${nodejsUrl}/api/v1/binance-api-key/query`, {
                 method: 'GET',
                 headers
             });
@@ -155,7 +155,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         const apiKey = apiKeyList[0];
 
         try {
-            const url = new URL(`${nodejsUrl}/v1/binance-exchange-info`);
+            const url = new URL(`${nodejsUrl}/api/v1/binance-exchange-info`);
             url.searchParams.append('apiKey', apiKey.apiKey);
             url.searchParams.append('apiSecret', apiKey.secretKey);
 

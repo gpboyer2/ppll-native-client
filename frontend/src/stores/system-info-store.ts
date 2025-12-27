@@ -218,9 +218,9 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
                     for (let i = 0; i < 60; i++) {
                         try {
                             const [ipResponse, gitResponse, healthResponse] = await Promise.allSettled([
-                                fetch(`${nodejsUrl}/v1/system/ipv4-list`),
-                                fetch(`${nodejsUrl}/v1/system/git-info`),
-                                fetch(`${nodejsUrl}/v1/system/health`)
+                                fetch(`${nodejsUrl}/api/v1/system/ipv4-list`),
+                                fetch(`${nodejsUrl}/api/v1/system/git-info`),
+                                fetch(`${nodejsUrl}/api/v1/system/health`)
                             ]);
 
                             if (ipResponse.status === 'fulfilled' && ipResponse.value) {
@@ -276,7 +276,7 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
                     if (!store.initialized || !store.staticInfo?.nodejsUrl) return;
 
                     try {
-                        const response = await fetch(`${store.staticInfo.nodejsUrl}/v1/system/health`);
+                        const response = await fetch(`${store.staticInfo.nodejsUrl}/api/v1/system/health`);
                         if (response.ok) {
                             const result = await response.json();
                             if (result.code === 200 && result.data) {
@@ -307,7 +307,7 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
         if (!store.staticInfo?.nodejsUrl) return;
 
         try {
-            const response = await fetch(`${store.staticInfo.nodejsUrl}/v1/system/health`);
+            const response = await fetch(`${store.staticInfo.nodejsUrl}/api/v1/system/health`);
             if (response.ok) {
                 const result = await response.json();
                 if (result.code === 200 && result.data) {
