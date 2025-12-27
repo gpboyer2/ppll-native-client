@@ -32,8 +32,8 @@ function filterSwaggerByModule(swaggerSpec, module) {
 
     // 过滤路径，只保留属于指定模块的路径
     for (const [path, methods] of Object.entries(swaggerSpec.paths || {})) {
-        // 匹配 /v1/module 或 /v1/module/ 开头的路径
-        const modulePattern = new RegExp(`^/v1/${module}(/|$)`);
+        // 匹配 /api/v1/module 或 /api/v1/module/ 开头的路径
+        const modulePattern = new RegExp(`^/api/v1/${module}(/|$)`);
         if (modulePattern.test(path)) {
             filteredPaths[path] = methods;
         }
@@ -47,12 +47,12 @@ function filterSwaggerByModule(swaggerSpec, module) {
 }
 
 function swaggerDocs(app, port) {
-    console.log(`:::::::::::::::: SWAGGER RUNNING ON http://localhost:${port}/v1/docs`)
-    console.log(`:::::::::::::::: 模块过滤示例: http://localhost:${port}/v1/docs?module=user`)
-    console.log(`:::::::::::::::: 完整文档(JSON): http://localhost:${port}/v1/docs-json?module=user`)
+    console.log(`:::::::::::::::: SWAGGER RUNNING ON http://localhost:${port}/api/v1/docs`)
+    console.log(`:::::::::::::::: 模块过滤示例: http://localhost:${port}/api/v1/docs?module=user`)
+    console.log(`:::::::::::::::: 完整文档(JSON): http://localhost:${port}/api/v1/docs-json?module=user`)
 
     // Swagger Page For API V1
-    app.use('/v1/docs', swaggerUi.serve, (req, res, next) => {
+    app.use('/api/v1/docs', swaggerUi.serve, (req, res, next) => {
         const module = req.query.module;
         const filteredSpec = filterSwaggerByModule(swaggerSpecV1, module);
 
@@ -100,13 +100,13 @@ function swaggerDocs(app, port) {
                     return response;
                 }
                 // 移除自定义URL配置，让Swagger UI自动处理
-                // url: `http://localhost:${port}/v1/docs-json${module ? `?module=${module}` : ''}`
+                // url: `http://localhost:${port}/api/v1/docs-json${module ? `?module=${module}` : ''}`
             }
         })(req, res, next);
     })
 
     // Documentation in JSON format
-    app.get('/v1/docs-json', (req, res) => {
+    app.get('/api/v1/docs-json', (req, res) => {
         const module = req.query.module;
         const filteredSpec = filterSwaggerByModule(swaggerSpecV1, module);
 

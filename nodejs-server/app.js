@@ -2,7 +2,9 @@
  * 主应用程序入口文件
  * 配置Express服务器，设置中间件、路由和WebSocket连接
  */
-require("dotenv").config({ path: `.env.${process.env.NODE_ENV}` });
+// 优先加载环境变量:支持 NODE_ENV 指定,默认 development
+const env = process.env.NODE_ENV || 'development';
+require("dotenv").config({ path: `.env.${env}` });
 
 const express = require("express");
 const app = express();
