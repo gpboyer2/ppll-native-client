@@ -1,6 +1,7 @@
 import { apiClient } from './client'
 import { Response, ok } from '../core/response'
 import { getStaticInfo } from '../stores/system-info-store'
+import dayjs from 'dayjs'
 
 /**
  * 获取 Node.js 服务 URL
@@ -53,9 +54,11 @@ class RequestLogger {
     if (!this.ENABLED) return 0
 
     const requestId = ++this.requestId
+    const timestamp = dayjs().format('HH:mm:ss.SSS')
 
     console.log(
-      `%c[请求 #${requestId}]`,
+      `%c[${timestamp}] %c[请求 #${requestId}]`,
+      'color: #999',
       'color: #0066cc; font-weight: bold',
       `\n${method} ${url}`
     )
@@ -73,9 +76,11 @@ class RequestLogger {
     if (!this.ENABLED) return
 
     const duration = Date.now() - startTime
+    const timestamp = dayjs().format('HH:mm:ss.SSS')
 
     console.log(
-      `%c[响应 #${requestId}]`,
+      `%c[${timestamp}] %c[响应 #${requestId}]`,
+      'color: #999',
       'color: #009966; font-weight: bold',
       `耗时: ${duration}ms`
     )
@@ -104,9 +109,11 @@ class RequestLogger {
     if (!this.ENABLED) return
 
     const duration = Date.now() - startTime
+    const timestamp = dayjs().format('HH:mm:ss.SSS')
 
     console.error(
-      `%c[错误 #${requestId}]`,
+      `%c[${timestamp}] %c[错误 #${requestId}]`,
+      'color: #999',
       'color: #cc0000; font-weight: bold',
       `耗时: ${duration}ms`,
       '\n错误:',
