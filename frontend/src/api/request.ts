@@ -60,13 +60,7 @@ class RequestLogger {
       `\n${method} ${url}`
     )
 
-    if (params && Object.keys(params).length > 0) {
-      console.log('%cQuery Params:', 'color: #666; font-weight: bold', this.filterSensitive(params))
-    }
-
-    if (data && Object.keys(data).length > 0) {
-      console.log('%cRequest Body:', 'color: #666; font-weight: bold', this.filterSensitive(data))
-    }
+    console.log(`%c #${requestId} Params/Body:`, 'color: #666; font-weight: bold', this.truncateLog(params || data))
 
     return requestId
   }
@@ -123,11 +117,15 @@ class RequestLogger {
    * 截断日志内容到指定长度
    */
   private static truncateLog(data: any, maxLength: number = 1000): string {
-    const logStr = JSON.stringify(data, null, 2)
-    if (logStr.length <= maxLength) {
-      return logStr
+    try {
+      const logStr = JSON.stringify(data, null, 2)
+      if (logStr.length <= maxLength) {
+        return logStr
+      }
+      return logStr.substring(0, maxLength) + `\n... (省略 ${logStr.length - maxLength} 字符)`
+    } catch {
+      return data
     }
-    return logStr.substring(0, maxLength) + `\n... (省略 ${logStr.length - maxLength} 字符)`
   }
 }
 
