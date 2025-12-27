@@ -89,12 +89,12 @@ func (s *UpdateService) SaveConfig(cfg UpdateConfig) Response[any] {
     m, err := s.store.LoadMap()
     if err != nil {
         s.log.Error("load update config", "err", err)
-        return Err[any](1, "读取更新配置失败")
+        return Err[any]("读取更新配置失败")
     }
     m["update"] = cfg
     if err := s.store.SaveMap(m); err != nil {
         s.log.Error("save update config", "err", err)
-        return Err[any](1, "保存更新配置失败")
+        return Err[any]("保存更新配置失败")
     }
     return Ok[any](nil)
 }
@@ -116,7 +116,7 @@ func (s *UpdateService) loop() {
 // CheckNow 立即检查更新（最小实现：仅访问接口并透传字段）
 func (s *UpdateService) CheckNow() Response[UpdateInfo] {
     if s.config.FeedURL == "" {
-        return Err[UpdateInfo](2, "未配置更新源")
+        return Err[UpdateInfo]("未配置更新源")
     }
     // 这里为最小骨架：GET feedURL，期望返回 UpdateInfo 格式 JSON（带重试）
     // 支持以逗号分隔的多个 FeedURL，按顺序尝试
@@ -145,7 +145,7 @@ func (s *UpdateService) CheckNow() Response[UpdateInfo] {
     if err != nil && info.Version == "" && info.URL == "" && !info.Available {
         s.log.Error("check update", "err", lastErr)
         wruntime.EventsEmit(s.ctx, "update:error", fmt.Sprintf("%v", lastErr))
-        return Err[UpdateInfo](3, "检查更新失败")
+        return Err[UpdateInfo]("检查更新失败")
     }
     if info.Available {
         wruntime.EventsEmit(s.ctx, "update:available", info)
@@ -159,7 +159,7 @@ func (s *UpdateService) CheckNow() Response[UpdateInfo] {
 // Download 下载更新（最小实现：请求并汇报进度，不落盘具体安装器）
 func (s *UpdateService) Download(info UpdateInfo) Response[any] {
     if !info.Available || info.URL == "" {
-        return Err[any](6, "无可用更新")
+        return Err[any]("无可用更新")
     }
     // 断点续传骨架：检测分片文件并设置 Range
     partPath, existSize := s.partialPath(info.Version)
@@ -172,18 +172,18 @@ func (s *UpdateService) Download(info UpdateInfo) Response[any] {
     }
     if err := os.MkdirAll(filepath.Dir(partPath), 0o755); err != nil {
         wruntime.EventsEmit(s.ctx, "update:error", "临时目录创建失败")
-        return Err[any](9, "临时目录创建失败")
+        return Err[any]("临时目录创建失败")
     }
     client := GetHTTPClient()
     resp, err := client.Do(req)
     if err != nil {
         wruntime.EventsEmit(s.ctx, "update:error", fmt.Sprintf("%v", err))
-        return Err[any](7, "下载失败")
+        return Err[any]("下载失败")
     }
     defer resp.Body.Close()
     if resp.StatusCode != 200 && resp.StatusCode != 206 {
         wruntime.EventsEmit(s.ctx, "update:error", fmt.Sprintf("status %d", resp.StatusCode))
-        return Err[any](8, "下载响应异常")
+        return Err[any]("下载响应异常")
     }
     // 打开临时分片文件
     var f *os.File
@@ -195,7 +195,7 @@ func (s *UpdateService) Download(info UpdateInfo) Response[any] {
     }
     if err != nil {
         wruntime.EventsEmit(s.ctx, "update:error", "临时文件创建失败")
-        return Err[any](9, "临时文件创建失败")
+        return Err[any]("临时文件创建失败")
     }
     defer f.Close()
 
@@ -221,7 +221,7 @@ func (s *UpdateService) Download(info UpdateInfo) Response[any] {
         if n > 0 {
             if _, werr := f.Write(buf[:n]); werr != nil {
                 wruntime.EventsEmit(s.ctx, "update:error", "写入临时文件失败")
-                return Err[any](10, "写入临时文件失败")
+                return Err[any]("写入临时文件失败")
             }
             h.Write(buf[:n])
             received += int64(n)
@@ -233,7 +233,7 @@ func (s *UpdateService) Download(info UpdateInfo) Response[any] {
         }
         if rerr != nil {
             if errors.Is(rerr, context.Canceled) {
-                return Err[any](11, "下载已取消")
+                return Err[any]("下载已取消")
             }
             if !errors.Is(rerr, context.DeadlineExceeded) && rerr.Error() != "EOF" {
                 break
@@ -246,7 +246,7 @@ func (s *UpdateService) Download(info UpdateInfo) Response[any] {
         sum := hex.EncodeToString(h.Sum(nil))
         if !equalMD5(sum, info.MD5) {
             wruntime.EventsEmit(s.ctx, "update:error", "MD5 校验失败")
-            return Err[any](12, "MD5 校验失败")
+            return Err[any]("MD5 校验失败")
         }
     }
     // 标记“已下载”，根据策略派发事件

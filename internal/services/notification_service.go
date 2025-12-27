@@ -40,7 +40,7 @@ func (s *NotificationService) Push(n Notification) Response[Notification] {
 // Dismiss 撤销通知
 func (s *NotificationService) Dismiss(id string) Response[any] {
     if id == "" {
-        return Err[any](1, "无效的通知ID")
+        return Err[any]("无效的通知ID")
     }
     runtime.EventsEmit(s.ctx, "notify:dismiss", map[string]string{"id": id})
     return Ok[any](nil)

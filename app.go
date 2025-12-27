@@ -228,11 +228,11 @@ func (a *App) GetNodejsServiceStatus() map[string]any {
 // RestartNodejsService 重启 Node.js 服务
 func (a *App) RestartNodejsService() services.Response[any] {
     if a.njs == nil {
-        return services.Err[any](1, "Node.js 服务未初始化")
+        return services.Err[any]("Node.js 服务未初始化")
     }
 
     if err := a.njs.Restart(); err != nil {
-        return services.Err[any](1, "重启失败: "+err.Error())
+        return services.Err[any]("重启失败: "+err.Error())
     }
 
     return services.Ok[any](nil)
@@ -243,7 +243,7 @@ func (a *App) RestartNodejsService() services.Response[any] {
 // UpdateSaveConfig 保存更新配置（feedURL/策略等）
 func (a *App) UpdateSaveConfig(cfg services.UpdateConfig) services.Response[any] {
     if a.us == nil {
-        return services.Err[any](1, "更新服务未初始化")
+        return services.Err[any]("更新服务未初始化")
     }
     return a.us.SaveConfig(cfg)
 }
@@ -251,7 +251,7 @@ func (a *App) UpdateSaveConfig(cfg services.UpdateConfig) services.Response[any]
 // UpdateCheckNow 立即检查更新
 func (a *App) UpdateCheckNow() services.Response[services.UpdateInfo] {
     if a.us == nil {
-        return services.Err[services.UpdateInfo](1, "更新服务未初始化")
+        return services.Err[services.UpdateInfo]("更新服务未初始化")
     }
     return a.us.CheckNow()
 }
@@ -259,7 +259,7 @@ func (a *App) UpdateCheckNow() services.Response[services.UpdateInfo] {
 // UpdateApplyOnNextStart 标记下次启动应用更新
 func (a *App) UpdateApplyOnNextStart() services.Response[any] {
     if a.us == nil {
-        return services.Err[any](1, "更新服务未初始化")
+        return services.Err[any]("更新服务未初始化")
     }
     return a.us.ApplyOnNextStart()
 }
@@ -269,7 +269,7 @@ func (a *App) UpdateApplyOnNextStart() services.Response[any] {
 // NotifyPush 发送应用内通知
 func (a *App) NotifyPush(n services.Notification) services.Response[services.Notification] {
     if a.ns == nil {
-        return services.Err[services.Notification](1, "通知服务未初始化")
+        return services.Err[services.Notification]("通知服务未初始化")
     }
     return a.ns.Push(n)
 }
@@ -277,7 +277,7 @@ func (a *App) NotifyPush(n services.Notification) services.Response[services.Not
 // NotifyDismiss 撤销通知
 func (a *App) NotifyDismiss(id string) services.Response[any] {
     if a.ns == nil {
-        return services.Err[any](1, "通知服务未初始化")
+        return services.Err[any]("通知服务未初始化")
     }
     return a.ns.Dismiss(id)
 }
@@ -288,7 +288,7 @@ func (a *App) NotifyDismiss(id string) services.Response[any] {
 // PluginGetConfig 读取插件运行时配置（如API密钥等敏感信息）
 func (a *App) PluginGetConfig(id string) services.Response[map[string]any] {
     if a.ps == nil {
-        return services.Err[map[string]any](1, "插件服务未初始化")
+        return services.Err[map[string]any]("插件服务未初始化")
     }
     return a.ps.GetConfig(id)
 }
@@ -296,7 +296,7 @@ func (a *App) PluginGetConfig(id string) services.Response[map[string]any] {
 // PluginSaveConfig 保存插件运行时配置（如API密钥等敏感信息）
 func (a *App) PluginSaveConfig(id string, cfg map[string]any) services.Response[any] {
     if a.ps == nil {
-        return services.Err[any](1, "插件服务未初始化")
+        return services.Err[any]("插件服务未初始化")
     }
     return a.ps.SaveConfig(id, cfg)
 }

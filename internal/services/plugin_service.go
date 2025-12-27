@@ -24,12 +24,12 @@ func NewPluginService(ctx context.Context, logger *slog.Logger, store *ConfigSto
 // GetConfig 读取指定插件的配置（加密持久化存储）
 func (s *PluginService) GetConfig(id string) Response[map[string]any] {
     if id == "" {
-        return Err[map[string]any](1, "无效插件ID")
+        return Err[map[string]any]("无效插件ID")
     }
     m, err := s.store.LoadMap()
     if err != nil {
         s.log.Error("load plugin config", "err", err)
-        return Err[map[string]any](2, "读取配置失败")
+        return Err[map[string]any]("读取配置失败")
     }
     raw, ok := m["pluginConfig"]
     if !ok {
@@ -49,12 +49,12 @@ func (s *PluginService) GetConfig(id string) Response[map[string]any] {
 // SaveConfig 保存指定插件的配置
 func (s *PluginService) SaveConfig(id string, cfg map[string]any) Response[any] {
     if id == "" {
-        return Err[any](1, "无效插件ID")
+        return Err[any]("无效插件ID")
     }
     m, err := s.store.LoadMap()
     if err != nil {
         s.log.Error("load plugin config", "err", err)
-        return Err[any](2, "读取配置失败")
+        return Err[any]("读取配置失败")
     }
     var mm map[string]map[string]any
     if raw, ok := m["pluginConfig"]; ok {
@@ -68,7 +68,7 @@ func (s *PluginService) SaveConfig(id string, cfg map[string]any) Response[any] 
     m["pluginConfig"] = mm
     if err := s.store.SaveMap(m); err != nil {
         s.log.Error("save plugin config", "err", err)
-        return Err[any](3, "保存配置失败")
+        return Err[any]("保存配置失败")
     }
     runtime.EventsEmit(s.ctx, "plugin:config", map[string]any{"id": id})
     return Ok[any](nil)

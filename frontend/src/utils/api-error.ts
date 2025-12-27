@@ -7,8 +7,7 @@ import type { Response } from '../core/response'
 export class ApiError extends Error {
   constructor(
     public status: 'error',
-    message: string,
-    public traceID?: string
+    message: string
   ) {
     super(message)
     this.name = 'ApiError'
@@ -70,7 +69,7 @@ export function handleResponse<T>(response: Response<T>, options?: NotifyOptions
     if (options?.show !== false) {
       showError(response.message, options)
     }
-    throw new ApiError(response.status, response.message, response.traceID)
+    throw new ApiError(response.status, response.message)
   }
   return response.data as T
 }
@@ -82,7 +81,7 @@ export function handleResponse<T>(response: Response<T>, options?: NotifyOptions
  */
 export function handleResponseSilent<T>(response: Response<T>): T {
   if (response.status === 'error') {
-    throw new ApiError(response.status, response.message, response.traceID)
+    throw new ApiError(response.status, response.message)
   }
   return response.data as T
 }
