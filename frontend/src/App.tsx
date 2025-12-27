@@ -48,7 +48,7 @@ function RouteLogger() {
 function ApiKeyGuard({ children }: { children: React.ReactNode }) {
     const location = useLocation();
     const navigate = useNavigate();
-    const { apiKeyList, isInitializing, init } = useBinanceStore();
+    const { apiKeyList, initialized, init } = useBinanceStore();
     const hasShownNotification = useRef(false);
 
     useEffect(() => {
@@ -57,8 +57,8 @@ function ApiKeyGuard({ children }: { children: React.ReactNode }) {
     }, [init]);
 
     useEffect(() => {
-        // 如果正在初始化，等待完成
-        if (isInitializing) {
+        // 如果未完成初始化，等待完成
+        if (!initialized) {
             return;
         }
 
@@ -86,7 +86,7 @@ function ApiKeyGuard({ children }: { children: React.ReactNode }) {
             // 重置标志位，以便下次删除所有 API Key 后能再次显示通知
             hasShownNotification.current = false;
         }
-    }, [apiKeyList.length, isInitializing, location.pathname, navigate]);
+    }, [apiKeyList.length, initialized, location.pathname, navigate]);
 
     return <>{children}</>;
 }

@@ -455,7 +455,7 @@ function SettingsPage() {
                                 checked={autoCheck}
                                 onChange={e => setAutoCheck(e.target.checked)}
                             />
-                            <span>自动检查更新</span>
+                            <span style={{ color: 'var(--color-text)' }}>自动检查更新</span>
                         </label>
 
                         <div className="flex items-center gap-8">
@@ -477,7 +477,7 @@ function SettingsPage() {
                                 checked={autoDownload}
                                 onChange={e => setAutoDownload(e.target.checked)}
                             />
-                            <span>自动下载更新</span>
+                            <span style={{ color: 'var(--color-text)' }}>自动下载更新</span>
                         </label>
 
                         <label className="flex items-center gap-8">
@@ -486,7 +486,7 @@ function SettingsPage() {
                                 checked={silentInstall}
                                 onChange={e => setSilentInstall(e.target.checked)}
                             />
-                            <span>静默安装</span>
+                            <span style={{ color: 'var(--color-text)' }}>静默安装</span>
                         </label>
                     </div>
 
