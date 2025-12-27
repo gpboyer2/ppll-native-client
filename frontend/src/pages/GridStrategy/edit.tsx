@@ -38,6 +38,18 @@ function GridStrategyEditPage() {
         }
     }, [isEditing, id]);
 
+    // 当交易对列表加载完成后，设置默认交易对为 BTCUSDT
+    useEffect(() => {
+        // 只在新建模式下，且交易对列表已加载，且当前交易对为空时设置默认值
+        if (!isEditing && usdtPairs.length > 0 && !formData.tradingPair) {
+            // 精确匹配 BTCUSDT
+            if (usdtPairs.includes('BTCUSDT')) {
+                setFormData(prev => ({ ...prev, tradingPair: 'BTCUSDT' }));
+                console.log('已设置默认交易对: BTCUSDT');
+            }
+        }
+    }, [usdtPairs, isEditing, formData.tradingPair]);
+
     // 加载策略数据
     function loadStrategy(strategyId: string) {
         try {
