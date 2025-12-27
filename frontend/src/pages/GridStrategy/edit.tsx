@@ -50,6 +50,22 @@ function GridStrategyEditPage() {
         }
     }, [usdtPairs, isEditing, formData.tradingPair]);
 
+    // 当 API Key 列表加载完成后，自动选择第一个作为默认值
+    useEffect(() => {
+        // 只在新建模式下，且 API Key 列表已加载，且当前未选择 API Key 时设置默认值
+        if (!isEditing && apiKeyList.length > 0 && !formData._apiKeyId) {
+            const firstApiKey = apiKeyList[0];
+            // 直接设置 API Key 和 Secret
+            setFormData(prev => ({
+                ...prev,
+                apiKey: firstApiKey.apiKey,
+                apiSecret: firstApiKey.secretKey,
+                _apiKeyId: firstApiKey.id
+            }));
+            console.log('已设置默认 API Key:', firstApiKey.name, `(${firstApiKey.apiKey.substring(0, 8)}...)`);
+        }
+    }, [apiKeyList, isEditing, formData._apiKeyId]);
+
     // 加载策略数据
     function loadStrategy(strategyId: string) {
         try {
