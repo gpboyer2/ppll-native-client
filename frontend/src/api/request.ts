@@ -41,7 +41,7 @@ export class RequestWrapper {
       return {
         status: 'error',
         message: error.message || '网络请求失败',
-        data: null
+        data: undefined
       }
     }
   }

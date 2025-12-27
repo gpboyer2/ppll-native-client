@@ -354,9 +354,8 @@ function rateLimitMiddleware() {
       if (isBanned) {
         return res.status(429).json({
           status: 'error',
-          code: 429,
-          error: '访问过于频繁，IP已被永久封禁',
-          message: 'Too many requests. IP permanently banned.'
+          message: '访问过于频繁，IP已被永久封禁',
+          data: null
         });
       }
 
@@ -367,9 +366,8 @@ function rateLimitMiddleware() {
         await banIP(ip);
         return res.status(429).json({
           status: 'error',
-          code: 429,
-          error: '访问过于频繁，IP已被永久封禁',
-          message: 'Too many requests. IP permanently banned.'
+          message: '访问过于频繁，IP已被永久封禁',
+          data: null
         });
       }
 
@@ -385,9 +383,8 @@ function rateLimitMiddleware() {
         if (isOverLimit) {
           return res.status(429).json({
             status: 'error',
-            code: 429,
-            error: '访问过于频繁，请稍后再试',
-            message: 'Too many requests. Please try again later.'
+            message: '访问过于频繁，请稍后再试',
+            data: null
           });
         }
       }

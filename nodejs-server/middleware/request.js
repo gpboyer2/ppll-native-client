@@ -44,7 +44,7 @@ const limiter = rateLimit({
   },
   skipFailedRequests: true,
   handler: (req, res) => {
-    res.status(429).json({ message: "请求过于频繁，请稍后再试", code: 429 });
+    res.status(429).json({ status: "error", message: "请求过于频繁，请稍后再试", data: null });
   },
 });
 
