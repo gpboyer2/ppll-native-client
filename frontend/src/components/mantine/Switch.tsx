@@ -8,48 +8,24 @@ import { PPLLMantineProvider } from '../../core/MantineProvider';
  * 特性：
  * - 自动包装 MantineProvider，样式隔离
  * - 预配置项目主题颜色和样式
+ * - onChange 直接传递 checked 值（与 Mantine 原生行为一致）
  */
-
-// 开关样式配置
-const switchStyles = {
-    input: {
-        backgroundColor: 'var(--color-bg-muted)',
-        borderColor: 'var(--color-border)',
-        cursor: 'pointer',
-        '&:checked': {
-            backgroundColor: 'var(--color-primary)',
-        }
-    },
-    track: {
-        borderColor: 'var(--color-border)',
-        cursor: 'pointer'
-    },
-    thumb: {
-        backgroundColor: 'var(--color-text)',
-        border: '1px solid var(--color-border)'
-    }
-};
 
 /**
  * 开关
+ * 直接使用 Mantine 的行为，onChange 接收 (checked: boolean) => void
  */
-export interface SwitchProps extends Omit<MantineSwitchProps, 'onChange'> {
+export type SwitchProps = Omit<MantineSwitchProps, 'onChange'> & {
     onChange?: (checked: boolean) => void;
-}
+};
 
 export function Switch(props: SwitchProps) {
     const { onChange, ...rest } = props;
-    // 适配器：将值处理函数转换为事件处理器
-    const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange?.(event.target.checked);
-    }, [onChange]);
-
     return (
         <PPLLMantineProvider>
             <MantineSwitch
                 {...rest}
-                onChange={handleChange}
-                styles={switchStyles}
+                onChange={onChange as any}
             />
         </PPLLMantineProvider>
     );
@@ -61,8 +37,6 @@ export function Switch(props: SwitchProps) {
  */
 export function RawSwitch(props: SwitchProps) {
     const { onChange, ...rest } = props;
-    const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange?.(event.target.checked);
-    }, [onChange]);
-    return <MantineSwitch {...rest} onChange={handleChange} styles={switchStyles} />;
+    return <MantineSwitch {...rest} onChange={onChange as any} />;
 }
+

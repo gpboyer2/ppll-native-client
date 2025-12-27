@@ -8,47 +8,24 @@ import { PPLLMantineProvider } from '../../core/MantineProvider';
  * 特性：
  * - 自动包装 MantineProvider，样式隔离
  * - 预配置项目主题颜色和样式
+ * - onChange 直接传递 value 值（与 Mantine 原生行为一致）
  */
-
-// 单选框样式配置
-const radioStyles = {
-    radio: {
-        backgroundColor: 'var(--color-surface)',
-        borderColor: 'var(--color-border)',
-        cursor: 'pointer',
-        '&:checked': {
-            borderColor: 'var(--color-primary)',
-            '&::before': {
-                backgroundColor: 'var(--color-primary)',
-            }
-        }
-    },
-    label: {
-        color: 'var(--color-text)',
-        cursor: 'pointer'
-    }
-};
 
 /**
- * 单选框组
+ * 单选框
+ * 直接使用 Mantine 的行为，onChange 接收 (value: string) => void
  */
-export interface RadioProps extends Omit<MantineRadioProps, 'onChange'> {
+export type RadioProps = Omit<MantineRadioProps, 'onChange'> & {
     onChange?: (value: string) => void;
-}
+};
 
 export function Radio(props: RadioProps) {
     const { onChange, ...rest } = props;
-    // 适配器：将值处理函数转换为事件处理器
-    const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange?.(event.target.value);
-    }, [onChange]);
-
     return (
         <PPLLMantineProvider>
             <MantineRadio
                 {...rest}
-                onChange={handleChange}
-                styles={radioStyles}
+                onChange={onChange as any}
             />
         </PPLLMantineProvider>
     );
@@ -60,8 +37,6 @@ export function Radio(props: RadioProps) {
  */
 export function RawRadio(props: RadioProps) {
     const { onChange, ...rest } = props;
-    const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange?.(event.target.value);
-    }, [onChange]);
-    return <MantineRadio {...rest} onChange={handleChange} styles={radioStyles} />;
+    return <MantineRadio {...rest} onChange={onChange as any} />;
 }
+

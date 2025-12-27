@@ -8,45 +8,24 @@ import { PPLLMantineProvider } from '../../core/MantineProvider';
  * 特性：
  * - 自动包装 MantineProvider，样式隔离
  * - 预配置项目主题颜色和样式
+ * - onChange 直接传递 checked 值（与 Mantine 原生行为一致）
  */
-
-// 复选框样式配置
-const checkboxStyles = {
-    input: {
-        backgroundColor: 'var(--color-surface)',
-        borderColor: 'var(--color-border)',
-        cursor: 'pointer',
-        '&:checked': {
-            backgroundColor: 'var(--color-primary)',
-            borderColor: 'var(--color-primary)',
-        }
-    },
-    label: {
-        color: 'var(--color-text)',
-        cursor: 'pointer'
-    }
-};
 
 /**
  * 复选框
+ * 直接使用 Mantine 的行为，onChange 接收 (checked: boolean) => void
  */
-export interface CheckboxProps extends Omit<MantineCheckboxProps, 'onChange'> {
+export type CheckboxProps = Omit<MantineCheckboxProps, 'onChange'> & {
     onChange?: (checked: boolean) => void;
-}
+};
 
 export function Checkbox(props: CheckboxProps) {
     const { onChange, ...rest } = props;
-    // 适配器：将值处理函数转换为事件处理器
-    const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange?.(event.target.checked);
-    }, [onChange]);
-
     return (
         <PPLLMantineProvider>
             <MantineCheckbox
                 {...rest}
-                onChange={handleChange}
-                styles={checkboxStyles}
+                onChange={onChange as any}
             />
         </PPLLMantineProvider>
     );
@@ -58,8 +37,6 @@ export function Checkbox(props: CheckboxProps) {
  */
 export function RawCheckbox(props: CheckboxProps) {
     const { onChange, ...rest } = props;
-    const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange?.(event.target.checked);
-    }, [onChange]);
-    return <MantineCheckbox {...rest} onChange={handleChange} styles={checkboxStyles} />;
+    return <MantineCheckbox {...rest} onChange={onChange as any} />;
 }
+

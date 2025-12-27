@@ -11,17 +11,9 @@ import { PPLLMantineProvider } from '../../core/MantineProvider';
  * - 支持 text、number、password 类型
  */
 
-// 通用样式配置
+// 通用样式配置 - 只设置必要的样式,保持原有布局
 const inputStyles = {
-    input: {
-        backgroundColor: 'var(--color-surface)',
-        borderColor: 'var(--color-border)',
-        color: 'var(--color-text)',
-        minHeight: '36px',
-        '&:focus': {
-            borderColor: 'var(--color-primary)',
-        }
-    }
+    root: {}
 };
 
 /**
