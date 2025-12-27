@@ -4,72 +4,72 @@ const db = require("../models");
 
 
 class Service {
-    constructor(options) {
-        this.options = options;
-        this.table = db[options.name];
+  constructor(options) {
+    this.options = options;
+    this.table = db[options.name];
+  }
+
+  async createOne(params) {
+    const user = Object.assign({}, {
+      password: Date.now(),
+      active: 0,
+      status: 0,
+      deleted: 0
+    }, params);
+
+    const [row, created] = await this.table.findOrCreate({
+      where: { username: user.apiKey },
+      defaults: user,
+    });
+
+    if (created) {
+      return row;
     }
 
-    async createOne(params) {
-        const user = Object.assign({}, {
-            password: Date.now(),
-            active: 0,
-            status: 0,
-            deleted: 0
-        }, params);
+    return null;
+  }
 
-        const [row, created] = await this.table.findOrCreate({
-            where: { username: user.apiKey },
-            defaults: user,
-        });
+  async deleteOne(userId) {
+    try {
+      const user = await this.table.findByPk(userId);
+      if (!user) return null;
+      await user.destroy();
+      return user;
+    } catch (error) {
+      if (error instanceof ApiError) throw error; // 如果错误已经是ApiError，直接抛出，避免覆盖具体错误信息
+      throw new ApiError(httpStatus.SERVICE_UNAVAILABLE, error);
+    }
+  };
 
-        if (created) {
-            return row;
+  async updateOne(userId, updateBody) {
+    try {
+      const user = Object.assign({}, updateBody);
+
+      for (const key in user) {
+        if (Object.hasOwnProperty.call(user, key)) {
+          const element = user[key];
+          if (element === null || element === undefined) delete user[key];
         }
+      }
 
-        return null;
+      const row = await this.table.update(user, {
+        where: { id: userId },
+      });
+
+      return row;
+    } catch (error) {
+      if (error instanceof ApiError) throw error; // 如果错误已经是ApiError，直接抛出，避免覆盖具体错误信息
+      throw new ApiError(httpStatus.SERVICE_UNAVAILABLE, error);
     }
+  };
 
-    async deleteOne(userId) {
-        try {
-            const user = await getOneBy({ id: userId });
-            if (!user) return null
-            await user.destroy();
-            return user;
-        } catch (error) {
-            if (error instanceof ApiError) throw error; // 如果错误已经是ApiError，直接抛出，避免覆盖具体错误信息
-            throw new ApiError(httpStatus.SERVICE_UNAVAILABLE, error);
-        }
-    };
+  async getOne(field) {
+    return this.table.findOne({ where: field });
+  }
 
-    async updateOne(userId, updateBody) {
-        try {
-            const user = Object.assign({}, updateBody);
-
-            for (const key in user) {
-                if (Object.hasOwnProperty.call(user, key)) {
-                    const element = user[key];
-                    if (element === null || element === undefined) delete user[key];
-                }
-            }
-
-            const row = await this.table.update(user, {
-                where: { id: userId },
-            });
-
-            return row;
-        } catch (error) {
-            if (error instanceof ApiError) throw error; // 如果错误已经是ApiError，直接抛出，避免覆盖具体错误信息
-            throw new ApiError(httpStatus.SERVICE_UNAVAILABLE, error);
-        }
-    };
-
-    async getOne(field) {
-        return this.table.findOne({ where: field });
-    }
-
-    async getAll(field) {
-        return this.table.findAll({ where: field });
-    }
+  async getAll(field) {
+    return this.table.findAll({ where: field });
+  }
 }
 
 module.exports = Service;

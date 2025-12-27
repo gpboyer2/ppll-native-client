@@ -11,134 +11,134 @@ const { sendSuccess } = require('../utils/api-response');
  * 获取涨幅榜数据
  */
 const getGainers = catchAsync(async (req, res) => {
-    const { currentPage = 1, pageSize = 20 } = req.query;
+  const { currentPage = 1, pageSize = 20 } = req.query;
 
-    if (!global.GATE_COIN_CACHE || !global.GATE_COIN_CACHE.gainers) {
-        return sendSuccess(res, {
-            list: [],
-            pagination: {
-                currentPage: parseInt(currentPage),
-                pageSize: parseInt(pageSize),
-                total: 0
-            },
-            lastUpdate: null
-        }, '数据正在加载中，请稍后再试');
-    }
-
-    const startIndex = (parseInt(currentPage) - 1) * parseInt(pageSize);
-    const endIndex = startIndex + parseInt(pageSize);
-    const paginatedData = global.GATE_COIN_CACHE.gainers.slice(startIndex, endIndex);
-
+  if (!global.GATE_COIN_CACHE || !global.GATE_COIN_CACHE.gainers) {
     return sendSuccess(res, {
-        list: paginatedData,
-        pagination: {
-            currentPage: parseInt(currentPage),
-            pageSize: parseInt(pageSize),
-            total: global.GATE_COIN_CACHE.gainers.length
-        },
-        lastUpdate: global.GATE_COIN_CACHE.lastUpdate
-    }, '获取涨幅榜数据成功');
+      list: [],
+      pagination: {
+        currentPage: parseInt(currentPage),
+        pageSize: parseInt(pageSize),
+        total: 0
+      },
+      lastUpdate: null
+    }, '数据正在加载中，请稍后再试');
+  }
+
+  const startIndex = (parseInt(currentPage) - 1) * parseInt(pageSize);
+  const endIndex = startIndex + parseInt(pageSize);
+  const paginatedData = global.GATE_COIN_CACHE.gainers.slice(startIndex, endIndex);
+
+  return sendSuccess(res, {
+    list: paginatedData,
+    pagination: {
+      currentPage: parseInt(currentPage),
+      pageSize: parseInt(pageSize),
+      total: global.GATE_COIN_CACHE.gainers.length
+    },
+    lastUpdate: global.GATE_COIN_CACHE.lastUpdate
+  }, '获取涨幅榜数据成功');
 });
 
 /**
  * 获取跌幅榜数据
  */
 const getLosers = catchAsync(async (req, res) => {
-    const { currentPage = 1, pageSize = 20 } = req.query;
+  const { currentPage = 1, pageSize = 20 } = req.query;
 
-    if (!global.GATE_COIN_CACHE || !global.GATE_COIN_CACHE.losers) {
-        return sendSuccess(res, {
-            list: [],
-            pagination: {
-                currentPage: parseInt(currentPage),
-                pageSize: parseInt(pageSize),
-                total: 0
-            },
-            lastUpdate: null
-        }, '数据正在加载中，请稍后再试');
-    }
-
-    const startIndex = (parseInt(currentPage) - 1) * parseInt(pageSize);
-    const endIndex = startIndex + parseInt(pageSize);
-    const paginatedData = global.GATE_COIN_CACHE.losers.slice(startIndex, endIndex);
-
+  if (!global.GATE_COIN_CACHE || !global.GATE_COIN_CACHE.losers) {
     return sendSuccess(res, {
-        list: paginatedData,
-        pagination: {
-            currentPage: parseInt(currentPage),
-            pageSize: parseInt(pageSize),
-            total: global.GATE_COIN_CACHE.losers.length
-        },
-        lastUpdate: global.GATE_COIN_CACHE.lastUpdate
-    }, '获取跌幅榜数据成功');
+      list: [],
+      pagination: {
+        currentPage: parseInt(currentPage),
+        pageSize: parseInt(pageSize),
+        total: 0
+      },
+      lastUpdate: null
+    }, '数据正在加载中，请稍后再试');
+  }
+
+  const startIndex = (parseInt(currentPage) - 1) * parseInt(pageSize);
+  const endIndex = startIndex + parseInt(pageSize);
+  const paginatedData = global.GATE_COIN_CACHE.losers.slice(startIndex, endIndex);
+
+  return sendSuccess(res, {
+    list: paginatedData,
+    pagination: {
+      currentPage: parseInt(currentPage),
+      pageSize: parseInt(pageSize),
+      total: global.GATE_COIN_CACHE.losers.length
+    },
+    lastUpdate: global.GATE_COIN_CACHE.lastUpdate
+  }, '获取跌幅榜数据成功');
 });
 
 /**
  * 获取全部币种数据（按24h涨跌幅排序）
  */
 const getAllSorted = catchAsync(async (req, res) => {
-    const { currentPage = 1, pageSize = 20, sort = 'desc' } = req.query;
+  const { currentPage = 1, pageSize = 20, sort = 'desc' } = req.query;
 
-    if (!global.GATE_COIN_CACHE || !global.GATE_COIN_CACHE.all) {
-        return sendSuccess(res, {
-            list: [],
-            pagination: {
-                currentPage: parseInt(currentPage),
-                pageSize: parseInt(pageSize),
-                total: 0
-            },
-            lastUpdate: null
-        }, '数据正在加载中，请稍后再试');
-    }
-
-    // 按24h涨跌幅排序
-    let sortedData = [...global.GATE_COIN_CACHE.all];
-    sortedData.sort((a, b) => {
-        const aChange = parseFloat(a.dimension_24h) || 0;
-        const bChange = parseFloat(b.dimension_24h) || 0;
-        return sort === 'desc' ? bChange - aChange : aChange - bChange;
-    });
-
-    const startIndex = (parseInt(currentPage) - 1) * parseInt(pageSize);
-    const endIndex = startIndex + parseInt(pageSize);
-    const paginatedData = sortedData.slice(startIndex, endIndex);
-
+  if (!global.GATE_COIN_CACHE || !global.GATE_COIN_CACHE.all) {
     return sendSuccess(res, {
-        list: paginatedData,
-        pagination: {
-            currentPage: parseInt(currentPage),
-            pageSize: parseInt(pageSize),
-            total: sortedData.length
-        },
-        lastUpdate: global.GATE_COIN_CACHE.lastUpdate,
-        sort: sort
-    }, '获取币种数据成功');
+      list: [],
+      pagination: {
+        currentPage: parseInt(currentPage),
+        pageSize: parseInt(pageSize),
+        total: 0
+      },
+      lastUpdate: null
+    }, '数据正在加载中，请稍后再试');
+  }
+
+  // 按24h涨跌幅排序
+  let sortedData = [...global.GATE_COIN_CACHE.all];
+  sortedData.sort((a, b) => {
+    const aChange = parseFloat(a.dimension_24h) || 0;
+    const bChange = parseFloat(b.dimension_24h) || 0;
+    return sort === 'desc' ? bChange - aChange : aChange - bChange;
+  });
+
+  const startIndex = (parseInt(currentPage) - 1) * parseInt(pageSize);
+  const endIndex = startIndex + parseInt(pageSize);
+  const paginatedData = sortedData.slice(startIndex, endIndex);
+
+  return sendSuccess(res, {
+    list: paginatedData,
+    pagination: {
+      currentPage: parseInt(currentPage),
+      pageSize: parseInt(pageSize),
+      total: sortedData.length
+    },
+    lastUpdate: global.GATE_COIN_CACHE.lastUpdate,
+    sort: sort
+  }, '获取币种数据成功');
 });
 
 /**
  * 获取缓存状态信息
  */
 const getCacheStatus = catchAsync(async (req, res) => {
-    const hasCache = global.GATE_COIN_CACHE && global.GATE_COIN_CACHE.lastUpdate;
+  const hasCache = global.GATE_COIN_CACHE && global.GATE_COIN_CACHE.lastUpdate;
 
-    return sendSuccess(res, {
-        isReady: hasCache,
-        lastUpdate: global.GATE_COIN_CACHE?.lastUpdate || null,
-        gainersCount: global.GATE_COIN_CACHE?.gainers?.length || 0,
-        losersCount: global.GATE_COIN_CACHE?.losers?.length || 0,
-        totalCount: global.GATE_COIN_CACHE?.all?.length || 0,
-        stats: global.GATE_COIN_CACHE?.stats || {
-            totalRequests: 0,
-            averageResponseTime: 0,
-            updateDuration: 0
-        }
-    }, '获取缓存状态成功');
+  return sendSuccess(res, {
+    isReady: hasCache,
+    lastUpdate: global.GATE_COIN_CACHE?.lastUpdate || null,
+    gainersCount: global.GATE_COIN_CACHE?.gainers?.length || 0,
+    losersCount: global.GATE_COIN_CACHE?.losers?.length || 0,
+    totalCount: global.GATE_COIN_CACHE?.all?.length || 0,
+    stats: global.GATE_COIN_CACHE?.stats || {
+      totalRequests: 0,
+      averageResponseTime: 0,
+      updateDuration: 0
+    }
+  }, '获取缓存状态成功');
 });
 
 
 module.exports = {
-    getGainers,
-    getLosers,
-    getAllSorted,
-    getCacheStatus,
+  getGainers,
+  getLosers,
+  getAllSorted,
+  getCacheStatus,
 };

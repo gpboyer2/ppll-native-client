@@ -85,7 +85,7 @@ async function getBinanceData(options) {
       }
       reject(error);
     });
-  })
+  });
 }
 
 module.exports = {

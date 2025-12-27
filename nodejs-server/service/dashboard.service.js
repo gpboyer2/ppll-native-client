@@ -3,7 +3,7 @@
  * 提供仪表盘相关的业务逻辑，包括账户信息查询等
  */
 const { USDMClient } = require('binance');
-const { proxy_obj } = require('../binance/config.js');
+const { getProxyConfig } = require('../utils/proxy.js');
 const UtilRecord = require("../utils/record-log.js");
 const db = require('../models');
 
@@ -76,7 +76,10 @@ const getAccount = async (apiKey, apiSecret, userId) => {
   };
 
   if (process.env.NODE_ENV !== "production") {
-    requestOptions.proxy = proxy_obj;
+    const proxyConfig = getProxyConfig();
+    if (proxyConfig) {
+      requestOptions.proxy = proxyConfig;
+    }
   }
 
   const client = new USDMClient(options, requestOptions);

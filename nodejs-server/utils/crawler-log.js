@@ -236,7 +236,7 @@ function createLogger(options) {
      * @param {...any} messageList - 要记录的消息
      */
     async log(...messageList) {
-      const prefix = generateLogPrefix();
+      const prefix = generateLogPrefix('');
       const formattedMessage = formatMessageList(messageList);
       const finalMessage = `${prefix}${formattedMessage}`;
       if (shouldOutputToConsole()) {

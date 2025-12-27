@@ -7,7 +7,7 @@
 const path = require('path');
 const dayjs = require('dayjs');
 const bigNumber = require('bignumber.js');
-const { proxy_obj } = require('../binance/config.js');
+const { getProxyConfig } = require('../utils/proxy.js');
 const UtilRecord = require('../utils/record-log.js');
 const StrategyLog = require('../utils/strategy-log.js');
 const { USDMClient } = require('binance');
@@ -245,7 +245,13 @@ function InfiniteGrid(options) {
     direction: this.config.positionSide === 'LONG' ? 'long' : 'short'
   });
 
-  let usdmClientConfig = process.env.NODE_ENV !== 'production' ? { proxy: proxy_obj } : {};
+  let usdmClientConfig = {};
+  if (process.env.NODE_ENV !== 'production') {
+    const proxyConfig = getProxyConfig();
+    if (proxyConfig) {
+      usdmClientConfig.proxy = proxyConfig;
+    }
+  }
 
   /** 调用binance生成的客户端 */
   this.client = new USDMClient(
@@ -421,7 +427,7 @@ function InfiniteGrid(options) {
     if (!errorCode) return false;
 
     switch (errorCode) {
-      // -2022: ReduceOnly 订单被拒绝，说明实际没有仓位可平（可能被手动平仓了）
+    // -2022: ReduceOnly 订单被拒绝，说明实际没有仓位可平（可能被手动平仓了）
       case -2022:
         this.logger.warn(`检测到仓位已被手动平仓（错误码-2022），清空开仓历史记录并重新初始化情况`);
         this.positionOpenHistory = [];
@@ -430,10 +436,10 @@ function InfiniteGrid(options) {
         this.nextExpectedFallPrice = undefined;
         return true;
 
-      // 可在此处扩展其他错误码的处理逻辑
-      // case -xxxx:
-      //   UtilRecord.log(`⚠️ 处理错误码 -xxxx`);
-      //   return true;
+        // 可在此处扩展其他错误码的处理逻辑
+        // case -xxxx:
+        //   UtilRecord.log(`⚠️ 处理错误码 -xxxx`);
+        //   return true;
 
       default:
         return false;
@@ -448,11 +454,11 @@ function InfiniteGrid(options) {
   this.getParseDatum = (datum) => {
     let data = datum;
     if (typeof datum === 'string') {
-      data = JSON.parse(datum)
+      data = JSON.parse(datum);
     }
 
     return data;
-  }
+  };
 
   /**
    * 获取做多方向的增加数量（开多单）
@@ -461,7 +467,7 @@ function InfiniteGrid(options) {
    */
   this.getLongOpenQuantity = () => {
     return this.config.gridLongOpenQuantity || this.config.gridTradeQuantity;
-  }
+  };
 
   /**
    * 获取做多方向的减少数量
@@ -470,7 +476,7 @@ function InfiniteGrid(options) {
    */
   this.getLongCloseQuantity = () => {
     return this.config.gridLongCloseQuantity || this.config.gridTradeQuantity;
-  }
+  };
 
   /**
    * 获取做空方向的增加数量（开空单）
@@ -479,7 +485,7 @@ function InfiniteGrid(options) {
    */
   this.getShortOpenQuantity = () => {
     return this.config.gridShortOpenQuantity || this.config.gridTradeQuantity;
-  }
+  };
 
   /**
    * 获取做空方向的减少数量（平空单）
@@ -488,7 +494,7 @@ function InfiniteGrid(options) {
    */
   this.getShortCloseQuantity = () => {
     return this.config.gridShortCloseQuantity || this.config.gridTradeQuantity;
-  }
+  };
 
   /**
    * 获取开仓数量
@@ -502,7 +508,7 @@ function InfiniteGrid(options) {
     } else {
       return this.getShortOpenQuantity();
     }
-  }
+  };
 
   /**
    * 获取平仓数量
@@ -516,7 +522,7 @@ function InfiniteGrid(options) {
     } else {
       return this.getShortCloseQuantity();
     }
-  }
+  };
 
 
   /**
@@ -547,7 +553,7 @@ function InfiniteGrid(options) {
       coefficient = coefficient.isNaN() ? 0 : coefficient;
       this.nextExpectedRisePrice = bigNumber(executionPrice).plus(this.config.gridPriceDifference).plus(coefficient).toNumber();
     }
-  }
+  };
 
 
   /**
@@ -576,7 +582,7 @@ function InfiniteGrid(options) {
         positionSide: 'SHORT'
       });
     }
-  }
+  };
 
 
   /**
@@ -605,7 +611,7 @@ function InfiniteGrid(options) {
         positionSide: 'SHORT'
       });
     }
-  }
+  };
 
 
   /**
@@ -644,7 +650,7 @@ function InfiniteGrid(options) {
       this.onWarn({ id: this.config.id, message: `订单查询失败，通过持仓推断${isSuccess ? '成功' : '失败'}` });
     }
     return isSuccess ? { orderId, avgPrice: String(this.latestPrice || 0), status: 'INFERRED' } : null;
-  }
+  };
 
 
   /**
@@ -686,7 +692,7 @@ function InfiniteGrid(options) {
     this.logger.log(`🎉 建仓成功`);
     this.resetTargetPrice(Number(orderDetail.avgPrice));
     this.orderOptions.lock = 'idle';
-  }
+  };
 
 
   /**
@@ -729,7 +735,7 @@ function InfiniteGrid(options) {
     this.logger.log(`🎉 平仓成功`);
     this.resetTargetPrice(Number(orderDetail.avgPrice));
     this.orderOptions.lock = 'idle';
-  }
+  };
 
 
   /**
@@ -764,7 +770,7 @@ function InfiniteGrid(options) {
       this.logger.error('获取账户信息失败:', error);
       throw error;
     }
-  }
+  };
 
 
   /**
@@ -836,7 +842,7 @@ function InfiniteGrid(options) {
         await this.initAccountInfo();
       }, (this.accountInfoRetryInterval += 1000));
     }
-  }
+  };
 
 
   /**
@@ -871,7 +877,7 @@ function InfiniteGrid(options) {
       let actualProfit = openCost.minus(closeValue).minus(openFee).minus(closeFee);
       return actualProfit;
     }
-  }
+  };
 
 
   /**
@@ -889,7 +895,7 @@ function InfiniteGrid(options) {
       }
     }
     return null;
-  }
+  };
 
   /**
    * 获取上一个开仓的订单信息
@@ -906,7 +912,7 @@ function InfiniteGrid(options) {
       }
     }
     return null;
-  }
+  };
 
 
   /**
@@ -1142,7 +1148,7 @@ function InfiniteGrid(options) {
     // TODO
     // 太长了, 暂时隐藏
     // if (process.env.NODE_ENV !== 'production') console.log(` 仓位记录 this.logs: `, this.logs);
-  }
+  };
 
 
   /**
@@ -1150,7 +1156,7 @@ function InfiniteGrid(options) {
    */
   this.onPausedGrid = async () => {
     this.autoPaused = true;
-  }
+  };
 
 
   /**
@@ -1158,33 +1164,33 @@ function InfiniteGrid(options) {
    */
   this.onContinueGrid = async () => {
     this.autoPaused = false;
-  }
+  };
 
 
   /** 手动暂停网格交易(根据用户要求设定网格的暂停状态) */
   this.onManualPausedGrid = async () => {
     this.paused = true;
-  }
+  };
 
 
   /** 手动继续网格交易(根据用户要求设定网格的暂停状态) */
   this.onManualContinueGrid = async () => {
     this.paused = false;
-  }
+  };
 
   /**
    * 启用日志输出
    */
   this.enableLog = () => {
     this.config.enableLog = true;
-  }
+  };
 
   /**
    * 禁用日志输出
    */
   this.disableLog = () => {
     this.config.enableLog = false;
-  }
+  };
 
   /**
    * 入口函数
@@ -1202,8 +1208,8 @@ function InfiniteGrid(options) {
     // 添加延迟,避免API限流
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    let isOk = true
-    await this.initAccountInfo().catch(() => { isOk = false });
+    let isOk = true;
+    await this.initAccountInfo().catch(() => { isOk = false; });
     if (isOk === false) {
       setTimeout(this.initOrders, 1000);
       return;
@@ -1226,7 +1232,7 @@ function InfiniteGrid(options) {
     // 初始化完成后，恢复网格运行（由 gridWebsocket 根据价格条件判断是否暂停）
     this.onContinueGrid();
     this.logger.log(`✅ 策略初始化完成，网格已恢复运行`);
-  }
+  };
 }
 
 

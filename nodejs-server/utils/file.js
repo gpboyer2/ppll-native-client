@@ -19,30 +19,30 @@ const path = require('path');
  * 
  */
 function readLocalFile(filePath, defaultContent = '{}') {
-    try {
-        // 检查文件是否存在
-        if (!fs.existsSync(filePath)) {
-            console.log(`File does not exist: ${filePath}. Creating the file...`);
+  try {
+    // 检查文件是否存在
+    if (!fs.existsSync(filePath)) {
+      console.log(`File does not exist: ${filePath}. Creating the file...`);
 
-            // 创建文件夹（如果不存在）
-            const dir = path.dirname(filePath);
-            if (!fs.existsSync(dir)) {
-                fs.mkdirSync(dir, { recursive: true }); // 递归创建目录
-                console.log(`Created directory: ${dir}`);
-            }
+      // 创建文件夹（如果不存在）
+      const dir = path.dirname(filePath);
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true }); // 递归创建目录
+        console.log(`Created directory: ${dir}`);
+      }
 
-            // 创建文件并写入默认内容
-            fs.writeFileSync(filePath, defaultContent, 'utf8');
-            console.log(`File created with default content: ${defaultContent}`);
-        }
-
-        // 读取文件内容
-        const fileContent = fs.readFileSync(filePath, 'utf8');
-        return fileContent;
-    } catch (error) {
-        console.error(`Error while reading or creating file: ${filePath}`, error);
-        throw error; // 重新抛出错误，以便调用者处理
+      // 创建文件并写入默认内容
+      fs.writeFileSync(filePath, defaultContent, 'utf8');
+      console.log(`File created with default content: ${defaultContent}`);
     }
+
+    // 读取文件内容
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    return fileContent;
+  } catch (error) {
+    console.error(`Error while reading or creating file: ${filePath}`, error);
+    throw error; // 重新抛出错误，以便调用者处理
+  }
 }
 
 /**
@@ -51,9 +51,9 @@ function readLocalFile(filePath, defaultContent = '{}') {
  * @returns {void}
  */
 function ensureDir(dir) {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
 }
 
 /**
@@ -63,19 +63,19 @@ function ensureDir(dir) {
  * @returns {Object} 解析后的对象
  */
 function readJsonSafe(filePath, defaultObject = {}) {
-    try {
-        if (!fs.existsSync(filePath)) {
-            return defaultObject;
-        }
-        const content = fs.readFileSync(filePath, 'utf8');
-        const data = JSON.parse(content);
-        if (data && typeof data === 'object' && !Array.isArray(data)) {
-            return data;
-        }
-        return defaultObject;
-    } catch {
-        return defaultObject;
+  try {
+    if (!fs.existsSync(filePath)) {
+      return defaultObject;
     }
+    const content = fs.readFileSync(filePath, 'utf8');
+    const data = JSON.parse(content);
+    if (data && typeof data === 'object' && !Array.isArray(data)) {
+      return data;
+    }
+    return defaultObject;
+  } catch {
+    return defaultObject;
+  }
 }
 
 /**
@@ -85,19 +85,19 @@ function readJsonSafe(filePath, defaultObject = {}) {
  * @param {Object} data 待写入对象
  */
 function writeJsonSafe(filePath, data) {
-    try {
-        const dir = path.dirname(filePath);
-        ensureDir(dir);
-        const payload = JSON.stringify(data);
-        fs.writeFileSync(filePath, payload, 'utf8');
-    } catch (e) {
-        console.warn(`写入JSON失败: ${filePath} - ${e.message}`);
-    }
+  try {
+    const dir = path.dirname(filePath);
+    ensureDir(dir);
+    const payload = JSON.stringify(data);
+    fs.writeFileSync(filePath, payload, 'utf8');
+  } catch (e) {
+    console.warn(`写入JSON失败: ${filePath} - ${e.message}`);
+  }
 }
 
 module.exports = {
-    readLocalFile,
-    ensureDir,
-    readJsonSafe,
-    writeJsonSafe,
-}
+  readLocalFile,
+  ensureDir,
+  readJsonSafe,
+  writeJsonSafe,
+};

@@ -13,38 +13,38 @@ const Joi = require('joi');
  * 定义验证规则
  */
 const banIPSchema = {
-    body: Joi.object({
-        ip: Joi.string().ip().required(),
-        reason: Joi.string().max(500).required(),
-        remark: Joi.string().max(255).optional(),
-        duration: Joi.number().min(1).max(720).default(24)
-    })
+  body: Joi.object({
+    ip: Joi.string().ip().required(),
+    reason: Joi.string().max(500).required(),
+    remark: Joi.string().max(255).optional(),
+    duration: Joi.number().min(1).max(720).default(24)
+  })
 };
 
 const batchUnbanSchema = {
-    body: Joi.object({
-        ips: Joi.array().items(Joi.string().ip()).min(1).required()
-    })
+  body: Joi.object({
+    ips: Joi.array().items(Joi.string().ip()).min(1).required()
+  })
 };
 
 const trustedIPSchema = {
-    body: Joi.object({
-        ip: Joi.string().ip().required()
-    })
+  body: Joi.object({
+    ip: Joi.string().ip().required()
+  })
 };
 
 const listSchema = {
-    query: Joi.object({
-        page: Joi.number().integer().min(1).default(1),
-        limit: Joi.number().integer().min(1).max(100).default(20),
-        status: Joi.number().integer().valid(0, 1).optional()
-    })
+  query: Joi.object({
+    page: Joi.number().integer().min(1).default(1),
+    limit: Joi.number().integer().min(1).max(100).default(20),
+    status: Joi.number().integer().valid(0, 1).optional()
+  })
 };
 
 const ipQuerySchema = {
-    query: Joi.object({
-        ip: Joi.string().ip().required()
-    })
+  query: Joi.object({
+    ip: Joi.string().ip().required()
+  })
 };
 
 /**

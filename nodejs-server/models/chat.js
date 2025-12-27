@@ -79,7 +79,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     });
     return chat;
-  }
+  };
 
   return chat;
 };

@@ -9,7 +9,7 @@ const proxy = require('../utils/proxy.js');
 
 // 创建 WebSocket 代理 agent（如果配置了代理）
 const getWsAgent = () => {
-  const proxyConfig = proxy.getBinanceProxyConfig();
+  const proxyConfig = proxy.getProxyConfig();
   if (proxyConfig.ws_proxy) {
     try {
       return new SocksProxyAgent(proxyConfig.ws_proxy);

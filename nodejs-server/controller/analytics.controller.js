@@ -1,7 +1,7 @@
 const db = require('../models');
 const catchAsync = require('../utils/catch-async');
 const ApiError = require('../utils/api-error');
-const { success } = require('../utils/api-response');
+const { sendSuccess } = require('../utils/api-response');
 
 /**
  * 获取系统分析数据概览
@@ -9,26 +9,26 @@ const { success } = require('../utils/api-response');
  * @access Admin
  */
 const getSystemOverview = catchAsync(async (req, res) => {
-    // 这里可以添加系统统计数据，比如：
-    // - 用户活跃数据
-    // - API调用统计
-    // - 系统性能指标
-    // - 交易策略运行状态等
+  // 这里可以添加系统统计数据，比如：
+  // - 用户活跃数据
+  // - API调用统计
+  // - 系统性能指标
+  // - 交易策略运行状态等
 
-    const overview = {
-        timestamp: new Date().toISOString(),
-        system: {
-            status: 'operational',
-            uptime: process.uptime(),
-            memory: {
-                used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
-                total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + 'MB'
-            }
-        },
-        // 可以添加更多分析数据...
-    };
+  const overview = {
+    timestamp: new Date().toISOString(),
+    system: {
+      status: 'operational',
+      uptime: process.uptime(),
+      memory: {
+        used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + 'MB',
+        total: Math.round(process.memoryUsage().heapTotal / 1024 / 1024) + 'MB'
+      }
+    },
+    // 可以添加更多分析数据...
+  };
 
-    return sendSuccess(res, overview, '获取系统概览成功');
+  return sendSuccess(res, overview, '获取系统概览成功');
 });
 
 /**
@@ -37,17 +37,17 @@ const getSystemOverview = catchAsync(async (req, res) => {
  * @access Admin
  */
 const getPerformanceMetrics = catchAsync(async (req, res) => {
-    const metrics = {
-        timestamp: new Date().toISOString(),
-        cpu: {
-            usage: process.cpuUsage()
-        },
-        memory: process.memoryUsage(),
-        uptime: process.uptime(),
-        // 可以添加更多性能指标...
-    };
+  const metrics = {
+    timestamp: new Date().toISOString(),
+    cpu: {
+      usage: process.cpuUsage()
+    },
+    memory: process.memoryUsage(),
+    uptime: process.uptime(),
+    // 可以添加更多性能指标...
+  };
 
-    return sendSuccess(res, metrics, '获取性能指标成功');
+  return sendSuccess(res, metrics, '获取性能指标成功');
 });
 
 /**
@@ -56,17 +56,17 @@ const getPerformanceMetrics = catchAsync(async (req, res) => {
  * @access Admin
  */
 const getUserBehaviorAnalytics = catchAsync(async (req, res) => {
-    // 这里可以添加用户行为分析逻辑
-    // 比如从数据库查询用户活跃度、操作频率等
+  // 这里可以添加用户行为分析逻辑
+  // 比如从数据库查询用户活跃度、操作频率等
 
-    const userBehavior = {
-        timestamp: new Date().toISOString(),
-        totalUsers: 0, // 从数据库查询
-        activeUsers: 0, // 从数据库查询
-        // 更多用户行为数据...
-    };
+  const userBehavior = {
+    timestamp: new Date().toISOString(),
+    totalUsers: 0, // 从数据库查询
+    activeUsers: 0, // 从数据库查询
+    // 更多用户行为数据...
+  };
 
-    return sendSuccess(res, userBehavior, '获取用户行为分析成功');
+  return sendSuccess(res, userBehavior, '获取用户行为分析成功');
 });
 
 /**
@@ -75,21 +75,21 @@ const getUserBehaviorAnalytics = catchAsync(async (req, res) => {
  * @access Admin
  */
 const getAPIUsageStats = catchAsync(async (req, res) => {
-    // 这里可以添加API使用统计逻辑
+  // 这里可以添加API使用统计逻辑
 
-    const apiUsage = {
-        timestamp: new Date().toISOString(),
-        totalRequests: 0, // 从日志或数据库查询
-        errorRate: 0, // 计算错误率
-        // 更多API使用数据...
-    };
+  const apiUsage = {
+    timestamp: new Date().toISOString(),
+    totalRequests: 0, // 从日志或数据库查询
+    errorRate: 0, // 计算错误率
+    // 更多API使用数据...
+  };
 
-    return sendSuccess(res, apiUsage, '获取API使用统计成功');
+  return sendSuccess(res, apiUsage, '获取API使用统计成功');
 });
 
 module.exports = {
-    getSystemOverview,
-    getPerformanceMetrics,
-    getUserBehaviorAnalytics,
-    getAPIUsageStats
+  getSystemOverview,
+  getPerformanceMetrics,
+  getUserBehaviorAnalytics,
+  getAPIUsageStats
 };

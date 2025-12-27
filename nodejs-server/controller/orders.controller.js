@@ -4,6 +4,7 @@ const ordersService = require("../service/orders.service.js");
 const bigNumber = require('bignumber.js');
 const UtilRecord = require("../utils/record-log.js");
 const { sendSuccess, sendError } = require("../utils/api-response");
+const binanceAccount = require("../binance/account");
 
 /**
  * 参数验证中间件

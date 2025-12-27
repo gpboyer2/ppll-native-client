@@ -7,7 +7,7 @@
 const pick = (object, keys) => {
   return keys.reduce((obj, key) => {
     if (object && Object.prototype.hasOwnProperty.call(object, key)) {
-      // eslint-disable-next-line no-param-reassign
+       
       obj[key] = object[key];
     }
     return obj;
@@ -64,7 +64,8 @@ function sanitizeParams(payload, model) {
 
     // 类型转换
     let parsed = val;
-    switch (def.type.key) {
+    const typeKey = /** @type {any} */ (def.type).key || '';
+    switch (typeKey) {
       case 'INTEGER':
       case 'BIGINT':
         parsed = Number(val);
@@ -78,10 +79,10 @@ function sanitizeParams(payload, model) {
         parsed = Boolean(val);
         break;
       case 'DATE':
-        // parsed = new Date(val);
+      // parsed = new Date(val);
         break;
       default:
-        // parsed = String(val); 
+      // parsed = String(val); 
         break;
     }
     acc[key] = parsed;

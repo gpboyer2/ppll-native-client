@@ -8,8 +8,8 @@ const twitterController = require('../../controller/twitter.controller.js');
 const router = express.Router();
 
 router.get(
-    '/download-media',
-    twitterController.downloadMedia
+  '/download-media',
+  twitterController.downloadMedia
 );
 
 module.exports = router;

@@ -16,8 +16,8 @@ const BinanceApiKey = db.binance_api_keys;
  * @returns {Promise<User>}
  */
 const loginAdminWithUsernameAndPassword = async (username, password) => {
-    // 单用户系统不再支持用户名密码登录
-    return null;
+  // 单用户系统不再支持用户名密码登录
+  return null;
 };
 
 /**
@@ -27,8 +27,8 @@ const loginAdminWithUsernameAndPassword = async (username, password) => {
  * @returns {Promise<User>}
  */
 const loginAppUser = async (account, password) => {
-    // 单用户系统不再支持账号密码登录
-    return null;
+  // 单用户系统不再支持账号密码登录
+  return null;
 };
 
 /**
@@ -37,8 +37,8 @@ const loginAppUser = async (account, password) => {
  * @returns {Promise}
  */
 const logout = async (refreshToken) => {
-    // 单用户系统无需登出逻辑
-    return null;
+  // 单用户系统无需登出逻辑
+  return null;
 };
 
 /**
@@ -47,7 +47,7 @@ const logout = async (refreshToken) => {
  * @returns {Promise<Object>}
  */
 const refreshAuth = async (refreshToken) => {
-    throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
+  throw new ApiError(httpStatus.UNAUTHORIZED, 'Please authenticate');
 };
 
 
@@ -57,13 +57,13 @@ const refreshAuth = async (refreshToken) => {
  * @returns {Promise<User>}
  */
 const getUserProfile = async (userId) => {
-    // 单用户系统返回固定的用户信息
-    return {
-        id: 1,
-        username: 'admin',
-        role: 'admin',
-        status: 2,
-    };
+  // 单用户系统返回固定的用户信息
+  return {
+    id: 1,
+    username: 'admin',
+    role: 'admin',
+    status: 2,
+  };
 };
 
 /**
@@ -71,7 +71,7 @@ const getUserProfile = async (userId) => {
  * @returns {Promise<Object>} 验证码信息
  */
 const generateCaptcha = async () => {
-    return await captchaService.generateCaptcha();
+  return await captchaService.generateCaptcha();
 };
 
 /**
@@ -81,7 +81,7 @@ const generateCaptcha = async () => {
  * @returns {boolean} 验证结果
  */
 const verifyCaptcha = (captchaId, captchaCode) => {
-    return captchaService.verifyCaptcha(captchaId, captchaCode);
+  return captchaService.verifyCaptcha(captchaId, captchaCode);
 };
 
 /**
@@ -91,36 +91,36 @@ const verifyCaptcha = (captchaId, captchaCode) => {
  * @returns {Promise<User>}
  */
 const loginAdminWithApiKey = async (apiKey, apiSecret) => {
-    const keyRecord = await BinanceApiKey.findOne({
-        where: {
-            api_key: apiKey,
-            deleted: 0,
-        }
-    });
-
-    if (!keyRecord) {
-        return null;
+  const keyRecord = await BinanceApiKey.findOne({
+    where: {
+      api_key: apiKey,
+      deleted: 0,
     }
+  });
 
-    // 验证API Secret
-    if (keyRecord.secret_key !== apiSecret) {
-        return null;
-    }
+  if (!keyRecord) {
+    return null;
+  }
 
-    // 验证状态
-    if (keyRecord.status !== 2) {
-        throw new ApiError(httpStatus.FORBIDDEN, 'API Key 已被禁用');
-    }
+  // 验证API Secret
+  if (keyRecord.secret_key !== apiSecret) {
+    return null;
+  }
 
-    // 返回用户对象
-    return {
-        id: keyRecord.id,
-        username: keyRecord.name || 'admin',
-        apiKey: apiKey,
-        role: 'admin',
-        status: 2,
-        vipExpireAt: keyRecord.vip_expire_at,
-    };
+  // 验证状态
+  if (keyRecord.status !== 2) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'API Key 已被禁用');
+  }
+
+  // 返回用户对象
+  return {
+    id: keyRecord.id,
+    username: keyRecord.name || 'admin',
+    apiKey: apiKey,
+    role: 'admin',
+    status: 2,
+    vipExpireAt: keyRecord.vip_expire_at,
+  };
 };
 
 /**
@@ -130,45 +130,45 @@ const loginAdminWithApiKey = async (apiKey, apiSecret) => {
  * @returns {Promise<User>}
  */
 const loginAppUserWithApiKey = async (apiKey, apiSecret) => {
-    const keyRecord = await BinanceApiKey.findOne({
-        where: {
-            api_key: apiKey,
-            deleted: 0,
-        }
-    });
-
-    if (!keyRecord) {
-        return null;
+  const keyRecord = await BinanceApiKey.findOne({
+    where: {
+      api_key: apiKey,
+      deleted: 0,
     }
+  });
 
-    // 验证API Secret
-    if (keyRecord.secret_key !== apiSecret) {
-        return null;
-    }
+  if (!keyRecord) {
+    return null;
+  }
 
-    // 验证状态
-    if (keyRecord.status !== 2) {
-        throw new ApiError(httpStatus.FORBIDDEN, 'API Key 已被禁用');
-    }
+  // 验证API Secret
+  if (keyRecord.secret_key !== apiSecret) {
+    return null;
+  }
 
-    return {
-        id: keyRecord.id,
-        username: keyRecord.name || 'admin',
-        apiKey: apiKey,
-        role: 'admin',
-        status: 2,
-        vipExpireAt: keyRecord.vip_expire_at,
-    };
+  // 验证状态
+  if (keyRecord.status !== 2) {
+    throw new ApiError(httpStatus.FORBIDDEN, 'API Key 已被禁用');
+  }
+
+  return {
+    id: keyRecord.id,
+    username: keyRecord.name || 'admin',
+    apiKey: apiKey,
+    role: 'admin',
+    status: 2,
+    vipExpireAt: keyRecord.vip_expire_at,
+  };
 };
 
 module.exports = {
-    loginAdminWithUsernameAndPassword,
-    loginAdminWithApiKey,
-    loginAppUser,
-    loginAppUserWithApiKey,
-    logout,
-    refreshAuth,
-    getUserProfile,
-    generateCaptcha,
-    verifyCaptcha,
+  loginAdminWithUsernameAndPassword,
+  loginAdminWithApiKey,
+  loginAppUser,
+  loginAppUserWithApiKey,
+  logout,
+  refreshAuth,
+  getUserProfile,
+  generateCaptcha,
+  verifyCaptcha,
 };

@@ -6,7 +6,8 @@
 const { USDMClient } = require('binance');
 const fs = require('fs');
 const path = require('path');
-const config = require('../binance/config.js');
+const proxy = require('../utils/proxy.js');
+const { BINANCE_CONFIG: config, getProxyConfig } = proxy;
 
 // 缓存目录
 const CACHE_DIR = path.join(__dirname, '../datum/klines');
@@ -56,7 +57,10 @@ const createClient = (apiKey, apiSecret) => {
   const requestOptions = { timeout: 10000 };
 
   if (process.env.NODE_ENV !== 'production') {
-    requestOptions.proxy = config.proxy_obj;
+    const proxyConfig = getProxyConfig();
+    if (proxyConfig) {
+      requestOptions.proxy = proxyConfig;
+    }
   }
 
   return new USDMClient(options, requestOptions);

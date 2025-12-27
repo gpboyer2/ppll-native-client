@@ -134,7 +134,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     });
     return robot;
-  }
+  };
 
   return robot;
 };

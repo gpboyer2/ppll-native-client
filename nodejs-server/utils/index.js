@@ -44,5 +44,5 @@ module.exports = {
   randomDelay,
   extractApiCredentials,
   ApiResponse: require('./api-response')
-}
+};
 

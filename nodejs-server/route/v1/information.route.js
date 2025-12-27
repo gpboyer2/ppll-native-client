@@ -5,7 +5,7 @@
 const express = require('express');
 const router = express.Router();
 const { USDMClient } = require('binance');
-const { proxy_obj } = require('../../binance/config.js');
+const { getProxyConfig } = require('../../utils/proxy.js');
 
 const informationController = require('../../controller/information.controller.js');
 const vipMiddleware = require("../../middleware/vip.js");
@@ -29,7 +29,10 @@ router.post('/premiumIndex', vipMiddleware.validateVipAccess, async (req, res) =
     };
 
     if (process.env.NODE_ENV !== "production") {
-      requestOptions.proxy = proxy_obj;
+      const proxyConfig = getProxyConfig();
+      if (proxyConfig.proxy_obj) {
+        requestOptions.proxy = proxyConfig.proxy_obj;
+      }
     }
 
     const client = new USDMClient(options, requestOptions);
@@ -68,7 +71,10 @@ router.post('/ticker/price', vipMiddleware.validateVipAccess, async (req, res) =
     };
 
     if (process.env.NODE_ENV !== "production") {
-      requestOptions.proxy = proxy_obj;
+      const proxyConfig = getProxyConfig();
+      if (proxyConfig.proxy_obj) {
+        requestOptions.proxy = proxyConfig.proxy_obj;
+      }
     }
 
     const client = new USDMClient(options, requestOptions);
@@ -79,7 +85,7 @@ router.post('/ticker/price', vipMiddleware.validateVipAccess, async (req, res) =
     /** 遍历所有的永续合约, 并过滤掉非usdt合约 */
     const priceInfo = await client.getSymbolPriceTicker();
     const usdtTradingList = priceInfo.filter(item => {
-      return item.symbol.endsWith('USDT')
+      return item.symbol.endsWith('USDT');
     });
 
     if (usdtTradingList?.length) {

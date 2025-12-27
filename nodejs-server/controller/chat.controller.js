@@ -39,7 +39,7 @@ const sendMessage = catchAsync(async (req, res) => {
   });
 
   if (errorMsg) {
-    return sendError(res, errorMsg.msg || errorMsg.message, 400);
+    return sendError(res, errorMsg.msg, 400);
   }
 
   if (result?.dataValues) {
@@ -67,7 +67,7 @@ const message = catchAsync(async (req, res) => {
   });
 
   if (errorMsg) {
-    return sendError(res, errorMsg.msg || errorMsg.message, 400);
+    return sendError(res, errorMsg.msg, 400);
   }
 
   if (result?.dataValues) {

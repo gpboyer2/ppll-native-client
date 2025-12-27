@@ -20,12 +20,12 @@ const bigNumber = require('bignumber.js');
  * @returns {number} 每个网格匹配成功的实际利润
  */
 const calculateExpectedProfit = (latestPrice, { gridTradeQuantity, gridPriceDifference }) => {
-    let currentTradeValue = bigNumber(latestPrice).times(gridTradeQuantity);
-    let expectedRiseTradeValue = bigNumber(latestPrice).plus(gridPriceDifference).times(gridTradeQuantity);
-    let expectedRiseTradeValueAfterFee = expectedRiseTradeValue.times(0.001);
-    let actualProfit = expectedRiseTradeValue.minus(currentTradeValue).minus(expectedRiseTradeValueAfterFee);
-    return actualProfit.toNumber();
-}
+  let currentTradeValue = bigNumber(latestPrice).times(gridTradeQuantity);
+  let expectedRiseTradeValue = bigNumber(latestPrice).plus(gridPriceDifference).times(gridTradeQuantity);
+  let expectedRiseTradeValueAfterFee = expectedRiseTradeValue.times(0.001);
+  let actualProfit = expectedRiseTradeValue.minus(currentTradeValue).minus(expectedRiseTradeValueAfterFee);
+  return actualProfit.toNumber();
+};
 
 
 module.exports = { calculateExpectedProfit };

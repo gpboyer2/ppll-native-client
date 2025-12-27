@@ -26,26 +26,27 @@ const utilsController = require('../../controller/utils.controller.js');
  *       200:
  *         description: 
  */
-router.post('/timed', async (req, res) => {
-
-  /**
-   * 入参：
-   * 计划创建时间 plan_create_time
-   * 计划执行时间 plan_execute_time
-   * 用户的apikey apikey
-   * 用户的apisecret apisecret
-   * 是否仅执行一次 is_once
-   * 建仓的币种列表 [{ symbol: 'BTCUSDT', longAmount: 40, shortAmount: 20 }]
-   * 
-   */
-  const { plan_create_time, apiKey, apiSecret, is_once, symbolList } = req.body;
-
-  res.send({
-    status: 'success',
-    code: 200,
-    data: JSON.parse(accountInfo)
-  })
-});
+// TODO: 定时建仓计划接口未完成，暂时注释
+// router.post('/timed', async (req, res) => {
+//
+//   /**
+//    * 入参：
+//    * 计划创建时间 plan_create_time
+//    * 计划执行时间 plan_execute_time
+//    * 用户的apikey apikey
+//    * 用户的apisecret apisecret
+//    * 是否仅执行一次 is_once
+//    * 建仓的币种列表 [{ symbol: 'BTCUSDT', longAmount: 40, shortAmount: 20 }]
+//    *
+//    */
+//   const { plan_create_time, apiKey, apiSecret, is_once, symbolList } = req.body;
+//
+//   res.send({
+//     status: 'success',
+//     code: 200,
+//     data: JSON.parse(accountInfo)
+//   });
+// });
 
 
 module.exports = router;

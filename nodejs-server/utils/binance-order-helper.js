@@ -5,8 +5,11 @@
 
 const bigNumber = require('bignumber.js');
 const { USDMClient } = require('binance');
-const { proxy_obj } = require('../binance/config.js');
+const { getProxyConfig } = require('../utils/proxy.js');
 const UtilRecord = require("../utils/record-log.js");
+
+/** @type {any} */
+const Binance = require('binance');
 
 /**
  * 智能下单 - 按价值下单，自动处理精度
@@ -44,7 +47,10 @@ async function placeOrderByValue(orderParams, apiKey, apiSecret, maxRetries = 3)
     };
 
     if (process.env.NODE_ENV !== "production") {
-      requestOptions.proxy = proxy_obj;
+      const proxyConfig = getProxyConfig();
+      if (proxyConfig.proxy_obj) {
+        requestOptions.proxy = proxyConfig.proxy_obj;
+      }
     }
 
     const client = new USDMClient(options, requestOptions);
@@ -78,7 +84,10 @@ async function placeOrderByValue(orderParams, apiKey, apiSecret, maxRetries = 3)
       };
 
       if (process.env.NODE_ENV !== "production") {
-        requestOptions.proxy = proxy_obj;
+        const proxyConfig = getProxyConfig();
+        if (proxyConfig.proxy_obj) {
+          requestOptions.proxy = proxyConfig.proxy_obj;
+        }
       }
 
       const client = new USDMClient(options, requestOptions);
@@ -216,7 +225,10 @@ async function getCurrentPrice(symbol, apiKey, apiSecret) {
     };
 
     if (process.env.NODE_ENV !== "production") {
-      requestOptions.proxy = proxy_obj;
+      const proxyConfig = getProxyConfig();
+      if (proxyConfig.proxy_obj) {
+        requestOptions.proxy = proxyConfig.proxy_obj;
+      }
     }
 
     const client = new USDMClient(options, requestOptions);

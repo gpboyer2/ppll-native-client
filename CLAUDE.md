@@ -132,7 +132,7 @@ Vue Router 使用 hash 模式，URL 格式必须为：
 - 入参默认为数组，天然支持批量操作
 - 例如：`POST /api/users/delete` + `{ data: [1, 2, 3] }`
 
-出参规范1：
+出参规范1（成功响应）：
 ```json
 {
     "status": "success",
@@ -148,7 +148,7 @@ Vue Router 使用 hash 模式，URL 格式必须为：
 }
 ```
 
-出参规范2：
+出参规范2（错误响应）：
 ```json
 {
     "status": "error",
@@ -156,6 +156,17 @@ Vue Router 使用 hash 模式，URL 格式必须为：
     "data": null
 }
 ```
+
+响应工具函数使用规范：
+- 所有 Controller 必须使用 `utils/api-response.js` 中的工具函数
+- 成功响应：`sendSuccess(res, data, message)`
+  - data: 返回的业务数据
+  - message: 成功消息，默认为"操作成功"
+- 错误响应：`sendError(res, message, statusCode)`
+  - message: 错误消息
+  - statusCode: HTTP 状态码，默认为 400
+- 禁止直接使用 `res.status().send()` 构造响应对象
+- 导入方式：`const { sendSuccess, sendError } = require('../utils/api-response')`
 
 分页字段说明：
 - currentPage: 当前页码（从1开始）

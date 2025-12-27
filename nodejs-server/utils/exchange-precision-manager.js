@@ -17,7 +17,7 @@ const bigNumber = require('bignumber.js');
 const UtilRecord = require('./record-log.js');
 const db = require('../models');
 const { USDMClient, CoinMClient, MainClient } = require('binance');
-const { proxy_obj } = require('../binance/config.js');
+const { getProxyConfig } = require('./proxy.js');
 
 class ExchangePrecisionManager {
   constructor() {
@@ -270,7 +270,7 @@ class ExchangePrecisionManager {
           UtilRecord.error(`[精度管理] 从 ${exchange} API获取 ${marketType} 交易所信息失败(已重试${this.maxRetries}次):`, error?.message || error);
           throw error;
         }
-        UtilRecord.warn(`[精度管理] 从 ${exchange} API获取 ${marketType} 交易所信息失败(第${attempt}次尝试):`, error?.message || error);
+        UtilRecord.log(`[精度管理] 从 ${exchange} API获取 ${marketType} 交易所信息失败(第${attempt}次尝试):`, error?.message || error);
       }
     }
   }
@@ -294,7 +294,10 @@ class ExchangePrecisionManager {
     };
 
     if (process.env.NODE_ENV !== 'production') {
-      requestOptions.proxy = proxy_obj;
+      const proxyConfig = getProxyConfig();
+      if (proxyConfig) {
+        requestOptions.proxy = proxyConfig;
+      }
     }
 
     let client;
@@ -333,7 +336,7 @@ class ExchangePrecisionManager {
           UtilRecord.log(`[精度管理] 后台更新 ${exchange} ${marketType} 交易所信息完成`);
         }
       } catch (error) {
-        UtilRecord.warn(`[精度管理] 后台更新 ${exchange} ${marketType} 交易所信息失败:`, error?.message || error);
+        UtilRecord.log(`[精度管理] 后台更新 ${exchange} ${marketType} 交易所信息失败:`, error?.message || error);
       }
     }, 5000); // 延迟5秒执行,避免影响主流程
   }
@@ -409,7 +412,7 @@ class ExchangePrecisionManager {
       if (originalQuantity === adjustedQuantity) {
         UtilRecord.log(`[精度无需调整${opType}] ${symbol} 数量符合规范 - 最终数量: ${adjustedQuantity}, 精度要求: ${precision}位小数, 状态: 原始数量已符合交易所规范，无需调整`);
       } else {
-        const adjustmentRatio = ((parseFloat(adjustedQuantity) / parseFloat(originalQuantity) - 1) * 100).toFixed(4);
+        const adjustmentRatio = ((parseFloat(String(adjustedQuantity)) / parseFloat(String(originalQuantity)) - 1) * 100).toFixed(4);
         UtilRecord.log(`[精度调整完成${opType}] ${symbol} 调整总结 - 输入: ${originalQuantity}, 输出: ${adjustedQuantity}, 调整幅度: ${adjustmentRatio}%, 精度要求: ${precision}位小数, 处理结果: 已根据交易所规则成功调整`);
       }
     }
@@ -427,14 +430,14 @@ class ExchangePrecisionManager {
    */
   adjustQuantityByFilters(symbol, quantity, symbolFilters, silent = false) {
     if (!symbolFilters || !symbolFilters.length) {
-      if (!silent) UtilRecord.warn(`[精度处理] ${symbol} 缺少过滤器信息，使用默认精度`);
+      if (!silent) UtilRecord.log(`[精度处理] ${symbol} 缺少过滤器信息，使用默认精度`);
       return new bigNumber(quantity).toFixed(8);
     }
 
     const lotSizeFilter = symbolFilters.find(filter => filter.filterType === 'LOT_SIZE');
 
     if (!lotSizeFilter) {
-      if (!silent) UtilRecord.warn(`[精度处理] ${symbol} 缺少LOT_SIZE过滤器，使用默认精度`);
+      if (!silent) UtilRecord.log(`[精度处理] ${symbol} 缺少LOT_SIZE过滤器，使用默认精度`);
       return new bigNumber(quantity).toFixed(8);
     }
 
@@ -508,13 +511,13 @@ class ExchangePrecisionManager {
    */
   getSymbolFilters(exchangeInfo, symbol) {
     if (!exchangeInfo || !exchangeInfo.symbols) {
-      UtilRecord.warn('[精度管理] 交易所信息无效');
+      UtilRecord.log('[精度管理] 交易所信息无效');
       return [];
     }
 
     const symbolInfo = exchangeInfo.symbols.find(s => s.symbol === symbol);
     if (!symbolInfo) {
-      UtilRecord.warn(`[精度管理] 未找到交易对 ${symbol} 的信息`);
+      UtilRecord.log(`[精度管理] 未找到交易对 ${symbol} 的信息`);
       return [];
     }
 
@@ -529,13 +532,13 @@ class ExchangePrecisionManager {
    */
   getQuantityPrecision(exchangeInfo, symbol) {
     if (!exchangeInfo || !exchangeInfo.symbols) {
-      UtilRecord.warn('[精度管理] 交易所信息无效，使用默认精度 8');
+      UtilRecord.log('[精度管理] 交易所信息无效，使用默认精度 8');
       return 8;
     }
 
     const symbolInfo = exchangeInfo.symbols.find(s => s.symbol === symbol);
     if (!symbolInfo) {
-      UtilRecord.warn(`[精度管理] 未找到交易对 ${symbol} 的信息，使用默认精度 8`);
+      UtilRecord.log(`[精度管理] 未找到交易对 ${symbol} 的信息，使用默认精度 8`);
       return 8;
     }
 

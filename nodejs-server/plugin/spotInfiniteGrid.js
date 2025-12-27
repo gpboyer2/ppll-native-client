@@ -7,7 +7,7 @@
 const path = require('path');
 const dayjs = require('dayjs');
 const bigNumber = require('bignumber.js');
-const { proxy_obj } = require('../binance/config.js');
+const { getProxyConfig } = require('../utils/proxy.js');
 const UtilRecord = require('../utils/record-log.js');
 const StrategyLog = require('../utils/strategy-log.js');
 const { MainClient } = require('binance');
@@ -201,7 +201,13 @@ function InfiniteGridSpot(options) {
     direction: 'long'
   });
 
-  let mainClientConfig = process.env.NODE_ENV !== 'production' ? { proxy: proxy_obj } : {};
+  let mainClientConfig = {};
+  if (process.env.NODE_ENV !== 'production') {
+    const proxyConfig = getProxyConfig();
+    if (proxyConfig) {
+      mainClientConfig.proxy = proxyConfig;
+    }
+  }
 
   /** 调用binance生成的客户端（现货） */
   this.client = new MainClient(
@@ -235,7 +241,7 @@ function InfiniteGridSpot(options) {
       default:
         this.logger.warn(`未知的事件类型 "${type}"`);
     }
-  }
+  };
 
   /**
    * 处理平仓操作的错误
@@ -248,7 +254,7 @@ function InfiniteGridSpot(options) {
     if (!errorCode) return false;
 
     switch (errorCode) {
-      // -2010: 账户余额不足，说明实际没有足够的币可平仓（可能被手动卖出了）
+    // -2010: 账户余额不足，说明实际没有足够的币可平仓（可能被手动卖出了）
       case -2010:
         this.logger.warn(`检测到仓位已被手动平仓（错误码-2010），清空开仓历史记录并重新初始化`);
         this.positionOpenHistory = [];
@@ -257,10 +263,10 @@ function InfiniteGridSpot(options) {
         this.nextExpectedFallPrice = undefined;
         return true;
 
-      // 可在此处扩展其他错误码的处理逻辑
-      // case -xxxx:
-      //   UtilRecord.log(`⚠️ 处理错误码 -xxxx`);
-      //   return true;
+        // 可在此处扩展其他错误码的处理逻辑
+        // case -xxxx:
+        //   UtilRecord.log(`⚠️ 处理错误码 -xxxx`);
+        //   return true;
 
       default:
         return false;
@@ -274,10 +280,10 @@ function InfiniteGridSpot(options) {
   this.getParseDatum = (datum) => {
     let data = datum;
     if (typeof datum === 'string') {
-      data = JSON.parse(datum)
+      data = JSON.parse(datum);
     }
     return data;
-  }
+  };
 
   /**
    * 获取现货开仓数量（买入基础资产的数量）
@@ -286,7 +292,7 @@ function InfiniteGridSpot(options) {
    */
   this.getSpotBuyQuantity = () => {
     return this.config.gridLongBuyQuantity || this.config.gridTradeQuantity;
-  }
+  };
 
   /**
    * 获取现货平仓数量（卖出基础资产的数量）
@@ -295,7 +301,7 @@ function InfiniteGridSpot(options) {
    */
   this.getSpotSellQuantity = () => {
     return this.config.gridLongSellQuantity || this.config.gridTradeQuantity;
-  }
+  };
 
   /**
    * 重置期望价格, 通过防跌系数计算出预期价格(即下一次可以建仓的价格)
@@ -317,7 +323,7 @@ function InfiniteGridSpot(options) {
     coefficient = coefficient.isNaN() ? 0 : coefficient;
 
     this.nextExpectedFallPrice = bigNumber(executionPrice).minus(this.config.gridPriceDifference).minus(coefficient).toNumber();
-  }
+  };
 
   /**
    * 调用卖出操作（卖出基础资产，获得计价资产）
@@ -331,7 +337,7 @@ function InfiniteGridSpot(options) {
       quantity: quantity,
       timestamp: Date.now()
     });
-  }
+  };
 
   /**
    * 调用买入操作（买入基础资产，消耗计价资产）
@@ -345,7 +351,7 @@ function InfiniteGridSpot(options) {
       quantity: quantity,
       timestamp: Date.now()
     });
-  }
+  };
 
   /**
    * 查询订单详情，最多重试3次，超过后通过持仓推断订单结果
@@ -383,7 +389,7 @@ function InfiniteGridSpot(options) {
       this.onWarn({ id: this.config.id, message: `订单查询失败，通过持仓推断${isSuccess ? '成功' : '失败'}` });
     }
     return isSuccess ? { orderId, cummulativeQuoteQty: String(bigNumber(this.latestPrice || 0).times(orderQty)), executedQty: String(orderQty), status: 'INFERRED' } : null;
-  }
+  };
 
   /**
    * 创建仓位（开仓）
@@ -424,7 +430,7 @@ function InfiniteGridSpot(options) {
     this.totalOpenPositionEntryPrice = await this.getAverageCostPrice(this.config.tradingPair);
     this.resetTargetPrice(executionPrice);
     this.orderOptions.lock = 'idle';
-  }
+  };
 
   /**
    * 平掉仓位（平仓）
@@ -466,7 +472,7 @@ function InfiniteGridSpot(options) {
     this.totalOpenPositionEntryPrice = await this.getAverageCostPrice(this.config.tradingPair);
     this.resetTargetPrice(executionPrice);
     this.orderOptions.lock = 'idle';
-  }
+  };
 
   /**
    * 获取账户信息（现货账户）
@@ -479,7 +485,7 @@ function InfiniteGridSpot(options) {
       this.logger.error('获取现货账户信息失败:', error);
       throw error;
     }
-  }
+  };
 
   /**
    * 初始化账户信息与余额信息
@@ -520,7 +526,7 @@ function InfiniteGridSpot(options) {
         await this.initAccountInfo();
       }, (this.accountInfoRetryInterval += 1000));
     }
-  }
+  };
 
   /**
    * 解析交易对符号
@@ -538,7 +544,7 @@ function InfiniteGridSpot(options) {
     }
 
     return [symbol.slice(0, 3), symbol.slice(3)];
-  }
+  };
 
   /**
    * 计算总资产价值（以计价资产计算）
@@ -547,7 +553,7 @@ function InfiniteGridSpot(options) {
    */
   this.getTotalAssetValue = (currentPrice) => {
     return bigNumber(this.currentBaseAssetQuantity).times(currentPrice).plus(this.currentQuoteAssetBalance).toNumber();
-  }
+  };
 
   /**
    * 当前每网格匹配成功所得利润
@@ -562,7 +568,7 @@ function InfiniteGridSpot(options) {
     let sellFee = sellValue.times(0.001);
     let actualProfit = sellValue.minus(buyValue).minus(buyFee).minus(sellFee);
     return actualProfit.toNumber();
-  }
+  };
 
   /**
    * 获取上一个卖出的订单信息
@@ -576,7 +582,7 @@ function InfiniteGridSpot(options) {
       }
     }
     return null;
-  }
+  };
 
   /**
    * 获取指定交易对在特定时间范围内的平均持仓成本。
@@ -653,7 +659,7 @@ function InfiniteGridSpot(options) {
       // 可以在这里向上层抛出错误或根据需要处理
       return null;
     }
-  }
+  };
 
   /**
    * 主流程函数 - 现货网格交易核心逻辑
@@ -833,30 +839,30 @@ function InfiniteGridSpot(options) {
       this.openOrders(buyQuantity);
       return;
     }
-  }
+  };
 
   /** 暂停网格 */
-  this.onPausedGrid = () => { this.paused = true; }
+  this.onPausedGrid = () => { this.paused = true; };
 
   /** 继续网格 */
-  this.onContinueGrid = () => { this.paused = false; }
+  this.onContinueGrid = () => { this.paused = false; };
 
   /** 手动暂停网格 */
-  this.onManualPausedGrid = () => { this.paused = true; }
+  this.onManualPausedGrid = () => { this.paused = true; };
 
   /** 手动继续网格 */
-  this.onManualContinueGrid = () => { this.paused = false; }
+  this.onManualContinueGrid = () => { this.paused = false; };
 
   /** 启用日志输出 */
   this.enableLog = () => {
     UtilRecord.log = this.originalLog;
     UtilRecord.log(' 日志输出已启用');
-  }
+  };
 
   /** 禁用日志输出 */
   this.disableLog = () => {
     UtilRecord.log = function () { };
-  }
+  };
 
   /**
    * 入口函数 - 初始化持仓信息
@@ -864,8 +870,8 @@ function InfiniteGridSpot(options) {
   this.initOrders = async () => {
     this.onPausedGrid();
 
-    let isOk = true
-    await this.initAccountInfo().catch(() => { isOk = false });
+    let isOk = true;
+    await this.initAccountInfo().catch(() => { isOk = false; });
     if (isOk === false) {
       setTimeout(this.initOrders, 1000);
       return;
@@ -897,7 +903,7 @@ function InfiniteGridSpot(options) {
     }
 
     this.initStatus = true;
-  }
+  };
 }
 
 module.exports = InfiniteGridSpot;

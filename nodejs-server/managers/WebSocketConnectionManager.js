@@ -10,7 +10,7 @@ const { WebsocketClient } = require('binance');
 const EventEmitter = require('events');
 const { SocksProxyAgent } = require('socks-proxy-agent');
 const UtilRecord = require('../utils/record-log.js');
-const { ws_proxy } = require('../binance/config.js');
+const { getProxyUrlString } = require('../utils/proxy.js');
 
 // 生产环境标识
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -59,15 +59,19 @@ class WebSocketConnectionManager extends EventEmitter {
    * @returns {Object} wsOptions 和 logger 配置
    */
   _createWsConfig(verbose = true) {
+    // 获取代理URL并转换为socks代理
+    const proxyUrl = getProxyUrlString();
+    const ws_proxy = proxyUrl ? proxyUrl.replace('http://', 'socks://').replace('https://', 'socks://') : '';
+
     // 添加连接超时配置
     const wsOptions = (!IS_PRODUCTION && this.options.enableProxyNonProd && ws_proxy)
       ? {
-          agent: new SocksProxyAgent(ws_proxy),
-          handshakeTimeout: CONNECTION_TIMEOUT,
-        }
+        agent: new SocksProxyAgent(ws_proxy),
+        handshakeTimeout: CONNECTION_TIMEOUT,
+      }
       : {
-          handshakeTimeout: CONNECTION_TIMEOUT,
-        };
+        handshakeTimeout: CONNECTION_TIMEOUT,
+      };
 
     // 生产环境或非详细模式时静默部分日志
     const silentLogger = () => { };

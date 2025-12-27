@@ -11,8 +11,8 @@ const {
   WebsocketClient,
   DefaultLogger,
 } = require("binance");
-const config = require("../binance/config.js");
 const proxy = require("../utils/proxy.js");
+const { BINANCE_CONFIG: config } = proxy;
 const request = require("../middleware/request.js");
 const ApiError = require("../utils/api-error");
 
@@ -190,7 +190,7 @@ function ensureJsonString(data) {
  * 确保输入的数据是一个有效的JSON对象。
  *
  * @param {any} data - 需要验证的数据。
- * @returns {Object|null} - 如果数据是有效的JSON对象，则返回该对象；
+ * @returns {Promise<any>} - 如果数据是有效的JSON对象，则返回该对象；
  *                         如果数据不是有效的JSON对象或无法解析为JSON对象，则返回null。
  * @throws 不会抛出异常。
  */

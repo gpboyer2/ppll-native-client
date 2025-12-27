@@ -4,12 +4,14 @@
 
 const { WebsocketClient, DefaultLogger } = require('binance');
 const { SocksProxyAgent } = require('socks-proxy-agent');
-const { ws_proxy } = require('../binance/config.js');
+const { getProxyUrlString } = require('../utils/proxy.js');
 const InfiniteGrid = require('../plugin/umInfiniteGrid.js');
 const { accountList, strategyList } = require('./strategies.config.list.js');
 
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
-const agent = IS_PRODUCTION ? null : new SocksProxyAgent(ws_proxy);
+const proxyUrl = getProxyUrlString();
+const ws_proxy = proxyUrl ? proxyUrl.replace('http://', 'socks://').replace('https://', 'socks://') : '';
+const agent = IS_PRODUCTION ? null : (ws_proxy ? new SocksProxyAgent(ws_proxy) : null);
 const STRATEGY_START_DELAY_MIN_MS = 10000;
 const STRATEGY_START_DELAY_MAX_MS = 15000;
 

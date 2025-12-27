@@ -21,4 +21,4 @@ const convertToBoolean = (value) => {
 
 module.exports = {
   convertToBoolean
-}
+};

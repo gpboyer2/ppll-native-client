@@ -1,6 +1,6 @@
 const bigNumber = require('bignumber.js');
 const { USDMClient } = require('binance');
-const { proxy_obj } = require('../binance/config.js');
+const { getProxyConfig } = require('../utils/proxy.js');
 const UtilRecord = require("../utils/record-log.js");
 const binancePrecision = require("../utils/binance-precision");
 const ApiError = require("../utils/api-error");
@@ -34,7 +34,10 @@ const createClient = (apiKey, apiSecret) => {
   };
 
   if (process.env.NODE_ENV !== "production") {
-    requestOptions.proxy = proxy_obj;
+    const proxyConfig = getProxyConfig();
+    if (proxyConfig) {
+      requestOptions.proxy = proxyConfig;
+    }
   }
 
   return new USDMClient(options, requestOptions);
@@ -95,7 +98,7 @@ const getPriceInfo = async (apiKey, apiSecret) => {
  * 获取USDT交易对列表
  * @param {string} apiKey - API密钥
  * @param {string} apiSecret - API密钥Secret
- * @param {Array} customPositions - 自定义交易对列表
+ * @param {string|Array} customPositions - 自定义交易对列表（JSON字符串或数组）
  * @returns {Promise<Array>} USDT交易对列表
  */
 const getUsdtTradingList = async (apiKey, apiSecret, customPositions = null) => {
@@ -104,9 +107,9 @@ const getUsdtTradingList = async (apiKey, apiSecret, customPositions = null) => 
     let usdtTradingList = priceInfo.filter(item => item.symbol.endsWith('USDT'));
 
     // 自定义建仓币种过滤
-    if (customPositions?.length) {
+    if (customPositions) {
       try {
-        const positions = JSON.parse(customPositions);
+        const positions = typeof customPositions === 'string' ? JSON.parse(customPositions) : customPositions;
         usdtTradingList = usdtTradingList.filter(item => {
           return positions.find(p => p.symbol === item.symbol);
         });
@@ -204,7 +207,7 @@ const batchBuildPosition = async (apiKey, apiSecret, longAmount, shortAmount, po
                 symbol: currency.symbol,
                 side: 'BUY',
                 type: 'MARKET',
-                quantity,
+                quantity: parseFloat(quantity),
                 positionSide: 'LONG'
               });
 
@@ -234,7 +237,7 @@ const batchBuildPosition = async (apiKey, apiSecret, longAmount, shortAmount, po
                 symbol: currency.symbol,
                 side: 'SELL',
                 type: 'MARKET',
-                quantity,
+                quantity: parseFloat(quantity),
                 positionSide: 'SHORT'
               });
 
@@ -334,7 +337,7 @@ const customBuildPosition = async (apiKey, apiSecret, positions) => {
                 symbol,
                 side: 'BUY',
                 type: 'MARKET',
-                quantity,
+                quantity: parseFloat(quantity),
                 positionSide: 'LONG'
               });
 
@@ -359,7 +362,7 @@ const customBuildPosition = async (apiKey, apiSecret, positions) => {
                 symbol,
                 side: 'SELL',
                 type: 'MARKET',
-                quantity,
+                quantity: parseFloat(quantity),
                 positionSide: 'SHORT'
               });
 
@@ -435,9 +438,9 @@ const appointClosePosition = async (apiKey, apiSecret, positions) => {
 
             const orderParams = {
               symbol,
-              side: positionSide === 'LONG' ? 'SELL' : 'BUY',
+              side: (positionSide === 'LONG' ? 'SELL' : 'BUY'),
               type: 'MARKET',
-              quantity: adjustedQuantity,
+              quantity: parseFloat(adjustedQuantity),
               positionSide
             };
 
@@ -491,7 +494,7 @@ const batchClosePositions = async (apiKey, apiSecret, positions) => {
 
     // 获取账户信息（不检查余额，因为是平仓操作）
     const accountInfo = await getAccountInfo(apiKey, apiSecret);
-    const exchangeInfo = await getExchangeInfo();
+    const exchangeInfo = await getExchangeInfo(apiKey, apiSecret);
     const accountPositions = accountInfo.positions.filter(poi => positions.includes(poi.symbol));
 
     // 立即返回响应数据，不等待for循环执行
@@ -525,7 +528,7 @@ const batchClosePositions = async (apiKey, apiSecret, positions) => {
                 symbol,
                 side: 'SELL',
                 type: 'MARKET',
-                quantity: adjustedQuantity,
+                quantity: parseFloat(adjustedQuantity),
                 positionSide: 'LONG'
               });
 
@@ -548,7 +551,7 @@ const batchClosePositions = async (apiKey, apiSecret, positions) => {
                 symbol,
                 side: 'BUY',
                 type: 'MARKET',
-                quantity: adjustedQuantity,
+                quantity: parseFloat(adjustedQuantity),
                 positionSide: 'SHORT'
               });
 
@@ -641,7 +644,7 @@ const customCloseMultiplePositions = async (apiKey, apiSecret, positions) => {
               symbol,
               side: 'SELL',
               type: 'MARKET',
-              quantity: adjustedQuantity,
+              quantity: parseFloat(adjustedQuantity),
               positionSide: 'LONG'
             });
 
@@ -793,9 +796,9 @@ const customClosePositions = async (apiKey, apiSecret, positions) => {
             // 使用官方binance包下单
             const orderParams = {
               symbol,
-              side: type === "CLOSE_LONG" ? 'SELL' : 'BUY',
+              side: (type === "CLOSE_LONG" ? 'SELL' : 'BUY'),
               type: 'MARKET',
-              quantity: adjustedQuantity,
+              quantity: parseFloat(adjustedQuantity),
               positionSide: type === "CLOSE_LONG" ? 'LONG' : 'SHORT'
             };
 
@@ -928,7 +931,7 @@ const setShortTakeProfit = async (apiKey, apiSecret, positions) => {
               side: 'BUY',
               algoType: 'CONDITIONAL',
               type: 'STOP_MARKET',
-              quantity: adjustedQuantity,
+              quantity: parseFloat(adjustedQuantity),
               triggerPrice: adjustedStopPrice, // Algo接口使用 triggerPrice
               positionSide: 'SHORT',
               workingType: 'MARK_PRICE',

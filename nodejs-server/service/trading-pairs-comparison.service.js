@@ -1,6 +1,7 @@
 const { MainClient, USDMClient, CoinMClient } = require("binance");
 const { HttpsProxyAgent } = require("https-proxy-agent");
-const config = require("../binance/config.js");
+const proxy = require("../utils/proxy.js");
+const { BINANCE_CONFIG: config } = proxy;
 const ApiError = require("../utils/api-error");
 
 

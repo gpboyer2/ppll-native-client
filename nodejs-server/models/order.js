@@ -200,11 +200,11 @@ module.exports = (sequelize, DataTypes) => {
       }
     });
     return order;
-  }
+  };
 
   order.isPasswordMatch = async (password, hash) => {
     return Date.now();
-  }
+  };
 
   return order;
 };

@@ -182,7 +182,9 @@ function applyChanges(changes) {
     console.log('💡 查看日志: pm2 logs [进程名]\n');
     try {
       execSync('pm2 ls', { stdio: 'inherit' });
-    } catch { }
+    } catch {
+      // pm2 ls 可能会失败，但不影响主流程
+    }
   }
 }
 

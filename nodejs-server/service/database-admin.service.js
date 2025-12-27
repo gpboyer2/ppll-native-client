@@ -38,6 +38,7 @@ const getInfo = async () => {
         const countResult = await db.sequelize.query(`SELECT COUNT(*) as count FROM "${tableName}"`);
         totalRows += countResult[0][0].count;
       } catch (e) {
+        // 忽略单个表的统计错误，继续统计其他表
       }
     }
 

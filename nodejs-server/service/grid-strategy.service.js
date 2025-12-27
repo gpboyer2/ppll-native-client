@@ -193,10 +193,10 @@ const createGridStrategy = async (params) => {
         // 错误处理
         UtilRecord.log('[grid-strategy] 网格策略错误', {
           strategyId: this.config.id,
-          userId: this.config.user_id,
-          symbol: this.config.trading_pair,
-          positionSide: this.config.position_side,
-          productType: this.config.exchange_type || 'u本位合约',
+          userId: this.config.userId,
+          symbol: this.config.tradingPair,
+          positionSide: this.config.positionSide,
+          productType: this.config.exchangeType || 'u本位合约',
           error: data,
           timestamp: dayjs().format('YYYY-MM-DD HH:mm:ss')
         });
@@ -349,7 +349,7 @@ const isAdmin = (user) => {
  * @param {Object} filter - 查询条件
  * @param {Object} options - 分页选项
  * @param {Object} currentUser - 当前用户（来自 req.vipUser）
- * @returns {Object} 包含网格策略数据和分页信息的对象
+ * @returns {Promise<any>} 包含网格策略数据和分页信息的对象
  */
 const getAllGridStrategys = async (
   filter = {},
@@ -501,7 +501,9 @@ const deleteGridStrategyById = async (updateBody, currentUser = null) => {
 
   // 清理内存中的策略实例
   if (gridMap[id]) {
-    try { gridMap[id].onManualPausedGrid(); } catch (e) { }
+    try { gridMap[id].onManualPausedGrid(); } catch (e) {
+      // 忽略清理策略时的错误，继续执行删除逻辑
+    }
     delete gridMap[id];
   }
 

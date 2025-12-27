@@ -3,8 +3,8 @@
  * 提供获取币安各类账户信息的业务逻辑处理，包括U本位合约、现货、币本位合约账户
  */
 const { MainClient, USDMClient, CoinMClient } = require("binance");
-const config = require("../binance/config.js");
 const proxy = require("../utils/proxy.js");
+const { BINANCE_CONFIG: config } = proxy;
 const path = require("path");
 const { readJsonSafe, writeJsonSafe } = require("../utils/file.js");
 const UtilRecord = require('../utils/record-log.js');
