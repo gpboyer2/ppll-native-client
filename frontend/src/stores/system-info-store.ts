@@ -18,38 +18,38 @@ interface GitInfo {
 
 interface HealthData {
     service: {
-        isRunning: boolean;
-        pid: number;
-        startTime: string;
-        uptime: string;
+        isRunning?: boolean;
+        pid?: number;
+        startTime?: string;
+        uptime?: string;
     };
     health: {
-        isHealthy: boolean;
-        database: {
-            healthy: boolean;
+        isHealthy?: boolean;
+        database?: {
+            healthy?: boolean;
         };
     };
-    resources: {
-        memory: {
-            used: number;
-            total: number;
-            percentage: number;
+    resources?: {
+        memory?: {
+            used?: number;
+            total?: number;
+            percentage?: number;
         };
-        cpu: {
-            user: number;
-            system: number;
+        cpu?: {
+            user?: number;
+            system?: number;
         };
     };
-    connections: {
-        websocket: {
-            active: number;
-            public: number;
-            userData: number;
-            total: number;
+    connections?: {
+        websocket?: {
+            active?: number;
+            public?: number;
+            userData?: number;
+            total?: number;
         };
-        socketio: {
-            active: number;
-            total: number;
+        socketio?: {
+            active?: number;
+            total?: number;
         };
     };
 }
@@ -89,8 +89,46 @@ const defaultStaticInfo: StaticInfo = {
     gitInfo: undefined
 };
 
+const defaultHealthData: HealthData = {
+    service: {
+        isRunning: false,
+        pid: 0,
+        startTime: '',
+        uptime: ''
+    },
+    health: {
+        isHealthy: false,
+        database: {
+            healthy: false
+        }
+    },
+    resources: {
+        memory: {
+            used: 0,
+            total: 0,
+            percentage: 0
+        },
+        cpu: {
+            user: 0,
+            system: 0
+        }
+    },
+    connections: {
+        websocket: {
+            active: 0,
+            public: 0,
+            userData: 0,
+            total: 0
+        },
+        socketio: {
+            active: 0,
+            total: 0
+        }
+    }
+};
+
 const defaultDynamicInfo: DynamicInfo = {
-    health: null
+    health: defaultHealthData
 };
 
 let initPromise: Promise<void> | null = null;
@@ -297,6 +335,11 @@ export function getStaticInfo(): StaticInfo {
 export function getDynamicInfo(): DynamicInfo {
     const store = useSystemInfoStore.getState();
     return store.dynamicInfo || defaultDynamicInfo;
+}
+
+export function getHealthData(): HealthData {
+    const store = useSystemInfoStore.getState();
+    return store.dynamicInfo?.health || defaultHealthData;
 }
 
 export type { GitInfo, HealthData, StaticInfo, DynamicInfo };
