@@ -85,7 +85,7 @@ export function SmartConfigModal({
         apiSecret: defaultParams.apiSecret
       });
 
-      if (response.code !== 200) {
+      if (response.status === 'error') {
         throw new Error(response.message || '优化失败');
       }
 

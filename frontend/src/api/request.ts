@@ -24,14 +24,14 @@ function getNodejsUrl(): string {
 export class RequestWrapper {
   /**
    * 包装请求，统一处理响应格式
-   * 后端统一返回 {code: number, message: string, data: any}
+   * 后端统一返回 {status: 'success'|'error', message: string, data: any}
    */
   private static async wrapRequest<T>(request: Promise<any>): Promise<Response<T>> {
     try {
       const response = await request
 
-      // 后端统一返回 {code, message, data} 格式
-      if (response && typeof response === 'object' && 'code' in response) {
+      // 后端统一返回 {status, message, data} 格式
+      if (response && typeof response === 'object' && 'status' in response) {
         return response as Response<T>
       }
 
@@ -39,22 +39,23 @@ export class RequestWrapper {
       return ok(response)
     } catch (error: any) {
       return {
-        code: error.code || 500,
+        status: 'error',
         message: error.message || '网络请求失败',
-        data: undefined
+        data: null
       }
     }
   }
 
   /**
    * 发起原生 fetch 请求到 Node.js 服务
+   * 后端统一返回格式，直接透传不做任何包装
    */
   private static async fetchNodejs<T>(
     method: string,
     path: string,
     data?: any,
     headers?: Record<string, string>
-  ): Promise<Response<T>> {
+  ): Promise<any> {
     const nodejsUrl = getNodejsUrl()
     const url = `${nodejsUrl}${path}`
 
@@ -70,24 +71,8 @@ export class RequestWrapper {
       options.body = JSON.stringify(data)
     }
 
-    try {
-      const response = await fetch(url, options)
-      const result = await response.json()
-
-      // 后端统一返回 {code, message, data} 格式
-      if (result && typeof result === 'object' && 'code' in result) {
-        return result as Response<T>
-      }
-
-      // 其他情况直接包装为成功
-      return ok(result)
-    } catch (error: any) {
-      return {
-        code: 500,
-        message: error.message || '网络请求失败',
-        data: undefined
-      }
-    }
+    const response = await fetch(url, options)
+    return await response.json()
   }
 
   /**

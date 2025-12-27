@@ -176,7 +176,7 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
                     // 尝试获取健康检查数据
                     try {
                         const response = await SystemApi.healthCheck();
-                        if (response.code === 200 && response.data) {
+                        if (response.status === 'success' && response.data) {
                             set({
                                 dynamicInfo: { health: response.data },
                                 initialized: true
@@ -222,20 +222,20 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
                             ]);
 
                             if (ipResponse.status === 'fulfilled' && ipResponse.value) {
-                                if (ipResponse.value.code === 200 && Array.isArray(ipResponse.value.data)) {
+                                if (ipResponse.value.status === 'success' && Array.isArray(ipResponse.value.data)) {
                                     ipv4List = ipResponse.value.data;
                                 }
                             }
 
                             if (gitResponse.status === 'fulfilled' && gitResponse.value) {
-                                if (gitResponse.value.code === 200 && gitResponse.value.data) {
+                                if (gitResponse.value.status === 'success' && gitResponse.value.data) {
                                     gitInfo = gitResponse.value.data;
                                     appVersion = gitInfo?.tag || appVersion;
                                 }
                             }
 
                             if (healthResponse.status === 'fulfilled' && healthResponse.value) {
-                                if (healthResponse.value.code === 200 && healthResponse.value.data) {
+                                if (healthResponse.value.status === 'success' && healthResponse.value.data) {
                                     healthData = healthResponse.value.data;
                                 }
                             }
@@ -272,7 +272,7 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
 
                     try {
                         const response = await SystemApi.healthCheck();
-                        if (response.code === 200 && response.data) {
+                        if (response.status === 'success' && response.data) {
                             set({ dynamicInfo: { health: response.data } });
                         }
                     } catch {}
@@ -300,7 +300,7 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
 
         try {
             const response = await SystemApi.healthCheck();
-            if (response.code === 200 && response.data) {
+            if (response.status === 'success' && response.data) {
                 set({ dynamicInfo: { health: response.data } });
             }
         } catch (error) {

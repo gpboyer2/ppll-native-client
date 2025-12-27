@@ -81,7 +81,7 @@ function SettingsPage() {
         try {
             const cfg = { feedURL, channel: 'stable', autoCheck, checkIntervalMinute, autoDownload, silentInstall, hashAlgo: 'md5' };
             const res = await UpdateSaveConfig(cfg as any);
-            if (res.code === 200) {
+            if (res.status === 'success') {
                 setSaveStatus('success');
                 setTimeout(() => setSaveStatus('idle'), 500);
             } else {
@@ -103,7 +103,7 @@ function SettingsPage() {
 
         try {
             const res = await UpdateCheckNow();
-            if (res.code === 200) {
+            if (res.status === 'success') {
                 setUpdateInfo(res.data);
             }
         } catch (error) {
@@ -178,7 +178,7 @@ function SettingsPage() {
                 ? await BinanceApiKeyApi.update(body)
                 : await BinanceApiKeyApi.create(body);
 
-            if (response.code === 200) {
+            if (response.status === 'success') {
                 setApiKeyStatus('success');
                 // 刷新列表
                 await refreshApiKeys();
@@ -206,7 +206,7 @@ function SettingsPage() {
         try {
             const response = await BinanceApiKeyApi.delete({ data: [id] });
 
-            if (response.code === 200) {
+            if (response.status === 'success') {
                 // 刷新列表
                 await refreshApiKeys();
             } else {

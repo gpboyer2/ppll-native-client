@@ -28,7 +28,7 @@ export function isWailsReady(): boolean {
 export async function isNodejsServiceAvailable(baseUrl?: string): Promise<boolean> {
   try {
     const response = await SystemApi.healthCheck();
-    return response.code === 200;
+    return response.status === 'success';
   } catch {
     return false;
   }

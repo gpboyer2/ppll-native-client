@@ -7,7 +7,7 @@
  * 标准响应结构
  */
 export interface Response<T = any> {
-  code: number
+  status: 'success' | 'error'
   message: string
   data: T
 }
@@ -19,7 +19,7 @@ export interface Response<T = any> {
  */
 export function ok<T>(data: T): Response<T> {
   return {
-    code: 200,
+    status: 'success',
     message: '操作成功',
     data
   }
@@ -27,14 +27,13 @@ export function ok<T>(data: T): Response<T> {
 
 /**
  * 创建错误响应
- * @param code 错误码
  * @param message 错误信息
  * @returns Response 对象
  */
-export function error(code: number, message: string): Response<undefined> {
+export function error(message: string): Response<null> {
   return {
-    code,
+    status: 'error',
     message,
-    data: undefined
+    data: null
   }
 }

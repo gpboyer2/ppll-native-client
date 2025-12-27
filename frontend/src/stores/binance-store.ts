@@ -49,7 +49,7 @@ async function getAuthToken(): Promise<string> {
 
         const tokenRes = await GetConfig('auth_token') as any;
         if (tokenRes && typeof tokenRes === 'object') {
-            if (tokenRes.code === 200 && tokenRes.data) {
+            if (tokenRes.status === 'success' && tokenRes.data) {
                 return String(tokenRes.data);
             }
         } else if (typeof tokenRes === 'string') {
@@ -115,19 +115,31 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         if (!nodejsUrl) return;
 
         try {
+            console.log('[binance-store] 开始查询 API Key 列表');
             const response = await BinanceApiKeyApi.query();
 
-            if (response.code === 200 && response.data?.list) {
+            // 诊断日志：检查响应结构
+            console.log('[binance-store] API 响应:', JSON.stringify(response, null, 2));
+            console.log('[binance-store] response.status:', response.status);
+            console.log('[binance-store] response.data:', response.data);
+
+            // 后端响应直接透传，数据在 response.data.list
+            if (response.status === 'success' && response.data?.list) {
                 // 转换字段名：下划线命名 -> 驼峰命名
                 const convertedList = response.data.list.map((item: any) => ({
                     ...item,
                     apiKey: item.api_key,
                     secretKey: item.secret_key
                 }));
+                console.log('[binance-store] 转换后的列表:', convertedList);
                 set({ apiKeyList: convertedList });
+            } else {
+                console.log('[binance-store] 响应格式不符合预期或没有数据');
+                console.log('[binance-store] response.status === \'success\':', response.status === 'success');
+                console.log('[binance-store] response.data?.list 存在:', !!response.data?.list);
             }
         } catch (error) {
-            // 静默处理错误
+            console.error('[binance-store] 查询 API Key 失败:', error);
         }
     },
 
@@ -145,7 +157,8 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         try {
             const response = await BinanceExchangeInfoApi.getExchangeInfo();
 
-            if (response.code === 200 && response.data?.symbols) {
+            // 后端响应直接透传，数据在 response.data.symbols
+            if (response.status === 'success' && response.data?.symbols) {
                 const symbols = response.data.symbols;
                 const tradingSymbols = symbols.filter((s: any) => s.status === 'TRADING');
                 const allPairs = tradingSymbols.map((s: any) => s.symbol);

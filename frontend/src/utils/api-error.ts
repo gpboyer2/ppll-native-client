@@ -6,7 +6,7 @@ import type { Response } from '../core/response'
  */
 export class ApiError extends Error {
   constructor(
-    public code: number,
+    public status: 'error',
     message: string,
     public traceID?: string
   ) {
@@ -25,28 +25,6 @@ interface NotifyOptions {
 }
 
 /**
- * 默认错误消息映射
- */
-const DEFAULT_ERROR_MESSAGES: Record<number, string> = {
-  400: '请求参数错误',
-  401: '未授权，请重新登录',
-  403: '没有权限访问',
-  404: '请求的资源不存在',
-  408: '请求超时',
-  500: '服务器内部错误',
-  502: '网关错误',
-  503: '服务暂时不可用',
-  504: '网关超时'
-}
-
-/**
- * 获取错误消息
- */
-function getErrorMessage(code: number, message?: string): string {
-  return message || DEFAULT_ERROR_MESSAGES[code] || `请求失败 (错误码: ${code})`
-}
-
-/**
  * 显示成功提示
  */
 export function showSuccess(message: string, options?: NotifyOptions) {
@@ -61,12 +39,11 @@ export function showSuccess(message: string, options?: NotifyOptions) {
 /**
  * 显示错误提示
  */
-export function showError(code: number, message: string, options?: NotifyOptions) {
-  const errorMessage = getErrorMessage(code, message)
+export function showError(message: string, options?: NotifyOptions) {
   notifications.show({
     color: 'red',
     title: options?.title || '操作失败',
-    message: options?.description || errorMessage,
+    message: options?.description || message,
     withBorder: true
   })
 }
@@ -85,27 +62,27 @@ export function showWarning(message: string, options?: NotifyOptions) {
 
 /**
  * 处理 API 响应
- * - 如果 code !== 200，显示错误提示并抛出异常
- * - 返回 data 或 undefined
+ * - 如果 status === 'error'，显示错误提示并抛出异常
+ * - 返回 data
  */
 export function handleResponse<T>(response: Response<T>, options?: NotifyOptions): T {
-  if (response.code !== 200) {
+  if (response.status === 'error') {
     if (options?.show !== false) {
-      showError(response.code, response.message, options)
+      showError(response.message, options)
     }
-    throw new ApiError(response.code, response.message, response.traceID)
+    throw new ApiError(response.status, response.message, response.traceID)
   }
   return response.data as T
 }
 
 /**
  * 静默处理 API 响应（不显示提示）
- * - 如果 code !== 200，抛出异常但不显示提示
- * - 返回 data 或 undefined
+ * - 如果 status === 'error'，抛出异常但不显示提示
+ * - 返回 data
  */
 export function handleResponseSilent<T>(response: Response<T>): T {
-  if (response.code !== 200) {
-    throw new ApiError(response.code, response.message, response.traceID)
+  if (response.status === 'error') {
+    throw new ApiError(response.status, response.message, response.traceID)
   }
   return response.data as T
 }
@@ -115,7 +92,7 @@ export function handleResponseSilent<T>(response: Response<T>): T {
  */
 export function catchError(error: unknown, options?: NotifyOptions): void {
   if (error instanceof ApiError) {
-    showError(error.code, error.message, options)
+    showError(error.message, options)
   } else if (error instanceof Error) {
     notifications.show({
       color: 'red',

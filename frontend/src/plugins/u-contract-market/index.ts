@@ -175,7 +175,7 @@ const saveCredentials = async () => {
 const loadCredentials = async () => {
   try {
     const res: any = await PluginGetConfig('u-contract-market')
-    if (res && res.code === 200 && res.data) {
+    if (res && res.status === 'success' && res.data) {
       const { apiKey, apiSecret } = res.data
       if (apiKey && apiSecret) {
         const inputs = getCredentialsInputs()
@@ -212,7 +212,7 @@ const testCredentials = async () => {
   try {
     const response = await BinanceApi.getUmAccountInfo({ apiKey, apiSecret })
     
-    if (response.code === 200 && response.data?.status === 'success') {
+    if (response.status === 'success' && response.data?.status === 'success') {
       currentCredentials = { apiKey, apiSecret }
       accountData = response.data.data || null
       showStatus('API连接测试成功', 'success')
@@ -239,7 +239,7 @@ const refreshAccountInfo = async () => {
   try {
     const response = await BinanceApi.getUmAccountInfo(currentCredentials)
     
-    if (response.code === 200 && response.data?.status === 'success') {
+    if (response.status === 'success' && response.data?.status === 'success') {
       accountData = response.data.data || null
       displayAccountInfo()
       showStatus('账户信息刷新成功', 'success')
@@ -392,7 +392,7 @@ const buildPositions = async () => {
       positions
     })
     
-    if (response.code === 200 && response.data?.status === 'success') {
+    if (response.status === 'success' && response.data?.status === 'success') {
       const result = response.data.data
       showStatus(`建仓操作成功！处理了 ${result?.processedCount}/${result?.totalPositions} 个交易对`, 'success')
       // 3秒后刷新账户信息
@@ -439,7 +439,7 @@ const closePositions = async () => {
       positions: formattedPositions
     })
     
-    if (response.code === 200 && response.data?.status === 'success') {
+    if (response.status === 'success' && response.data?.status === 'success') {
       showStatus(`平仓操作已开始！${response.data.data?.message || '请等待约15秒后查看结果'}`, 'success')
       // 15秒后刷新账户信息
       setTimeout(() => {

@@ -98,7 +98,7 @@ function DatabaseManagerPage() {
     // 获取数据库概览信息
     const fetchDatabaseInfo = useCallback(async () => {
         const response = await ApiEndpoints.getDatabaseInfo();
-        if (response.code === 200) {
+        if (response.status === 'success') {
             setDbInfo(response.data);
         }
     }, []);
@@ -111,7 +111,7 @@ function DatabaseManagerPage() {
             pageSize: 100,
             keyword
         });
-        if (response.code === 200) {
+        if (response.status === 'success') {
             setTableList(response.data.list);
         }
         setLoading(false);
@@ -121,7 +121,7 @@ function DatabaseManagerPage() {
     const fetchTableDetail = useCallback(async (tableName: string) => {
         setLoading(true);
         const response = await ApiEndpoints.getTableDetail(tableName);
-        if (response.code === 200) {
+        if (response.status === 'success') {
             setTableDetail(response.data);
         }
         setLoading(false);
@@ -138,7 +138,7 @@ function DatabaseManagerPage() {
             sortBy,
             sortOrder
         });
-        if (response.code === 200) {
+        if (response.status === 'success') {
             setTableData(response.data);
         }
         setLoading(false);
@@ -149,7 +149,7 @@ function DatabaseManagerPage() {
         if (!sqlQuery.trim()) return;
         setLoading(true);
         const response = await ApiEndpoints.executeQuery(sqlQuery);
-        if (response.code === 200) {
+        if (response.status === 'success') {
             setQueryResult(response.data);
             notifications.show({
                 title: '查询成功',
@@ -200,7 +200,7 @@ function DatabaseManagerPage() {
     const handleDeleteTable = async (tableName: string) => {
         if (!confirm(`确定要删除表 "${tableName}" 吗？此操作不可恢复！`)) return;
         const response = await ApiEndpoints.deleteTable([tableName]);
-        if (response.code === 200) {
+        if (response.status === 'success') {
             notifications.show({
                 title: '删除成功',
                 message: `表 "${tableName}" 已删除`,
@@ -221,7 +221,7 @@ function DatabaseManagerPage() {
         const pkColumn = tableDetail.columns.find(c => c.primaryKey);
         if (!pkColumn) return;
         const response = await ApiEndpoints.deleteData(selectedTable, [rowId]);
-        if (response.code === 200) {
+        if (response.status === 'success') {
             notifications.show({
                 title: '删除成功',
                 message: '记录已删除',
@@ -239,7 +239,7 @@ function DatabaseManagerPage() {
             return;
         }
         const response = await ApiEndpoints.renameTable(selectedTable, renameTableValue.trim());
-        if (response.code === 200) {
+        if (response.status === 'success') {
             notifications.show({
                 title: '重命名成功',
                 message: `表已重命名为 "${renameTableValue}"`,
@@ -265,7 +265,7 @@ function DatabaseManagerPage() {
             return;
         }
         const response = await ApiEndpoints.copyTable(selectedTable, copyTableName.trim(), copyWithData);
-        if (response.code === 200) {
+        if (response.status === 'success') {
             notifications.show({
                 title: '复制成功',
                 message: `表已复制为 "${copyTableName}"`,
@@ -287,7 +287,7 @@ function DatabaseManagerPage() {
     const handleTruncateTable = async (tableName: string) => {
         if (!confirm(`确定要清空表 "${tableName}" 吗？此操作将删除所有数据但保留表结构！`)) return;
         const response = await ApiEndpoints.truncateTable([tableName]);
-        if (response.code === 200) {
+        if (response.status === 'success') {
             notifications.show({
                 title: '清空成功',
                 message: `表 "${tableName}" 已清空`,
@@ -311,7 +311,7 @@ function DatabaseManagerPage() {
             return;
         }
         const response = await ApiEndpoints.renameColumn(selectedTable, renameColumnOld, renameColumnNew.trim());
-        if (response.code === 200) {
+        if (response.status === 'success') {
             notifications.show({
                 title: '重命名成功',
                 message: `列已重命名为 "${renameColumnNew}"`,
@@ -352,7 +352,7 @@ function DatabaseManagerPage() {
             columns: indexColumns,
             unique: indexUnique
         });
-        if (response.code === 200) {
+        if (response.status === 'success') {
             notifications.show({
                 title: '创建成功',
                 message: `索引 "${indexName}" 已创建`,
@@ -376,7 +376,7 @@ function DatabaseManagerPage() {
     const handleDeleteIndex = async (indexName: string) => {
         if (!confirm(`确定要删除索引 "${indexName}" 吗？`)) return;
         const response = await ApiEndpoints.deleteIndex([indexName]);
-        if (response.code === 200) {
+        if (response.status === 'success') {
             notifications.show({
                 title: '删除成功',
                 message: `索引 "${indexName}" 已删除`,
