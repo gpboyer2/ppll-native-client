@@ -98,7 +98,7 @@ class RequestLogger {
         logData.data = this.filterSensitive(response.data)
       }
 
-      console.log(logData)
+      console.log(`#${requestId} API 响应:`, this.truncateLog(logData));
     }
   }
 
@@ -117,6 +117,17 @@ class RequestLogger {
       '\n错误:',
       error
     )
+  }
+
+  /**
+   * 截断日志内容到指定长度
+   */
+  private static truncateLog(data: any, maxLength: number = 1000): string {
+    const logStr = JSON.stringify(data, null, 2)
+    if (logStr.length <= maxLength) {
+      return logStr
+    }
+    return logStr.substring(0, maxLength) + `\n... (省略 ${logStr.length - maxLength} 字符)`
   }
 }
 

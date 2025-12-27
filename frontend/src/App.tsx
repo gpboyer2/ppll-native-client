@@ -22,6 +22,28 @@ import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 
+// 路由日志监听组件（就像 Vue Router 的 beforeEach）
+function RouteLogger() {
+    const location = useLocation();
+    const prevPathRef = useRef<string | null>(null);
+    const routeIdRef = useRef(0);
+
+    useEffect(() => {
+        const prevPath = prevPathRef.current;
+
+        // 记录路由跳转
+        const routeId = ++routeIdRef.current;
+        console.log(
+            `%c[路由 #${routeId}] ${prevPath} → ${location.pathname}`,
+            'color: #9900cc; font-weight: bold'
+        );
+
+        prevPathRef.current = location.pathname;
+    }, [location.pathname]);
+
+    return null;
+}
+
 // API Key 守卫组件
 function ApiKeyGuard({ children }: { children: React.ReactNode }) {
     const location = useLocation();
@@ -139,6 +161,7 @@ function App() {
             <Notifications position="top-right" zIndex={4000} />
             <div id="App">
                 <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                    <RouteLogger />
                     <ApiKeyGuard>
                         <Navigation />
                         <Routes>
