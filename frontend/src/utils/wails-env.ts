@@ -4,6 +4,8 @@
  * 统一检测 Wails 客户端和 Node.js 后端服务是否可用
  */
 
+import { SystemApi } from '../api';
+
 // 检查 Wails 运行时是否可用
 export function isWailsRuntimeAvailable(): boolean {
   return typeof window !== 'undefined' && (window as any).runtime !== undefined;
@@ -24,17 +26,9 @@ export function isWailsReady(): boolean {
 
 // 检查 Node.js 服务是否可用（通过健康检查接口）
 export async function isNodejsServiceAvailable(baseUrl?: string): Promise<boolean> {
-  if (!baseUrl) {
-    // 尝试默认端口（浏览器模式下使用后端服务端口）
-    baseUrl = 'http://localhost:54321';
-  }
-
   try {
-    const response = await fetch(`${baseUrl}/api/v1/system/health`, {
-      method: 'GET',
-      signal: AbortSignal.timeout(3000), // 3秒超时
-    });
-    return response.ok;
+    const response = await SystemApi.healthCheck();
+    return response.code === 200;
   } catch {
     return false;
   }

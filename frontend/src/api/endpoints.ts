@@ -1,6 +1,7 @@
 import { RequestWrapper } from './request'
 import { PageRequest, PageData, PluginInfo, Notification, UUID } from '../types'
 import { BinanceApi } from './binance'
+import { SystemLogsApi } from './modules/system-logs'
 
 /**
  * API端点定义
@@ -258,18 +259,7 @@ export class ApiEndpoints {
    * 下载日志文件
    */
   static async downloadLog(logId: UUID) {
-    const response = await fetch(`/api/logs/${logId}/download`)
-    if (response.ok) {
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `log-${logId}.log`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      window.URL.revokeObjectURL(url)
-    }
+    return SystemLogsApi.downloadLog(logId)
   }
 
   // ==================== 更新相关 ====================

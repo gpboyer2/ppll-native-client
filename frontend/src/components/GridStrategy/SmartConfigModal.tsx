@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { IconX } from '@tabler/icons-react';
 import { NumberInput } from '../mantine';
 import { showWarning, showSuccess } from '../../utils/api-error';
+import { calculateCommission } from '../../utils/commission-calculator';
+import { GridStrategyApi } from '../../api';
 import type {
   SmartConfigModalProps,
   OptimizationResult,
@@ -72,29 +74,23 @@ export function SmartConfigModal({
 
     try {
       // 调用优化接口
-      const response = await fetch('/api/v1/grid-strategy/optimize', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          symbol: defaultParams.tradingPair,
-          totalCapital: budget,
-          optimizeTarget,
-          minTradeValue,
-          maxTradeValue,
-          interval,
-          apiKey: defaultParams.apiKey,
-          apiSecret: defaultParams.apiSecret
-        })
+      const response = await GridStrategyApi.optimize({
+        symbol: defaultParams.tradingPair,
+        totalCapital: budget,
+        optimizeTarget,
+        minTradeValue,
+        maxTradeValue,
+        interval,
+        apiKey: defaultParams.apiKey,
+        apiSecret: defaultParams.apiSecret
       });
 
-      const result = await response.json();
-
-      if (result.status !== 'success') {
-        throw new Error(result.message || '优化失败');
+      if (response.code !== 200) {
+        throw new Error(response.msg || '优化失败');
       }
 
       // 保存结果，切换到结果展示
-      setOptimizationResult(result.data);
+      setOptimizationResult(response.data);
       setSelectedConfigIndex(0);  // 默认选中第一个
       setStep('result');
 
@@ -423,6 +419,24 @@ export function SmartConfigModal({
                   <span className="value">
                     {optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyProfit} USDT
                   </span>
+                </div>
+                <div className="smart-config-selected-item commission-highlight">
+                  <span className="label">
+                    <span className="commission-icon">💰</span>
+                    预计月返佣
+                  </span>
+                  <div className="commission-value-group">
+                    <span className="value commission-value">
+                      {calculateCommission({
+                        expectedDailyFrequency: parseFloat(optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyFrequency),
+                        expectedDailyProfit: parseFloat(optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyProfit),
+                        tradeValue: parseFloat(optimizationResult.recommended.analysis.topList[selectedConfigIndex].tradeValue)
+                      }).monthlyRebate} USDT
+                    </span>
+                    <span className="commission-note">
+                      （最高35%，基于开仓0.5‰+平仓0.5‰=1‰手续费标准）
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>

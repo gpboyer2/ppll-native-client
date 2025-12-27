@@ -8,6 +8,7 @@ import { useDataManagementStore } from '../stores/data-management-store';
 import { useSystemInfoStore } from '../stores/system-info-store';
 import { useBinanceStore } from '../stores/binance-store';
 import { TextInput, PasswordInput, NumberInput } from '../components/mantine';
+import { BinanceApiKeyApi } from '../api';
 import type { BinanceApiKey } from '../stores/binance-store';
 
 function SettingsPage() {
@@ -156,16 +157,6 @@ function SettingsPage() {
 
         setApiKeyStatus('saving');
         try {
-            // 获取 Node.js 服务 URL（支持浏览器模式和桌面客户端模式）
-            let nodejsUrl = 'http://localhost:54321'; // 浏览器模式默认 URL（后端服务端口）
-            if (typeof window !== 'undefined' && (window as any).go && (window as any).go.main) {
-                nodejsUrl = await GetNodejsServiceURL(); // 桌面客户端模式
-            }
-
-            const url = editingApiKey
-                ? `${nodejsUrl}/api/v1/binance-api-key/update`
-                : `${nodejsUrl}/api/v1/binance-api-key/create`;
-
             const body = editingApiKey
                 ? {
                     id: editingApiKey.id,
@@ -183,17 +174,11 @@ function SettingsPage() {
                     remark: apiKeyForm.remark
                 };
 
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            });
+            const response = editingApiKey
+                ? await BinanceApiKeyApi.update(body)
+                : await BinanceApiKeyApi.create(body);
 
-            const result = await response.json();
-
-            if (result.status === 'success') {
+            if (response.code === 200) {
                 setApiKeyStatus('success');
                 // 刷新列表
                 await refreshApiKeys();
@@ -202,7 +187,7 @@ function SettingsPage() {
                     resetApiKeyForm();
                 }, 500);
             } else {
-                console.error('保存 API Key 失败:', result.message);
+                console.error('保存 API Key 失败:', response.msg);
                 setApiKeyStatus('error');
                 setTimeout(() => setApiKeyStatus('idle'), 500);
             }
@@ -219,28 +204,14 @@ function SettingsPage() {
         }
 
         try {
-            // 获取 Node.js 服务 URL（支持浏览器模式和桌面客户端模式）
-            let nodejsUrl = 'http://localhost:54321'; // 浏览器模式默认 URL（后端服务端口）
-            if (typeof window !== 'undefined' && (window as any).go && (window as any).go.main) {
-                nodejsUrl = await GetNodejsServiceURL(); // 桌面客户端模式
-            }
+            const response = await BinanceApiKeyApi.delete({ data: [id] });
 
-            const response = await fetch(`${nodejsUrl}/api/v1/binance-api-key/delete`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ id })
-            });
-
-            const result = await response.json();
-
-            if (result.status === 'success') {
+            if (response.code === 200) {
                 // 刷新列表
                 await refreshApiKeys();
             } else {
-                console.error('删除 API Key 失败:', result.message);
-                alert('删除失败: ' + (result.message || '未知错误'));
+                console.error('删除 API Key 失败:', response.msg);
+                alert('删除失败: ' + (response.msg || '未知错误'));
             }
         } catch (error) {
             console.error('删除 API Key 失败:', error);

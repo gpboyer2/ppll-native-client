@@ -41,4 +41,11 @@ export class SystemLogsApi {
   static async delete(data: any): Promise<Response<any>> {
     return RequestWrapper.post(`${this.BASE_PATH}/delete`, data)
   }
+
+  /**
+   * 下载日志文件
+   */
+  static async downloadLog(logId: string): Promise<void> {
+    return RequestWrapper.downloadBlob(`/api/logs/${logId}/download`, `log-${logId}.log`)
+  }
 }

@@ -5,6 +5,7 @@ import {
     GetNodejsServiceURL
 } from '../../wailsjs/go/main/App';
 import { apiClient } from '../api/client';
+import { SystemApi } from '../api';
 
 interface GitInfo {
     branch: string;
@@ -174,16 +175,13 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
 
                     // 尝试获取健康检查数据
                     try {
-                        const response = await fetch(`${nodejsUrl}/api/v1/system/health`);
-                        if (response.ok) {
-                            const result = await response.json();
-                            if (result.code === 200 && result.data) {
-                                set({
-                                    dynamicInfo: { health: result.data },
-                                    initialized: true
-                                });
-                                return;
-                            }
+                        const response = await SystemApi.healthCheck();
+                        if (response.code === 200 && response.data) {
+                            set({
+                                dynamicInfo: { health: response.data },
+                                initialized: true
+                            });
+                            return;
                         }
                     } catch (error) {
                         console.warn('获取健康检查数据失败:', error);
@@ -218,30 +216,27 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
                     for (let i = 0; i < 60; i++) {
                         try {
                             const [ipResponse, gitResponse, healthResponse] = await Promise.allSettled([
-                                fetch(`${nodejsUrl}/api/v1/system/ipv4-list`),
-                                fetch(`${nodejsUrl}/api/v1/system/git-info`),
-                                fetch(`${nodejsUrl}/api/v1/system/health`)
+                                SystemApi.getIpv4List(),
+                                SystemApi.getGitInfo(),
+                                SystemApi.healthCheck()
                             ]);
 
                             if (ipResponse.status === 'fulfilled' && ipResponse.value) {
-                                const ipData = await ipResponse.value.json();
-                                if (ipData.code === 200 && Array.isArray(ipData.data)) {
-                                    ipv4List = ipData.data;
+                                if (ipResponse.value.code === 200 && Array.isArray(ipResponse.value.data)) {
+                                    ipv4List = ipResponse.value.data;
                                 }
                             }
 
                             if (gitResponse.status === 'fulfilled' && gitResponse.value) {
-                                const gitData = await gitResponse.value.json();
-                                if (gitData.code === 200 && gitData.data) {
-                                    gitInfo = gitData.data;
+                                if (gitResponse.value.code === 200 && gitResponse.value.data) {
+                                    gitInfo = gitResponse.value.data;
                                     appVersion = gitInfo?.tag || appVersion;
                                 }
                             }
 
                             if (healthResponse.status === 'fulfilled' && healthResponse.value) {
-                                const healthResult = await healthResponse.value.json();
-                                if (healthResult.code === 200 && healthResult.data) {
-                                    healthData = healthResult.data;
+                                if (healthResponse.value.code === 200 && healthResponse.value.data) {
+                                    healthData = healthResponse.value.data;
                                 }
                             }
 
@@ -276,12 +271,9 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
                     if (!store.initialized || !store.staticInfo?.nodejsUrl) return;
 
                     try {
-                        const response = await fetch(`${store.staticInfo.nodejsUrl}/api/v1/system/health`);
-                        if (response.ok) {
-                            const result = await response.json();
-                            if (result.code === 200 && result.data) {
-                                set({ dynamicInfo: { health: result.data } });
-                            }
+                        const response = await SystemApi.healthCheck();
+                        if (response.code === 200 && response.data) {
+                            set({ dynamicInfo: { health: response.data } });
                         }
                     } catch {}
                 }, 10000);
@@ -307,12 +299,9 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
         if (!store.staticInfo?.nodejsUrl) return;
 
         try {
-            const response = await fetch(`${store.staticInfo.nodejsUrl}/api/v1/system/health`);
-            if (response.ok) {
-                const result = await response.json();
-                if (result.code === 200 && result.data) {
-                    set({ dynamicInfo: { health: result.data } });
-                }
+            const response = await SystemApi.healthCheck();
+            if (response.code === 200 && response.data) {
+                set({ dynamicInfo: { health: response.data } });
             }
         } catch (error) {
             console.error('刷新动态信息失败:', error);

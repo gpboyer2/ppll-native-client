@@ -72,6 +72,9 @@ export class GridStrategyApi {
     optimizeTarget: string
     minTradeValue: number
     maxTradeValue: number
+    interval: string
+    apiKey: string
+    apiSecret: string
   }): Promise<Response<any>> {
     return RequestWrapper.post(`${this.BASE_PATH}/optimize`, data)
   }

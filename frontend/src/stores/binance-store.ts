@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { GetNodejsServiceURL, GetConfig } from '../../wailsjs/go/main/App';
+import { BinanceApiKeyApi, BinanceExchangeInfoApi } from '../api';
 
 // API Key 信息
 export interface BinanceApiKey {
@@ -114,24 +115,11 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         if (!nodejsUrl) return;
 
         try {
-            const headers: Record<string, string> = {
-                'Content-Type': 'application/json'
-            };
-            if (authToken) {
-                headers['Authorization'] = `Bearer ${authToken}`;
-            }
+            const response = await BinanceApiKeyApi.query();
 
-            const response = await fetch(`${nodejsUrl}/api/v1/binance-api-key/query`, {
-                method: 'GET',
-                headers
-            });
-
-            if (!response.ok) return;
-
-            const result = await response.json();
-            if (result.status === 'success' && result.data?.list) {
+            if (response.code === 200 && response.data?.list) {
                 // 转换字段名：下划线命名 -> 驼峰命名
-                const convertedList = result.data.list.map((item: any) => ({
+                const convertedList = response.data.list.map((item: any) => ({
                     ...item,
                     apiKey: item.api_key,
                     secretKey: item.secret_key
@@ -155,16 +143,10 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         const apiKey = apiKeyList[0];
 
         try {
-            const url = new URL(`${nodejsUrl}/api/v1/binance-exchange-info`);
-            url.searchParams.append('apiKey', apiKey.apiKey);
-            url.searchParams.append('apiSecret', apiKey.secretKey);
+            const response = await BinanceExchangeInfoApi.getExchangeInfo();
 
-            const response = await fetch(url.toString());
-            if (!response.ok) return;
-
-            const result = await response.json();
-            if (result.code === 200 && result.data?.symbols) {
-                const symbols = result.data.symbols;
+            if (response.code === 200 && response.data?.symbols) {
+                const symbols = response.data.symbols;
                 const tradingSymbols = symbols.filter((s: any) => s.status === 'TRADING');
                 const allPairs = tradingSymbols.map((s: any) => s.symbol);
                 const usdtPairs = tradingSymbols

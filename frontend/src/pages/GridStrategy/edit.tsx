@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { Select, NumberInput } from '../../components/mantine';
 import { SmartConfigModal } from '../../components/GridStrategy/SmartConfigModal';
+import { CommissionRebateModal } from '../../components/GridStrategy/CommissionRebateModal';
+import { calculateCommission, type CommissionCalculationResult } from '../../utils/commission-calculator';
 import { ROUTES } from '../../router';
 import { useBinanceStore } from '../../stores/binance-store';
 import type { GridStrategy, GridStrategyForm, PositionSide, OptimizedConfig } from '../../types/grid-strategy';
@@ -29,6 +31,10 @@ function GridStrategyEditPage() {
 
     // 智能配置弹窗状态
     const [smartConfigOpened, setSmartConfigOpened] = useState(false);
+
+    // 返佣提示弹窗状态
+    const [commissionRebateOpened, setCommissionRebateOpened] = useState(false);
+    const [commissionRebateData, setCommissionRebateData] = useState<CommissionCalculationResult | null>(null);
 
     // 初始化 store
     useEffect(() => {
@@ -142,6 +148,23 @@ function GridStrategyEditPage() {
             const success = saveStrategy(formData);
             if (success) {
                 showSuccess(isEditing ? '策略已更新' : '策略已创建');
+
+                // 计算返佣数据（如果有网格交易数量和网格差价）
+                if (formData.gridTradeQuantity && formData.gridTradeQuantity > 0 && formData.gridPriceDifference) {
+                    // 使用默认值估算：假设日频次 5 次，日收益根据网格参数估算
+                    const estimatedDailyFrequency = 5;
+                    const estimatedDailyProfit = formData.gridPriceDifference * estimatedDailyFrequency * 0.5; // 简化估算
+
+                    const rebateData = calculateCommission({
+                        expectedDailyFrequency: estimatedDailyFrequency,
+                        expectedDailyProfit: estimatedDailyProfit,
+                        tradeValue: formData.gridTradeQuantity * formData.gridPriceDifference // 估算每笔交易金额
+                    });
+
+                    setCommissionRebateData(rebateData);
+                    setCommissionRebateOpened(true);
+                }
+
                 setTimeout(() => {
                     navigate(ROUTES.GRID_STRATEGY);
                 }, 500);
@@ -744,6 +767,15 @@ function GridStrategyEditPage() {
                     apiSecret: formData.apiSecret
                 }}
             />
+
+            {/* 返佣提示弹窗 */}
+            {commissionRebateData && (
+                <CommissionRebateModal
+                    opened={commissionRebateOpened}
+                    onClose={() => setCommissionRebateOpened(false)}
+                    data={commissionRebateData}
+                />
+            )}
         </div>
     );
 }

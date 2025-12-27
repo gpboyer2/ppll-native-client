@@ -168,6 +168,29 @@ export class RequestWrapper {
   static async uploadMultiple<T = any>(url: string, files: File[]): Promise<Response<T>> {
     return this.wrapRequest<T>(apiClient.uploadMultiple<T>(url, files))
   }
+
+  /**
+   * 下载文件（返回 blob）
+   */
+  static async downloadBlob(url: string, filename?: string): Promise<void> {
+    const nodejsUrl = getNodejsUrl()
+    const fullUrl = url.startsWith('/api/v1/') ? `${nodejsUrl}${url}` : url
+
+    const response = await fetch(fullUrl)
+    if (!response.ok) {
+      throw new Error(`下载失败: ${response.statusText}`)
+    }
+
+    const blob = await response.blob()
+    const blobUrl = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = blobUrl
+    a.download = filename || `download-${Date.now()}`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(blobUrl)
+  }
 }
 
 /**
