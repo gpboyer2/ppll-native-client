@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { Select, NumberInput } from '../../components/mantine';
 import { SmartConfigModal } from '../../components/GridStrategy/SmartConfigModal';
-import { CommissionRebateModal } from '../../components/GridStrategy/CommissionRebateModal';
+import { ReferralCommissionDialog } from '../../components/ReferralCommissionInvitation';
+import type { CommissionCalculationData } from '../../components/ReferralCommissionInvitation';
 import { calculateCommission, type CommissionCalculationResult } from '../../utils/commission-calculator';
 import { ROUTES } from '../../router';
 import { useBinanceStore } from '../../stores/binance-store';
@@ -34,7 +35,7 @@ function GridStrategyEditPage() {
 
     // 返佣提示弹窗状态
     const [commissionRebateOpened, setCommissionRebateOpened] = useState(false);
-    const [commissionRebateData, setCommissionRebateData] = useState<CommissionCalculationResult | null>(null);
+    const [commissionRebateData, setCommissionRebateData] = useState<CommissionCalculationData | null>(null);
 
     // 初始化 store
     useEffect(() => {
@@ -155,19 +156,34 @@ function GridStrategyEditPage() {
                     const estimatedDailyFrequency = 5;
                     const estimatedDailyProfit = formData.gridPriceDifference * estimatedDailyFrequency * 0.5; // 简化估算
 
-                    const rebateData = calculateCommission({
+                    const rebateCalculation = calculateCommission({
                         expectedDailyFrequency: estimatedDailyFrequency,
                         expectedDailyProfit: estimatedDailyProfit,
                         tradeValue: formData.gridTradeQuantity * formData.gridPriceDifference // 估算每笔交易金额
                     });
 
+                    // 转换为新组件需要的数据格式
+                    const rebateData: CommissionCalculationData = {
+                        tradeValue: formData.gridTradeQuantity * formData.gridPriceDifference,
+                        dailyFrequency: estimatedDailyFrequency,
+                        commissionRate: '1‰',
+                        rebateRate: '最高 35%',
+                        dailyRebateProfit: parseFloat((rebateCalculation.monthlyRebate / 30).toFixed(2)),
+                        monthlyExtraProfit: rebateCalculation.monthlyRebate,
+                        currentMonthlyProfit: rebateCalculation.monthlyUserProfit,
+                        rebateMonthlyProfit: rebateCalculation.monthlyUserProfitWithRebate,
+                        currentYearlyProfit: rebateCalculation.monthlyUserProfit * 12,
+                        rebateYearlyProfit: rebateCalculation.monthlyUserProfitWithRebate * 12,
+                        extraProfitRate: parseFloat(((rebateCalculation.monthlyRebate / rebateCalculation.monthlyUserProfit) * 100).toFixed(0))
+                    };
+
                     setCommissionRebateData(rebateData);
                     setCommissionRebateOpened(true);
                 }
 
-                setTimeout(() => {
-                    navigate(ROUTES.GRID_STRATEGY);
-                }, 500);
+                // setTimeout(() => {
+                //     navigate(ROUTES.GRID_STRATEGY);
+                // }, 500);
             } else {
                 setSaveStatus('error');
                 setTimeout(() => setSaveStatus('idle'), 2000);
@@ -274,7 +290,14 @@ function GridStrategyEditPage() {
     }
 
     // 应用智能配置
-    function handleApplySmartConfig(config: OptimizedConfig) {
+    function handleApplySmartConfig(
+        config: OptimizedConfig,
+        commissionData?: {
+            expectedDailyFrequency: number;
+            expectedDailyProfit: number;
+            tradeValue: number;
+        }
+    ) {
         setFormData(prev => ({
             ...prev,
             gridPriceDifference: config.gridPriceDifference,
@@ -282,6 +305,29 @@ function GridStrategyEditPage() {
             gtLimitationPrice: config.gtLimitationPrice,
             ltLimitationPrice: config.ltLimitationPrice
         }));
+
+        // 如果有返佣数据且应该显示弹窗，则打开返佣弹窗
+        if (commissionData) {
+            const rebateCalculation = calculateCommission(commissionData);
+
+            // 转换为新组件需要的数据格式
+            const rebateData: CommissionCalculationData = {
+                tradeValue: commissionData.tradeValue,
+                dailyFrequency: commissionData.expectedDailyFrequency,
+                commissionRate: '1‰',
+                rebateRate: '最高 35%',
+                dailyRebateProfit: parseFloat((rebateCalculation.monthlyRebate / 30).toFixed(2)),
+                monthlyExtraProfit: rebateCalculation.monthlyRebate,
+                currentMonthlyProfit: rebateCalculation.monthlyUserProfit,
+                rebateMonthlyProfit: rebateCalculation.monthlyUserProfitWithRebate,
+                currentYearlyProfit: rebateCalculation.monthlyUserProfit * 12,
+                rebateYearlyProfit: rebateCalculation.monthlyUserProfitWithRebate * 12,
+                extraProfitRate: parseFloat(((rebateCalculation.monthlyRebate / rebateCalculation.monthlyUserProfit) * 100).toFixed(0))
+            };
+
+            setCommissionRebateData(rebateData);
+            setCommissionRebateOpened(true);
+        }
     }
 
     // API Key 下拉选项
@@ -317,6 +363,16 @@ function GridStrategyEditPage() {
                                 onClick={fillMockData}
                             >
                                 Mock
+                            </button>
+                        )}
+                        {process.env.NODE_ENV === 'development' && (
+                            <button
+                                type="button"
+                                className="btn btn-outline"
+                                style={{ height: '32px', padding: '0 12px' }}
+                                onClick={() => setCommissionRebateOpened(true)}
+                            >
+                                测试返佣弹窗
                             </button>
                         )}
                         <button
@@ -769,13 +825,11 @@ function GridStrategyEditPage() {
             />
 
             {/* 返佣提示弹窗 */}
-            {commissionRebateData && (
-                <CommissionRebateModal
-                    opened={commissionRebateOpened}
-                    onClose={() => setCommissionRebateOpened(false)}
-                    data={commissionRebateData}
-                />
-            )}
+            <ReferralCommissionDialog
+                opened={commissionRebateOpened}
+                onClose={() => setCommissionRebateOpened(false)}
+                data={commissionRebateData || undefined}
+            />
         </div>
     );
 }

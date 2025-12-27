@@ -120,8 +120,15 @@ export function SmartConfigModal({
       ltLimitationPrice: parseFloat(optimizationResult.market.support)
     };
 
-    // 调用父组件回调，更新表单
-    onApply(config);
+    // 准备返佣计算所需数据
+    const commissionData = {
+      expectedDailyFrequency: parseFloat(selectedConfig.expectedDailyFrequency),
+      expectedDailyProfit: parseFloat(selectedConfig.expectedDailyProfit),
+      tradeValue: parseFloat(selectedConfig.tradeValue)
+    };
+
+    // 调用父组件回调，更新表单并传递返佣数据
+    onApply(config, commissionData);
 
     // 关闭弹窗
     onClose();
@@ -419,24 +426,6 @@ export function SmartConfigModal({
                   <span className="value">
                     {optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyProfit} USDT
                   </span>
-                </div>
-                <div className="smart-config-selected-item commission-highlight">
-                  <span className="label">
-                    <span className="commission-icon">💰</span>
-                    预计月返佣
-                  </span>
-                  <div className="commission-value-group">
-                    <span className="value commission-value">
-                      {calculateCommission({
-                        expectedDailyFrequency: parseFloat(optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyFrequency),
-                        expectedDailyProfit: parseFloat(optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyProfit),
-                        tradeValue: parseFloat(optimizationResult.recommended.analysis.topList[selectedConfigIndex].tradeValue)
-                      }).monthlyRebate} USDT
-                    </span>
-                    <span className="commission-note">
-                      （最高35%，基于开仓0.5‰+平仓0.5‰=1‰手续费标准）
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>

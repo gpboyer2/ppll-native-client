@@ -252,7 +252,11 @@ export interface OptimizedConfig {
 export interface SmartConfigModalProps {
   opened: boolean;
   onClose: () => void;
-  onApply: (config: OptimizedConfig) => void;
+  onApply: (config: OptimizedConfig, commissionData?: {
+    expectedDailyFrequency: number;
+    expectedDailyProfit: number;
+    tradeValue: number;
+  }) => void;
   defaultParams?: {
     tradingPair?: string;
     positionSide?: PositionSide;

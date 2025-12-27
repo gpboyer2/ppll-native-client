@@ -3363,6 +3363,22 @@ nav.surface {
   border-radius: var(--radius-md);
 }
 
+.commission-rebate-ui-switcher {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 12px;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  justify-content: center;
+}
+
+.commission-rebate-ui-switcher .btn {
+  flex: 1;
+  max-width: 120px;
+  font-size: var(--text-sm);
+}
+
 .commission-rebate-content {
   margin: 20px 0;
 }
@@ -3370,5 +3386,31 @@ nav.surface {
 .commission-rebate-footer {
   display: flex;
   gap: 12px;
+}
+
+.commission-rebate-checkbox {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.commission-rebate-checkbox .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.commission-rebate-checkbox .checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.commission-rebate-checkbox .checkbox-label span {
+  line-height: 1.5;
 }
 
