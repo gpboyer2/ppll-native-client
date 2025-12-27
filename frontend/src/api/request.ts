@@ -12,32 +12,152 @@ function getNodejsUrl(): string {
     if (staticInfo?.nodejsUrl) {
       return staticInfo.nodejsUrl
     }
-  } catch {}
+  } catch { }
   // 默认回退到 54321 端口
   return 'http://localhost:54321'
 }
+
+/**
+ * 请求日志工具
+ */
+class RequestLogger {
+  private static requestId = 0
+  private static readonly ENABLED = true // 可通过环境变量控制
+
+  /**
+   * 过滤敏感字段
+   */
+  private static filterSensitive(data: any): any {
+    if (!data || typeof data !== 'object') {
+      return data
+    }
+
+    const sensitiveFields = ['password', 'pwd', 'token', 'secret', 'apiKey', 'apiSecret', 'authorization']
+    const filtered = { ...data }
+
+    for (const key of Object.keys(filtered)) {
+      if (sensitiveFields.some(field => key.toLowerCase().includes(field.toLowerCase()))) {
+        filtered[key] = '***FILTERED***'
+      } else if (typeof filtered[key] === 'object' && filtered[key] !== null) {
+        filtered[key] = this.filterSensitive(filtered[key])
+      }
+    }
+
+    return filtered
+  }
+
+  /**
+   * 记录请求开始
+   */
+  static logStart(method: string, url: string, params?: any, data?: any): number {
+    if (!this.ENABLED) return 0
+
+    const requestId = ++this.requestId
+
+    console.log(
+      `%c[请求 #${requestId}]`,
+      'color: #0066cc; font-weight: bold',
+      `\n${method} ${url}`
+    )
+
+    if (params && Object.keys(params).length > 0) {
+      console.log('%cQuery Params:', 'color: #666; font-weight: bold', this.filterSensitive(params))
+    }
+
+    if (data && Object.keys(data).length > 0) {
+      console.log('%cRequest Body:', 'color: #666; font-weight: bold', this.filterSensitive(data))
+    }
+
+    return requestId
+  }
+
+  /**
+   * 记录请求成功
+   */
+  static logSuccess(requestId: number, response: any, startTime: number): void {
+    if (!this.ENABLED) return
+
+    const duration = Date.now() - startTime
+
+    console.log(
+      `%c[响应 #${requestId}]`,
+      'color: #009966; font-weight: bold',
+      `耗时: ${duration}ms`
+    )
+
+    if (response) {
+      const logData: any = {}
+
+      if (response.status !== undefined) {
+        logData.status = response.status
+      }
+      if (response.message) {
+        logData.message = response.message
+      }
+      if (response.data !== undefined) {
+        logData.data = this.filterSensitive(response.data)
+      }
+
+      console.log(logData)
+    }
+  }
+
+  /**
+   * 记录请求失败
+   */
+  static logError(requestId: number, error: any, startTime: number): void {
+    if (!this.ENABLED) return
+
+    const duration = Date.now() - startTime
+
+    console.error(
+      `%c[错误 #${requestId}]`,
+      'color: #cc0000; font-weight: bold',
+      `耗时: ${duration}ms`,
+      '\n错误:',
+      error
+    )
+  }
+}
+
 
 /**
  * 请求包装器 - 统一处理后端响应格式
  * 自动从 Wails 获取 Node.js 服务 URL
  */
 export class RequestWrapper {
+  // 跟踪当前的 baseURL 状态
+  private static currentBaseURL = ''
+
+  /**
+   * 判断是否应该使用 Node.js 服务
+   */
+  private static shouldUseNodejs(url: string): boolean {
+    return url.startsWith('/api/v1/')
+  }
+
   /**
    * 包装请求，统一处理响应格式
    * 后端统一返回 {status: 'success'|'error', message: string, data: any}
    */
-  private static async wrapRequest<T>(request: Promise<any>): Promise<Response<T>> {
+  private static async wrapRequest<T>(
+    request: Promise<any>,
+    requestId: number,
+    startTime: number
+  ): Promise<Response<T>> {
     try {
-      const response = await request
+      const apiResponse = await request
 
-      // 后端统一返回 {status, message, data} 格式
-      if (response && typeof response === 'object' && 'status' in response) {
-        return response as Response<T>
-      }
+      // 记录响应日志
+      RequestLogger.logSuccess(requestId, apiResponse, startTime)
 
-      // 其他情况直接返回成功
-      return ok(response)
+      // apiClient 返回 ApiResponse<T> 格式: {success, data, code, message}
+      // 其中 data 字段才是后端返回的标准 Response<T> 格式
+      return apiResponse.data as Response<T>;
     } catch (error: any) {
+      // 记录错误日志
+      RequestLogger.logError(requestId, error, startTime)
+
       return {
         status: 'error',
         message: error.message || '网络请求失败',
@@ -47,101 +167,92 @@ export class RequestWrapper {
   }
 
   /**
-   * 发起原生 fetch 请求到 Node.js 服务
-   * 后端统一返回格式，直接透传不做任何包装
+   * 通用请求方法 - 自动处理 Node.js 服务的 URL 配置
    */
-  private static async fetchNodejs<T>(
+  private static async request<T>(
     method: string,
-    path: string,
-    data?: any,
-    headers?: Record<string, string>
-  ): Promise<any> {
-    const nodejsUrl = getNodejsUrl()
-    const url = `${nodejsUrl}${path}`
+    url: string,
+    requestFn: () => Promise<any>,
+    params?: any,
+    data?: any
+  ): Promise<Response<T>> {
+    // 记录请求开始日志
+    const requestId = RequestLogger.logStart(method, url, params, data)
+    const startTime = Date.now()
 
-    const options: RequestInit = {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...headers
+    const originalBaseURL = this.currentBaseURL
+
+    if (this.shouldUseNodejs(url)) {
+      const nodejsUrl = getNodejsUrl()
+      this.currentBaseURL = nodejsUrl
+      apiClient.configure({ baseURL: nodejsUrl })
+    }
+
+    try {
+      const result = await this.wrapRequest<T>(requestFn(), requestId, startTime)
+      return result
+    } finally {
+      if (this.shouldUseNodejs(url)) {
+        this.currentBaseURL = originalBaseURL
+        apiClient.configure({ baseURL: originalBaseURL })
       }
     }
-
-    if (data && method !== 'GET') {
-      options.body = JSON.stringify(data)
-    }
-
-    const response = await fetch(url, options)
-    return await response.json()
   }
 
   /**
    * GET请求
    */
   static async get<T = any>(url: string, params?: Record<string, any>): Promise<Response<T>> {
-    // 如果是 api/v1 开头的路径，使用 Node.js 服务
-    if (url.startsWith('/api/v1/')) {
-      return this.fetchNodejs<T>('GET', url, params)
-    }
-    return this.wrapRequest<T>(apiClient.get<T>(url, params))
+    return this.request<T>('GET', url, () => apiClient.get<T>(url, params), params)
   }
 
   /**
    * POST请求
    */
   static async post<T = any>(url: string, data?: any): Promise<Response<T>> {
-    // 如果是 api/v1 开头的路径，使用 Node.js 服务
-    if (url.startsWith('/api/v1/')) {
-      return this.fetchNodejs<T>('POST', url, data)
-    }
-    return this.wrapRequest<T>(apiClient.post<T>(url, data))
+    return this.request<T>('POST', url, () => apiClient.post<T>(url, data), undefined, data)
   }
 
   /**
    * PUT请求
    */
   static async put<T = any>(url: string, data?: any): Promise<Response<T>> {
-    // 如果是 api/v1 开头的路径，使用 Node.js 服务
-    if (url.startsWith('/api/v1/')) {
-      return this.fetchNodejs<T>('PUT', url, data)
-    }
-    return this.wrapRequest<T>(apiClient.put<T>(url, data))
+    return this.request<T>('PUT', url, () => apiClient.put<T>(url, data), undefined, data)
   }
 
   /**
    * DELETE请求
    */
   static async delete<T = any>(url: string, data?: any): Promise<Response<T>> {
-    // 如果是 api/v1 开头的路径，使用 Node.js 服务
-    if (url.startsWith('/api/v1/')) {
-      return this.fetchNodejs<T>('DELETE', url, data)
-    }
-    return this.wrapRequest<T>(apiClient.delete<T>(url, { data }))
+    return this.request<T>('DELETE', url, () => apiClient.delete<T>(url, { data }), undefined, data)
   }
 
   /**
    * PATCH请求
    */
   static async patch<T = any>(url: string, data?: any): Promise<Response<T>> {
-    // 如果是 api/v1 开头的路径，使用 Node.js 服务
-    if (url.startsWith('/api/v1/')) {
-      return this.fetchNodejs<T>('PATCH', url, data)
-    }
-    return this.wrapRequest<T>(apiClient.patch<T>(url, data))
+    return this.request<T>('PATCH', url, () => apiClient.patch<T>(url, data), undefined, data)
   }
 
   /**
    * 文件上传
    */
   static async upload<T = any>(url: string, file: File): Promise<Response<T>> {
-    return this.wrapRequest<T>(apiClient.upload<T>(url, file))
+    const requestId = RequestLogger.logStart('UPLOAD', url, undefined, { fileName: file.name, size: file.size })
+    const startTime = Date.now()
+
+    return this.wrapRequest<T>(apiClient.upload<T>(url, file), requestId, startTime)
   }
 
   /**
    * 批量上传文件
    */
   static async uploadMultiple<T = any>(url: string, files: File[]): Promise<Response<T>> {
-    return this.wrapRequest<T>(apiClient.uploadMultiple<T>(url, files))
+    const fileInfos = files.map(f => ({ name: f.name, size: f.size }))
+    const requestId = RequestLogger.logStart('UPLOAD-MULTI', url, undefined, { files: fileInfos })
+    const startTime = Date.now()
+
+    return this.wrapRequest<T>(apiClient.uploadMultiple<T>(url, files), requestId, startTime)
   }
 
   /**

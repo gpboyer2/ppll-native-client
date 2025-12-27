@@ -10,42 +10,47 @@ export class BinanceAccountApi {
   /**
    * 获取U本位合约账户
    */
-  static async getUSDMFutures(): Promise<Response<any>> {
-    return RequestWrapper.get(`${this.BASE_PATH}/usdm-futures`)
+  static async getUSDMFutures(params: { apiKey: string; apiSecret: string; includePositions?: boolean }): Promise<Response<any>> {
+    return RequestWrapper.get(`${this.BASE_PATH}/usdm-futures`, params)
   }
 
   /**
    * 获取现货账户
    */
-  static async getSpot(): Promise<Response<any>> {
-    return RequestWrapper.get(`${this.BASE_PATH}/spot`)
+  static async getSpot(params: { apiKey: string; apiSecret: string; includeEmptyBalances?: boolean }): Promise<Response<any>> {
+    return RequestWrapper.get(`${this.BASE_PATH}/spot`, params)
   }
 
   /**
    * 获取币本位合约账户
    */
-  static async getCoinMFutures(): Promise<Response<any>> {
-    return RequestWrapper.get(`${this.BASE_PATH}/coinm-futures`)
+  static async getCoinMFutures(params: { apiKey: string; apiSecret: string; includePositions?: boolean }): Promise<Response<any>> {
+    return RequestWrapper.get(`${this.BASE_PATH}/coinm-futures`, params)
   }
 
   /**
    * 设置杠杆
    */
-  static async setLeverage(data: any): Promise<Response<any>> {
+  static async setLeverage(data: {
+    apiKey: string;
+    apiSecret: string;
+    leverageList: Array<{ symbol: string; leverage: number }>;
+    delay?: number;
+  }): Promise<Response<any>> {
     return RequestWrapper.post(`${this.BASE_PATH}/set-leverage`, data)
   }
 
   /**
    * 生成监听密钥
    */
-  static async generateListenKey(): Promise<Response<any>> {
-    return RequestWrapper.post(`${this.BASE_PATH}/generate-listen-key`)
+  static async generateListenKey(params: { apiKey: string }): Promise<Response<any>> {
+    return RequestWrapper.post(`${this.BASE_PATH}/generate-listen-key`, params)
   }
 
   /**
    * 保持监听密钥活跃
    */
-  static async keepAliveListenKey(): Promise<Response<any>> {
-    return RequestWrapper.put(`${this.BASE_PATH}/keep-alive-listen-key`)
+  static async keepAliveListenKey(params: { apiKey: string }): Promise<Response<any>> {
+    return RequestWrapper.put(`${this.BASE_PATH}/keep-alive-listen-key`, params)
   }
 }

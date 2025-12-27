@@ -11,14 +11,14 @@ export class BinanceExchangeInfoApi {
    * 获取交易所信息
    */
   static async getExchangeInfo(params?: { apiKey?: string; apiSecret?: string }): Promise<Response<any>> {
-    return RequestWrapper.get(`${this.BASE_PATH}/`, params)
+    return RequestWrapper.get(`${this.BASE_PATH}/list`, params)
   }
 
   /**
    * 强制更新
    */
-  static async forceUpdate(): Promise<Response<any>> {
-    return RequestWrapper.post(`${this.BASE_PATH}/force-update`)
+  static async forceUpdate(params?: { apiKey?: string; apiSecret?: string }): Promise<Response<any>> {
+    return RequestWrapper.post(`${this.BASE_PATH}/force-update`, params)
   }
 
   /**
@@ -31,21 +31,21 @@ export class BinanceExchangeInfoApi {
   /**
    * 获取溢价指数
    */
-  static async getPremiumIndex(): Promise<Response<any>> {
-    return RequestWrapper.get(`${this.BASE_PATH}/premium-index`)
+  static async getPremiumIndex(params: { apiKey: string; apiSecret: string }): Promise<Response<any>> {
+    return RequestWrapper.get(`${this.BASE_PATH}/premium-index`, params)
   }
 
   /**
    * 获取下市永续合约
    */
-  static async getDelistingPerpetualContracts(): Promise<Response<any>> {
-    return RequestWrapper.get(`${this.BASE_PATH}/delisting-perpetual-contracts`)
+  static async getDelistingPerpetualContracts(params: { apiKey: string; apiSecret: string; daysAhead?: number }): Promise<Response<any>> {
+    return RequestWrapper.get(`${this.BASE_PATH}/delisting-perpetual-contracts`, params)
   }
 
   /**
    * 获取下市计划测试
    */
-  static async getDelistScheduleTest(): Promise<Response<any>> {
-    return RequestWrapper.get(`${this.BASE_PATH}/delist-schedule-test`)
+  static async getDelistScheduleTest(params?: { apiKey?: string; apiSecret?: string }): Promise<Response<any>> {
+    return RequestWrapper.get(`${this.BASE_PATH}/delist-schedule-test`, params)
   }
 }

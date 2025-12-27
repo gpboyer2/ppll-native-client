@@ -26,7 +26,7 @@ import { notifications } from '@mantine/notifications';
 function ApiKeyGuard({ children }: { children: React.ReactNode }) {
     const location = useLocation();
     const navigate = useNavigate();
-    const { apiKeyList, init } = useBinanceStore();
+    const { apiKeyList, isInitializing, init } = useBinanceStore();
     const hasShownNotification = useRef(false);
 
     useEffect(() => {
@@ -35,6 +35,11 @@ function ApiKeyGuard({ children }: { children: React.ReactNode }) {
     }, [init]);
 
     useEffect(() => {
+        // 如果正在初始化，等待完成
+        if (isInitializing) {
+            return;
+        }
+
         // 如果当前已经在设置页面，不需要检查和跳转
         if (location.pathname === ROUTES.SETTINGS) {
             return;
@@ -59,7 +64,7 @@ function ApiKeyGuard({ children }: { children: React.ReactNode }) {
             // 重置标志位，以便下次删除所有 API Key 后能再次显示通知
             hasShownNotification.current = false;
         }
-    }, [apiKeyList.length, location.pathname, navigate, init]);
+    }, [apiKeyList.length, isInitializing, location.pathname, navigate]);
 
     return <>{children}</>;
 }

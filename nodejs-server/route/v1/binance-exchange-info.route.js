@@ -9,9 +9,9 @@ const vipMiddleware = require("../../middleware/vip.js");
 
 /**
  * 获取币安交易所信息
- * /v1/binance-exchange-info
+ * /v1/binance-exchange-info/list
  */
-router.get("/", vipMiddleware.validateVipAccess, binanceExchangeInfoController.getExchangeInfo);
+router.get("/list", vipMiddleware.validateVipAccess, binanceExchangeInfoController.getExchangeInfo);
 
 /**
  * 强制更新交易所信息
@@ -63,7 +63,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/binance-exchange-info:
+ * /v1/binance-exchange-info/list:
  *  get:
  *     tags: [BinanceExchangeInfo]
  *     summary: 获取币安交易所信息
