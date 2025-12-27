@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { notifications } from '@mantine/notifications';
 import { ApiEndpoints } from '../api/endpoints';
+import { TextInput } from '../components/mantine';
 import {
     IconDatabase,
     IconTable,
@@ -466,11 +467,10 @@ function DatabaseManagerPage() {
                         <h3>表列表</h3>
                         <div className="search-box">
                             <IconSearch />
-                            <input
-                                type="text"
+                            <TextInput
                                 placeholder="搜索表名..."
                                 value={keyword}
-                                onChange={(e) => setKeyword(e.target.value)}
+                                onChange={(value: string) => setKeyword(value)}
                             />
                         </div>
                     </div>
@@ -869,14 +869,13 @@ function DatabaseManagerPage() {
                         <div className="modal-body">
                             <div className="form-group">
                                 <label>原表名</label>
-                                <input type="text" value={selectedTable} disabled />
+                                <TextInput value={selectedTable} disabled />
                             </div>
                             <div className="form-group">
                                 <label>新表名</label>
-                                <input
-                                    type="text"
+                                <TextInput
                                     value={renameTableValue}
-                                    onChange={(e) => setRenameTableValue(e.target.value)}
+                                    onChange={(value: string) => setRenameTableValue(value)}
                                     placeholder="输入新表名"
                                     autoFocus
                                 />
@@ -907,14 +906,13 @@ function DatabaseManagerPage() {
                         <div className="modal-body">
                             <div className="form-group">
                                 <label>原表名</label>
-                                <input type="text" value={selectedTable} disabled />
+                                <TextInput value={selectedTable} disabled />
                             </div>
                             <div className="form-group">
                                 <label>新表名</label>
-                                <input
-                                    type="text"
+                                <TextInput
                                     value={copyTableName}
-                                    onChange={(e) => setCopyTableName(e.target.value)}
+                                    onChange={(value: string) => setCopyTableName(value)}
                                     placeholder="输入新表名"
                                     autoFocus
                                 />
@@ -955,14 +953,13 @@ function DatabaseManagerPage() {
                         <div className="modal-body">
                             <div className="form-group">
                                 <label>原列名</label>
-                                <input type="text" value={renameColumnOld} disabled />
+                                <TextInput value={renameColumnOld} disabled />
                             </div>
                             <div className="form-group">
                                 <label>新列名</label>
-                                <input
-                                    type="text"
+                                <TextInput
                                     value={renameColumnNew}
-                                    onChange={(e) => setRenameColumnNew(e.target.value)}
+                                    onChange={(value: string) => setRenameColumnNew(value)}
                                     placeholder="输入新列名"
                                     autoFocus
                                 />
@@ -993,10 +990,9 @@ function DatabaseManagerPage() {
                         <div className="modal-body">
                             <div className="form-group">
                                 <label>索引名</label>
-                                <input
-                                    type="text"
+                                <TextInput
                                     value={indexName}
-                                    onChange={(e) => setIndexName(e.target.value)}
+                                    onChange={(value: string) => setIndexName(value)}
                                     placeholder="输入索引名"
                                 />
                             </div>

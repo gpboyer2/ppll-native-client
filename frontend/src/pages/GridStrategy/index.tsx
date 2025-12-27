@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { TextInput } from '../../components/mantine';
 import { ROUTES } from '../../router';
 import type { GridStrategy, StrategyFilter, StrategyStatus, PositionSide } from '../../types/grid-strategy';
 
@@ -181,13 +182,11 @@ function GridStrategyListPage() {
                 <div className="flex flex-col gap-12">
                     {/* 搜索框 */}
                     <div className="flex items-center gap-8">
-                        <input
-                            type="text"
+                        <TextInput
                             placeholder="搜索交易对，如：ETHUSDT、BTCUSDT"
-                            className="input"
                             style={{ flex: 1 }}
                             value={filter.keyword}
-                            onChange={e => updateFilter('keyword', e.target.value)}
+                            onChange={(value: string) => updateFilter('keyword', value)}
                         />
                     </div>
 

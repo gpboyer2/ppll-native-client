@@ -7,6 +7,7 @@ import { useUserStore } from '../stores/user-store';
 import { useDataManagementStore } from '../stores/data-management-store';
 import { useSystemInfoStore } from '../stores/system-info-store';
 import { useBinanceStore } from '../stores/binance-store';
+import { TextInput, PasswordInput, NumberInput } from '../components/mantine';
 import type { BinanceApiKey } from '../stores/binance-store';
 
 function SettingsPage() {
@@ -392,32 +393,28 @@ function SettingsPage() {
                                 <div className="binance-apikey-form-grid">
                                     <div className="binance-apikey-form-field">
                                         <label className="label">名称</label>
-                                        <input
-                                            className="input"
+                                        <TextInput
                                             placeholder="API Key 名称"
                                             value={apiKeyForm.name}
-                                            onChange={e => setApiKeyForm(prev => ({ ...prev, name: e.target.value }))}
+                                            onChange={(value: string) => setApiKeyForm(prev => ({ ...prev, name: value }))}
                                         />
                                     </div>
 
                                     <div className="binance-apikey-form-field">
                                         <label className="label">API Key</label>
-                                        <input
-                                            className="input"
+                                        <TextInput
                                             placeholder="Binance API Key"
                                             value={apiKeyForm.api_key}
-                                            onChange={e => setApiKeyForm(prev => ({ ...prev, api_key: e.target.value }))}
+                                            onChange={(value: string) => setApiKeyForm(prev => ({ ...prev, api_key: value }))}
                                         />
                                     </div>
 
                                     <div className="binance-apikey-form-field">
                                         <label className="label">Secret Key</label>
-                                        <input
-                                            type="password"
-                                            className="input"
+                                        <PasswordInput
                                             placeholder="Binance Secret Key"
                                             value={apiKeyForm.secret_key}
-                                            onChange={e => setApiKeyForm(prev => ({ ...prev, secret_key: e.target.value }))}
+                                            onChange={(value: string) => setApiKeyForm(prev => ({ ...prev, secret_key: value }))}
                                         />
                                     </div>
                                 </div>
@@ -457,11 +454,10 @@ function SettingsPage() {
                 <div className="card-content">
                     <div className="form-row">
                         <label className="label">更新源 Feed URL</label>
-                        <input
-                            className="input"
+                        <TextInput
                             placeholder="请输入更新源地址"
                             value={feedURL}
-                            onChange={e => setFeedURL(e.target.value)}
+                            onChange={(value: string) => setFeedURL(value)}
                         />
                         <div className="help">
                             <div style={{ marginBottom: '8px' }}>常用示例（点击快速填入）：</div>
@@ -493,14 +489,12 @@ function SettingsPage() {
 
                         <div className="flex items-center gap-8">
                             <span className="label">检查间隔（分钟）:</span>
-                            <input
-                                type="number"
-                                className="input"
+                            <NumberInput
                                 style={{ width: '100px' }}
                                 value={checkIntervalMinute}
-                                onChange={e => setCheckIntervalMinute(Number(e.target.value) || 0)}
-                                min="1"
-                                max="1440"
+                                onChange={(value: string | number) => setCheckIntervalMinute((typeof value === 'number' ? value : parseFloat(value || '0')))}
+                                min={1}
+                                max={1440}
                             />
                         </div>
                     </div>
