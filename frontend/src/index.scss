@@ -63,6 +63,31 @@ button {
 
 :root {
   color-scheme: dark;
+
+  /* ========== Z-Index 层级系统 Z-Index Scale ========== */
+  /* 系统化的 z-index 管理，所有组件必须使用这些变量 */
+  /* 层级从低到高，避免随意使用数字 */
+
+  /* 基础层：普通文档流之上的元素 */
+  --z-base: 1;
+
+  /* 下拉层：下拉菜单、选择器、弹出菜单 */
+  --z-dropdown: 1000;
+
+  /* 固定层：固定头部、侧边栏 */
+  --z-sticky: 2000;
+
+  /* 弹窗遮罩层：弹窗背景遮罩 */
+  --z-modal-overlay: 3000;
+
+  /* 弹窗内容层：弹窗主体内容（必须高于遮罩） */
+  --z-modal-content: 3001;
+
+  /* 通知层：通知提示、toast 消息（最高优先级显示） */
+  --z-notification: 4000;
+
+  /* 全局加载层：全局加载遮罩（最高层级） */
+  --z-global-loading: 5000;
 }
 
 /* ========== 浅色主题变量 Light Theme ========== */
@@ -498,7 +523,7 @@ a:hover {
 nav.surface {
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: var(--z-sticky);
   backdrop-filter: blur(8px);
   background: color-mix(in srgb, var(--color-surface) 95%, transparent);
   border-bottom: 1px solid var(--color-border);
@@ -551,12 +576,12 @@ nav.surface {
   inset: 0;
   background: color-mix(in srgb, var(--color-bg) 70%, transparent);
   border-radius: var(--radius-md);
-  z-index: 1;
+  z-index: var(--z-base);
 }
 
 .card-disabled .card-content {
   position: relative;
-  z-index: 2;
+  z-index: calc(var(--z-base) + 1);
 }
 
 /* 状态指示器 */
@@ -660,7 +685,7 @@ nav.surface {
   box-shadow: var(--shadow-md);
   font-size: var(--text-sm);
   white-space: nowrap;
-  z-index: 1000;
+  z-index: var(--z-dropdown);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease, visibility 0.2s ease;
@@ -1562,7 +1587,7 @@ nav.surface {
   position: fixed;
   top: 20px;
   right: 20px;
-  z-index: 1000;
+  z-index: var(--z-notification);
   max-width: 400px;
 }
 
@@ -1600,7 +1625,7 @@ nav.surface {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
+  z-index: var(--z-modal-overlay);
 }
 
 .u-contract-container .loading-spinner {
@@ -2172,7 +2197,7 @@ nav.surface {
   background: var(--color-bg-muted);
   position: sticky;
   top: 0;
-  z-index: 1;
+  z-index: var(--z-base);
 }
 
 .data-table th {
@@ -2360,7 +2385,7 @@ nav.surface {
   border-radius: var(--radius-sm);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   min-width: 140px;
-  z-index: 100;
+  z-index: var(--z-dropdown);
 }
 
 .table-menu-item {
@@ -2408,7 +2433,7 @@ nav.surface {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal-overlay);
 }
 
 .modal-content {
@@ -2643,7 +2668,7 @@ nav.surface {
   align-items: center;
   justify-content: center;
   gap: 16px;
-  z-index: 10;
+  z-index: var(--z-modal-content);
 }
 
 .smart-config-loading .loading-spinner {

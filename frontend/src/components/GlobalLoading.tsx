@@ -34,7 +34,7 @@ export const GlobalLoading: React.FC = () => {
         alignItems: 'center',
         justifyContent: 'center',
         background: 'var(--color-bg)',
-        zIndex: 9999,
+        zIndex: 'var(--z-global-loading)',
       }}>
         <div style={{ textAlign: 'center', maxWidth: '400px', padding: '20px' }}>
           <div style={{ fontSize: '48px', marginBottom: '20px' }}>⚠️</div>
@@ -64,7 +64,7 @@ export const GlobalLoading: React.FC = () => {
       alignItems: 'center',
       justifyContent: 'center',
       background: 'var(--color-bg)',
-      zIndex: 9999,
+      zIndex: 'var(--z-global-loading)',
     }}>
       <div style={{ textAlign: 'center' }}>
         {/* Logo */}

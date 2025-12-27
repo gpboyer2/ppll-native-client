@@ -85,7 +85,7 @@ function App() {
 
     return (
         <MantineProvider theme={mantineTheme} defaultColorScheme={theme}>
-            <Notifications position="top-right" />
+            <Notifications position="top-right" zIndex={4000} />
             <div id="App">
                 <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
                     <Navigation />

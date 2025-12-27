@@ -2,6 +2,9 @@
  * 路由管理器
  * 统一管理和注册所有API路由模块
  * 单用户系统：已移除 user 和 role 相关路由
+ *
+ * 路由规范：所有路由统一使用 /api/v1 前缀
+ * 示例：GET /api/v1/grid-strategy/list
  */
 const authRoute = require("./v1/auth.route");
 const chatRoute = require("./v1/chat.route");
@@ -31,33 +34,33 @@ const systemRoute = require("./v1/system.route");
 const databaseAdminRoute = require("./v1/database-admin.route");
 
 const routeManager = (app) => {
-  // API V1 Routes
-  app.use("/v1/auth", authRoute);
-  app.use("/v1/chat", chatRoute);
-  app.use("/v1/robot", robotRoute);
-  app.use("/v1/hello", helloRoute);
-  app.use("/v1/orders", ordersRoute);
-  app.use("/v1/dashboard", dashboardRoute);
-  app.use("/v1/information", informationRoute);
-  app.use("/v1/grid-strategy", gridStrategyRoute);
-  app.use("/v1/utils", utilsRoute);
-  app.use("/v1/analytics", analyticsRoute);
-  app.use("/v1/fund-flows", fundFlows);
-  app.use("/v1/binance-exchange-info", binanceExchangeInfoRoute);
-  app.use("/v1/mark-price", markPrice);
-  app.use("/v1/smart-money-flow", smartMoneyFlowRoute);
-  app.use("/v1/grid-trade-history", gridTradeHistoryRoute);
-  app.use("/v1/twitter", twitterRoute);
-  app.use("/v1/banned-ips", bannedIpRoute);
-  app.use("/v1/trading-pairs-comparison", tradingPairsComparisonRoute);
-  app.use("/v1/gate-coin-list", gateCoinListRoute);
-  app.use("/v1/login-logs", loginLogRoute);
-  app.use("/v1/operation-logs", operationLogsRoute);
-  app.use("/v1/system-logs", systemLogsRoute);
-  app.use("/v1/binance-account", binanceAccountRoute);
-  app.use("/v1/binance-api-key", binanceApiKeyRoute);
-  app.use("/v1/system", systemRoute);
-  app.use("/v1/database-admin", databaseAdminRoute);
+  // API V1 Routes - 统一使用 /api/v1 前缀
+  app.use("/api/v1/auth", authRoute);
+  app.use("/api/v1/chat", chatRoute);
+  app.use("/api/v1/robot", robotRoute);
+  app.use("/api/v1/hello", helloRoute);
+  app.use("/api/v1/orders", ordersRoute);
+  app.use("/api/v1/dashboard", dashboardRoute);
+  app.use("/api/v1/information", informationRoute);
+  app.use("/api/v1/grid-strategy", gridStrategyRoute);
+  app.use("/api/v1/utils", utilsRoute);
+  app.use("/api/v1/analytics", analyticsRoute);
+  app.use("/api/v1/fund-flows", fundFlows);
+  app.use("/api/v1/binance-exchange-info", binanceExchangeInfoRoute);
+  app.use("/api/v1/mark-price", markPrice);
+  app.use("/api/v1/smart-money-flow", smartMoneyFlowRoute);
+  app.use("/api/v1/grid-trade-history", gridTradeHistoryRoute);
+  app.use("/api/v1/twitter", twitterRoute);
+  app.use("/api/v1/banned-ips", bannedIpRoute);
+  app.use("/api/v1/trading-pairs-comparison", tradingPairsComparisonRoute);
+  app.use("/api/v1/gate-coin-list", gateCoinListRoute);
+  app.use("/api/v1/login-logs", loginLogRoute);
+  app.use("/api/v1/operation-logs", operationLogsRoute);
+  app.use("/api/v1/system-logs", systemLogsRoute);
+  app.use("/api/v1/binance-account", binanceAccountRoute);
+  app.use("/api/v1/binance-api-key", binanceApiKeyRoute);
+  app.use("/api/v1/system", systemRoute);
+  app.use("/api/v1/database-admin", databaseAdminRoute);
 };
 
 module.exports = routeManager;
