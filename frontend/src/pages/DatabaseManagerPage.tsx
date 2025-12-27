@@ -471,6 +471,18 @@ function DatabaseManagerPage() {
                                 placeholder="搜索表名..."
                                 value={keyword}
                                 onChange={(value: string) => setKeyword(value)}
+                                styles={{
+                                    root: { flex: 1 },
+                                    input: {
+                                        background: 'none',
+                                        border: 'none',
+                                        outline: 'none',
+                                        paddingLeft: 0,
+                                        paddingRight: 0,
+                                        fontSize: 'var(--text-sm)',
+                                        color: 'var(--color-text)'
+                                    }
+                                }}
                             />
                         </div>
                     </div>
