@@ -150,10 +150,97 @@ export function SmartConfigModal({
 
       {step === 'input' && (
         <div className="smart-config-form">
-          {/* TODO: Task 3 - 添加输入表单 */}
-          <div style={{ padding: '200px', textAlign: 'center' }}>
-            输入表单内容（Task 3）
+          {/* 预算投入资金 */}
+          <div className="smart-config-form-field">
+            <label className="smart-config-form-label">
+              预算投入资金 (USDT)
+              <span className="grid-strategy-form-required">*</span>
+            </label>
+            <NumberInput
+              value={budget}
+              onChange={(value) => setBudget(typeof value === 'number' ? value : parseFloat(value || '0'))}
+              min={10}
+              max={100000}
+              step={100}
+              placeholder="例如：1000"
+            />
+            <div className="smart-config-form-help">总投入资金，建议 100~10000 USDT</div>
           </div>
+
+          {/* 优化目标 */}
+          <div className="smart-config-form-field">
+            <label className="smart-config-form-label">
+              优化目标
+              <span className="grid-strategy-form-required">*</span>
+            </label>
+            <RadioGroup
+              value={optimizeTarget}
+              onChange={(value: 'profit' | 'cost') => setOptimizeTarget(value)}
+            >
+              <Radio value="profit" label="收益最大化" />
+              <Radio value="cost" label="成本摊薄高频" />
+            </RadioGroup>
+            <div className="smart-config-form-help">
+              {optimizeTarget === 'profit'
+                ? '追求最大收益，适合波动较大的市场'
+                : '降低持仓成本，适合震荡行情'}
+            </div>
+          </div>
+
+          {/* 每笔交易金额范围 */}
+          <div className="smart-config-form-field">
+            <label className="smart-config-form-label">
+              每笔交易金额范围 (USDT)
+              <span className="grid-strategy-form-required">*</span>
+            </label>
+            <div className="smart-config-input-group">
+              <NumberInput
+                value={minTradeValue}
+                onChange={(value) => setMinTradeValue(typeof value === 'number' ? value : parseFloat(value || '20'))}
+                min={10}
+                max={1000}
+                step={5}
+                placeholder="最小值"
+              />
+              <span className="smart-config-input-separator">~</span>
+              <NumberInput
+                value={maxTradeValue}
+                onChange={(value) => setMaxTradeValue(typeof value === 'number' ? value : parseFloat(value || '100'))}
+                min={10}
+                max={1000}
+                step={5}
+                placeholder="最大值"
+              />
+            </div>
+            <div className="smart-config-form-help">单笔交易的资金范围，建议 20~50 USDT</div>
+          </div>
+
+          {/* 市场分析周期 */}
+          <div className="smart-config-form-field">
+            <label className="smart-config-form-label">
+              市场分析周期
+              <span className="grid-strategy-form-required">*</span>
+            </label>
+            <RadioGroup
+              value={interval}
+              onChange={(value: string) => setInterval(value)}
+            >
+              <Radio value="1h" label="1小时" />
+              <Radio value="4h" label="4小时（推荐）" />
+              <Radio value="1d" label="1天" />
+            </RadioGroup>
+            <div className="smart-config-form-help">K线分析周期，4小时平衡准确度和响应速度</div>
+          </div>
+
+          {/* 开始计算按钮 */}
+          <button
+            type="button"
+            className="btn btn-primary"
+            onClick={handleOptimize}
+            style={{ width: '100%', marginTop: '24px' }}
+          >
+            开始计算
+          </button>
         </div>
       )}
 
