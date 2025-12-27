@@ -17,6 +17,52 @@ import { ThemeToggle } from './components/ThemeToggle';
 import { useThemeStore } from './stores/theme-store';
 import { GlobalLoading } from './components/GlobalLoading';
 import { useAppInitStore } from './stores/app-init-store';
+import { useBinanceStore } from './stores/binance-store';
+import { useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { notifications } from '@mantine/notifications';
+
+// API Key 守卫组件
+function ApiKeyGuard({ children }: { children: React.ReactNode }) {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { apiKeyList, init } = useBinanceStore();
+    const hasShownNotification = useRef(false);
+
+    useEffect(() => {
+        // 初始化 binance store
+        init();
+    }, [init]);
+
+    useEffect(() => {
+        // 如果当前已经在设置页面，不需要检查和跳转
+        if (location.pathname === ROUTES.SETTINGS) {
+            return;
+        }
+
+        // 检查是否已配置 API Key
+        if (apiKeyList.length === 0) {
+            // 跳转到设置页面
+            navigate(ROUTES.SETTINGS, { replace: true });
+
+            // 显示通知（只显示一次）
+            if (!hasShownNotification.current) {
+                notifications.show({
+                    title: '请先配置 API Key',
+                    message: '欢迎使用 PPLL 量化交易客户端！为了正常使用系统功能，请先配置 Binance API Key。',
+                    color: 'blue',
+                    autoClose: false,
+                });
+                hasShownNotification.current = true;
+            }
+        } else {
+            // 重置标志位，以便下次删除所有 API Key 后能再次显示通知
+            hasShownNotification.current = false;
+        }
+    }, [apiKeyList.length, location.pathname, navigate, init]);
+
+    return <>{children}</>;
+}
 
 // 导航组件
 function Navigation() {
@@ -88,20 +134,22 @@ function App() {
             <Notifications position="top-right" zIndex={4000} />
             <div id="App">
                 <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-                    <Navigation />
-                    <Routes>
-                        <Route path={ROUTES.HOME} element={<HomePage />} />
-                        <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
-                        <Route path={ROUTES.SYSTEM_INFO} element={<SystemInfoPage />} />
-                        <Route path={ROUTES.DATABASE_MANAGER} element={<DatabaseManagerPage />} />
-                        <Route path={ROUTES.PLUGINS} element={<PluginsPage />} />
-                        <Route path={ROUTES.PLUGIN_DETAIL} element={<PluginsPage />} />
-                        {/* 做T网格插件重定向到网格策略页面 */}
-                        <Route path="/plugins/u-grid-t" element={<Navigate to={ROUTES.GRID_STRATEGY} replace />} />
-                        <Route path={ROUTES.GRID_STRATEGY} element={<GridStrategyListPage />} />
-                        <Route path={ROUTES.GRID_STRATEGY_CREATE} element={<GridStrategyEditPage />} />
-                        <Route path={ROUTES.GRID_STRATEGY_EDIT} element={<GridStrategyEditPage />} />
-                    </Routes>
+                    <ApiKeyGuard>
+                        <Navigation />
+                        <Routes>
+                            <Route path={ROUTES.HOME} element={<HomePage />} />
+                            <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
+                            <Route path={ROUTES.SYSTEM_INFO} element={<SystemInfoPage />} />
+                            <Route path={ROUTES.DATABASE_MANAGER} element={<DatabaseManagerPage />} />
+                            <Route path={ROUTES.PLUGINS} element={<PluginsPage />} />
+                            <Route path={ROUTES.PLUGIN_DETAIL} element={<PluginsPage />} />
+                            {/* 做T网格插件重定向到网格策略页面 */}
+                            <Route path="/plugins/u-grid-t" element={<Navigate to={ROUTES.GRID_STRATEGY} replace />} />
+                            <Route path={ROUTES.GRID_STRATEGY} element={<GridStrategyListPage />} />
+                            <Route path={ROUTES.GRID_STRATEGY_CREATE} element={<GridStrategyEditPage />} />
+                            <Route path={ROUTES.GRID_STRATEGY_EDIT} element={<GridStrategyEditPage />} />
+                        </Routes>
+                    </ApiKeyGuard>
                 </Router>
             </div>
         </MantineProvider>
