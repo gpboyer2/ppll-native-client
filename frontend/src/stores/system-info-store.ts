@@ -141,8 +141,8 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
     loading: false,
 
     _init: async () => {
-        const { initialized } = get();
-        if (initialized) return;
+        const { initialized, loading } = get();
+        if (initialized || loading) return;
 
         if (initPromise) {
             await initPromise;
@@ -311,7 +311,7 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
 
 setTimeout(() => {
     const store = useSystemInfoStore.getState();
-    if (!store.initialized && !initPromise) {
+    if (!store.initialized && !store.loading && !initPromise) {
         store._init();
     }
 }, 0);

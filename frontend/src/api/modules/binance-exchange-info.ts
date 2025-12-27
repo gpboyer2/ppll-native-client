@@ -10,8 +10,8 @@ export class BinanceExchangeInfoApi {
   /**
    * 获取交易所信息
    */
-  static async getExchangeInfo(): Promise<Response<any>> {
-    return RequestWrapper.get(`${this.BASE_PATH}/`)
+  static async getExchangeInfo(params?: { apiKey?: string; apiSecret?: string }): Promise<Response<any>> {
+    return RequestWrapper.get(`${this.BASE_PATH}/`, params)
   }
 
   /**

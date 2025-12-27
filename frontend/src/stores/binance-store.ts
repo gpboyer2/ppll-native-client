@@ -155,7 +155,11 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         const apiKey = apiKeyList[0];
 
         try {
-            const response = await BinanceExchangeInfoApi.getExchangeInfo();
+            // 传递 apiKey 和 apiSecret 参数
+            const response = await BinanceExchangeInfoApi.getExchangeInfo({
+                apiKey: apiKey.apiKey,
+                apiSecret: apiKey.secretKey
+            });
 
             // 后端响应直接透传，数据在 response.data.symbols
             if (response.status === 'success' && response.data?.symbols) {
