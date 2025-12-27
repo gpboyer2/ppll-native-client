@@ -261,15 +261,34 @@ function GridStrategyEditPage() {
                                 持仓方向
                                 <span className="grid-strategy-form-required">*</span>
                             </label>
-                            <select
-                                className="input"
+                            <Select
+                                placeholder="选择持仓方向"
+                                data={[
+                                    { value: 'LONG', label: '做多 (LONG)' },
+                                    { value: 'SHORT', label: '做空 (SHORT)' }
+                                ]}
                                 value={formData.positionSide}
-                                onChange={e => updateFormField('positionSide', e.target.value as PositionSide)}
-                                required
-                            >
-                                <option value="LONG">做多 (LONG)</option>
-                                <option value="SHORT">做空 (SHORT)</option>
-                            </select>
+                                onChange={(value) => value && updateFormField('positionSide', value as PositionSide)}
+                                styles={{
+                                    input: {
+                                        backgroundColor: 'var(--color-surface)',
+                                        borderColor: 'var(--color-border)',
+                                        color: 'var(--color-text)',
+                                        minHeight: '36px'
+                                    },
+                                    dropdown: {
+                                        backgroundColor: 'var(--color-surface)',
+                                        borderColor: 'var(--color-border)'
+                                    },
+                                    option: {
+                                        backgroundColor: 'var(--color-surface)',
+                                        color: 'var(--color-text)',
+                                        '&:hover': {
+                                            backgroundColor: 'var(--color-bg-muted)'
+                                        }
+                                    }
+                                }}
+                            />
                             <div className="help">选择网格交易的持仓方向，做多或做空</div>
                         </div>
 
@@ -288,17 +307,17 @@ function GridStrategyEditPage() {
                                 onChange={(value) => updateFormField('tradingPair', value || '')}
                                 styles={{
                                     input: {
-                                        backgroundColor: 'var(--color-bg)',
+                                        backgroundColor: 'var(--color-surface)',
                                         borderColor: 'var(--color-border)',
                                         color: 'var(--color-text)',
                                         minHeight: '36px'
                                     },
                                     dropdown: {
-                                        backgroundColor: 'var(--color-bg)',
+                                        backgroundColor: 'var(--color-surface)',
                                         borderColor: 'var(--color-border)'
                                     },
                                     option: {
-                                        backgroundColor: 'var(--color-bg)',
+                                        backgroundColor: 'var(--color-surface)',
                                         color: 'var(--color-text)',
                                         '&:hover': {
                                             backgroundColor: 'var(--color-bg-muted)'
@@ -323,17 +342,17 @@ function GridStrategyEditPage() {
                                 onChange={handleApiKeyChange}
                                 styles={{
                                     input: {
-                                        backgroundColor: 'var(--color-bg)',
+                                        backgroundColor: 'var(--color-surface)',
                                         borderColor: 'var(--color-border)',
                                         color: 'var(--color-text)',
                                         minHeight: '36px'
                                     },
                                     dropdown: {
-                                        backgroundColor: 'var(--color-bg)',
+                                        backgroundColor: 'var(--color-surface)',
                                         borderColor: 'var(--color-border)'
                                     },
                                     option: {
-                                        backgroundColor: 'var(--color-bg)',
+                                        backgroundColor: 'var(--color-surface)',
                                         color: 'var(--color-text)',
                                         '&:hover': {
                                             backgroundColor: 'var(--color-bg-muted)'
