@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Modal, NumberInput, RadioGroup, Radio, Table, LoadingOverlay } from '@mantine/core';
+import { IconX } from '@tabler/icons-react';
+import { NumberInput } from '../mantine';
 import { showWarning, showSuccess } from '../../utils/api-error';
 import type {
   SmartConfigModalProps,
@@ -139,14 +140,24 @@ export function SmartConfigModal({
   }
 
   return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title={step === 'input' ? '智能参数配置' : '优化结果确认'}
-      size="lg"
-      padding="xl"
-    >
-      <LoadingOverlay visible={loading} overlayBlur={2} />
+    <>
+      {opened && (
+        <div className="modal-overlay" onClick={onClose}>
+          <div className="modal-content modal-content-large" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{step === 'input' ? '智能参数配置' : '优化结果确认'}</h3>
+              <button className="btn-icon" onClick={onClose}>
+                <IconX />
+              </button>
+            </div>
+
+            <div className="modal-body">
+              {loading && (
+                <div className="smart-config-loading">
+                  <div className="loading-spinner"></div>
+                  <div className="loading-text">正在计算最优配置...</div>
+                </div>
+              )}
 
       {step === 'input' && (
         <div className="smart-config-form">
@@ -173,13 +184,28 @@ export function SmartConfigModal({
               优化目标
               <span className="grid-strategy-form-required">*</span>
             </label>
-            <RadioGroup
-              value={optimizeTarget}
-              onChange={(value: 'profit' | 'cost') => setOptimizeTarget(value)}
-            >
-              <Radio value="profit" label="收益最大化" />
-              <Radio value="cost" label="成本摊薄高频" />
-            </RadioGroup>
+            <div className="radio-group">
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="optimizeTarget"
+                  value="profit"
+                  checked={optimizeTarget === 'profit'}
+                  onChange={() => setOptimizeTarget('profit')}
+                />
+                <span>收益最大化</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="optimizeTarget"
+                  value="cost"
+                  checked={optimizeTarget === 'cost'}
+                  onChange={() => setOptimizeTarget('cost')}
+                />
+                <span>成本摊薄高频</span>
+              </label>
+            </div>
             <div className="smart-config-form-help">
               {optimizeTarget === 'profit'
                 ? '追求最大收益，适合波动较大的市场'
@@ -221,14 +247,38 @@ export function SmartConfigModal({
               市场分析周期
               <span className="grid-strategy-form-required">*</span>
             </label>
-            <RadioGroup
-              value={interval}
-              onChange={(value: string) => setInterval(value)}
-            >
-              <Radio value="1h" label="1小时" />
-              <Radio value="4h" label="4小时（推荐）" />
-              <Radio value="1d" label="1天" />
-            </RadioGroup>
+            <div className="radio-group">
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="interval"
+                  value="1h"
+                  checked={interval === '1h'}
+                  onChange={() => setInterval('1h')}
+                />
+                <span>1小时</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="interval"
+                  value="4h"
+                  checked={interval === '4h'}
+                  onChange={() => setInterval('4h')}
+                />
+                <span>4小时（推荐）</span>
+              </label>
+              <label className="radio-label">
+                <input
+                  type="radio"
+                  name="interval"
+                  value="1d"
+                  checked={interval === '1d'}
+                  onChange={() => setInterval('1d')}
+                />
+                <span>1天</span>
+              </label>
+            </div>
             <div className="smart-config-form-help">K线分析周期，4小时平衡准确度和响应速度</div>
           </div>
 
@@ -314,7 +364,7 @@ export function SmartConfigModal({
               <span>⚖️</span>
               配置对比 - {optimizationResult.optimizeTargetLabel}
             </h3>
-            <Table className="smart-config-table">
+            <table className="smart-config-table">
               <thead>
                 <tr>
                   <th>间距</th>
@@ -339,7 +389,7 @@ export function SmartConfigModal({
                   </tr>
                 ))}
               </tbody>
-            </Table>
+            </table>
           </div>
 
           {/* 当前选中配置 */}
@@ -397,7 +447,21 @@ export function SmartConfigModal({
           </div>
         </div>
       )}
-    </Modal>
+            </div>
+
+            <div className="modal-footer">
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={onClose}
+              >
+                {step === 'input' ? '取消' : '关闭'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 

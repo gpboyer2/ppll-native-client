@@ -2421,6 +2421,10 @@ nav.surface {
   overflow: hidden;
 }
 
+.modal-content-large {
+  max-width: 800px;
+}
+
 .modal-lg {
   max-width: 500px;
 }
@@ -2626,6 +2630,42 @@ nav.surface {
 .smart-config-form {
 }
 
+/* 加载状态 */
+.smart-config-loading {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(11, 14, 17, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 10;
+}
+
+.smart-config-loading .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.smart-config-loading .loading-text {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .smart-config-form-field {
   margin-bottom: 20px;
 }
@@ -2652,7 +2692,7 @@ nav.surface {
   gap: 12px;
 }
 
-.smart-config-input-group .mantine-NumberInput-root {
+.smart-config-input-group > div {
   flex: 1;
 }
 
@@ -2660,6 +2700,7 @@ nav.surface {
   color: var(--color-text-muted);
   font-size: var(--text-sm);
   font-weight: 500;
+  flex-shrink: 0;
 }
 
 /* ==================== 结果页面 ==================== */
