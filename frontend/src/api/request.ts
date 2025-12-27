@@ -60,7 +60,8 @@ class RequestLogger {
       `\n${method} ${url}`
     )
 
-    console.log(`%c #${requestId} Params/Body:`, 'color: #666; font-weight: bold', this.truncateLog(params || data))
+    console.log(`%c #${requestId} Params:`, 'color: #666; font-weight: bold', this.truncateLog(params))
+    console.log(`%c #${requestId} Body:`, 'color: #666; font-weight: bold', this.truncateLog(data))
 
     return requestId
   }
