@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { notifications } from '@mantine/notifications';
 import { ApiEndpoints } from '../api/endpoints';
-import { TextInput } from '../components/mantine';
+import { TextInput, Checkbox, Radio, Textarea } from '../components/mantine';
 import {
     IconDatabase,
     IconTable,
@@ -802,11 +802,13 @@ function DatabaseManagerPage() {
                                 <div className="tab-content">
                                     <div className="sql-query-container">
                                         <div className="sql-input-area">
-                                            <textarea
+                                            <Textarea
                                                 value={sqlQuery}
-                                                onChange={(e) => setSqlQuery(e.target.value)}
+                                                onChange={(value: string) => setSqlQuery(value)}
                                                 placeholder="输入 SQL 查询语句..."
-                                                className="sql-textarea"
+                                                classNames={{ input: 'sql-textarea' }}
+                                                autosize
+                                                minRows={10}
                                             />
                                             <button
                                                 className="btn btn-primary"
@@ -918,14 +920,11 @@ function DatabaseManagerPage() {
                                 />
                             </div>
                             <div className="form-group">
-                                <label className="checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        checked={copyWithData}
-                                        onChange={(e) => setCopyWithData(e.target.checked)}
-                                    />
-                                    <span>复制数据</span>
-                                </label>
+                                <Checkbox
+                                    label="复制数据"
+                                    checked={copyWithData}
+                                    onChange={(checked: boolean) => setCopyWithData(checked)}
+                                />
                             </div>
                         </div>
                         <div className="modal-footer">
@@ -999,36 +998,30 @@ function DatabaseManagerPage() {
                             <div className="form-group">
                                 <label>索引类型</label>
                                 <div className="radio-group">
-                                    <label className="radio-label">
-                                        <input
-                                            type="radio"
-                                            checked={!indexUnique}
-                                            onChange={() => setIndexUnique(false)}
-                                        />
-                                        <span>普通索引</span>
-                                    </label>
-                                    <label className="radio-label">
-                                        <input
-                                            type="radio"
-                                            checked={indexUnique}
-                                            onChange={() => setIndexUnique(true)}
-                                        />
-                                        <span>唯一索引</span>
-                                    </label>
+                                    <Radio
+                                        label="普通索引"
+                                        checked={!indexUnique}
+                                        value="normal"
+                                        onChange={() => setIndexUnique(false)}
+                                    />
+                                    <Radio
+                                        label="唯一索引"
+                                        checked={indexUnique}
+                                        value="unique"
+                                        onChange={() => setIndexUnique(true)}
+                                    />
                                 </div>
                             </div>
                             <div className="form-group">
                                 <label>包含列</label>
                                 <div className="index-checkbox-list">
                                     {tableDetail?.columns.map((col) => (
-                                        <label key={col.name} className="checkbox-label">
-                                            <input
-                                                type="checkbox"
-                                                checked={indexColumns.includes(col.name)}
-                                                onChange={() => toggleIndexColumn(col.name)}
-                                            />
-                                            <span>{col.name}</span>
-                                        </label>
+                                        <Checkbox
+                                            key={col.name}
+                                            label={col.name}
+                                            checked={indexColumns.includes(col.name)}
+                                            onChange={() => toggleIndexColumn(col.name)}
+                                        />
                                     ))}
                                 </div>
                             </div>

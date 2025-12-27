@@ -7,7 +7,7 @@ import { useUserStore } from '../stores/user-store';
 import { useDataManagementStore } from '../stores/data-management-store';
 import { useSystemInfoStore } from '../stores/system-info-store';
 import { useBinanceStore } from '../stores/binance-store';
-import { TextInput, PasswordInput, NumberInput } from '../components/mantine';
+import { TextInput, PasswordInput, NumberInput, Checkbox } from '../components/mantine';
 import type { BinanceApiKey } from '../stores/binance-store';
 
 function SettingsPage() {
@@ -478,14 +478,11 @@ function SettingsPage() {
                     </div>
 
                     <div className="flex gap-16" style={{ flexWrap: 'wrap', marginBottom: '16px' }}>
-                        <label className="flex items-center gap-8">
-                            <input
-                                type="checkbox"
-                                checked={autoCheck}
-                                onChange={e => setAutoCheck(e.target.checked)}
-                            />
-                            <span>自动检查更新</span>
-                        </label>
+                        <Checkbox
+                            label="自动检查更新"
+                            checked={autoCheck}
+                            onChange={(checked: boolean) => setAutoCheck(checked)}
+                        />
 
                         <div className="flex items-center gap-8">
                             <span className="label">检查间隔（分钟）:</span>
@@ -500,23 +497,17 @@ function SettingsPage() {
                     </div>
 
                     <div className="flex gap-16" style={{ flexWrap: 'wrap', marginBottom: '16px' }}>
-                        <label className="flex items-center gap-8">
-                            <input
-                                type="checkbox"
-                                checked={autoDownload}
-                                onChange={e => setAutoDownload(e.target.checked)}
-                            />
-                            <span>自动下载更新</span>
-                        </label>
+                        <Checkbox
+                            label="自动下载更新"
+                            checked={autoDownload}
+                            onChange={(checked: boolean) => setAutoDownload(checked)}
+                        />
 
-                        <label className="flex items-center gap-8">
-                            <input
-                                type="checkbox"
-                                checked={silentInstall}
-                                onChange={e => setSilentInstall(e.target.checked)}
-                            />
-                            <span>静默安装</span>
-                        </label>
+                        <Checkbox
+                            label="静默安装"
+                            checked={silentInstall}
+                            onChange={(checked: boolean) => setSilentInstall(checked)}
+                        />
                     </div>
 
                     <div className="flex gap-8">

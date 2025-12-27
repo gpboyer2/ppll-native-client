@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { Select, NumberInput } from '../../components/mantine';
+import { Select, NumberInput, Switch } from '../../components/mantine';
 import { ROUTES } from '../../router';
 import { useBinanceStore } from '../../stores/binance-store';
 import type { GridStrategy, GridStrategyForm, PositionSide } from '../../types/grid-strategy';
@@ -547,14 +547,10 @@ function GridStrategyEditPage() {
                                 <label className="grid-strategy-form-label">高于开仓价格时暂停</label>
                                 <div className="help">当价格大于等于开仓价格时则暂停网格</div>
                             </div>
-                            <label className="grid-strategy-toggle-switch">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.isAboveOpenPrice}
-                                    onChange={e => updateFormField('isAboveOpenPrice', e.target.checked)}
-                                />
-                                <span></span>
-                            </label>
+                            <Switch
+                                checked={formData.isAboveOpenPrice}
+                                onChange={(checked: boolean) => updateFormField('isAboveOpenPrice', checked)}
+                            />
                         </div>
 
                         <div className="grid-strategy-form-toggle">
@@ -562,14 +558,10 @@ function GridStrategyEditPage() {
                                 <label className="grid-strategy-form-label">低于开仓价格时暂停</label>
                                 <div className="help">当价格低于等于开仓价格时则暂停网格</div>
                             </div>
-                            <label className="grid-strategy-toggle-switch">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.isBelowOpenPrice}
-                                    onChange={e => updateFormField('isBelowOpenPrice', e.target.checked)}
-                                />
-                                <span></span>
-                            </label>
+                            <Switch
+                                checked={formData.isBelowOpenPrice}
+                                onChange={(checked: boolean) => updateFormField('isBelowOpenPrice', checked)}
+                            />
                         </div>
                     </div>
                 </div>
@@ -614,14 +606,10 @@ function GridStrategyEditPage() {
                                 <label className="grid-strategy-form-label">启用日志输出</label>
                                 <div className="help">是否启用日志输出，便于调试和监控</div>
                             </div>
-                            <label className="grid-strategy-toggle-switch">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.enableLog}
-                                    onChange={e => updateFormField('enableLog', e.target.checked)}
-                                />
-                                <span></span>
-                            </label>
+                            <Switch
+                                checked={formData.enableLog}
+                                onChange={(checked: boolean) => updateFormField('enableLog', checked)}
+                            />
                         </div>
 
                         <div className="grid-strategy-form-toggle">
@@ -629,14 +617,10 @@ function GridStrategyEditPage() {
                                 <label className="grid-strategy-form-label">顺势仅减仓策略</label>
                                 <div className="help">当仓位记录为空但实际持有仓位时，在价格趋势中优先执行平仓</div>
                             </div>
-                            <label className="grid-strategy-toggle-switch">
-                                <input
-                                    type="checkbox"
-                                    checked={formData.priorityCloseOnTrend}
-                                    onChange={e => updateFormField('priorityCloseOnTrend', e.target.checked)}
-                                />
-                                <span></span>
-                            </label>
+                            <Switch
+                                checked={formData.priorityCloseOnTrend}
+                                onChange={(checked: boolean) => updateFormField('priorityCloseOnTrend', checked)}
+                            />
                         </div>
                     </div>
                 </div>

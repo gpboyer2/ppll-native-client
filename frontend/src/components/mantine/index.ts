@@ -15,8 +15,12 @@ export { getPPLLMantineTheme } from '../../core/mantine-theme';
 // 预配置的组件（按需导出，避免打包体积过大）
 export * from './Button';
 export * from './Card';
+export * from './Checkbox';
 export * from './Input';
+export * from './Radio';
 export * from './Select';
+export * from './Switch';
+export * from './Textarea';
 
 // 其他组件可以根据需要逐步添加
 // export * from './Modal';
