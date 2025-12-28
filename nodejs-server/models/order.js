@@ -160,10 +160,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(20),
       comment: '执行方式(HTTP/WEBSOCKET)'
     },
-    user_id: {
-      type: DataTypes.BIGINT,
-      comment: '用户ID'
-    },
     remark: {
       type: DataTypes.STRING(255),
       comment: '备注'

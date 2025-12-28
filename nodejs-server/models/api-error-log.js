@@ -26,11 +26,6 @@ module.exports = (sequelize, DataTypes) => {
       //   primaryKey: true,
       //   comment: '主键ID'
       // },
-      user_id: {
-        type: DataTypes.BIGINT,
-        allowNull: true,
-        comment: "用户ID",
-      },
       api_endpoint: {
         type: DataTypes.STRING(255),
         allowNull: false,

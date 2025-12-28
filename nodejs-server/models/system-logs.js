@@ -14,10 +14,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // 如果有用户模型，可以定义关联关系
-      // if (models.user) {
-      //   this.belongsTo(models.user, { foreignKey: 'user_id', as: 'user' });
-      // }
+      // define association here
     }
   }
 
@@ -28,11 +25,6 @@ module.exports = (sequelize, DataTypes) => {
         autoIncrement: true,
         primaryKey: true,
         comment: "主键ID"
-      },
-      user_id: {
-        type: DataTypes.BIGINT,
-        allowNull: true,
-        comment: "用户ID（可为空）",
       },
       module: {
         type: DataTypes.STRING(100),
