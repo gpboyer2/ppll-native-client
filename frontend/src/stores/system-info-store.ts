@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import {
     GetAppDescription,
-    GetDatabasePath,
     GetNodejsServiceURL
 } from '../../wailsjs/go/main/App';
 import { apiClient } from '../api/client';
@@ -59,10 +58,10 @@ interface StaticInfo {
     frontendUrl: string;
     appVersion: string;
     appDescription: string;
-    databasePath: string;
     nodejsUrl: string;
     environment: string;
     ipv4List: string[];
+    databasePath?: string;
     gitInfo?: GitInfo;
 }
 
@@ -83,7 +82,6 @@ const defaultStaticInfo: StaticInfo = {
     frontendUrl: typeof window !== 'undefined' ? window.location.origin : '',
     appVersion: 'unknown',
     appDescription: '',
-    databasePath: '',
     nodejsUrl: '',
     environment: 'production',
     ipv4List: [],
@@ -196,9 +194,8 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
                 }
 
                 // Wails 桌面客户端模式
-                const [appDescription, databasePath, nodejsUrl] = await Promise.all([
+                const [appDescription, nodejsUrl] = await Promise.all([
                     GetAppDescription(),
-                    GetDatabasePath(),
                     GetNodejsServiceURL()
                 ]);
 
@@ -211,14 +208,16 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
                 let gitInfo: GitInfo | undefined;
                 let appVersion = 'unknown';
                 let healthData: HealthData | null = null;
+                let databasePath: string | undefined;
 
                 if (nodejsUrl) {
                     for (let i = 0; i < 60; i++) {
                         try {
-                            const [ipResponse, gitResponse, healthResponse] = await Promise.allSettled([
+                            const [ipResponse, gitResponse, healthResponse, dbPathResponse] = await Promise.allSettled([
                                 SystemApi.getIpv4List(),
                                 SystemApi.getGitInfo(),
-                                SystemApi.healthCheck()
+                                SystemApi.healthCheck(),
+                                SystemApi.getDatabasePath()
                             ]);
 
                             if (ipResponse.status === 'fulfilled' && ipResponse.value) {
@@ -240,7 +239,13 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
                                 }
                             }
 
-                            if (ipv4List.length > 0 || gitInfo || healthData) {
+                            if (dbPathResponse.status === 'fulfilled' && dbPathResponse.value) {
+                                if (dbPathResponse.value.status === 'success' && typeof dbPathResponse.value.data === 'string') {
+                                    databasePath = dbPathResponse.value.data;
+                                }
+                            }
+
+                            if (ipv4List.length > 0 || gitInfo || healthData || databasePath) {
                                 break;
                             }
                         } catch {}
@@ -252,10 +257,10 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
                     frontendUrl: typeof window !== 'undefined' ? window.location.origin : '',
                     appVersion,
                     appDescription,
-                    databasePath,
                     nodejsUrl,
                     environment: import.meta.env.MODE || 'production',
                     ipv4List,
+                    databasePath,
                     gitInfo
                 };
 

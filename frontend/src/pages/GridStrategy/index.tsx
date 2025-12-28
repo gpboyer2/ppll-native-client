@@ -48,7 +48,7 @@ function GridStrategyListPage() {
             if (response.status === 'success' && response.data) {
                 const list = response.data.list || [];
                 // 将后端的 snake_case 字段转换为前端的 camelCase 字段
-                const transformedList = list.map((item: any) => ({
+                const transformedList = list.map((item: any): GridStrategy => ({
                     id: item.id,
                     apiKey: item.api_key,
                     apiSecret: item.api_secret,
@@ -67,6 +67,9 @@ function GridStrategyListPage() {
                     pollingInterval: item.polling_interval,
                     leverage: item.leverage,
                     marginType: item.margin_type,
+                    pricePrecision: item.price_precision,
+                    quantityPrecision: item.quantity_precision,
+                    exchangeType: item.exchange_type,
                     stopLossPrice: item.stop_loss_price,
                     takeProfitPrice: item.take_profit_price,
                     gtLimitationPrice: item.gt_limitation_price,
@@ -74,9 +77,9 @@ function GridStrategyListPage() {
                     isAboveOpenPrice: item.is_above_open_price,
                     isBelowOpenPrice: item.is_below_open_price,
                     priorityCloseOnTrend: item.priority_close_on_trend,
-                    avgCostPriceDays: item.avg_cost_price_days,
-                    enableLog: item.enable_log ?? true,
-                    status: item.paused ? 'paused' : (item.remark === 'error' ? 'stopped' : 'running'),
+                    avgCostPriceDays: item.avg_cost_price_days ,
+                    enableLog: item.enable_log ,
+                    status: (item.paused ? 'paused' : (item.remark === 'error' ? 'stopped' : 'running')) as StrategyStatus,
                     createdAt: item.created_at,
                     updatedAt: item.updated_at,
                 }));

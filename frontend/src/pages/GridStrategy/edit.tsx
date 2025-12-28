@@ -99,7 +99,6 @@ function GridStrategyEditPage() {
                 if (strategy) {
                     // 将后端返回的字段名转换为前端表单需要的格式
                     const formData: GridStrategyForm = {
-                        id: strategy.id,
                         apiKey: strategy.api_key,
                         apiSecret: strategy.api_secret,
                         tradingPair: strategy.trading_pair,
@@ -117,6 +116,9 @@ function GridStrategyEditPage() {
                         pollingInterval: strategy.polling_interval,
                         leverage: strategy.leverage,
                         marginType: strategy.margin_type,
+                        pricePrecision: strategy.price_precision,
+                        quantityPrecision: strategy.quantity_precision,
+                        exchangeType: strategy.exchange_type,
                         stopLossPrice: strategy.stop_loss_price,
                         takeProfitPrice: strategy.take_profit_price,
                         gtLimitationPrice: strategy.gt_limitation_price,

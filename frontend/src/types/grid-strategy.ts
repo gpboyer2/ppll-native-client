@@ -89,6 +89,18 @@ export interface GridStrategy {
   /** 止盈价格 */
   takeProfitPrice?: number;
 
+  /** 保证金模式 (ISOLATED/CROSS) */
+  marginType?: string;
+
+  /** 价格精度 */
+  pricePrecision?: number;
+
+  /** 数量精度 */
+  quantityPrecision?: number;
+
+  /** 交易所类型 (SPOT/USDT-M/COIN-M) */
+  exchangeType?: string;
+
   /** 策略运行状态（前端维护） */
   status?: StrategyStatus;
 

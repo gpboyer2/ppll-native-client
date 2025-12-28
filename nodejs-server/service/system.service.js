@@ -61,6 +61,20 @@ const getGitInfo = () => {
 
 
 /**
+ * 获取数据库路径
+ * @returns {string} 数据库文件路径
+ */
+const getDatabasePath = () => {
+  try {
+    return db.storagePath || '';
+  } catch (error) {
+    console.error('获取数据库路径失败:', error);
+    return '';
+  }
+};
+
+
+/**
  * 获取系统健康状态
  * @returns {Promise<object>} 健康状态信息
  */
@@ -139,5 +153,6 @@ const getHealth = async () => {
 module.exports = {
   getIPv4List,
   getGitInfo,
+  getDatabasePath,
   getHealth
 };

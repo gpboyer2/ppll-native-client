@@ -22,6 +22,13 @@ router.get('/ipv4-list', systemController.getIPv4List);
 
 
 /**
+ * 获取数据库路径
+ * GET /v1/system/database-path
+ */
+router.get('/database-path', systemController.getDatabasePath);
+
+
+/**
  * 获取 Git 信息
  * GET /v1/system/git-info
  */

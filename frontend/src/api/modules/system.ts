@@ -29,6 +29,13 @@ export class SystemApi {
   }
 
   /**
+   * 获取数据库路径
+   */
+  static async getDatabasePath(): Promise<Response<string>> {
+    return RequestWrapper.get(`${this.BASE_PATH}/database-path`)
+  }
+
+  /**
    * 获取Git信息
    */
   static async getGitInfo(): Promise<Response<any>> {

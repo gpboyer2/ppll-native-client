@@ -17,6 +17,15 @@ const getIPv4List = catchAsync((req, res) => {
 
 
 /**
+ * 获取数据库路径
+ */
+const getDatabasePath = catchAsync((req, res) => {
+  const dbPath = systemService.getDatabasePath();
+  return sendSuccess(res, dbPath, '获取数据库路径成功');
+});
+
+
+/**
  * 获取 Git 信息
  */
 const getGitInfo = catchAsync((req, res) => {
@@ -39,6 +48,7 @@ const getHealth = catchAsync(async (req, res) => {
 
 module.exports = {
   getIPv4List,
+  getDatabasePath,
   getGitInfo,
   getHealth
 };
