@@ -50,7 +50,7 @@ function RouteLogger() {
 function ApiKeyGuard({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { apiKeyList, initialized, init } = useBinanceStore();
+  const { api_key_list, initialized, init } = useBinanceStore();
   const hasShownNotification = useRef(false);
 
   useEffect(() => {
@@ -70,7 +70,7 @@ function ApiKeyGuard({ children }: { children: React.ReactNode }) {
     }
 
     // 检查是否已配置 API Key
-    if (apiKeyList.length === 0) {
+    if (api_key_list.length === 0) {
       // 跳转到设置页面
       navigate(ROUTES.SETTINGS, { replace: true });
 
@@ -88,7 +88,7 @@ function ApiKeyGuard({ children }: { children: React.ReactNode }) {
       // 重置标志位，以便下次删除所有 API Key 后能再次显示通知
       hasShownNotification.current = false;
     }
-  }, [apiKeyList.length, initialized, location.pathname, navigate]);
+  }, [api_key_list.length, initialized, location.pathname, navigate]);
 
   return <>{children}</>;
 }

@@ -27,20 +27,20 @@ export interface TradingPair {
 interface BinanceStore {
     // 状态
     api_key_list: BinanceApiKey[];
-    tradingPairs: string[];
+    trading_pairs: string[];
     usdt_pairs: string[];
     initialized: boolean;
     loading: boolean;
-    isInitializing: boolean; // 标识是否正在初始化
-    activeApiKeyId: string | null; // 当前激活的 API Key ID
+    is_initializing: boolean; // 标识是否正在初始化
+    active_api_key_id: string | null; // 当前激活的 API Key ID
 
     // Actions
     init: () => Promise<void>;
     refreshApiKeys: () => Promise<void>;
     refreshTradingPairs: () => Promise<void>;
     getApiKeyById: (id: number) => BinanceApiKey | undefined;
-    setActiveApiKey: (id: string) => void; // 设置当前激活的 API Key
-    getActiveApiKey: () => BinanceApiKey | null; // 获取当前激活的 API Key
+    set_active_api_key: (id: string) => void; // 设置当前激活的 API Key
+    get_active_api_key: () => BinanceApiKey | null; // 获取当前激活的 API Key
     getCurrentApiKey: () => { api_key: string; secret_key: string } | null; // 获取当前 API Key 信息
 }
 
@@ -86,47 +86,47 @@ async function getNodejsUrl(): Promise<string> {
 export const useBinanceStore = create<BinanceStore>((set, get) => ({
   // 初始状态
   api_key_list: [],
-  tradingPairs: [],
+  trading_pairs: [],
   usdt_pairs: [],
   initialized: false,
   loading: false,
-  isInitializing: false,
-  activeApiKeyId: null,
+  is_initializing: false,
+  active_api_key_id: null,
 
   // 初始化：先获取 API Key 列表，成功且有数据时才获取交易对
   init: async () => {
-    const { loading, api_key_list, usdt_pairs, isInitializing } = get();
+    const { loading, api_key_list, usdt_pairs, is_initializing } = get();
     // 如果正在加载、正在初始化或已经成功初始化且有数据，则跳过
-    if (loading || isInitializing || (api_key_list.length > 0 && usdt_pairs.length > 0)) return;
+    if (loading || is_initializing || (api_key_list.length > 0 && usdt_pairs.length > 0)) return;
 
-    set({ loading: true, isInitializing: true });
+    set({ loading: true, is_initializing: true });
 
     try {
       // 先获取 API Key 列表
       await get().refreshApiKeys();
 
-      // 从 localStorage 恢复 activeApiKeyId
-      const saved_id = localStorage.getItem('activeApiKeyId');
+      // 从 localStorage 恢复 active_api_key_id
+      const saved_id = localStorage.getItem('active_api_key_id');
       const after_api_keys = get().api_key_list;
 
       if (after_api_keys.length > 0) {
         // 优先使用保存的 API Key ID
         if (saved_id && after_api_keys.some(k => String(k.id) === saved_id)) {
-          set({ activeApiKeyId: saved_id });
+          set({ active_api_key_id: saved_id });
         } else {
           // 如果保存的 ID 不存在，使用第一个 API Key
-          set({ activeApiKeyId: String(after_api_keys[0].id) });
-          localStorage.setItem('activeApiKeyId', String(after_api_keys[0].id));
+          set({ active_api_key_id: String(after_api_keys[0].id) });
+          localStorage.setItem('active_api_key_id', String(after_api_keys[0].id));
         }
 
         // 获取交易对信息
         await get().refreshTradingPairs();
       }
 
-      set({ initialized: true, loading: false, isInitializing: false });
+      set({ initialized: true, loading: false, is_initializing: false });
     } catch (error) {
       console.error('初始化币安数据失败:', error);
-      set({ loading: false, isInitializing: false });
+      set({ loading: false, is_initializing: false });
     }
   },
 
@@ -194,7 +194,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
           .sort();
 
         set({
-          tradingPairs: all_pairs,
+          trading_pairs: all_pairs,
           usdt_pairs
         });
       }
@@ -209,20 +209,20 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
   },
 
   // 设置当前激活的 API Key
-  setActiveApiKey: (id: string) => {
-    set({ activeApiKeyId: id });
-    localStorage.setItem('activeApiKeyId', id);
+  set_active_api_key: (id: string) => {
+    set({ active_api_key_id: id });
+    localStorage.setItem('active_api_key_id', id);
   },
 
   // 获取当前激活的 API Key
-  getActiveApiKey: () => {
-    const { api_key_list, activeApiKeyId } = get();
-    return api_key_list.find(key => String(key.id) === activeApiKeyId) || api_key_list[0] || null;
+  get_active_api_key: () => {
+    const { api_key_list, active_api_key_id } = get();
+    return api_key_list.find(key => String(key.id) === active_api_key_id) || api_key_list[0] || null;
   },
 
   // 获取当前 API Key 信息（供 API 请求使用）
   getCurrentApiKey: () => {
-    const active_key = get().getActiveApiKey();
+    const active_key = get().get_active_api_key();
     if (!active_key) return null;
     return {
       api_key: active_key.api_key,

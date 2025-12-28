@@ -22,7 +22,7 @@ function SettingsPage() {
   } = useDataManagementStore();
 
   // 使用 binance store
-  const { init, api_key_list, refreshApiKeys, activeApiKeyId, setActiveApiKey } = useBinanceStore();
+  const { init, api_key_list, refreshApiKeys, active_api_key_id, set_active_api_key } = useBinanceStore();
 
   // 更新设置状态
   const [feedURL, setFeedURL] = useState('');
@@ -39,14 +39,14 @@ function SettingsPage() {
   // Binance ApiKey 管理状态
   const [showAddApiKey, setShowAddApiKey] = useState(false);
   const [editingApiKey, setEditingApiKey] = useState<BinanceApiKey | null>(null);
-  const [apiKeyForm, setApiKeyForm] = useState({
+  const [api_key_form, set_api_key_form] = useState({
     name: '',
     api_key: '',
     secret_key: '',
     status: 2,
     remark: ''
   });
-  const [apiKeyStatus, setApiKeyStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
+  const [api_key_status, set_api_key_status] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
 
   // 数据清理相关状态
   const [dataSize, setDataSize] = useState<any>(null);
@@ -110,7 +110,7 @@ function SettingsPage() {
 
   // ApiKey 管理函数
   function resetApiKeyForm() {
-    setApiKeyForm({
+    set_api_key_form({
       name: '',
       api_key: '',
       secret_key: '',
@@ -122,7 +122,7 @@ function SettingsPage() {
   }
 
   function handleAddApiKey() {
-    setApiKeyForm({
+    set_api_key_form({
       name: '',
       api_key: '',
       secret_key: '',
@@ -135,7 +135,7 @@ function SettingsPage() {
 
   function handleEditApiKey(api_key: BinanceApiKey) {
     setEditingApiKey(api_key);
-    setApiKeyForm({
+    set_api_key_form({
       name: api_key.name,
       api_key: api_key.api_key,
       secret_key: api_key.secret_key,
@@ -146,29 +146,29 @@ function SettingsPage() {
   }
 
   async function handleSaveApiKey() {
-    if (!apiKeyForm.name.trim() || !apiKeyForm.api_key.trim() || !apiKeyForm.secret_key.trim()) {
-      setApiKeyStatus('error');
-      setTimeout(() => setApiKeyStatus('idle'), 500);
+    if (!api_key_form.name.trim() || !api_key_form.api_key.trim() || !api_key_form.secret_key.trim()) {
+      set_api_key_status('error');
+      setTimeout(() => set_api_key_status('idle'), 500);
       return;
     }
 
-    setApiKeyStatus('saving');
+    set_api_key_status('saving');
     try {
       const body = editingApiKey
         ? {
           id: editingApiKey.id,
-          name: apiKeyForm.name,
-          api_key: apiKeyForm.api_key, // 下划线命名
-          secret_key: apiKeyForm.secret_key, // 下划线命名
-          status: apiKeyForm.status,
-          remark: apiKeyForm.remark
+          name: api_key_form.name,
+          api_key: api_key_form.api_key, // 下划线命名
+          secret_key: api_key_form.secret_key, // 下划线命名
+          status: api_key_form.status,
+          remark: api_key_form.remark
         }
         : {
-          name: apiKeyForm.name,
-          api_key: apiKeyForm.api_key, // 下划线命名
-          secret_key: apiKeyForm.secret_key, // 下划线命名
-          status: apiKeyForm.status,
-          remark: apiKeyForm.remark
+          name: api_key_form.name,
+          api_key: api_key_form.api_key, // 下划线命名
+          secret_key: api_key_form.secret_key, // 下划线命名
+          status: api_key_form.status,
+          remark: api_key_form.remark
         };
 
       const response = editingApiKey
@@ -176,22 +176,22 @@ function SettingsPage() {
         : await BinanceApiKeyApi.create(body);
 
       if (response.status === 'success') {
-        setApiKeyStatus('success');
+        set_api_key_status('success');
         // 刷新列表
         await refreshApiKeys();
         setTimeout(() => {
-          setApiKeyStatus('idle');
+          set_api_key_status('idle');
           resetApiKeyForm();
         }, 500);
       } else {
         console.error('保存 API Key 失败:', response.message);
-        setApiKeyStatus('error');
-        setTimeout(() => setApiKeyStatus('idle'), 500);
+        set_api_key_status('error');
+        setTimeout(() => set_api_key_status('idle'), 500);
       }
     } catch (error) {
       console.error('保存 API Key 失败:', error);
-      setApiKeyStatus('error');
-      setTimeout(() => setApiKeyStatus('idle'), 500);
+      set_api_key_status('error');
+      setTimeout(() => set_api_key_status('idle'), 500);
     }
   }
 
@@ -217,7 +217,7 @@ function SettingsPage() {
   }
 
   function handleSetActiveApiKey(id: string) {
-    setActiveApiKey(id);
+    set_active_api_key(id);
     showSuccess('已切换 API Key');
     // 刷新相关数据
     window.location.reload();
@@ -302,7 +302,7 @@ function SettingsPage() {
           {api_key_list.length > 0 && (
             <div className="binance-apikey-list">
               {api_key_list.map((item) => {
-                const is_active = String(item.id) === activeApiKeyId;
+                const is_active = String(item.id) === active_api_key_id;
                 return (
                   <div key={item.id} className="binance-apikey-item">
                     <div className="binance-apikey-item-info">
@@ -376,8 +376,8 @@ function SettingsPage() {
                     <label className="label">名称</label>
                     <TextInput
                       placeholder="API Key 名称"
-                      value={apiKeyForm.name}
-                      onChange={(value: string) => setApiKeyForm(prev => ({ ...prev, name: value }))}
+                      value={api_key_form.name}
+                      onChange={(value: string) => set_api_key_form(prev => ({ ...prev, name: value }))}
                     />
                   </div>
 
@@ -385,8 +385,8 @@ function SettingsPage() {
                     <label className="label">API Key</label>
                     <TextInput
                       placeholder="Binance API Key"
-                      value={apiKeyForm.api_key}
-                      onChange={(value: string) => setApiKeyForm(prev => ({ ...prev, api_key: value }))}
+                      value={api_key_form.api_key}
+                      onChange={(value: string) => set_api_key_form(prev => ({ ...prev, api_key: value }))}
                     />
                   </div>
 
@@ -394,29 +394,29 @@ function SettingsPage() {
                     <label className="label">Secret Key</label>
                     <PasswordInput
                       placeholder="Binance Secret Key"
-                      value={apiKeyForm.secret_key}
-                      onChange={(value: string) => setApiKeyForm(prev => ({ ...prev, secret_key: value }))}
+                      value={api_key_form.secret_key}
+                      onChange={(value: string) => set_api_key_form(prev => ({ ...prev, secret_key: value }))}
                     />
                   </div>
                 </div>
 
                 <div className="binance-apikey-form-actions">
                   <button
-                    className={`btn ${apiKeyStatus === 'saving' ? 'btn-outline' : 'btn-primary'}`}
+                    className={`btn ${api_key_status === 'saving' ? 'btn-outline' : 'btn-primary'}`}
                     onClick={handleSaveApiKey}
-                    disabled={apiKeyStatus === 'saving'}
+                    disabled={api_key_status === 'saving'}
                   >
-                    {apiKeyStatus === 'saving' ? '保存中...' : (editingApiKey ? '更新' : '保存')}
+                    {api_key_status === 'saving' ? '保存中...' : (editingApiKey ? '更新' : '保存')}
                   </button>
                 </div>
 
-                {apiKeyStatus === 'success' && (
+                {api_key_status === 'success' && (
                   <div className="binance-apikey-form-message binance-apikey-form-success">
                                         ✅ {editingApiKey ? 'API Key 更新成功' : 'API Key 添加成功'}
                   </div>
                 )}
 
-                {apiKeyStatus === 'error' && (
+                {api_key_status === 'error' && (
                   <div className="binance-apikey-form-message binance-apikey-form-error">
                                         ❌ 操作失败，请检查输入信息并重试
                   </div>

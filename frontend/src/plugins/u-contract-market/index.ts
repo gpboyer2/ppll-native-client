@@ -141,17 +141,17 @@ const showStatus = (message: string, type: 'success' | 'error' | 'info' = 'info'
 
 const getCredentialsInputs = () => {
   if (!container) return null;
-  const apiKeyInput = container.querySelector('#api-key') as HTMLInputElement;
-  const apiSecretInput = container.querySelector('#api-secret') as HTMLInputElement;
-  return { apiKeyInput, apiSecretInput };
+  const api_key_input = container.querySelector('#api-key') as HTMLInputElement;
+  const api_secret_input = container.querySelector('#api-secret') as HTMLInputElement;
+  return { api_key_input, api_secret_input };
 };
 
 const saveCredentials = async () => {
   const inputs = getCredentialsInputs();
   if (!inputs) return;
 
-  const api_key = inputs.apiKeyInput.value.trim();
-  const secret_key = inputs.apiSecretInput.value.trim();
+  const api_key = inputs.api_key_input.value.trim();
+  const secret_key = inputs.api_secret_input.value.trim();
 
   if (!api_key || !secret_key) {
     showStatus('请输入完整的API密钥信息', 'error');
@@ -180,8 +180,8 @@ const loadCredentials = async () => {
       if (api_key && secret_key) {
         const inputs = getCredentialsInputs();
         if (inputs) {
-          inputs.apiKeyInput.value = api_key;
-          inputs.apiSecretInput.value = secret_key;
+          inputs.api_key_input.value = api_key;
+          inputs.api_secret_input.value = secret_key;
           currentCredentials = { api_key, secret_key };
           showStatus('API密钥加载成功', 'success');
         }
@@ -199,8 +199,8 @@ const testCredentials = async () => {
   const inputs = getCredentialsInputs();
   if (!inputs) return;
 
-  const api_key = inputs.apiKeyInput.value.trim();
-  const secret_key = inputs.apiSecretInput.value.trim();
+  const api_key = inputs.api_key_input.value.trim();
+  const secret_key = inputs.api_secret_input.value.trim();
 
   if (!BinanceApi.validateCredentials(api_key, secret_key)) {
     showStatus('请输入有效的API密钥', 'error');
