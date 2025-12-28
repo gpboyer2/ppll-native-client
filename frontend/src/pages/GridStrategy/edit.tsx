@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Select, NumberInput } from '../../components/mantine';
 import { SmartConfigModal } from '../../components/grid-strategy/SmartConfigModal';
 import { ReferralCommissionDialog } from '../../components/referral-commission-invitation';
@@ -12,11 +12,12 @@ import { showWarning, showSuccess } from '../../utils/api-error';
 /**
  * 网格策略表单页面
  * 新建路由：/grid-strategy/create
- * 编辑路由：/grid-strategy/edit/:id
+ * 编辑路由：/grid-strategy/edit?id=3
  */
 function GridStrategyEditPage() {
     const navigate = useNavigate();
-    const { id } = useParams<{ id?: string }>();
+    const [searchParams] = useSearchParams();
+    const id = searchParams.get('id');
     const isEditing = Boolean(id);
 
     // 使用币安 store
@@ -284,6 +285,14 @@ function GridStrategyEditPage() {
 
         // 应用智能配置后也打开返佣弹窗
         setCommissionRebateOpened(true);
+    }
+
+    // 获取保存按钮文本
+    function getSaveButtonText() {
+        if (saveStatus === 'saving') {
+            return '保存中...';
+        }
+        return isEditing ? '保存并重启' : '保存并启动';
     }
 
     // API Key 下拉选项
@@ -750,7 +759,7 @@ function GridStrategyEditPage() {
                         style={{ height: '40px', padding: '0 32px' }}
                         disabled={saveStatus === 'saving'}
                     >
-                        {saveStatus === 'saving' ? '保存中...' : '保存策略'}
+                        {getSaveButtonText()}
                     </button>
                 </div>
 

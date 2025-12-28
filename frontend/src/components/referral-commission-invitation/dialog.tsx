@@ -280,7 +280,7 @@ export function ReferralCommissionDialog({
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td><strong>日</strong></td>
+                                        <td><strong>每日</strong></td>
                                         <td>{NumberFormat.truncateDecimal(data.currentMonthlyProfit / 30)} USDT</td>
                                         <td className="referral-commission-dialog-table-highlight-text">
                                             <strong>{NumberFormat.truncateDecimal(data.dailyRebateProfit)} USDT</strong>
@@ -290,7 +290,7 @@ export function ReferralCommissionDialog({
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><strong>月</strong></td>
+                                        <td><strong>每月</strong></td>
                                         <td>{NumberFormat.truncateDecimal(data.currentMonthlyProfit)} USDT</td>
                                         <td className="referral-commission-dialog-table-highlight-text">
                                             <strong>{NumberFormat.truncateDecimal(data.monthlyExtraProfit)} USDT</strong>
@@ -300,7 +300,7 @@ export function ReferralCommissionDialog({
                                         </td>
                                     </tr>
                                     <tr className="referral-commission-dialog-table-total">
-                                        <td><strong>年</strong></td>
+                                        <td><strong>每年</strong></td>
                                         <td><strong>{NumberFormat.truncateDecimal(data.currentYearlyProfit)} USDT</strong></td>
                                         <td className="referral-commission-dialog-table-highlight-text">
                                             <strong>{NumberFormat.truncateDecimal(data.rebateYearlyProfit - data.currentYearlyProfit)} USDT</strong>
@@ -336,9 +336,10 @@ export function ReferralCommissionDialog({
                         </div>
                     </div>
 
-                    <p className="referral-commission-dialog-info-text">
-                        * 收益计算说明：月收益按 30 天计算，年收益按 365 天计算。返佣收益 = 交易手续费 × 35% 返佣比例
-                    </p>
+                    <div className="referral-commission-dialog-info-text">
+                        <div>* 收益计算说明：月收益按 30 天计算，年收益按 365 天计算。</div>
+                        <div>返佣收益 = 交易手续费 × 35% 返佣比例</div>
+                    </div>
 
                     <div className="referral-commission-dialog-actions-section">
                         <div className="referral-commission-dialog-button-group">

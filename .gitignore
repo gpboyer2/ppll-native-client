@@ -143,3 +143,6 @@ Untitled-1.ini
 
 # Cache files
 cache/gate_cookies.json
+
+# Kiro specs
+.kiro/

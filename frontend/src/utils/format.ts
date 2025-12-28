@@ -45,7 +45,10 @@ export class NumberFormat {
    * @returns 格式化后的字符串
    */
   static truncateDecimal(value: number | string | BigNumber, maxDecimals: number = 8): string {
-    const bn = new BigNumber(value);
+    // 将 number 类型转换为字符串，避免 BigNumber 对超过 15 位有效数字的 number 类型报错
+    // 这是 JavaScript 浮点数精度问题的常见处理方式
+    const valueStr = typeof value === 'number' ? value.toString() : value;
+    const bn = new BigNumber(valueStr);
 
     // 如果是整数或小数位数少于最大值，直接返回
     const decimalPlaces = bn.decimalPlaces();
@@ -55,7 +58,7 @@ export class NumberFormat {
 
     // 使用 BigNumber 的向下取整：乘以 10^n，向下取整，再除以 10^n
     const multiplier = new BigNumber(10).pow(maxDecimals);
-    const truncated = bn.times(multiplier).integerValue(BigNumber.ROUND_DOWN).div(multiplier);
+    const truncated = bn.times(multiplier).floor().div(multiplier);
 
     // 移除末尾的 0（可选）
     return truncated.toFixed();

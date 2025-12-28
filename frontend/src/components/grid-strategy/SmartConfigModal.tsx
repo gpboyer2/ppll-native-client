@@ -341,33 +341,23 @@ export function SmartConfigModal({
               <div className="smart-config-current-price">
                 <span className="label">当前价格</span>
                 <span className="value">{NumberFormat.truncateDecimal(optimizationResult.market.currentPrice)} USDT</span>
-                <span className="position-badge">
-                  {(() => {
-                    const current = parseFloat(optimizationResult.market.currentPrice);
-                    const support = parseFloat(optimizationResult.market.support);
-                    const resistance = parseFloat(optimizationResult.market.resistance);
-                    const range = resistance - support;
-                    const position = ((current - support) / range * 100).toFixed(1);
-                    return `区间位置 ${position}%`;
-                  })()}
-                </span>
               </div>
               {defaultParams?.positionSide === 'LONG' ? (
-                <>
-                  <div className="smart-config-range-rule">
-                    价格高于 {NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT，暂停开仓，规避上涨风险
-                  </div>
-                  <div className="smart-config-range-rule">
-                    价格低于 {NumberFormat.truncateDecimal(optimizationResult.market.support)} USDT，继续网格，持续更高收益
-                  </div>
-                </>
-              ) : (
                 <>
                   <div className="smart-config-range-rule">
                     价格高于 {NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT，继续网格，持续更高收益
                   </div>
                   <div className="smart-config-range-rule">
                     价格低于 {NumberFormat.truncateDecimal(optimizationResult.market.support)} USDT，暂停开仓，规避下跌风险
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="smart-config-range-rule">
+                    价格高于 {NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT，暂停开仓，规避上涨风险
+                  </div>
+                  <div className="smart-config-range-rule">
+                    价格低于 {NumberFormat.truncateDecimal(optimizationResult.market.support)} USDT，继续网格，持续更高收益
                   </div>
                 </>
               )}

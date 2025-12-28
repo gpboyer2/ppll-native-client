@@ -330,7 +330,7 @@ function GridStrategyListPage() {
                                         {strategy.status === 'running' ? '暂停' : '启动'}
                                     </button>
                                     <Link
-                                        to={`/grid-strategy/edit/${strategy.id}`}
+                                        to={`/grid-strategy/edit?id=${strategy.id}`}
                                         className="btn btn-outline"
                                         style={{ flex: 1, height: '32px', textAlign: 'center', textDecoration: 'none' }}
                                     >
