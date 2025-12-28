@@ -9,10 +9,9 @@ export class SystemLogsApi {
   private static readonly BASE_PATH = '/api/v1/system-logs'
 
   /**
-   * 获取系统日志列表
+   * 获取系统日志列表（单用户系统）
    */
   static async list(params?: PageRequest & {
-    user_id?: string
     module?: string
     api_endpoint?: string
     http_method?: string

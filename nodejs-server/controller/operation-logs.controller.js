@@ -6,12 +6,12 @@ const catchAsync = require('../utils/catch-async');
 const { sendSuccess } = require('../utils/api-response');
 const service = require('../service/operation-logs.service.js');
 
-// 分页查询（支持按用户、动作、页面、IP、时间范围过滤）
+// 分页查询（单用户系统）
 const list = catchAsync(async (req, res) => {
   // 注意：为避免与分页参数 page 冲突，页面路径过滤参数命名为 page_path
-  const { user_id, action, description, page_path, ip, start, end, module, operator, status, currentPage, pageSize } = req.query;
+  const { action, description, page_path, ip, start, end, module, operator, status, currentPage, pageSize } = req.query;
   const data = await service.list(
-    { user_id, action, description, page_path, ip, start, end, module, operator, status },
+    { action, description, page_path, ip, start, end, module, operator, status },
     { currentPage, pageSize }
   );
   return sendSuccess(res, data, '获取操作日志列表成功');

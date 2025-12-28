@@ -17,12 +17,11 @@ const dashboard = catchAsync(async (req, res) => {
 
 
 /**
- * 获取合约账户详情
+ * 获取合约账户详情（单用户系统）
  */
 const account = catchAsync(async (req, res) => {
   const { apiKey, apiSecret } = req.body;
-  const userId = req.vipUser?.id;
-  const result = await dashboardService.getAccount(apiKey, apiSecret, userId);
+  const result = await dashboardService.getAccount(apiKey, apiSecret);
   return sendSuccess(res, result, '获取账户信息成功');
 });
 

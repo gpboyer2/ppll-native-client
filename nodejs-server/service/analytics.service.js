@@ -17,25 +17,21 @@ const PageViewLog = db.page_view_log;
  */
 
 /**
- * 记录用户事件日志
- * 
+ * 记录用户事件日志（单用户系统）
+ *
  * @example
  *  const AnalyticsService = require('../service/analytics.service.js');
- *  await AnalyticsService.logUserEvent(userId, 'login', 'homepage');
- *  
- * @param {number} userId - 用户ID
+ *  await AnalyticsService.logUserEvent('login', 'homepage');
+ *
  * @param {string} action - 用户操作
  * @param {string} page - 访问页面
  * @param {string} errorCode - 报错码(可选)
  * @param {string} errorMessage - 报错信息(可选)
  * @returns {Promise<void>}
  */
-async function logUserEvent(userId, action, page, errorCode, errorMessage) {
+async function logUserEvent(action, page, errorCode, errorMessage) {
   try {
-    // 注意：user_event_log 模型在当前代码中不存在，
-    // 使用 OperationLogModel 代替，或后续创建对应模型
     await OperationLogModel.create({
-      user_id: userId,
       action: action,
       description: `${action} on ${page}`,
       page: page,
@@ -52,13 +48,12 @@ async function logUserEvent(userId, action, page, errorCode, errorMessage) {
 }
 
 /**
- * 记录用户操作日志
- * 
+ * 记录用户操作日志（单用户系统）
+ *
  * @example
  *  const AnalyticsService = require('../service/analytics.service.js');
- *  await AnalyticsService.logUserAction(userId, 'update_profile', 'Updated profile picture', 'settings');
- * 
- * @param {number} userId - 用户ID
+ *  await AnalyticsService.logUserAction('update_profile', 'Updated profile picture', 'settings');
+ *
  * @param {string} action - 操作类型
  * @param {string} description - 操作描述
  * @param {string} page - 所在页面
@@ -67,7 +62,7 @@ async function logUserEvent(userId, action, page, errorCode, errorMessage) {
  * @param {object} extraData - 扩展信息(可选)
  * @returns {Promise<void>}
  */
-async function logUserAction(userId, action, description, page, ipAddress, userAgent, extraData, options = {}) {
+async function logUserAction(action, description, page, ipAddress, userAgent, extraData, options = {}) {
   try {
     const operator = options.operator || null;
     const moduleName = options.module || (page ? String(page).replace(/^\//, '').split('/')[0] : null);
@@ -79,7 +74,6 @@ async function logUserAction(userId, action, description, page, ipAddress, userA
     const { os: osName, browser: browserName } = parseUa(userAgent);
 
     await OperationLogModel.create({
-      user_id: userId,
       operator,
       module: moduleName,
       action,
@@ -102,13 +96,12 @@ async function logUserAction(userId, action, description, page, ipAddress, userA
 }
 
 /**
- * 记录页面访问日志
- * 
+ * 记录页面访问日志（单用户系统）
+ *
  * @example
  *  const AnalyticsService = require('../service/analytics.service.js');
- *  await AnalyticsService.logPageView(userId, '/dashboard', '/home', '192.168.1.1', 'Mozilla/5.0', 30);
- * 
- * @param {number} userId - 用户ID
+ *  await AnalyticsService.logPageView('/dashboard', '/home', '192.168.1.1', 'Mozilla/5.0', 30);
+ *
  * @param {string} page - 页面路径
  * @param {string} referrer - 来源页面(可选)
  * @param {string} ipAddress - IP地址(可选)
@@ -117,10 +110,9 @@ async function logUserAction(userId, action, description, page, ipAddress, userA
  * @param {object} extraData - 扩展信息(可选)
  * @returns {Promise<void>}
  */
-async function logPageView(userId, page, referrer, ipAddress, userAgent, duration, extraData) {
+async function logPageView(page, referrer, ipAddress, userAgent, duration, extraData) {
   try {
     await PageViewLog.create({
-      user_id: userId,
       page,
       referrer: referrer || null,
       ip_address: ipAddress || null,
@@ -136,15 +128,14 @@ async function logPageView(userId, page, referrer, ipAddress, userAgent, duratio
 }
 
 /**
- * 批量记录用户操作日志
- * 
+ * 批量记录用户操作日志（单用户系统）
+ *
  * @param {Array<object>} logs - 日志对象数组
  * @returns {Promise<void>}
  */
 async function batchLogUserActions(logs) {
   try {
     const formattedLogs = logs.map(log => ({
-      user_id: log.userId,
       operator: log.operator || null,
       module: log.module || (log.page ? String(log.page).replace(/^\//, '').split('/')[0] : null),
       action: log.action,
@@ -171,19 +162,18 @@ async function batchLogUserActions(logs) {
 }
 
 /**
- * 获取用户行为统计
- * 
- * @param {number} userId - 用户ID
+ * 获取用户行为统计（单用户系统）
+ *
  * @param {object} options - 查询选项
  * @param {string} options.startDate - 开始日期
  * @param {string} options.endDate - 结束日期
  * @param {string} options.action - 操作类型(可选)
  * @returns {Promise<object>} 统计数据
  */
-async function getUserActionStats(userId, options = {}) {
+async function getUserActionStats(options = {}) {
   try {
     const { startDate, endDate, action } = options;
-    const where = { user_id: userId };
+    const where = {};
 
     // 兼容不同模型的时间字段：优先 operation_time
     const timeField = OperationLogModel?.rawAttributes?.operation_time ? 'operation_time' : 'created_at';

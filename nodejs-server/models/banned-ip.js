@@ -9,13 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/banned-ip` file will call this method automatically.
      */
     static associate(models) {
-      // 可以关联到用户表，表示谁创建的封禁记录
-      if (models.users) {
-        BannedIP.belongsTo(models.users, {
-          foreignKey: 'created_by',
-          as: 'creator'
-        });
-      }
+      // 单用户系统：无需关联
     }
 
     /**

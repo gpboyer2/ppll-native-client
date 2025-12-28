@@ -30,13 +30,12 @@ const getDashboard = () => {
 
 
 /**
- * 获取合约账户详情
+ * 获取合约账户详情（单用户系统）
  * @param {string} apiKey - 币安API密钥
  * @param {string} apiSecret - 币安API密钥Secret
- * @param {number} userId - 用户ID
  * @returns {Promise<Object>} 账户信息结果
  */
-const getAccount = async (apiKey, apiSecret, userId) => {
+const getAccount = async (apiKey, apiSecret) => {
   UtilRecord.log('😄 查询账户信息:');
   UtilRecord.log('apiKey:', apiKey);
   UtilRecord.log('apiSecret:', apiSecret);
@@ -122,18 +121,7 @@ const getAccount = async (apiKey, apiSecret, userId) => {
 
   UtilRecord.log('😄 账户信息已缓存, 缓存时间:', new Date(cacheTime));
 
-  // 保存账户数据到数据库
-  if (userId) {
-    try {
-      await db.usd_m_futures_account.upsert({
-        user_id: userId,
-        account_json: JSON.stringify(accountData)
-      });
-      UtilRecord.log('账户信息已保存到数据库, user_id:', userId);
-    } catch (dbError) {
-      UtilRecord.log('保存账户信息到数据库失败:', dbError);
-    }
-  }
+  // 单用户系统：无需保存账户数据到数据库
 
   return {
     status: 'success',

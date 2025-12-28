@@ -9,10 +9,9 @@ export class OperationLogsApi {
   private static readonly BASE_PATH = '/api/v1/operation-logs'
 
   /**
-   * 获取操作日志列表
+   * 获取操作日志列表（单用户系统）
    */
   static async list(params?: PageRequest & {
-    user_id?: string
     action?: string
     description?: string
     page_path?: string

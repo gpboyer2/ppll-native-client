@@ -6,11 +6,11 @@ const catchAsync = require('../utils/catch-async');
 const service = require('../service/system-logs.service.js');
 const { sendSuccess, sendError } = require('../utils/api-response');
 
-// 分页查询（支持按用户、模块、接口、HTTP方法、状态码、错误码、IP、地点、时间范围过滤）
+// 分页查询（单用户系统）
 const list = catchAsync(async (req, res) => {
-  const { user_id, module, api_endpoint, http_method, status_code, error_code, ip, location, start, end, currentPage, pageSize } = req.query;
+  const { module, api_endpoint, http_method, status_code, error_code, ip, location, start, end, currentPage, pageSize } = req.query;
   const result = await service.list(
-    { user_id, module, api_endpoint, http_method, status_code, error_code, ip, location, start, end },
+    { module, api_endpoint, http_method, status_code, error_code, ip, location, start, end },
     { currentPage, pageSize }
   );
   return sendSuccess(res, {

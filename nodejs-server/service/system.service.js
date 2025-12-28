@@ -77,7 +77,7 @@ const getHealth = async () => {
       "SELECT name FROM sqlite_master WHERE type='table'"
     );
     const tableNames = tables[0].map(t => t.name);
-    dbHealthy = tableNames.includes('users') && tableNames.includes('grid_strategies');
+    dbHealthy = tableNames.includes('grid_strategies');
   } catch (e) {
     dbHealthy = false;
   }

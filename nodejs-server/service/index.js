@@ -29,19 +29,19 @@ class Service {
     return null;
   }
 
-  async deleteOne(userId) {
+  async deleteOne(id) {
     try {
-      const user = await this.table.findByPk(userId);
-      if (!user) return null;
-      await user.destroy();
-      return user;
+      const row = await this.table.findByPk(id);
+      if (!row) return null;
+      await row.destroy();
+      return row;
     } catch (error) {
-      if (error instanceof ApiError) throw error; // 如果错误已经是ApiError，直接抛出，避免覆盖具体错误信息
+      if (error instanceof ApiError) throw error;
       throw new ApiError(httpStatus.SERVICE_UNAVAILABLE, error);
     }
   };
 
-  async updateOne(userId, updateBody) {
+  async updateOne(id, updateBody) {
     try {
       const user = Object.assign({}, updateBody);
 
@@ -53,7 +53,7 @@ class Service {
       }
 
       const row = await this.table.update(user, {
-        where: { id: userId },
+        where: { id: id },
       });
 
       return row;

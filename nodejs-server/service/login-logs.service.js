@@ -24,16 +24,15 @@ function sanitize(record) {
   return data;
 }
 
-// 构建 where 条件
+// 构建 where 条件（单用户系统）
 function buildWhere(filter = {}) {
   const where = {};
-  const { id, ids, user_id, username, ip, status, login_system, start, end } = filter;
+  const { id, ids, username, ip, status, login_system, start, end } = filter;
 
   // 支持按单个或多个ID查询
   if (Array.isArray(ids) && ids.length > 0) where.id = { [Op.in]: ids };
   else if (id) where.id = id;
 
-  if (user_id) where.user_id = user_id;
   if (username) where.username = { [Op.like]: `%${username}%` };
   if (ip) where.ip = { [Op.like]: `%${ip}%` };
   if (status !== undefined && status !== null && status !== '') where.status = status;
@@ -108,7 +107,6 @@ async function create(payload = {}) {
   // 不再拒绝持久化 apiSecret；根据业务要求允许入库
 
   const allow = {
-    user_id: payload.user_id,
     username: payload.username,
     apiKey: payload.apiKey,
     apiSecret: payload.apiSecret, // 根据需求允许入库
@@ -140,7 +138,7 @@ async function update(payload = {}) {
   if (!record) throw new ApiError(httpStatus.NOT_FOUND, '记录不存在');
 
   const allowFields = [
-    'user_id', 'username', 'apiKey', 'login_time', 'ip', 'location', 'user_agent',
+    'username', 'apiKey', 'login_time', 'ip', 'location', 'user_agent',
     'browser', 'os', 'device', 'method', 'login_system', 'status', 'fail_reason'
   ];
   const updateData = {};

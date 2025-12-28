@@ -9,10 +9,9 @@ export class LoginLogsApi {
   private static readonly BASE_PATH = '/api/v1/login-logs'
 
   /**
-   * 获取登录日志列表
+   * 获取登录日志列表（单用户系统）
    */
   static async list(params?: PageRequest & {
-    user_id?: string
     username?: string
     ip?: string
     status?: string
