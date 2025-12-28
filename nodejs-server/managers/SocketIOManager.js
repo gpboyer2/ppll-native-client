@@ -25,32 +25,32 @@ const init = (server, wsManagerInstance) => {
     stats.active++;
     UtilRecord.log(`[SocketIO] Client connected: ${socket.id}`);
 
-    // 记录此 Socket 订阅了哪些用户数据流，格式: `${userId}:${market}`
+    // 记录此 Socket 订阅了哪些用户数据流，格式: `${apiKey}:${market}`
     socket.subscribedUserStreamList = new Set();
     // 记录此 Socket 订阅了哪些 Ticker，格式: `${market}:${symbol}`
     socket.subscribedTickerList = new Set();
 
     /**
      * 订阅 User Data Stream（账户余额、持仓、订单更新）
-     * data: { userId, apiKey, apiSecret, market }
+     * data: { apiKey, apiSecret, market }
      * market: 'usdm'（默认）| 'coinm' | 'spot'
      */
     socket.on('subscribe_user_stream', async (data) => {
-      const { userId, apiKey, apiSecret, market = 'usdm' } = data;
+      const { apiKey, apiSecret, market = 'usdm' } = data;
 
-      if (!userId || !apiKey || !apiSecret) {
-        socket.emit('error', { message: '缺少必要参数: userId, apiKey, apiSecret' });
+      if (!apiKey || !apiSecret) {
+        socket.emit('error', { message: '缺少必要参数: apiKey, apiSecret' });
         return;
       }
 
-      const subKey = `${userId}:${market}`;
-      const room = `user:${userId}:${market}`;
+      const subKey = `${apiKey}:${market}`;
+      const room = `user:${apiKey}:${market}`;
       socket.join(room);
       socket.subscribedUserStreamList.add(subKey);
 
       try {
-        await wsManager.subscribeUserData(userId, apiKey, apiSecret, market);
-        socket.emit('user_stream_status', { status: 'connected', userId, market });
+        await wsManager.subscribeUserData(apiKey, apiSecret, market);
+        socket.emit('user_stream_status', { status: 'connected', apiKey, market });
         UtilRecord.log(`[SocketIO] Socket ${socket.id} 订阅用户数据流 ${subKey}`);
       } catch (err) {
         UtilRecord.log(`[SocketIO] 订阅用户数据流失败 ${subKey}: ${err?.message || err}`);
@@ -62,15 +62,15 @@ const init = (server, wsManagerInstance) => {
 
     /**
      * 取消订阅 User Data Stream
-     * data: { userId, market }
+     * data: { apiKey, market }
      */
     socket.on('unsubscribe_user_stream', (data) => {
-      const { userId, market = 'usdm' } = data;
-      const subKey = `${userId}:${market}`;
+      const { apiKey, market = 'usdm' } = data;
+      const subKey = `${apiKey}:${market}`;
 
-      if (userId && socket.subscribedUserStreamList.has(subKey)) {
-        wsManager.unsubscribeUserData(userId, market);
-        socket.leave(`user:${userId}:${market}`);
+      if (apiKey && socket.subscribedUserStreamList.has(subKey)) {
+        wsManager.unsubscribeUserData(apiKey, market);
+        socket.leave(`user:${apiKey}:${market}`);
         socket.subscribedUserStreamList.delete(subKey);
         UtilRecord.log(`[SocketIO] Socket ${socket.id} 取消订阅用户数据流 ${subKey}`);
       }
@@ -177,8 +177,8 @@ const init = (server, wsManagerInstance) => {
   // 监听 wsManager 事件并转发给 SocketIO 房间
   // 注意：防止多次绑定
   if (!wsManager.listenerCount('userDataUpdate')) {
-    wsManager.on('userDataUpdate', ({ userId, market, data }) => {
-      io.to(`user:${userId}:${market}`).emit('account_update', data);
+    wsManager.on('userDataUpdate', ({ apiKey, market, data }) => {
+      io.to(`user:${apiKey}:${market}`).emit('account_update', data);
     });
   }
 
@@ -205,8 +205,8 @@ const init = (server, wsManagerInstance) => {
 const cleanupSocketSubscription = (socket) => {
   // 清理用户数据流订阅
   for (const subKey of socket.subscribedUserStreamList) {
-    const [userId, market] = subKey.split(':');
-    wsManager.unsubscribeUserData(userId, market);
+    const [apiKey, market] = subKey.split(':');
+    wsManager.unsubscribeUserData(apiKey, market);
   }
   socket.subscribedUserStreamList.clear();
 

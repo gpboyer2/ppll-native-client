@@ -33,7 +33,7 @@ class WebSocketConnectionManager extends EventEmitter {
     this.subRefs = new Map();
 
     // User Data Streams
-    // key: `user:${userId}` -> { client, listenKey, timer, refCount, apiKey, apiSecret }
+    // key: `user:${apiKey}` -> { client, listenKey, timer, refCount, apiKey, apiSecret }
     this.userDataSubs = new Map();
 
     // 连接状态跟踪
@@ -329,13 +329,12 @@ class WebSocketConnectionManager extends EventEmitter {
   /**
    * 订阅用户数据流（U本位合约）
    * 支持多用户共享连接（引用计数）
-   * @param {string} userId - 用户ID
-   * @param {string} apiKey - 币安 API Key
+   * @param {string} apiKey - 币安 API Key（作为用户标识）
    * @param {string} apiSecret - 币安 API Secret
    * @param {string} market - 市场类型：usdm（默认）、coinm、spot
    */
-  async subscribeUserData(userId, apiKey, apiSecret, market = 'usdm') {
-    const subKey = `user:${userId}:${market}`;
+  async subscribeUserData(apiKey, apiSecret, market = 'usdm') {
+    const subKey = `user:${apiKey}:${market}`;
 
     // 检查是否已存在订阅
     if (this.userDataSubs.has(subKey)) {
@@ -369,7 +368,7 @@ class WebSocketConnectionManager extends EventEmitter {
           if (!IS_PRODUCTION) {
             UtilRecord.log(`[WSManager] 用户数据更新 ${subKey}:`, data.eventType);
           }
-          this.emit('userDataUpdate', { userId, market, data });
+          this.emit('userDataUpdate', { apiKey, market, data });
         } else if (data.eventType === 'listenKeyExpired') {
           UtilRecord.log(`[WSManager] listenKey 已过期 ${subKey}，需要重新订阅`);
         }
@@ -429,11 +428,11 @@ class WebSocketConnectionManager extends EventEmitter {
 
   /**
    * 取消订阅用户数据流
-   * @param {string} userId - 用户ID
+   * @param {string} apiKey - 币安 API Key（作为用户标识）
    * @param {string} market - 市场类型：usdm（默认）、coinm、spot
    */
-  unsubscribeUserData(userId, market = 'usdm') {
-    const subKey = `user:${userId}:${market}`;
+  unsubscribeUserData(apiKey, market = 'usdm') {
+    const subKey = `user:${apiKey}:${market}`;
 
     if (!this.userDataSubs.has(subKey)) {
       UtilRecord.log(`[WSManager] 用户数据流订阅不存在 ${subKey}`);
@@ -463,12 +462,12 @@ class WebSocketConnectionManager extends EventEmitter {
 
   /**
    * 获取用户数据流订阅状态
-   * @param {string} userId - 用户ID
+   * @param {string} apiKey - 币安 API Key（作为用户标识）
    * @param {string} market - 市场类型
    * @returns {object|null} 订阅信息
    */
-  getUserDataSubStatus(userId, market = 'usdm') {
-    const subKey = `user:${userId}:${market}`;
+  getUserDataSubStatus(apiKey, market = 'usdm') {
+    const subKey = `user:${apiKey}:${market}`;
     return this.userDataSubs.get(subKey) || null;
   }
 

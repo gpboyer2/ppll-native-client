@@ -84,7 +84,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
     setTimeout(() => {
       let infiniteGridParams = convertKeysToCamelCase(validParams);
       infiniteGridParams.id = row.id;
-      infiniteGridParams.userId = params.api_key; // 使用 API Key 作为用户标识
+      infiniteGridParams.apiKey = params.api_key; // 使用 API Key 作为用户标识
       const wealthySoon = new InfiniteGrid(infiniteGridParams);
       wealthySoon.initOrders();
       gridMap[row.id] = wealthySoon; // 存储网格实例
@@ -251,7 +251,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
           latency: 0, // 网络延迟(ms)
           partial_fill_count: 0, // 部分成交次数
           cancel_count: 0, // 撤单次数
-          user_id: params.api_key, // 使用 API Key 作为用户标识
+          api_key: params.api_key, // 使用 API Key 作为用户标识
           execution_type: "WEBSOCKET", // 执行方式(HTTP/WEBSOCKET)
           status: "COMPLETED", // 状态(COMPLETED/FAILED)
           remark: "Open position" // 备注
