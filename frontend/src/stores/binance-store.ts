@@ -41,6 +41,7 @@ interface BinanceStore {
     getApiKeyById: (id: number) => BinanceApiKey | undefined;
     setActiveApiKey: (id: string) => void; // 设置当前激活的 API Key
     getActiveApiKey: () => BinanceApiKey | null; // 获取当前激活的 API Key
+    getCurrentAuth: () => { apiKey: string; apiSecret: string } | null; // 获取当前认证信息
 }
 
 // 获取 auth token

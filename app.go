@@ -24,8 +24,7 @@ type App struct {
     ns   *services.NotificationService
     ps   *services.PluginService
 
-    // 新增：数据库服务和 Node.js 服务
-    db  *services.DatabaseStore
+    // Node.js 服务
     njs *services.NodejsService
 
     // 日志文件句柄（用于关闭）
@@ -63,25 +62,16 @@ func (a *App) startup(ctx context.Context) {
     // 初始化日志系统
     a.initLogger()
 
-    // 1. 初始化数据库服务（必须在最前面，因为其他服务可能依赖）
-    a.log.Info("正在初始化 SQLite 数据库...")
-    a.db = services.NewDatabaseStore(ctx, a.GetAppName())
-    if err := a.db.Init(); err != nil {
-        a.log.Error("数据库初始化失败", "error", err)
-    } else {
-        a.log.Info("SQLite 数据库初始化成功", "path", a.db.GetPath())
-    }
-
     // 读取 AES 密钥：优先使用环境变量 PPLL_AES_KEY（hex 或任意字节字符串）
     var key []byte
     if v := os.Getenv("PPLL_AES_KEY"); v != "" {
         key = []byte(v)
     }
 
-    // 2. 配置存储：文件 + AES 加密
+    // 1. 配置存储：文件 + AES 加密
     a.cfg = services.NewConfigStore(ctx, a.GetAppName(), key)
 
-    // 3. 初始化服务：更新、通知、插件
+    // 2. 初始化服务：更新、通知、插件
     a.ns = services.NewNotificationService(ctx, a.log)
     a.us = services.NewUpdateService(ctx, a.log, a.cfg, services.UpdateConfig{
         FeedURL:             "",      // 由前端或设置页下发
@@ -94,10 +84,10 @@ func (a *App) startup(ctx context.Context) {
     })
     a.ps = services.NewPluginService(ctx, a.log, a.cfg)
 
-    // 4. 启动 Node.js 后端服务
+    // 3. 启动 Node.js 后端服务（NodeJS 端已接管数据库初始化）
     // 设置环境变量 SKIP_NODEJS_AUTO_START=1 可跳过自动启动
     skipNodejs := os.Getenv("SKIP_NODEJS_AUTO_START") == "1"
-    a.njs = services.NewNodejsService(ctx, a.logWrapper(), a.db.GetPath(), services.Config{
+    a.njs = services.NewNodejsService(ctx, a.logWrapper(), services.Config{
         ServerDir: "./nodejs-server",
         Port:      54321,
     })
@@ -122,13 +112,6 @@ func (a *App) shutdown(ctx context.Context) {
     if a.njs != nil {
         if err := a.njs.Stop(); err != nil {
             a.log.Error("停止 Node.js 服务失败", "error", err)
-        }
-    }
-
-    // 关闭数据库连接
-    if a.db != nil {
-        if err := a.db.Close(); err != nil {
-            a.log.Error("关闭数据库失败", "error", err)
         }
     }
 
@@ -184,24 +167,6 @@ func (a *App) GetAppVersion() string {
 // GetAppDescription 获取应用描述
 func (a *App) GetAppDescription() string {
     return "专业量化交易桌面客户端 - 为量化交易者提供高性能、安全可靠的跨平台桌面交易体验"
-}
-
-// ===== 数据库相关 =====
-
-// GetDatabasePath 获取 SQLite 数据库文件路径
-func (a *App) GetDatabasePath() string {
-    if a.db == nil {
-        return ""
-    }
-    return a.db.GetPath()
-}
-
-// IsDatabaseHealthy 检查数据库健康状态
-func (a *App) IsDatabaseHealthy() bool {
-    if a.db == nil {
-        return false
-    }
-    return a.db.IsHealthy()
 }
 
 // ===== Node.js 服务相关 =====
@@ -442,13 +407,11 @@ func (a *App) GetDataSize() map[string]any {
 // GetSystemInfo 获取系统信息（供前端系统信息页面使用）
 func (a *App) GetSystemInfo() map[string]any {
     return map[string]any{
-        "appName":         a.GetAppName(),
-        "appVersion":      a.GetAppVersion(),
-        "appDescription":  a.GetAppDescription(),
-        "databasePath":    a.GetDatabasePath(),
-        "databaseHealthy": a.IsDatabaseHealthy(),
-        "nodejsStatus":    a.GetNodejsServiceStatus(),
-        "nodejsURL":       a.GetNodejsServiceURL(),
+        "appName":        a.GetAppName(),
+        "appVersion":     a.GetAppVersion(),
+        "appDescription": a.GetAppDescription(),
+        "nodejsStatus":   a.GetNodejsServiceStatus(),
+        "nodejsURL":      a.GetNodejsServiceURL(),
     }
 }
 

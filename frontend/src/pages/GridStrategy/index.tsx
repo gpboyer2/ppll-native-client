@@ -54,6 +54,7 @@ function GridStrategyListPage() {
                     apiSecret: item.api_secret,
                     tradingPair: item.trading_pair,
                     positionSide: item.position_side,
+                    initialFillPrice: item.initial_fill_price || 0,
                     gridPriceDifference: item.grid_price_difference,
                     gridTradeQuantity: item.grid_trade_quantity,
                     gridLongOpenQuantity: item.grid_long_open_quantity,
@@ -74,6 +75,7 @@ function GridStrategyListPage() {
                     isBelowOpenPrice: item.is_below_open_price,
                     priorityCloseOnTrend: item.priority_close_on_trend,
                     avgCostPriceDays: item.avg_cost_price_days,
+                    enableLog: item.enable_log ?? true,
                     status: item.paused ? 'paused' : (item.remark === 'error' ? 'stopped' : 'running'),
                     createdAt: item.created_at,
                     updatedAt: item.updated_at,
@@ -384,7 +386,7 @@ function GridStrategyListPage() {
                                     <button
                                         className="btn btn-ghost"
                                         style={{ flex: 1, height: '32px' }}
-                                        onClick={() => handleToggleStatus(strategy.id, strategy.status)}
+                                        onClick={() => handleToggleStatus(strategy.id, strategy.status ?? 'stopped')}
                                     >
                                         {strategy.status === 'running' ? '暂停' : '启动'}
                                     </button>

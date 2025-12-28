@@ -341,8 +341,15 @@ https://github.com/gpboyer2/ppll-native-client/releases
 
 ## 技术栈
 
-- **后端**: Go 1.21+ / Gin / GORM / WebSocket / SQLite
+- **桌面端**: Go 1.21+ / Wails v2
+- **后端**: Node.js 16+ / Express.js / Sequelize / WebSocket / SQLite
 - **前端**: React 18 / TypeScript / Zustand / Mantine UI / ECharts
+
+## 架构说明
+
+- Go 端：负责桌面客户端框架、系统调用、配置存储、插件管理
+- NodeJS 端：负责业务逻辑、数据库操作、API 接口、WebSocket 服务
+- 数据库：SQLite 完全由 NodeJS 端管理（模型定义、初始化、CRUD 操作）
 
 ## 联系方式
 

@@ -352,40 +352,140 @@ git commit -m "refactor: 使用认证中间件的凭证"
 
 ---
 
-## Task 9: 数据库同步
+## Task 9: 在 NodeJS 端添加数据库初始化逻辑
 
-**步骤 1: 修改数据库初始化文件**
+**文件:**
+- 创建: `nodejs-server/models/init.js`（或类似文件）
 
-找到 Sequelize 初始化代码，确保使用 `sync({ alter: true })`：
+**步骤 1: 创建数据库初始化模块**
+
+在 NodeJS 端创建数据库初始化逻辑，接管 Go 端的表结构创建职责：
 
 ```javascript
-// nodejs-server/models/index.js 或类似文件
-sequelize.sync({ alter: true }).then(() => {
-  console.log('数据库结构已同步');
-});
+// nodejs-server/models/init.js
+const { sequelize } = require('./index');
+
+/**
+ * 初始化数据库表结构
+ * 创建所有必要的表（如果不存在）
+ */
+async function initDatabase() {
+  try {
+    // 测试连接
+    await sequelize.authenticate();
+    console.log('数据库连接成功');
+
+    // 同步所有模型到数据库
+    // alter: true 会更新表结构以匹配模型，但不会删除现有数据
+    await sequelize.sync({ alter: true });
+    console.log('数据库表结构已同步');
+
+    return true;
+  } catch (error) {
+    console.error('数据库初始化失败:', error);
+    throw error;
+  }
+}
+
+module.exports = { initDatabase };
 ```
 
-**步骤 2: 启动服务器**
+**步骤 2: 在 NodeJS Server 启动时调用初始化**
 
-```bash
-cd nodejs-server
-npm start
+修改 `nodejs-server/server.js` 或主入口文件：
+
+```javascript
+const { initDatabase } = require('./models/init');
+
+async function startServer() {
+  try {
+    // 初始化数据库
+    await initDatabase();
+
+    // 启动 HTTP 服务器
+    app.listen(PORT, () => {
+      console.log(`服务器运行在端口 ${PORT}`);
+    });
+  } catch (error) {
+    console.error('服务器启动失败:', error);
+    process.exit(1);
+  }
+}
+
+startServer();
 ```
 
-**步骤 3: 验证 user_id 列已删除**
-
-检查数据库表结构，确认 `user_id` 列已被物理删除。
-
-**步骤 4: 提交**
+**步骤 3: 提交**
 
 ```bash
-git add nodejs-server/models/index.js
-git commit -m "chore: 启用数据库自动同步"
+git add nodejs-server/models/init.js nodejs-server/server.js
+git commit -m "feat: NodeJS 端接管数据库初始化逻辑"
 ```
 
 ---
 
-## Task 10: 测试验证
+## Task 10: 移除 Go 端的 DatabaseStore 相关代码
+
+**文件:**
+- 删除: `internal/services/database_store.go`
+- 修改: `app.go`（移除 DatabaseStore 的初始化和使用）
+- 修改: `main.go`（移除 DatabaseStore 的引用）
+
+**步骤 1: 删除 DatabaseStore 文件**
+
+```bash
+rm internal/services/database_store.go
+```
+
+**步骤 2: 从 app.go 中移除 DatabaseStore**
+
+查找并删除所有与 `DatabaseStore` 相关的代码：
+
+```go
+// 删除这些内容：
+// ds *services.DatabaseStore
+// ds: services.NewDatabaseStore(...)
+// ds.Init()
+// ds.Close()
+```
+
+**步骤 3: 更新 main.go**
+
+移除对 `database_store.go` 的任何引用。
+
+**步骤 4: 提交**
+
+```bash
+git add internal/services/database_store.go app.go main.go
+git commit -m "refactor: 移除 Go 端的数据库操作逻辑"
+```
+
+---
+
+## Task 11: 更新 Go 端启动逻辑
+
+**文件:**
+- 修改: `internal/services/nodejs_service.go`
+- 修改: `app.go`
+
+**步骤 1: 确保 NodeJS 服务正常启动**
+
+验证 Go 端正确启动 NodeJS Server，让 NodeJS 端负责所有数据库操作。
+
+**步骤 2: 移除数据库路径传递逻辑**
+
+如果有从 Go 端传递数据库路径到 NodeJS 的逻辑，将其移除。
+
+**步骤 3: 提交**
+
+```bash
+git add internal/services/nodejs_service.go app.go
+git commit -m "refactor: 更新 Go 端启动逻辑，移除数据库依赖"
+```
+
+---
+
+## Task 12: 测试验证
 
 **步骤 1: 启动前端和后端服务**
 

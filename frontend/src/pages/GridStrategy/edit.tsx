@@ -104,6 +104,7 @@ function GridStrategyEditPage() {
                         apiSecret: strategy.api_secret,
                         tradingPair: strategy.trading_pair,
                         positionSide: strategy.position_side,
+                        initialFillPrice: strategy.initial_fill_price || 0,
                         gridPriceDifference: strategy.grid_price_difference,
                         gridTradeQuantity: strategy.grid_trade_quantity,
                         gridLongOpenQuantity: strategy.grid_long_open_quantity,
@@ -124,13 +125,13 @@ function GridStrategyEditPage() {
                         isBelowOpenPrice: strategy.is_below_open_price,
                         priorityCloseOnTrend: strategy.priority_close_on_trend,
                         avgCostPriceDays: strategy.avg_cost_price_days || 30,
-                        enableLog: true,
-                        _apiKeyId: '',
+                        enableLog: strategy.enable_log ?? true,
+                        _apiKeyId: undefined,
                     };
                     setFormData(formData);
                 } else {
                     showError('未找到该策略');
-                    navigate(ROUTES.GRID_STRATEGY_LIST);
+                    navigate(ROUTES.GRID_STRATEGY);
                 }
             } else {
                 showError(response.message || '加载策略失败');

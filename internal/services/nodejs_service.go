@@ -23,7 +23,6 @@ import (
 type NodejsService struct {
 	ctx        context.Context
 	log        Logger
-	dbPath     string // SQLite 数据库路径
 	serverDir  string // Node.js 服务目录
 
 	mu             sync.RWMutex
@@ -60,7 +59,7 @@ type Logger interface {
 }
 
 // NewNodejsService 创建 Node.js 服务实例
-func NewNodejsService(ctx context.Context, log Logger, dbPath string, cfg Config) *NodejsService {
+func NewNodejsService(ctx context.Context, log Logger, cfg Config) *NodejsService {
 	if cfg.Port == 0 {
 		cfg.Port = 54321 // 默认端口
 	}
@@ -68,7 +67,6 @@ func NewNodejsService(ctx context.Context, log Logger, dbPath string, cfg Config
 	return &NodejsService{
 		ctx:       ctx,
 		log:       log,
-		dbPath:    dbPath,
 		serverDir: cfg.ServerDir,
 		port:      cfg.Port,
 		isRunning: false,
@@ -253,12 +251,6 @@ func (s *NodejsService) buildEnv(baseEnv []string) []string {
 	env = append(env, "NODE_ENV=production")
 	env = append(env, fmt.Sprintf("PORT=%d", s.port))
 	env = append(env, "DISABLE_RATE_LIMIT=true")
-
-	// 添加 SQLite 数据库路径
-	if s.dbPath != "" {
-		env = append(env, "DB_TYPE=sqlite")
-		env = append(env, "SQLITE_PATH="+s.dbPath)
-	}
 
 	// 代理环境变量处理
 	// 优先使用系统环境变量，如果未设置则使用默认的 Clash 代理
