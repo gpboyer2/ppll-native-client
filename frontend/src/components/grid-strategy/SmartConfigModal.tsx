@@ -336,6 +336,21 @@ export function SmartConfigModal({
               推荐交易区间
             </h3>
             <div className="smart-config-trading-range">
+              {/* 当前价格 */}
+              <div className="smart-config-current-price">
+                <span className="label">当前价格</span>
+                <span className="value">{optimizationResult.market.currentPrice} USDT</span>
+                <span className="position-badge">
+                  {(() => {
+                    const current = parseFloat(optimizationResult.market.currentPrice);
+                    const support = parseFloat(optimizationResult.market.support);
+                    const resistance = parseFloat(optimizationResult.market.resistance);
+                    const range = resistance - support;
+                    const position = ((current - support) / range * 100).toFixed(1);
+                    return `区间位置 ${position}%`;
+                  })()}
+                </span>
+              </div>
               {defaultParams?.positionSide === 'LONG' ? (
                 <>
                   <div className="smart-config-range-rule">
@@ -410,9 +425,15 @@ export function SmartConfigModal({
                   </span>
                 </div>
                 <div className="smart-config-selected-item">
-                  <span className="label">每笔交易</span>
+                  <span className="label">每笔交易数量</span>
                   <span className="value">
-                    {optimizationResult.recommended.analysis.topList[selectedConfigIndex].tradeQuantity}
+                    {optimizationResult.recommended.analysis.topList[selectedConfigIndex].tradeQuantity} {defaultParams?.tradingPair?.replace('USDT', '') || 'BTC'}
+                  </span>
+                </div>
+                <div className="smart-config-selected-item">
+                  <span className="label">每笔交易金额</span>
+                  <span className="value">
+                    {optimizationResult.recommended.analysis.topList[selectedConfigIndex].tradeValue} USDT
                   </span>
                 </div>
                 <div className="smart-config-selected-item">

@@ -54,23 +54,26 @@ export function ReferralCommissionDialog({
             const commissionRate = 0.001;
             const rebateRate = 0.35;
             const daysInMonth = 30;
+            const daysInYear = 365;
 
             const monthlyTradingFee = expectedDailyFrequency * daysInMonth * tradeValue * commissionRate;
             const monthlyRebate = monthlyTradingFee * rebateRate;
             const monthlyUserProfit = expectedDailyProfit * daysInMonth;
             const monthlyUserProfitWithRebate = monthlyUserProfit + monthlyRebate;
 
+            const dailyRebate = monthlyTradingFee / daysInMonth * rebateRate;
+
             return {
                 tradeValue: parseFloat(tradeValue.toFixed(2)),
                 dailyFrequency: expectedDailyFrequency,
                 commissionRate: '1‰',
                 rebateRate: '最高 35%',
-                dailyRebateProfit: parseFloat((monthlyRebate / 30).toFixed(2)),
+                dailyRebateProfit: parseFloat(dailyRebate.toFixed(2)),
                 monthlyExtraProfit: parseFloat(monthlyRebate.toFixed(2)),
                 currentMonthlyProfit: parseFloat(monthlyUserProfit.toFixed(2)),
                 rebateMonthlyProfit: parseFloat(monthlyUserProfitWithRebate.toFixed(2)),
-                currentYearlyProfit: parseFloat((monthlyUserProfit * 12).toFixed(2)),
-                rebateYearlyProfit: parseFloat((monthlyUserProfitWithRebate * 12).toFixed(2)),
+                currentYearlyProfit: parseFloat((expectedDailyProfit * daysInYear).toFixed(2)),
+                rebateYearlyProfit: parseFloat(((expectedDailyProfit + dailyRebate) * daysInYear).toFixed(2)),
                 extraProfitRate: parseFloat(((monthlyRebate / monthlyUserProfit) * 100).toFixed(0))
             };
         }
@@ -333,7 +336,7 @@ export function ReferralCommissionDialog({
                     </div>
 
                     <p className="referral-commission-dialog-info-text">
-                        * 基于您的实际策略参数计算，年收益按365天计算
+                        * 收益计算说明：月收益按 30 天计算，年收益按 365 天计算。返佣收益 = 交易手续费 × 35% 返佣比例
                     </p>
 
                     <div className="referral-commission-dialog-actions-section">

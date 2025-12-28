@@ -719,10 +719,10 @@ const optimizeGridParams = async (options) => {
       volatility: new BigNumber(volatilityPercent).toFixed(2) + '%',
       volatilityLevel,
       volatilityAdvice: market.volatility > 0.05
-        ? '非常适合做网格，交易机会多'
+        ? `市场活跃度高，价格波动达 ${volatilityPercent.toFixed(2)}%，网格策略捕捉收益机会充足，适合激进型投资者追求更高回报`
         : market.volatility > 0.02
-          ? '适合做网格'
-          : '波动较小，可能亏手续费',
+          ? `市场波动适中，价格波动约 ${volatilityPercent.toFixed(2)}%，网格策略收益稳定，风险可控，适合稳健型投资者`
+          : `市场波动偏低（${volatilityPercent.toFixed(2)}%），价格变化较小，网格策略收益空间有限，建议选择波动更大的交易对或降低交易频次`,
       // ATR及其说明
       atr: new BigNumber(atr).toFixed(2),
       atrDesc: `每${intervalConfig.label}平均波动 ${new BigNumber(atr).toFixed(2)} USDT`,

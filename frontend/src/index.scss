@@ -1868,8 +1868,8 @@ nav.surface {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-  margin: 24px0 ;
   padding-top: 16px;
+  padding-bottom: 24px;
   border-top: 1px solid var(--color-border);
 }
 
@@ -2794,6 +2794,39 @@ nav.surface {
   border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 16px;
+}
+
+.smart-config-current-price {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.05) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.smart-config-current-price .label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.smart-config-current-price .value {
+  font-size: var(--text-lg);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.smart-config-current-price .position-badge {
+  margin-left: auto;
+  padding: 4px 12px;
+  background: rgba(16, 185, 129, 0.2);
+  color: var(--color-primary);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  border-radius: 12px;
 }
 
 .smart-config-range-rule {
