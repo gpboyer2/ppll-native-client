@@ -9,7 +9,8 @@ const catchAsync = require("../utils/catch-async");
 const { sendSuccess, sendError } = require("../utils/api-response");
 
 const list = catchAsync(async (req, res) => {
-  let { apiKey, apiSecret, currentPage, pageSize } = req.query;
+  let { apiKey, apiSecret } = req.apiCredentials;
+  let { currentPage, pageSize } = req.query;
 
   let grid = await gridStrategyService.getAllGridStrategys(
     { api_key: apiKey, api_secret: apiSecret },
@@ -27,9 +28,8 @@ const list = catchAsync(async (req, res) => {
  * 
  */
 const create = catchAsync(async (req, res) => {
+  const { apiKey, apiSecret } = req.apiCredentials;
   const {
-    apiKey,
-    apiSecret,
     tradingPair,
     positionSide,
     gridPriceDifference,
@@ -156,7 +156,8 @@ const create = catchAsync(async (req, res) => {
 
 /** 删除网格策略 */
 const deletes = catchAsync(async (req, res) => {
-  let { id, apiKey, apiSecret } = req.body;
+  let { apiKey, apiSecret } = req.apiCredentials;
+  let { id } = req.body;
   let result = null;
 
   if (!id) {
@@ -178,10 +179,9 @@ const deletes = catchAsync(async (req, res) => {
 
 
 const update = catchAsync(async (req, res) => {
+  const { apiKey, apiSecret } = req.apiCredentials;
   const {
     id,
-    apiKey,
-    apiSecret,
     gridPriceDifference,
     gridTradeQuantity,
     gridLongOpenQuantity,
@@ -251,7 +251,8 @@ const update = catchAsync(async (req, res) => {
 
 /** 更新网格策略状态（暂停或继续） */
 const action = catchAsync(async (req, res) => {
-  let { id, apiKey, apiSecret, paused } = req.body;
+  let { apiKey, apiSecret } = req.apiCredentials;
+  let { id, paused } = req.body;
 
   if (!id) {
     return sendError(res, '缺少策略ID', 400);
@@ -274,7 +275,8 @@ const action = catchAsync(async (req, res) => {
 
 
 const query = catchAsync(async (req, res) => {
-  let { apiKey, apiSecret, currentPage, pageSize } = req.query;
+  let { apiKey, apiSecret } = req.apiCredentials;
+  let { currentPage, pageSize } = req.query;
 
   let grid = await gridStrategyService.getAllGridStrategys(
     { api_key: apiKey, api_secret: apiSecret },
@@ -290,9 +292,8 @@ const query = catchAsync(async (req, res) => {
  * 根据K线数据自动计算最优网格参数
  */
 const optimizeParams = catchAsync(async (req, res) => {
+  const { apiKey, apiSecret } = req.apiCredentials;
   const {
-    apiKey,
-    apiSecret,
     symbol,
     interval,
     totalCapital,
@@ -308,10 +309,6 @@ const optimizeParams = catchAsync(async (req, res) => {
 
   if (!totalCapital || isNaN(totalCapital) || Number(totalCapital) <= 0) {
     return sendError(res, "总资金必须为大于0的数字", httpStatus.BAD_REQUEST);
-  }
-
-  if (!apiKey || !apiSecret) {
-    return sendError(res, "缺少API凭证", httpStatus.BAD_REQUEST);
   }
 
   try {
