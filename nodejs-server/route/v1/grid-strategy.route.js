@@ -4,10 +4,13 @@
  */
 const express = require('express');
 const router = express.Router();
-const auth = require("../../middleware/auth");
+const { apiAuth } = require("../../middleware/api-auth");
 
 const gridStrategyController = require("../../controller/grid-strategy.controller.js");
 const vipMiddleware = require("../../middleware/vip.js");
+
+// 应用认证中间件到所有路由
+router.use(apiAuth);
 
 
 /**
