@@ -310,6 +310,13 @@ tbody {}
 - 向前看：不用考虑向后兼容性
 - 同步性：保持样式风格不变，并同步更新或校验其他模块
 
+后端 Lint 与 TypeScript 检查原则：
+- 后端是纯 JavaScript 项目，TypeScript 检查只是辅助工具
+- lint 命令包含 typecheck，但只修复影响业务的实际代码问题
+- 不需要为纯类型错误添加类型断言、其他修复
+- 第三方库的类型定义问题（如 axios、socket.io、binance 等）不需要修复
+- 不增加额外负担：除非是反映实际业务逻辑的问题，否则忽略 TypeScript 错误
+
 
 ### 3. Express Router 文件规范
 
