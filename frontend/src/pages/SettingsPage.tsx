@@ -750,14 +750,14 @@ function SettingsPage() {
                 </div>
                 <div className="flex space-between">
                   <span className="text-muted">Node.js 服务</span>
-                  <span className={systemDynamicInfo?.health?.service?.isRunning ? 'text-success' : 'text-danger'}>
-                    {systemDynamicInfo?.health?.service?.isRunning ? '运行中' : '未运行'}
+                  <span className={systemDynamicInfo?.health?.service?.is_running ? 'text-success' : 'text-danger'}>
+                    {systemDynamicInfo?.health?.service?.is_running ? '运行中' : '未运行'}
                   </span>
                 </div>
                 <div className="flex space-between">
                   <span className="text-muted">服务健康状态</span>
-                  <span className={systemDynamicInfo?.health?.health?.isHealthy ? 'text-success' : 'text-danger'}>
-                    {systemDynamicInfo?.health?.health?.isHealthy ? '健康' : '异常'}
+                  <span className={systemDynamicInfo?.health?.health?.is_healthy ? 'text-success' : 'text-danger'}>
+                    {systemDynamicInfo?.health?.health?.is_healthy ? '健康' : '异常'}
                   </span>
                 </div>
                 {systemDynamicInfo?.health?.service?.uptime && (

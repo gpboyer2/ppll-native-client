@@ -97,15 +97,15 @@ function SystemInfoPage() {
             <div className="info-item-list">
               <InfoItem
                 label="Node.js 服务"
-                value={health.service.isRunning ? '运行中' : '未运行'}
+                value={health.service.is_running ? '运行中' : '未运行'}
                 type="status"
-                status={health.service.isRunning ? 'success' : 'danger'}
+                status={health.service.is_running ? 'success' : 'danger'}
               />
               <InfoItem
                 label="服务健康状态"
-                value={health.health.isHealthy ? '健康' : '异常'}
+                value={health.health.is_healthy ? '健康' : '异常'}
                 type="status"
-                status={health.health.isHealthy ? 'success' : 'danger'}
+                status={health.health.is_healthy ? 'success' : 'danger'}
               />
               <InfoItem label="进程 PID" value={health.service.pid} />
               <InfoItem label="运行时长" value={health.service.uptime} />
@@ -193,15 +193,15 @@ function SystemInfoPage() {
                 <InfoItem label="Tag" value={staticInfo.gitInfo.tag} />
                 <InfoItem
                   label="提交哈希"
-                  value={staticInfo.gitInfo.commitHash?.substring(0, 7)}
+                  value={staticInfo.gitInfo.commit_hash?.substring(0, 7)}
                   style={{ fontFamily: 'monospace', fontSize: 'var(--text-sm)' }}
                 />
-                <InfoItem label="提交作者" value={staticInfo.gitInfo.commitAuthor} />
-                <InfoItem label="提交日期" value={staticInfo.gitInfo.commitDate} />
+                <InfoItem label="提交作者" value={staticInfo.gitInfo.commit_author} />
+                <InfoItem label="提交日期" value={staticInfo.gitInfo.commit_date} />
                 <div className="info-item" style={{ alignItems: 'flex-start', flexDirection: 'column', gap: '4px' }}>
                   <span className="info-label">提交信息</span>
                   <span className="info-value" style={{ width: '100%', textAlign: 'left' }}>
-                    {staticInfo.gitInfo.commitMessage || 'N/A'}
+                    {staticInfo.gitInfo.commit_message || 'N/A'}
                   </span>
                 </div>
               </div>
