@@ -1,4 +1,5 @@
 import { ApiConfig, RequestConfig, RequestMethod, ApiResponse, ApiError } from '../types'
+import { useBinanceStore } from '../stores/binance-store'
 
 /**
  * API客户端类
@@ -297,3 +298,22 @@ export class ApiClient {
 
 // 创建默认API客户端实例
 export const apiClient = new ApiClient()
+
+// 添加请求拦截器，自动注入当前激活的 API Key
+apiClient.addRequestInterceptor((config: RequestConfig) => {
+  // 只对 /api/v1/ 开头的接口注入 API Key
+  if (config.url.startsWith('/api/v1/')) {
+    const activeApiKey = useBinanceStore.getState().getActiveApiKey()
+
+    if (activeApiKey) {
+      // 自动注入 apiKey 和 apiSecret，不覆盖已存在的值
+      config.data = {
+        ...config.data,
+        apiKey: activeApiKey.apiKey,
+        apiSecret: activeApiKey.secretKey,
+      }
+    }
+  }
+
+  return config
+})
