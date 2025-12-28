@@ -1,6 +1,7 @@
 import { apiClient } from './client'
 import { Response, ok } from '../core/response'
 import { getStaticInfo } from '../stores/system-info-store'
+import { useBinanceStore } from '../stores/binance-store'
 import dayjs from 'dayjs'
 
 /**
@@ -147,10 +148,45 @@ export class RequestWrapper {
   private static currentBaseURL = ''
 
   /**
+   * 不需要认证的 URL 列表
+   */
+  private static readonly NO_AUTH_URLS = [
+    '/api/v1/binance-api-key/query',
+    '/api/v1/binance-api-key/create',
+    '/api/v1/binance-api-key/update',
+    '/api/v1/binance-api-key/delete'
+  ]
+
+  /**
    * 判断是否应该使用 Node.js 服务
    */
   private static shouldUseNodejs(url: string): boolean {
     return url.startsWith('/api/v1/')
+  }
+
+  /**
+   * 判断 URL 是否需要认证
+   */
+  private static needsAuth(url: string): boolean {
+    return this.shouldUseNodejs(url) && !this.NO_AUTH_URLS.some(noAuthUrl => url.startsWith(noAuthUrl))
+  }
+
+  /**
+   * 获取认证参数
+   */
+  private static getAuthParams(): Record<string, string> {
+    try {
+      const auth = useBinanceStore.getState().getCurrentAuth()
+      if (auth) {
+        return {
+          apiKey: auth.apiKey,
+          apiSecret: auth.apiSecret
+        }
+      }
+    } catch (error) {
+      console.warn('[RequestWrapper] 获取认证参数失败:', error)
+    }
+    return {}
   }
 
   /**
@@ -220,35 +256,55 @@ export class RequestWrapper {
    * GET请求
    */
   static async get<T = any>(url: string, params?: Record<string, any>): Promise<Response<T>> {
-    return this.request<T>('GET', url, () => apiClient.get<T>(url, params), params)
+    // 如果需要认证，自动添加认证参数
+    const mergedParams = this.needsAuth(url)
+      ? { ...params, ...this.getAuthParams() }
+      : params
+    return this.request<T>('GET', url, () => apiClient.get<T>(url, mergedParams), mergedParams)
   }
 
   /**
    * POST请求
    */
   static async post<T = any>(url: string, data?: any): Promise<Response<T>> {
-    return this.request<T>('POST', url, () => apiClient.post<T>(url, data), undefined, data)
+    // 如果需要认证，自动添加认证参数到请求体
+    const mergedData = this.needsAuth(url)
+      ? { ...data, ...this.getAuthParams() }
+      : data
+    return this.request<T>('POST', url, () => apiClient.post<T>(url, mergedData), undefined, mergedData)
   }
 
   /**
    * PUT请求
    */
   static async put<T = any>(url: string, data?: any): Promise<Response<T>> {
-    return this.request<T>('PUT', url, () => apiClient.put<T>(url, data), undefined, data)
+    // 如果需要认证，自动添加认证参数到请求体
+    const mergedData = this.needsAuth(url)
+      ? { ...data, ...this.getAuthParams() }
+      : data
+    return this.request<T>('PUT', url, () => apiClient.put<T>(url, mergedData), undefined, mergedData)
   }
 
   /**
    * DELETE请求
    */
   static async delete<T = any>(url: string, data?: any): Promise<Response<T>> {
-    return this.request<T>('DELETE', url, () => apiClient.delete<T>(url, { data }), undefined, data)
+    // 如果需要认证，自动添加认证参数到请求体
+    const mergedData = this.needsAuth(url)
+      ? { ...data, ...this.getAuthParams() }
+      : data
+    return this.request<T>('DELETE', url, () => apiClient.delete<T>(url, { data: mergedData }), undefined, mergedData)
   }
 
   /**
    * PATCH请求
    */
   static async patch<T = any>(url: string, data?: any): Promise<Response<T>> {
-    return this.request<T>('PATCH', url, () => apiClient.patch<T>(url, data), undefined, data)
+    // 如果需要认证，自动添加认证参数到请求体
+    const mergedData = this.needsAuth(url)
+      ? { ...data, ...this.getAuthParams() }
+      : data
+    return this.request<T>('PATCH', url, () => apiClient.patch<T>(url, mergedData), undefined, mergedData)
   }
 
   /**

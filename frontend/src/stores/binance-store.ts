@@ -94,21 +94,27 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         // 如果正在加载、正在初始化或已经成功初始化且有数据，则跳过
         if (loading || isInitializing || (apiKeyList.length > 0 && usdtPairs.length > 0)) return;
 
-        // 从 localStorage 恢复 activeApiKeyId
-        const savedId = localStorage.getItem('activeApiKeyId');
-        if (savedId) {
-            set({ activeApiKeyId: savedId });
-        }
-
         set({ loading: true, isInitializing: true });
 
         try {
             // 先获取 API Key 列表
             await get().refreshApiKeys();
 
-            // 只有 API Key 列表存在且有数据时，才获取交易对信息
+            // 从 localStorage 恢复 activeApiKeyId
+            const savedId = localStorage.getItem('activeApiKeyId');
             const afterApiKeys = get().apiKeyList;
+
             if (afterApiKeys.length > 0) {
+                // 优先使用保存的 API Key ID
+                if (savedId && afterApiKeys.some(k => String(k.id) === savedId)) {
+                    set({ activeApiKeyId: savedId });
+                } else {
+                    // 如果保存的 ID 不存在，使用第一个 API Key
+                    set({ activeApiKeyId: String(afterApiKeys[0].id) });
+                    localStorage.setItem('activeApiKeyId', String(afterApiKeys[0].id));
+                }
+
+                // 获取交易对信息
                 await get().refreshTradingPairs();
             }
 
@@ -223,5 +229,15 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
     getActiveApiKey: () => {
         const { apiKeyList, activeApiKeyId } = get();
         return apiKeyList.find(key => String(key.id) === activeApiKeyId) || apiKeyList[0] || null;
+    },
+
+    // 获取当前认证信息（供 API 请求使用）
+    getCurrentAuth: () => {
+        const activeKey = get().getActiveApiKey();
+        if (!activeKey) return null;
+        return {
+            apiKey: activeKey.apiKey,
+            apiSecret: activeKey.secretKey
+        };
     }
 }));
