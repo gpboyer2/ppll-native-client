@@ -87,7 +87,7 @@ const deleteData = catchAsync(async (req, res) => {
 
 
 // 执行 SQL 查询
-const executeQuery = catchAsync(async (req, res) => {
+const execute_query = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.sql) {
     return sendError(res, 'SQL 语句不能为空', 400);
@@ -245,7 +245,7 @@ module.exports = {
   createData,
   updateData,
   deleteData,
-  executeQuery,
+  execute_query,
   createTable,
   deleteTable,
   createColumn,

@@ -59,8 +59,8 @@ export const useStrategyStore = createPersistedStore(
     
     // 交易参数 Actions
     setLeverage: (leverage: number) => {
-      const clampedLeverage = Math.max(1, Math.min(125, leverage));
-      set((state: StrategyConfig) => ({ ...state, leverage: clampedLeverage }));
+      const clamped_leverage = Math.max(1, Math.min(125, leverage));
+      set((state: StrategyConfig) => ({ ...state, leverage: clamped_leverage }));
     },
     
     setSymbol: (symbol: 'ETH' | 'BTC' | 'BNB') => {
@@ -68,49 +68,49 @@ export const useStrategyStore = createPersistedStore(
     },
     
     setPositionSize: (size: number) => {
-      const clampedSize = Math.max(1, size);
-      set((state: StrategyConfig) => ({ ...state, positionSize: clampedSize }));
+      const clamped_size = Math.max(1, size);
+      set((state: StrategyConfig) => ({ ...state, positionSize: clamped_size }));
     },
     
     // 风险控制 Actions
     setStopLoss: (stopLoss: number) => {
-      const clampedStopLoss = Math.max(0.1, Math.min(50, stopLoss));
-      set((state: StrategyConfig) => ({ ...state, stopLoss: clampedStopLoss }));
+      const clamped_stop_loss = Math.max(0.1, Math.min(50, stopLoss));
+      set((state: StrategyConfig) => ({ ...state, stopLoss: clamped_stop_loss }));
     },
     
     setTakeProfit: (takeProfit: number) => {
-      const clampedTakeProfit = Math.max(0.1, Math.min(100, takeProfit));
-      set((state: StrategyConfig) => ({ ...state, takeProfit: clampedTakeProfit }));
+      const clamped_take_profit = Math.max(0.1, Math.min(100, takeProfit));
+      set((state: StrategyConfig) => ({ ...state, takeProfit: clamped_take_profit }));
     },
     
     setMaxDrawdown: (maxDrawdown: number) => {
-      const clampedDrawdown = Math.max(1, Math.min(50, maxDrawdown));
-      set((state: StrategyConfig) => ({ ...state, maxDrawdown: clampedDrawdown }));
+      const clamped_drawdown = Math.max(1, Math.min(50, maxDrawdown));
+      set((state: StrategyConfig) => ({ ...state, maxDrawdown: clamped_drawdown }));
     },
     
     // 技术指标 Actions
     setMAShort: (period: number) => {
-      const clampedPeriod = Math.max(1, Math.min(100, period));
-      set((state: StrategyConfig) => ({ ...state, maShort: clampedPeriod }));
+      const clamped_period = Math.max(1, Math.min(100, period));
+      set((state: StrategyConfig) => ({ ...state, maShort: clamped_period }));
     },
     
     setMALong: (period: number) => {
-      const clampedPeriod = Math.max(1, Math.min(200, period));
-      set((state: StrategyConfig) => ({ ...state, maLong: clampedPeriod }));
+      const clamped_period = Math.max(1, Math.min(200, period));
+      set((state: StrategyConfig) => ({ ...state, maLong: clamped_period }));
     },
     
     setRSIPeriod: (period: number) => {
-      const clampedPeriod = Math.max(2, Math.min(50, period));
-      set((state: StrategyConfig) => ({ ...state, rsiPeriod: clampedPeriod }));
+      const clamped_period = Math.max(2, Math.min(50, period));
+      set((state: StrategyConfig) => ({ ...state, rsiPeriod: clamped_period }));
     },
     
     setRSILevels: (overbought: number, oversold: number) => {
-      const clampedOverbought = Math.max(50, Math.min(100, overbought));
-      const clampedOversold = Math.max(0, Math.min(50, oversold));
+      const clamped_overbought = Math.max(50, Math.min(100, overbought));
+      const clamped_oversold = Math.max(0, Math.min(50, oversold));
       set((state: StrategyConfig) => ({ 
         ...state, 
-        rsiOverbought: clampedOverbought,
-        rsiOversold: clampedOversold
+        rsiOverbought: clamped_overbought,
+        rsiOversold: clamped_oversold
       }));
     },
     

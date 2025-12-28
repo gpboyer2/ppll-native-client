@@ -123,9 +123,9 @@ const batchUnbanIP = catchAsync(async (req, res) => {
     }
   }
 
-  const successCount = results.filter(r => r.success).length;
+  const success_count = results.filter(r => r.success).length;
 
-  return sendSuccess(res, { results }, `成功解封 ${successCount}/${ips.length} 个IP的封禁`);
+  return sendSuccess(res, { results }, `成功解封 ${success_count}/${ips.length} 个IP的封禁`);
 });
 
 /**

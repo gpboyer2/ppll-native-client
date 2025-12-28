@@ -25,7 +25,7 @@ interface DatabaseInfo {
     filePath: string;
     fileSizeFormatted: string;
     tableCount: number;
-    totalRows: number;
+    total_rows: number;
     version: string;
 }
 
@@ -79,7 +79,7 @@ function DatabaseManagerPage() {
 
   // 表操作菜单状态
   const [showTableMenu, setShowTableMenu] = useState<string | null>(null);
-  const tableMenuRef = useRef<HTMLDivElement>(null);
+  const table_menu_ref = useRef<HTMLDivElement>(null);
 
   // 弹窗状态
   const [showRenameTableModal, setShowRenameTableModal] = useState(false);
@@ -96,7 +96,7 @@ function DatabaseManagerPage() {
   const [indexColumns, setIndexColumns] = useState<string[]>([]);
 
   // 获取数据库概览信息
-  const fetchDatabaseInfo = useCallback(async () => {
+  const fetch_database_info = useCallback(async () => {
     const response = await ApiEndpoints.getDatabaseInfo();
     if (response.status === 'success') {
       setDbInfo(response.data);
@@ -104,7 +104,7 @@ function DatabaseManagerPage() {
   }, []);
 
   // 获取表列表
-  const fetchTableList = useCallback(async () => {
+  const fetch_table_list = useCallback(async () => {
     setLoading(true);
     const response = await ApiEndpoints.getDatabaseTables({
       currentPage: 1,
@@ -118,7 +118,7 @@ function DatabaseManagerPage() {
   }, [keyword]);
 
   // 获取表结构详情
-  const fetchTableDetail = useCallback(async (tableName: string) => {
+  const fetch_table_detail = useCallback(async (tableName: string) => {
     setLoading(true);
     const response = await ApiEndpoints.getTableDetail(tableName);
     if (response.status === 'success') {
@@ -128,7 +128,7 @@ function DatabaseManagerPage() {
   }, []);
 
   // 获取表数据
-  const fetchTableData = useCallback(async () => {
+  const fetch_table_data = useCallback(async () => {
     if (!selectedTable) return;
     setLoading(true);
     const response = await ApiEndpoints.getTableData({
@@ -145,7 +145,7 @@ function DatabaseManagerPage() {
   }, [selectedTable, currentPage, pageSize, sortBy, sortOrder]);
 
   // 执行 SQL 查询
-  const executeQuery = async () => {
+  const execute_query = async () => {
     if (!sqlQuery.trim()) return;
     setLoading(true);
     const response = await ApiEndpoints.executeQuery(sqlQuery);
@@ -167,27 +167,27 @@ function DatabaseManagerPage() {
   };
 
   // 刷新数据
-  const handleRefresh = () => {
-    fetchDatabaseInfo();
-    fetchTableList();
+  const handle_refresh = () => {
+    fetch_database_info();
+    fetch_table_list();
     if (selectedTable) {
-      fetchTableDetail(selectedTable);
+      fetch_table_detail(selectedTable);
       if (activeTab === 'browse') {
-        fetchTableData();
+        fetch_table_data();
       }
     }
   };
 
   // 选择表
-  const handleSelectTable = (tableName: string) => {
+  const handle_select_table = (tableName: string) => {
     setSelectedTable(tableName);
     setActiveTab('browse');
     setCurrentPage(1);
-    fetchTableDetail(tableName);
+    fetch_table_detail(tableName);
   };
 
   // 排序
-  const handleSort = (column: string) => {
+  const handle_sort = (column: string) => {
     if (sortBy === column) {
       setSortOrder(sortOrder === 'ASC' ? 'DESC' : 'ASC');
     } else {
@@ -197,7 +197,7 @@ function DatabaseManagerPage() {
   };
 
   // 删除表
-  const handleDeleteTable = async (tableName: string) => {
+  const handle_delete_table = async (tableName: string) => {
     if (!confirm(`确定要删除表 "${tableName}" 吗？此操作不可恢复！`)) return;
     const response = await ApiEndpoints.deleteTable([tableName]);
     if (response.status === 'success') {
@@ -206,7 +206,7 @@ function DatabaseManagerPage() {
         message: `表 "${tableName}" 已删除`,
         color: 'teal'
       });
-      handleRefresh();
+      handle_refresh();
       if (selectedTable === tableName) {
         setSelectedTable('');
         setTableDetail(null);
@@ -216,10 +216,10 @@ function DatabaseManagerPage() {
   };
 
   // 删除数据
-  const handleDeleteRow = async (rowId: any) => {
+  const handle_delete_row = async (rowId: any) => {
     if (!tableDetail) return;
-    const pkColumn = tableDetail.columns.find(c => c.primaryKey);
-    if (!pkColumn) return;
+    const pk_column = tableDetail.columns.find(c => c.primaryKey);
+    if (!pk_column) return;
     const response = await ApiEndpoints.deleteData(selectedTable, [rowId]);
     if (response.status === 'success') {
       notifications.show({
@@ -227,13 +227,13 @@ function DatabaseManagerPage() {
         message: '记录已删除',
         color: 'teal'
       });
-      fetchTableData();
-      fetchTableList();
+      fetch_table_data();
+      fetch_table_list();
     }
   };
 
   // 重命名表
-  const handleRenameTable = async () => {
+  const handle_rename_table = async () => {
     if (!renameTableValue.trim()) {
       notifications.show({ title: '错误', message: '表名不能为空', color: 'red' });
       return;
@@ -247,7 +247,7 @@ function DatabaseManagerPage() {
       });
       setShowRenameTableModal(false);
       setRenameTableValue('');
-      handleRefresh();
+      handle_refresh();
       setSelectedTable(renameTableValue.trim());
     } else {
       notifications.show({
@@ -259,7 +259,7 @@ function DatabaseManagerPage() {
   };
 
   // 复制表
-  const handleCopyTable = async () => {
+  const handle_copy_table = async () => {
     if (!copyTableName.trim()) {
       notifications.show({ title: '错误', message: '新表名不能为空', color: 'red' });
       return;
@@ -273,7 +273,7 @@ function DatabaseManagerPage() {
       });
       setShowCopyTableModal(false);
       setCopyTableName('');
-      handleRefresh();
+      handle_refresh();
     } else {
       notifications.show({
         title: '复制失败',
@@ -284,7 +284,7 @@ function DatabaseManagerPage() {
   };
 
   // 清空表
-  const handleTruncateTable = async (tableName: string) => {
+  const handle_truncate_table = async (tableName: string) => {
     if (!confirm(`确定要清空表 "${tableName}" 吗？此操作将删除所有数据但保留表结构！`)) return;
     const response = await ApiEndpoints.truncateTable([tableName]);
     if (response.status === 'success') {
@@ -293,7 +293,7 @@ function DatabaseManagerPage() {
         message: `表 "${tableName}" 已清空`,
         color: 'teal'
       });
-      handleRefresh();
+      handle_refresh();
     } else {
       notifications.show({
         title: '清空失败',
@@ -305,7 +305,7 @@ function DatabaseManagerPage() {
   };
 
   // 重命名列
-  const handleRenameColumn = async () => {
+  const handle_rename_column = async () => {
     if (!renameColumnNew.trim()) {
       notifications.show({ title: '错误', message: '新列名不能为空', color: 'red' });
       return;
@@ -319,7 +319,7 @@ function DatabaseManagerPage() {
       });
       setShowRenameColumnModal(false);
       setRenameColumnNew('');
-      handleRefresh();
+      handle_refresh();
     } else {
       notifications.show({
         title: '重命名失败',
@@ -330,14 +330,14 @@ function DatabaseManagerPage() {
   };
 
   // 打开重命名列弹窗
-  const openRenameColumnModal = (columnName: string) => {
+  const open_rename_column_modal = (columnName: string) => {
     setRenameColumnOld(columnName);
     setRenameColumnNew(columnName);
     setShowRenameColumnModal(true);
   };
 
   // 创建索引
-  const handleCreateIndex = async () => {
+  const handle_create_index = async () => {
     if (!indexName.trim()) {
       notifications.show({ title: '错误', message: '索引名不能为空', color: 'red' });
       return;
@@ -362,7 +362,7 @@ function DatabaseManagerPage() {
       setIndexName('');
       setIndexColumns([]);
       setIndexUnique(false);
-      handleRefresh();
+      handle_refresh();
     } else {
       notifications.show({
         title: '创建失败',
@@ -373,7 +373,7 @@ function DatabaseManagerPage() {
   };
 
   // 删除索引
-  const handleDeleteIndex = async (indexName: string) => {
+  const handle_delete_index = async (indexName: string) => {
     if (!confirm(`确定要删除索引 "${indexName}" 吗？`)) return;
     const response = await ApiEndpoints.deleteIndex([indexName]);
     if (response.status === 'success') {
@@ -382,7 +382,7 @@ function DatabaseManagerPage() {
         message: `索引 "${indexName}" 已删除`,
         color: 'teal'
       });
-      handleRefresh();
+      handle_refresh();
     } else {
       notifications.show({
         title: '删除失败',
@@ -393,7 +393,7 @@ function DatabaseManagerPage() {
   };
 
   // 切换索引列选择
-  const toggleIndexColumn = (columnName: string) => {
+  const toggle_index_column = (columnName: string) => {
     if (indexColumns.includes(columnName)) {
       setIndexColumns(indexColumns.filter(c => c !== columnName));
     } else {
@@ -404,7 +404,7 @@ function DatabaseManagerPage() {
   // 点击外部关闭菜单
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (tableMenuRef.current && !tableMenuRef.current.contains(e.target as Node)) {
+      if (table_menu_ref.current && !table_menu_ref.current.contains(e.target as Node)) {
         setShowTableMenu(null);
       }
     };
@@ -414,14 +414,14 @@ function DatabaseManagerPage() {
 
   // 初始化
   useEffect(() => {
-    fetchDatabaseInfo();
-    fetchTableList();
+    fetch_database_info();
+    fetch_table_list();
   }, []);
 
   // 监听选中表变化
   useEffect(() => {
     if (selectedTable && activeTab === 'browse') {
-      fetchTableData();
+      fetch_table_data();
     }
   }, [selectedTable, currentPage, sortBy, sortOrder, activeTab]);
 
@@ -432,7 +432,7 @@ function DatabaseManagerPage() {
           <IconDatabase />
           <h2 style={{ margin: 0, color: 'var(--color-primary)' }}>数据库管理</h2>
         </div>
-        <button className="btn btn-outline" onClick={handleRefresh} disabled={loading}>
+        <button className="btn btn-outline" onClick={handle_refresh} disabled={loading}>
           <IconRefresh />
           <span>刷新</span>
         </button>
@@ -496,7 +496,7 @@ function DatabaseManagerPage() {
                 <div
                   key={table.name}
                   className={`table-item ${selectedTable === table.name ? 'active' : ''}`}
-                  onClick={() => handleSelectTable(table.name)}
+                  onClick={() => handle_select_table(table.name)}
                 >
                   <div className="table-item-info">
                     <IconTable />
@@ -504,7 +504,7 @@ function DatabaseManagerPage() {
                   </div>
                   <div className="table-item-meta">
                     <span>{table.rowCount} 行</span>
-                    <div className="table-item-actions" ref={showTableMenu === table.name ? tableMenuRef : undefined}>
+                    <div className="table-item-actions" ref={showTableMenu === table.name ? table_menu_ref : undefined}>
                       <button
                         className="btn-icon"
                         onClick={(e) => {
@@ -545,7 +545,7 @@ function DatabaseManagerPage() {
                             className="table-menu-item text-danger"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleTruncateTable(table.name);
+                              handle_truncate_table(table.name);
                             }}
                           >
                             <IconClean />
@@ -556,7 +556,7 @@ function DatabaseManagerPage() {
                             onClick={(e) => {
                               e.stopPropagation();
                               setShowTableMenu(null);
-                              handleDeleteTable(table.name);
+                              handle_delete_table(table.name);
                             }}
                           >
                             <IconTrash />
@@ -615,7 +615,7 @@ function DatabaseManagerPage() {
                             {tableData.columns.map((col) => (
                               <th
                                 key={col}
-                                onClick={() => handleSort(col)}
+                                onClick={() => handle_sort(col)}
                                 className={sortBy === col ? 'sorted' : ''}
                               >
                                 <div className="flex items-center gap-4">
@@ -652,8 +652,8 @@ function DatabaseManagerPage() {
                                   <button
                                     className="btn-icon btn-icon-danger"
                                     onClick={() => {
-                                      const pkColumn = tableDetail?.columns.find(c => c.primaryKey);
-                                      if (pkColumn) handleDeleteRow(row[pkColumn.name]);
+                                      const pk_column = tableDetail?.columns.find(c => c.primaryKey);
+                                      if (pk_column) handle_delete_row(row[pk_column.name]);
                                     }}
                                   >
                                     <IconTrash />
@@ -723,7 +723,7 @@ function DatabaseManagerPage() {
                                 <td>
                                   <button
                                     className="btn-icon"
-                                    onClick={() => openRenameColumnModal(col.name)}
+                                    onClick={() => open_rename_column_modal(col.name)}
                                     title="重命名"
                                   >
                                     <IconEdit />
@@ -786,7 +786,7 @@ function DatabaseManagerPage() {
                                     ) : (
                                       <button
                                         className="btn-icon btn-icon-danger"
-                                        onClick={() => handleDeleteIndex(idx.name)}
+                                        onClick={() => handle_delete_index(idx.name)}
                                         title="删除索引"
                                       >
                                         <IconTrash />
@@ -822,7 +822,7 @@ function DatabaseManagerPage() {
                       />
                       <button
                         className="btn btn-primary"
-                        onClick={executeQuery}
+                        onClick={execute_query}
                         disabled={loading}
                       >
                         <IconCode />
@@ -897,7 +897,7 @@ function DatabaseManagerPage() {
               <button className="btn btn-outline" onClick={() => setShowRenameTableModal(false)}>
                                 取消
               </button>
-              <button className="btn btn-primary" onClick={handleRenameTable}>
+              <button className="btn btn-primary" onClick={handle_rename_table}>
                                 确定
               </button>
             </div>
@@ -944,7 +944,7 @@ function DatabaseManagerPage() {
               <button className="btn btn-outline" onClick={() => setShowCopyTableModal(false)}>
                                 取消
               </button>
-              <button className="btn btn-primary" onClick={handleCopyTable}>
+              <button className="btn btn-primary" onClick={handle_copy_table}>
                                 复制
               </button>
             </div>
@@ -981,7 +981,7 @@ function DatabaseManagerPage() {
               <button className="btn btn-outline" onClick={() => setShowRenameColumnModal(false)}>
                                 取消
               </button>
-              <button className="btn btn-primary" onClick={handleRenameColumn}>
+              <button className="btn btn-primary" onClick={handle_rename_column}>
                                 确定
               </button>
             </div>
@@ -1037,7 +1037,7 @@ function DatabaseManagerPage() {
                       <input
                         type="checkbox"
                         checked={indexColumns.includes(col.name)}
-                        onChange={() => toggleIndexColumn(col.name)}
+                        onChange={() => toggle_index_column(col.name)}
                       />
                       <span>{col.name}</span>
                     </label>
@@ -1049,7 +1049,7 @@ function DatabaseManagerPage() {
               <button className="btn btn-outline" onClick={() => setShowCreateIndexModal(false)}>
                                 取消
               </button>
-              <button className="btn btn-primary" onClick={handleCreateIndex}>
+              <button className="btn btn-primary" onClick={handle_create_index}>
                                 创建
               </button>
             </div>

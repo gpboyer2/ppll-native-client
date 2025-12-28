@@ -116,7 +116,7 @@ Vue Router 使用 hash 模式，URL 格式必须为：
 
 变量命名：
 - 使用 `list` 而不是 `s`
-- 例如：`accountList` 而不是 `accounts`
+- 例如：`account_list` 而不是 `accounts`
 
 数据库命名：
 - 表名：小写加下划线，如 `users`、`user_sessions`
@@ -140,8 +140,8 @@ Vue Router 使用 hash 模式，URL 格式必须为：
     "data": {
         "list": [],
         "pagination": {
-            "currentPage": 1,
-            "pageSize": 20,
+            "current_page": 1,
+            "page_size": 20,
             "total": 2
         }
     }
@@ -162,9 +162,9 @@ Vue Router 使用 hash 模式，URL 格式必须为：
 - 成功响应：`sendSuccess(res, data, message)`
   - data: 返回的业务数据
   - message: 成功消息，默认为"操作成功"
-- 错误响应：`sendError(res, message, statusCode)`
+- 错误响应：`sendError(res, message, status_code)`
   - message: 错误消息
-  - statusCode: HTTP 状态码，默认为 400
+  - status_code: HTTP 状态码，默认为 400
 - 禁止直接使用 `res.status().send()` 构造响应对象
 - 导入方式：`const { sendSuccess, sendError } = require('../utils/api-response')`
 
@@ -189,7 +189,6 @@ Vue Router 使用 hash 模式，URL 格式必须为：
 
 **后端不同模块的命名风格**：
 - 网格策略相关 API：使用 snake_case（如 `trading_pair`, `position_side`, `grid_price_difference`, `api_key`, `secret_key`）
-- 系统信息相关 API：使用 camelCase（如 `isRunning`, `startTime`, `uptime`, `branch`, `commitHash`）
 - 与第三方交互（如币安）：迁就第三方的命名风格
 
 **前端开发规范**：
@@ -279,7 +278,7 @@ tbody {}
 
 ```tsx
 // React 组件 - 只负责添加类名
-<span className={`status-badge ${isActive ? 'active' : 'inactive'}`}>
+<span className={`status-badge ${is_active ? 'active' : 'inactive'}`}>
   {statusText}
 </span>
 ```
@@ -290,8 +289,8 @@ tbody {}
 <span
   className="status-badge"
   style={{
-    backgroundColor: isActive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(107, 114, 128, 0.1)',
-    color: isActive ? 'rgb(16, 185, 129)' : 'rgb(107, 114, 128)'
+    backgroundColor: is_active ? 'rgba(16, 185, 129, 0.1)' : 'rgba(107, 114, 128, 0.1)',
+    color: is_active ? 'rgb(16, 185, 129)' : 'rgb(107, 114, 128)'
   }}
 >
 ```

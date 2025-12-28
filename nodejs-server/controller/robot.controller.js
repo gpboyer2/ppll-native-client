@@ -8,7 +8,7 @@ const catchAsync = require("../utils/catch-async");
 const { sendSuccess, sendError } = require("../utils/api-response");
 
 const robot = catchAsync(async (req, res) => {
-  const { apiKey, apiSecret } = req.query;
+  const { api_key, secret_key } = req.query;
 
   //  1 检查是否有该交易对(symbol)的websocket监听
   //      1.A 有该交易对的监听，则继续下一环节
@@ -27,10 +27,10 @@ const robot = catchAsync(async (req, res) => {
  *
  */
 const createRobot = catchAsync(async (req, res) => {
-  let { apiKey, apiSecret } = req.body;
-  let errorMsg = null;
+  let { api_key, secret_key } = req.body;
+  let error_msg = null;
 
-  if (errorMsg) throw new Error(errorMsg);
+  if (error_msg) throw new Error(error_msg);
 
   const result = await robotService.createRobot(req.body).catch(err => { throw err; });
 
@@ -54,8 +54,8 @@ const deleteRobot = catchAsync(async (req, res) => {
 
 
 const updateRobot = catchAsync(async (req, res) => {
-  const { apiKey, apiSecret } = req.body;
-  let errorMsg = null;
+  const { api_key, secret_key } = req.body;
+  let error_msg = null;
 
   // ... ...
 });

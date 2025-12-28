@@ -39,17 +39,17 @@ const FEE_RATE = 0.0005;
 /**
  * 计算风险等级
  * 综合考虑：波动率、杠杆倍数、网格间距与波动率的比值
- * @param {string} volatilityLevel - 波动率等级：'高' | '中' | '低'
+ * @param {string} volatility_level - 波动率等级：'高' | '中' | '低'
  * @param {number} leverage - 杠杆倍数（默认 20）
- * @param {number} gridSpacingPercent - 网格间距百分比（如 0.5 表示 0.5%）
- * @param {number} volatilityPercent - 波动率百分比（如 5.23 表示 5.23%）
+ * @param {number} grid_spacing_percent - 网格间距百分比（如 0.5 表示 0.5%）
+ * @param {number} volatility_percent - 波动率百分比（如 5.23 表示 5.23%）
  * @returns {{ level: string, score: number }} 风险等级和分数
  */
-const calculateRiskLevel = (volatilityLevel, leverage = 20, gridSpacingPercent, volatilityPercent) => {
+const calculateRiskLevel = (volatility_level, leverage = 20, grid_spacing_percent, volatility_percent) => {
   let score = 0;
 
   // 1. 波动率因子（权重 30%）
-  const volatility_score = volatilityLevel === '高' ? 0.8 : volatilityLevel === '中' ? 0.5 : 0.2;
+  const volatility_score = volatility_level === '高' ? 0.8 : volatility_level === '中' ? 0.5 : 0.2;
   score += volatility_score * 0.3;
 
   // 2. 杠杆因子（权重 40%）
@@ -59,8 +59,8 @@ const calculateRiskLevel = (volatilityLevel, leverage = 20, gridSpacingPercent, 
 
   // 3. 间距/波动率比值因子（权重 30%）
   // 间距越小相对于波动率，风险越高（容易被套）
-  if (gridSpacingPercent > 0 && volatilityPercent > 0) {
-    const ratio = gridSpacingPercent / volatilityPercent;
+  if (grid_spacing_percent > 0 && volatility_percent > 0) {
+    const ratio = grid_spacing_percent / volatility_percent;
     // ratio < 0.1 高风险，0.1-0.3 中风险，> 0.3 低风险
     const ratio_score = ratio < 0.1 ? 0.8 : ratio < 0.3 ? 0.5 : 0.2;
     score += ratio_score * 0.3;
@@ -88,23 +88,23 @@ const calculateRiskLevel = (volatilityLevel, leverage = 20, gridSpacingPercent, 
  * - 100根周期K线 + 30根日线多周期确认
  * - 波段极点识别 + 成交量堡垒 + MA20 + 多周期共振计分
  * 
- * @param {Array} klineList - 周期K线数据
+ * @param {Array} kline_list - 周期K线数据
  * @param {Array} dailyKlineList - 日K线数据（可选）
- * @returns {Object} { support, resistance, avgPrice, volatility, priceRange, identifyResult }
+ * @returns {Object} { support, resistance, avg_price, volatility, priceRange, identify_result }
  */
-const calculateSupportResistance = (klineList, dailyKlineList, symbol, atr) => {
-  if (!klineList || klineList.length === 0) {
+const calculateSupportResistance = (kline_list, dailyKlineList, symbol, atr) => {
+  if (!kline_list || kline_list.length === 0) {
     throw new Error('K线数据为空');
   }
 
-  const close_list = klineList.map(k => k.close);
+  const close_list = kline_list.map(k => k.close);
   const avg_price = close_list.reduce((a, b) => a + b, 0) / close_list.length;
 
   // 计算波动率（使用 technical-indicator.js 中的函数）
-  const volatility = calculateVolatility(klineList);
+  const volatility = calculateVolatility(kline_list);
 
   // 使用新算法识别支撑/阻力位（传递 symbol 和 atr 用于历史关键位分析）
-  const identify_result = identifySupportResistance({ symbol, klineList, dailyKlineList, atr });
+  const identify_result = identifySupportResistance({ symbol, kline_list, dailyKlineList, atr });
 
   let support, resistance;
 
@@ -149,18 +149,18 @@ const calculateSupportResistance = (klineList, dailyKlineList, symbol, atr) => {
 /**
  * 估算交易频率
  * 基于历史数据，统计价格穿越网格线的次数
- * @param {Array} klineList - K线数据
- * @param {number} gridSpacing - 网格间距
+ * @param {Array} kline_list - K线数据
+ * @param {number} grid_spacing - 网格间距
  * @param {number} support - 支撑位
  * @param {number} resistance - 阻力位
  * @returns {number} 预期每根K线的平均交易次数
  */
-const estimateTradeFrequency = (klineList, gridSpacing, support, resistance) => {
-  if (gridSpacing <= 0) return 0;
+const estimateTradeFrequency = (kline_list, grid_spacing, support, resistance) => {
+  if (grid_spacing <= 0) return 0;
 
   let total_cross_count = 0;
 
-  for (const kline of klineList) {
+  for (const kline of kline_list) {
     // 计算这根K线穿越了多少个网格
     const kline_range = kline.high - kline.low;
     // 在网格区间内的有效范围
@@ -169,18 +169,18 @@ const estimateTradeFrequency = (klineList, gridSpacing, support, resistance) => 
     const effective_range = Math.max(0, effective_high - effective_low);
 
     // 穿越的网格数量
-    const cross_count = Math.floor(effective_range / gridSpacing);
+    const cross_count = Math.floor(effective_range / grid_spacing);
     total_cross_count += cross_count;
   }
 
   // 平均每根K线的交易次数
-  return total_cross_count / klineList.length;
+  return total_cross_count / kline_list.length;
 };
 
 /**
  * 优化目标：收益最大化
  * 
- * 多元优化：在 (gridSpacing, tradeValue) 二维空间中找到日收益最大的点
+ * 多元优化：在 (grid_spacing, trade_value) 二维空间中找到日收益最大的点
  * 
  * 约束条件：
  * 1. 单笔必须盈利（间距% > 手续费率%）
@@ -192,9 +192,9 @@ const estimateTradeFrequency = (klineList, gridSpacing, support, resistance) => 
  * @returns {Object} 最优配置
  */
 const optimizeForProfit = (params) => {
-  const { klineList, market, total_capital, intervalConfig, min_trade_value: userMinTradeValue, max_trade_value: userMaxTradeValue } = params;
-  const { support, resistance, avgPrice, priceRange } = market;
-  const atr = calculateATR(klineList);
+  const { kline_list, market, total_capital, interval_config, min_trade_value: userMinTradeValue, max_trade_value: userMaxTradeValue } = params;
+  const { support, resistance, avg_price, priceRange } = market;
+  const atr = calculateATR(kline_list);
 
   // 每笔交易金额范围：用户指定 或 默认 20~100 USDT
   const min_trade_value = userMinTradeValue || 20;
@@ -218,11 +218,11 @@ const optimizeForProfit = (params) => {
     // 跳过间距过小的配置（小于价格的0.1%）
     if (grid_spacing < avg_price * 0.001) continue;
 
-    // 估算交易频率（与tradeValue无关）
-    const freq_per_kline = estimateTradeFrequency(klineList, grid_spacing, support, resistance);
+    // 估算交易频率（与trade_value无关）
+    const freq_per_kline = estimateTradeFrequency(kline_list, grid_spacing, support, resistance);
     if (freq_per_kline <= 0) continue;
 
-    const kline_per_day = 24 / intervalConfig.hours;
+    const kline_per_day = 24 / interval_config.hours;
     const daily_frequency = freq_per_kline * kline_per_day;
 
     // 遍历不同的每笔交易金额
@@ -242,7 +242,7 @@ const optimizeForProfit = (params) => {
 
       // 日收益（已扣除手续费的净收益）
       const daily_profit = net_profit * daily_frequency;
-      // 日手续费（仅供展示，已包含在dailyProfit的计算中）
+      // 日手续费（仅供展示，已包含在daily_profit的计算中）
       const daily_fee = fee * daily_frequency;
 
       // 日换手率
@@ -289,8 +289,8 @@ const optimizeForProfit = (params) => {
 
   // 分析数据：日收益最高的5种配置
   let analysis = null;
-  if (configList.length > 0) {
-    const topList = configList
+  if (config_list.length > 0) {
+    const top_list = config_list
       .sort((a, b) => b.dailyProfit - a.dailyProfit)
       .slice(0, 5)
       .map(config => ({
@@ -305,14 +305,14 @@ const optimizeForProfit = (params) => {
         turnover_ratio: new BigNumber(config.turnover_ratio * 100).toFixed(2) + '%'
       }));
     analysis = {
-      totalConfigCount: configList.length,
-      topList,
-      avgPrice
+      totalConfigCount: config_list.length,
+      top_list,
+      avg_price
     };
   }
 
-  if (bestConfig) {
-    bestConfig.analysis = analysis;
+  if (best_config) {
+    best_config.analysis = analysis;
   }
 
   return best_config;
@@ -320,7 +320,7 @@ const optimizeForProfit = (params) => {
 
 /**
  * 优化目标：成本摊薄（高频交易降低持仓成本）
- * 多元优化：在 (gridSpacing, tradeValue) 二维空间中找到换手效率最高的点
+ * 多元优化：在 (grid_spacing, trade_value) 二维空间中找到换手效率最高的点
  * 
  * 约束条件：
  * 1. 单笔必须不亏（不给交易所打工）
@@ -332,98 +332,98 @@ const optimizeForProfit = (params) => {
  * @returns {Object} 最优配置
  */
 const optimizeForCostReduction = (params) => {
-  const { klineList, market, total_capital, intervalConfig, min_trade_value: userMinTradeValue, max_trade_value: userMaxTradeValue } = params;
-  const { support, resistance, avgPrice, priceRange } = market;
-  const atr = calculateATR(klineList);
+  const { kline_list, market, total_capital, interval_config, min_trade_value: userMinTradeValue, max_trade_value: userMaxTradeValue } = params;
+  const { support, resistance, avg_price, priceRange } = market;
+  const atr = calculateATR(kline_list);
 
-  let bestConfig = null;
-  let maxEfficiency = -Infinity; // 换手效率
+  let best_config = null;
+  let max_efficiency = -Infinity; // 换手效率
 
   // 每笔交易金额范围：用户指定 或 默认 20~100 USDT
   const min_trade_value = userMinTradeValue || 20;
   const max_trade_value = userMaxTradeValue || 100;
 
   // 本金约束：日换手率上限（默认500%，即每天最多交易本金的5倍）
-  const maxTurnoverRatio = 5;
+  const max_turnover_ratio = 5;
 
   // 收集所有有效配置
-  const configList = [];
+  const config_list = [];
 
   // 遍历不同的网格间距（基于ATR的倍数，从0.1倍到2倍，步长更细）
   for (let atrMultiple = 0.1; atrMultiple <= 2; atrMultiple += 0.05) {
-    const gridSpacing = atr * atrMultiple;
+    const grid_spacing = atr * atrMultiple;
 
     // 跳过间距过小的配置（小于价格的0.05%）
-    if (gridSpacing < avgPrice * 0.0005) continue;
+    if (grid_spacing < avg_price * 0.0005) continue;
     // 跳过间距超出价格区间的配置
-    if (gridSpacing > priceRange * 0.3) continue;
+    if (grid_spacing > priceRange * 0.3) continue;
 
-    // 估算交易频率（与tradeValue无关）
-    const freqPerKline = estimateTradeFrequency(klineList, gridSpacing, support, resistance);
-    if (freqPerKline <= 0) continue;
+    // 估算交易频率（与trade_value无关）
+    const freq_per_kline = estimateTradeFrequency(kline_list, grid_spacing, support, resistance);
+    if (freq_per_kline <= 0) continue;
 
     // 遍历不同的每笔交易金额（步长更细，1U）
-    for (let tradeValue = min_trade_value; tradeValue <= max_trade_value; tradeValue += 2) {
+    for (let trade_value = min_trade_value; trade_value <= max_trade_value; trade_value += 2) {
       // 每笔交易数量
-      const tradeQuantity = tradeValue / avgPrice;
+      const trade_quantity = trade_value / avg_price;
 
       // 手续费
-      const fee = tradeValue * FEE_RATE * 2;
+      const fee = trade_value * FEE_RATE * 2;
 
       // 每根K线的预期交易次数
-      const klinePerDay = 24 / intervalConfig.hours;
-      const dailyFrequency = freqPerKline * klinePerDay;
-      const dailyFee = fee * dailyFrequency;
+      const kline_per_day = 24 / interval_config.hours;
+      const daily_frequency = freq_per_kline * kline_per_day;
+      const daily_fee = fee * daily_frequency;
 
       // 单笔利润
-      const grossProfit = gridSpacing * tradeQuantity;
-      const netProfit = grossProfit - fee;
+      const gross_profit = grid_spacing * trade_quantity;
+      const net_profit = gross_profit - fee;
 
       // 约束条件1：单笔必须不亏（不给交易所打工）
-      if (netProfit < 0) continue;
+      if (net_profit < 0) continue;
 
-      const dailyProfit = netProfit * dailyFrequency;
+      const daily_profit = net_profit * daily_frequency;
 
       // 成本摊薄效果
-      const dailyTurnover = tradeValue * dailyFrequency;
-      const turnoverRatio = dailyTurnover / total_capital;
+      const daily_turnover = trade_value * daily_frequency;
+      const turnover_ratio = daily_turnover / total_capital;
 
       // 约束条件2：日换手率不超过上限（保护本金）
-      if (turnoverRatio > maxTurnoverRatio) continue;
+      if (turnover_ratio > max_turnover_ratio) continue;
 
       // 换手效率指标：换手率 / (1 + 亏损惩罚)
       // 亏损惩罚：如果亏损，降低效率评分
-      const lossPenalty = dailyProfit < 0 ? Math.abs(dailyProfit) / dailyFee : 0;
-      const efficiency = turnoverRatio / (1 + lossPenalty);
+      const lossPenalty = daily_profit < 0 ? Math.abs(daily_profit) / daily_fee : 0;
+      const efficiency = turnover_ratio / (1 + lossPenalty);
 
-      configList.push({
-        gridSpacing,
-        tradeValue,
+      config_list.push({
+        grid_spacing,
+        trade_value,
         efficiency,
-        dailyProfit,
-        dailyFrequency,
-        dailyFee,
-        turnoverRatio,
-        dailyTurnover,
-        tradeQuantity,
-        netProfit
+        daily_profit,
+        daily_frequency,
+        daily_fee,
+        turnover_ratio,
+        daily_turnover,
+        trade_quantity,
+        net_profit
       });
 
-      if (efficiency > maxEfficiency) {
-        maxEfficiency = efficiency;
-        bestConfig = {
-          grid_spacing: new BigNumber(gridSpacing).toFixed(6),
-          grid_spacing_percent: new BigNumber(gridSpacing / avgPrice * 100).toFixed(4) + '%',
-          trade_quantity: new BigNumber(tradeQuantity).toFixed(6),
-          trade_value: new BigNumber(tradeValue).toFixed(2),
-          expected_daily_frequency: new BigNumber(dailyFrequency).toFixed(2),
-          expected_daily_profit: new BigNumber(dailyProfit).toFixed(2),
-          expected_daily_fee: new BigNumber(dailyFee).toFixed(2),
-          daily_turnover: new BigNumber(dailyTurnover).toFixed(2),
-          turnover_ratio: new BigNumber(turnoverRatio * 100).toFixed(2) + '%',
+      if (efficiency > max_efficiency) {
+        max_efficiency = efficiency;
+        best_config = {
+          grid_spacing: new BigNumber(grid_spacing).toFixed(6),
+          grid_spacing_percent: new BigNumber(grid_spacing / avg_price * 100).toFixed(4) + '%',
+          trade_quantity: new BigNumber(trade_quantity).toFixed(6),
+          trade_value: new BigNumber(trade_value).toFixed(2),
+          expected_daily_frequency: new BigNumber(daily_frequency).toFixed(2),
+          expected_daily_profit: new BigNumber(daily_profit).toFixed(2),
+          expected_daily_fee: new BigNumber(daily_fee).toFixed(2),
+          daily_turnover: new BigNumber(daily_turnover).toFixed(2),
+          turnover_ratio: new BigNumber(turnover_ratio * 100).toFixed(2) + '%',
           // 新增：效率指标
           efficiency: new BigNumber(efficiency).toFixed(6),
-          single_net_profit: new BigNumber(netProfit).toFixed(6)
+          single_net_profit: new BigNumber(net_profit).toFixed(6)
         };
       }
     }
@@ -431,13 +431,13 @@ const optimizeForCostReduction = (params) => {
 
   // 分析数据：换手效率最高的3种配置
   let analysis = null;
-  if (configList.length > 0) {
-    const topList = configList
+  if (config_list.length > 0) {
+    const top_list = config_list
       .sort((a, b) => b.efficiency - a.efficiency)
       .slice(0, 3)
       .map(config => ({
         grid_spacing: new BigNumber(config.grid_spacing).toFixed(6),
-        grid_spacing_percent: new BigNumber(config.grid_spacing / avgPrice * 100).toFixed(4) + '%',
+        grid_spacing_percent: new BigNumber(config.grid_spacing / avg_price * 100).toFixed(4) + '%',
         trade_quantity: new BigNumber(config.trade_quantity).toFixed(6),
         trade_value: new BigNumber(config.trade_value).toFixed(2),
         expected_daily_frequency: new BigNumber(config.daily_frequency).toFixed(2),
@@ -447,14 +447,14 @@ const optimizeForCostReduction = (params) => {
         turnover_ratio: new BigNumber(config.turnover_ratio * 100).toFixed(2) + '%'
       }));
     analysis = {
-      totalConfigCount: configList.length,
-      topList,
-      avgPrice
+      totalConfigCount: config_list.length,
+      top_list,
+      avg_price
     };
   }
 
-  if (bestConfig) {
-    bestConfig.analysis = analysis;
+  if (best_config) {
+    best_config.analysis = analysis;
   }
 
   return best_config;
@@ -474,94 +474,94 @@ const optimizeForCostReduction = (params) => {
  * @returns {Object} 最优配置
  */
 const optimizeForBoundary = (params) => {
-  const { klineList, market, total_capital, intervalConfig, min_trade_value: userMinTradeValue } = params;
-  const { support, resistance, avgPrice, priceRange } = market;
-  const atr = calculateATR(klineList);
+  const { kline_list, market, total_capital, interval_config, min_trade_value: userMinTradeValue } = params;
+  const { support, resistance, avg_price, priceRange } = market;
+  const atr = calculateATR(kline_list);
 
   // 每笔交易金额：固定为最小值
-  const tradeValue = userMinTradeValue || 20;
+  const trade_value = userMinTradeValue || 20;
 
-  let bestConfig = null;
-  let minDailyFrequency = Infinity; // 目标：日频率最低
+  let best_config = null;
+  let min_daily_frequency = Infinity; // 目标：日频率最低
 
   // 收集所有有效配置
-  const configList = [];
+  const config_list = [];
 
   // 遍历不同的网格间距（从大到小，优先找大间距）
   // ATR倍数范围更大，从0.5倍到10倍
   for (let atrMultiple = 10; atrMultiple >= 0.5; atrMultiple -= 0.2) {
-    const gridSpacing = atr * atrMultiple;
+    const grid_spacing = atr * atrMultiple;
 
     // 跳过间距超出价格区间的配置
-    if (gridSpacing > priceRange * 0.8) continue;
+    if (grid_spacing > priceRange * 0.8) continue;
     // 跳过间距过小的配置（小于价格的0.1%）
-    if (gridSpacing < avgPrice * 0.001) continue;
+    if (grid_spacing < avg_price * 0.001) continue;
 
     // 每笔交易数量
-    const tradeQuantity = tradeValue / avgPrice;
+    const trade_quantity = trade_value / avg_price;
 
     // 单笔毛利润 = 网格间距 × 交易数量
-    const grossProfit = gridSpacing * tradeQuantity;
+    const gross_profit = grid_spacing * trade_quantity;
     // 手续费 = 买卖各一次
-    const fee = tradeValue * FEE_RATE * 2;
+    const fee = trade_value * FEE_RATE * 2;
     // 单笔净利润
-    const netProfit = grossProfit - fee;
+    const net_profit = gross_profit - fee;
 
     // 约束条件：单笔必须不亏（不给交易所打工）
-    if (netProfit < 0) continue;
+    if (net_profit < 0) continue;
 
     // 估算交易频率
-    const freqPerKline = estimateTradeFrequency(klineList, gridSpacing, support, resistance);
-    if (freqPerKline <= 0) continue;
+    const freq_per_kline = estimateTradeFrequency(kline_list, grid_spacing, support, resistance);
+    if (freq_per_kline <= 0) continue;
 
-    const klinePerDay = 24 / intervalConfig.hours;
-    const dailyFrequency = freqPerKline * klinePerDay;
+    const kline_per_day = 24 / interval_config.hours;
+    const daily_frequency = freq_per_kline * kline_per_day;
 
     // 日收益
-    const dailyProfit = netProfit * dailyFrequency;
+    const daily_profit = net_profit * daily_frequency;
     // 日手续费
-    const dailyFee = fee * dailyFrequency;
+    const daily_fee = fee * daily_frequency;
     // 日换手率
-    const dailyTurnover = tradeValue * dailyFrequency;
-    const turnoverRatio = dailyTurnover / total_capital;
+    const daily_turnover = trade_value * daily_frequency;
+    const turnover_ratio = daily_turnover / total_capital;
     // 日收益率
-    const dailyROI = dailyProfit / total_capital;
+    const daily_roi = daily_profit / total_capital;
 
-    configList.push({
-      gridSpacing,
-      grid_spacing_percent: gridSpacing / avgPrice * 100,
-      tradeValue,
-      dailyFrequency,
-      dailyProfit,
-      dailyROI,
-      dailyFee,
-      turnoverRatio,
-      tradeQuantity,
-      netProfit
+    config_list.push({
+      grid_spacing,
+      grid_spacing_percent: grid_spacing / avg_price * 100,
+      trade_value,
+      daily_frequency,
+      daily_profit,
+      daily_roi,
+      daily_fee,
+      turnover_ratio,
+      trade_quantity,
+      net_profit
     });
 
     // 找日频率最低的配置（蛰伏状态）
-    if (dailyFrequency < minDailyFrequency) {
-      minDailyFrequency = dailyFrequency;
-      bestConfig = {
-        grid_spacing: new BigNumber(gridSpacing).toFixed(6),
-        grid_spacing_percent: new BigNumber(gridSpacing / avgPrice * 100).toFixed(4) + '%',
-        trade_quantity: new BigNumber(tradeQuantity).toFixed(6),
-        trade_value: new BigNumber(tradeValue).toFixed(2),
-        expected_daily_frequency: new BigNumber(dailyFrequency).toFixed(2),
-        expected_daily_profit: new BigNumber(dailyProfit).toFixed(2),
-        expected_daily_fee: new BigNumber(dailyFee).toFixed(2),
-        expected_daily_roi: new BigNumber(dailyROI * 100).toFixed(4) + '%',
-        single_net_profit: new BigNumber(netProfit).toFixed(6),
-        turnover_ratio: new BigNumber(turnoverRatio * 100).toFixed(2) + '%'
+    if (daily_frequency < min_daily_frequency) {
+      min_daily_frequency = daily_frequency;
+      best_config = {
+        grid_spacing: new BigNumber(grid_spacing).toFixed(6),
+        grid_spacing_percent: new BigNumber(grid_spacing / avg_price * 100).toFixed(4) + '%',
+        trade_quantity: new BigNumber(trade_quantity).toFixed(6),
+        trade_value: new BigNumber(trade_value).toFixed(2),
+        expected_daily_frequency: new BigNumber(daily_frequency).toFixed(2),
+        expected_daily_profit: new BigNumber(daily_profit).toFixed(2),
+        expected_daily_fee: new BigNumber(daily_fee).toFixed(2),
+        expected_daily_roi: new BigNumber(daily_roi * 100).toFixed(4) + '%',
+        single_net_profit: new BigNumber(net_profit).toFixed(6),
+        turnover_ratio: new BigNumber(turnover_ratio * 100).toFixed(2) + '%'
       };
     }
   }
 
   // 分析数据：日频率最低的3种配置
   let analysis = null;
-  if (configList.length > 0) {
-    const topList = configList
+  if (config_list.length > 0) {
+    const top_list = config_list
       .sort((a, b) => a.dailyFrequency - b.dailyFrequency) // 按频率从低到高排序
       .slice(0, 3)
       .map(config => ({
@@ -576,14 +576,14 @@ const optimizeForBoundary = (params) => {
         turnover_ratio: new BigNumber(config.turnover_ratio * 100).toFixed(2) + '%'
       }));
     analysis = {
-      totalConfigCount: configList.length,
-      topList,
-      avgPrice
+      totalConfigCount: config_list.length,
+      top_list,
+      avg_price
     };
   }
 
-  if (bestConfig) {
-    bestConfig.analysis = analysis;
+  if (best_config) {
+    best_config.analysis = analysis;
   }
 
   return best_config;
@@ -621,8 +621,8 @@ const optimizeGridParams = async (options) => {
   if (!total_capital || total_capital <= 0) throw new Error('总资金必须大于0');
   if (!api_key || !api_secret) throw new Error('缺少API凭证');
 
-  const intervalConfig = INTERVAL_MAP[interval];
-  if (!intervalConfig) {
+  const interval_config = INTERVAL_MAP[interval];
+  if (!interval_config) {
     throw new Error(`不支持的K线周期: ${interval}，支持: ${Object.keys(INTERVAL_MAP).join(', ')}`);
   }
 
@@ -630,9 +630,9 @@ const optimizeGridParams = async (options) => {
   const client = createClient(api_key, api_secret);
 
   // 获取100根周期K线数据
-  const klineList = await fetchKlineList(client, symbol, interval);
+  const kline_list = await fetchKlineList(client, symbol, interval);
 
-  if (klineList.length < 11) {
+  if (kline_list.length < 11) {
     throw new Error('K线数据不足，无法进行优化分析（需要至少11根K线）');
   }
 
@@ -645,29 +645,29 @@ const optimizeGridParams = async (options) => {
   }
 
   // 计算ATR（需要先计算，用于市场结构分析）
-  const atr = calculateATR(klineList);
+  const atr = calculateATR(kline_list);
 
   // 获取实时标记价格
-  let currentPrice = klineList[klineList.length - 1].close; // 默认用最后一根K线收盘价
+  let current_price = kline_list[kline_list.length - 1].close; // 默认用最后一根K线收盘价
   try {
-    const markPriceData = await client.getMarkPrice({ symbol });
-    currentPrice = parseFloat(markPriceData.markPrice);
+    const mark_price_data = await client.getMarkPrice({ symbol });
+    current_price = parseFloat(mark_price_data.markPrice);
   } catch (error) {
     console.warn(`[警告] 获取实时标记价格失败，使用K线收盘价: ${error?.message || error}`);
   }
 
   // 计算市场数据（使用新算法 + 历史关键位分析）
-  const market = calculateSupportResistance(klineList, dailyKlineList, symbol, atr);
-  market.currentPrice = currentPrice; // 添加实时价格
+  const market = calculateSupportResistance(kline_list, dailyKlineList, symbol, atr);
+  market.currentPrice = current_price; // 添加实时价格
 
   // 根据优化目标选择算法
-  const optimizeParams = { klineList, market, total_capital, intervalConfig, min_trade_value, max_trade_value };
+  const optimize_params = { kline_list, market, total_capital, interval_config, min_trade_value, max_trade_value };
   let recommended;
 
   if (optimize_target === 'cost') {
-    recommended = optimizeForCostReduction(optimizeParams);
+    recommended = optimizeForCostReduction(optimize_params);
   } else {
-    recommended = optimizeForProfit(optimizeParams);
+    recommended = optimizeForProfit(optimize_params);
   }
 
   if (!recommended) {
@@ -680,26 +680,26 @@ const optimizeGridParams = async (options) => {
   }
 
   // 如果开启防守边界选项，计算蛰伏状态参数
-  let boundaryDefense = undefined;
+  let boundary_defense = undefined;
   if (enable_boundary_defense) {
-    boundaryDefense = optimizeForBoundary(optimizeParams);
+    boundary_defense = optimizeForBoundary(optimize_params);
   }
 
   // 计算波动率等级
-  const volatilityLevel = market.volatility > 0.05 ? '高' : market.volatility > 0.02 ? '中' : '低';
-  const volatilityPercent = market.volatility * 100;
+  const volatility_level = market.volatility > 0.05 ? '高' : market.volatility > 0.02 ? '中' : '低';
+  const volatility_percent = market.volatility * 100;
 
   // 解析网格间距百分比（从 recommended 中获取）
-  const gridSpacingPercent = recommended?.analysis?.topList?.[0]?.gridSpacingPercent || 0;
+  const grid_spacing_percent = recommended?.analysis?.topList?.[0]?.gridSpacingPercent || 0;
 
   // 计算风险等级（默认杠杆 20 倍，前端可根据用户选择重新计算）
-  const riskResult = calculateRiskLevel(volatilityLevel, 20, gridSpacingPercent, volatilityPercent);
+  const riskResult = calculateRiskLevel(volatility_level, 20, grid_spacing_percent, volatility_percent);
 
   // 返回结果
   return {
     symbol,
     interval,
-    interval_label: intervalConfig.label,
+    interval_label: interval_config.label,
     optimize_target,
     optimize_target_label: optimize_target === 'profit' ? '收益最大化' : '成本摊薄',
     enable_boundary_defense,
@@ -716,17 +716,17 @@ const optimizeGridParams = async (options) => {
       avg_price: new BigNumber(market.avgPrice).toFixed(6),
       price_range: new BigNumber(market.priceRange).toFixed(6),
       // 波动率及其评级
-      volatility: new BigNumber(volatilityPercent).toFixed(2) + '%',
-      volatility_level: volatilityLevel,
+      volatility: new BigNumber(volatility_percent).toFixed(2) + '%',
+      volatility_level: volatility_level,
       volatility_advice: market.volatility > 0.05
-        ? `市场活跃度高，价格波动达 ${volatilityPercent.toFixed(2)}%，网格策略捕捉收益机会充足，适合激进型投资者追求更高回报`
+        ? `市场活跃度高，价格波动达 ${volatility_percent.toFixed(2)}%，网格策略捕捉收益机会充足，适合激进型投资者追求更高回报`
         : market.volatility > 0.02
-          ? `市场波动适中，价格波动约 ${volatilityPercent.toFixed(2)}%，网格策略收益稳定，风险可控，适合稳健型投资者`
-          : `市场波动偏低（${volatilityPercent.toFixed(2)}%），价格变化较小，网格策略收益空间有限，建议选择波动更大的交易对或降低交易频次`,
+          ? `市场波动适中，价格波动约 ${volatility_percent.toFixed(2)}%，网格策略收益稳定，风险可控，适合稳健型投资者`
+          : `市场波动偏低（${volatility_percent.toFixed(2)}%），价格变化较小，网格策略收益空间有限，建议选择波动更大的交易对或降低交易频次`,
       // ATR及其说明
       atr: new BigNumber(atr).toFixed(2),
-      atr_desc: `每${intervalConfig.label}平均波动 ${new BigNumber(atr).toFixed(2)} USDT`,
-      kline_count: klineList.length,
+      atr_desc: `每${interval_config.label}平均波动 ${new BigNumber(atr).toFixed(2)} USDT`,
+      kline_count: kline_list.length,
       // 算法状态信息
       algorithm_status: market.algorithmStatus,
       algorithm_source: market.algorithmSource,
@@ -747,7 +747,7 @@ const optimizeGridParams = async (options) => {
     recommended,
 
     // 防守边界参数（突破边界后使用，仅当 enableBoundaryDefense=true 时返回）
-    boundaryDefense
+    boundary_defense
   };
 };
 

@@ -17,7 +17,7 @@ const SystemLog = db.system_logs;
  */
 function maskObject(obj) {
   if (!obj || typeof obj !== 'object') return obj;
-  const sensitiveKeys = ['password', 'apiSecret', 'secret', 'api_secret', 'privateKey', 'token', 'accessToken', 'apiKey', 'auth'];
+  const sensitiveKeys = ['password', 'secret_key', 'secret', 'api_secret', 'privateKey', 'token', 'accessToken', 'api_key', 'auth'];
   const cloned = { ...obj };
   for (const k of sensitiveKeys) {
     if (Object.prototype.hasOwnProperty.call(cloned, k)) cloned[k] = '***';
@@ -81,14 +81,14 @@ function deriveDuration(extra) {
 function toViewObject(data) {
   const extra = (data && data.extra_data) || {};
   const { os: os_name, browser: browser_name } = parseUaInfo(data.user_agent);
-  const moduleName = data.module || deriveModule(data.api_endpoint);
+  const module_name = data.module || deriveModule(data.api_endpoint);
   const location = data.location || extra.location || '';
   const response_time = data.response_time || deriveDuration(extra);
   const operation = extra.operation || (data.http_method && data.api_endpoint ? `${data.http_method} ${data.api_endpoint}` : '未知操作');
 
   return {
     ...data,
-    module: moduleName,
+    module: module_name,
     location,
     os_name,
     browser_name,

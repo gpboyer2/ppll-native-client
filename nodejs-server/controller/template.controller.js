@@ -9,27 +9,27 @@ const { sendSuccess, sendError } = require("../utils/api-response");
 
 const createOrder = catchAsync(async (req, res) => {
   /** @type {{msg?: string} | null} */
-  let errorMsg = null;
-  const { apiKey, apiSecret } = req.body;
+  let error_msg = null;
+  const { api_key, secret_key } = req.body;
 
   const result = await orderService.createOrder(req.body).catch(err => {
     if (typeof err === 'string') {
-      errorMsg = JSON.parse(err);
+      error_msg = JSON.parse(err);
     }
     if (typeof err === 'object') {
-      errorMsg = err;
+      error_msg = err;
     }
   });
 
-  if (errorMsg) {
-    return sendError(res, errorMsg.msg, 400);
+  if (error_msg) {
+    return sendError(res, error_msg.msg, 400);
   }
 
   return sendSuccess(res, result, '创建订单成功');
 });
 
 const updateOrder = catchAsync(async (req, res) => {
-  const { id, apiKey, apiSecret, ...updateBody } = req.body;
+  const { id, api_key, secret_key, ...updateBody } = req.body;
 
   // 检查必需参数
   if (!id) {

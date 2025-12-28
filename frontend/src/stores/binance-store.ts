@@ -26,9 +26,9 @@ export interface TradingPair {
 
 interface BinanceStore {
     // 状态
-    apiKeyList: BinanceApiKey[];
+    api_key_list: BinanceApiKey[];
     tradingPairs: string[];
-    usdtPairs: string[];
+    usdt_pairs: string[];
     initialized: boolean;
     loading: boolean;
     isInitializing: boolean; // 标识是否正在初始化
@@ -52,13 +52,13 @@ async function getAuthToken(): Promise<string> {
       return '';
     }
 
-    const tokenRes = await GetConfig('auth_token') as any;
-    if (tokenRes && typeof tokenRes === 'object') {
-      if (tokenRes.status === 'success' && tokenRes.data) {
-        return String(tokenRes.data);
+    const token_res = await GetConfig('auth_token') as any;
+    if (token_res && typeof token_res === 'object') {
+      if (token_res.status === 'success' && token_res.data) {
+        return String(token_res.data);
       }
-    } else if (typeof tokenRes === 'string') {
-      return tokenRes;
+    } else if (typeof token_res === 'string') {
+      return token_res;
     }
   } catch {
     // 忽略错误，返回空字符串
@@ -85,9 +85,9 @@ async function getNodejsUrl(): Promise<string> {
 
 export const useBinanceStore = create<BinanceStore>((set, get) => ({
   // 初始状态
-  apiKeyList: [],
+  api_key_list: [],
   tradingPairs: [],
-  usdtPairs: [],
+  usdt_pairs: [],
   initialized: false,
   loading: false,
   isInitializing: false,
@@ -95,9 +95,9 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
   // 初始化：先获取 API Key 列表，成功且有数据时才获取交易对
   init: async () => {
-    const { loading, apiKeyList, usdtPairs, isInitializing } = get();
+    const { loading, api_key_list, usdt_pairs, isInitializing } = get();
     // 如果正在加载、正在初始化或已经成功初始化且有数据，则跳过
-    if (loading || isInitializing || (apiKeyList.length > 0 && usdtPairs.length > 0)) return;
+    if (loading || isInitializing || (api_key_list.length > 0 && usdt_pairs.length > 0)) return;
 
     set({ loading: true, isInitializing: true });
 
@@ -106,17 +106,17 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
       await get().refreshApiKeys();
 
       // 从 localStorage 恢复 activeApiKeyId
-      const savedId = localStorage.getItem('activeApiKeyId');
-      const afterApiKeys = get().apiKeyList;
+      const saved_id = localStorage.getItem('activeApiKeyId');
+      const after_api_keys = get().apiKeyList;
 
-      if (afterApiKeys.length > 0) {
+      if (after_api_keys.length > 0) {
         // 优先使用保存的 API Key ID
-        if (savedId && afterApiKeys.some(k => String(k.id) === savedId)) {
-          set({ activeApiKeyId: savedId });
+        if (saved_id && after_api_keys.some(k => String(k.id) === saved_id)) {
+          set({ activeApiKeyId: saved_id });
         } else {
           // 如果保存的 ID 不存在，使用第一个 API Key
-          set({ activeApiKeyId: String(afterApiKeys[0].id) });
-          localStorage.setItem('activeApiKeyId', String(afterApiKeys[0].id));
+          set({ activeApiKeyId: String(after_api_keys[0].id) });
+          localStorage.setItem('activeApiKeyId', String(after_api_keys[0].id));
         }
 
         // 获取交易对信息
@@ -132,10 +132,10 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
   // 刷新 API Key 列表（静默模式，不显示错误）
   refreshApiKeys: async () => {
-    const nodejsUrl = await getNodejsUrl();
-    const authToken = await getAuthToken();
+    const nodejs_url = await getNodejsUrl();
+    const auth_token = await getAuthToken();
 
-    if (!nodejsUrl) return;
+    if (!nodejs_url) return;
 
     try {
       console.log('[binance-store] 开始查询 API Key 列表');
@@ -143,7 +143,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
       // 后端返回字段名直接使用，不做任何转换
       if (response.status === 'success' && response.data?.list) {
-        set({ apiKeyList: response.data.list });
+        set({ api_key_list: response.data.list });
       }
     } catch (error) {
       console.error('[binance-store] 查询 API Key 失败:', error);
@@ -152,28 +152,28 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
   // 刷新交易对列表（静默模式，不显示错误）
   refreshTradingPairs: async () => {
-    const nodejsUrl = await getNodejsUrl();
-    if (!nodejsUrl) return;
+    const nodejs_url = await getNodejsUrl();
+    if (!nodejs_url) return;
 
-    // 从 apiKeyList 中获取第一个可用的 apiKey
-    const apiKeyList = get().apiKeyList;
-    if (apiKeyList.length === 0) {
+    // 从 api_key_list 中获取第一个可用的 api_key
+    const api_key_list = get().apiKeyList;
+    if (api_key_list.length === 0) {
       console.warn('[binance-store] 无可用的 API Key，跳过获取交易对');
       return;
     }
 
-    const apiKey = apiKeyList[0];
+    const api_key = api_key_list[0];
     console.log('[binance-store] 使用 API Key:', {
-      id: apiKey.id,
-      name: apiKey.name,
-      api_key: apiKey.api_key.substring(0, 8) + '...',  // 脱敏
-      hasSecret: !!apiKey.secret_key
+      id: api_key.id,
+      name: api_key.name,
+      api_key: api_key.api_key.substring(0, 8) + '...',  // 脱敏
+      hasSecret: !!api_key.secret_key
     });
 
     try {
       const params = {
-        api_key: apiKey.api_key,
-        secret_key: apiKey.secret_key
+        api_key: api_key.api_key,
+        secret_key: api_key.secret_key
       };
       console.log('[binance-store] 调用 getExchangeInfo，参数:', {
         api_key: params.api_key.substring(0, 8) + '...',
@@ -186,16 +186,16 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
       // 后端响应直接透传，数据在 response.data.symbols
       if (response.status === 'success' && response.data?.symbols) {
         const symbols = response.data.symbols;
-        const tradingSymbols = symbols.filter((s: any) => s.status === 'TRADING');
-        const allPairs = tradingSymbols.map((s: any) => s.symbol);
-        const usdtPairs = tradingSymbols
+        const trading_symbols = symbols.filter((s: any) => s.status === 'TRADING');
+        const all_pairs = trading_symbols.map((s: any) => s.symbol);
+        const usdt_pairs = trading_symbols
           .filter((s: any) => s.quoteAsset === 'USDT')
           .map((s: any) => s.symbol)
           .sort();
 
         set({
-          tradingPairs: allPairs,
-          usdtPairs
+          tradingPairs: all_pairs,
+          usdt_pairs
         });
       }
     } catch (error) {
@@ -216,17 +216,17 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
   // 获取当前激活的 API Key
   getActiveApiKey: () => {
-    const { apiKeyList, activeApiKeyId } = get();
-    return apiKeyList.find(key => String(key.id) === activeApiKeyId) || apiKeyList[0] || null;
+    const { api_key_list, activeApiKeyId } = get();
+    return api_key_list.find(key => String(key.id) === activeApiKeyId) || api_key_list[0] || null;
   },
 
   // 获取当前 API Key 信息（供 API 请求使用）
   getCurrentApiKey: () => {
-    const activeKey = get().getActiveApiKey();
-    if (!activeKey) return null;
+    const active_key = get().getActiveApiKey();
+    if (!active_key) return null;
     return {
-      api_key: activeKey.api_key,
-      secret_key: activeKey.secret_key
+      api_key: active_key.api_key,
+      secret_key: active_key.secret_key
     };
   }
 }));

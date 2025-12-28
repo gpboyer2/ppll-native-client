@@ -21,22 +21,22 @@ const getInfo = async () => {
   try {
     const storagePath = db.storagePath;
     let fileSize = 0;
-    let fileExists = false;
+    let file_exists = false;
     if (storagePath && fs.existsSync(storagePath)) {
       const stats = fs.statSync(storagePath);
       fileSize = stats.size;
-      fileExists = true;
+      file_exists = true;
     }
 
     const tables = await db.sequelize.query(
       "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"
     );
     const tableList = tables[0].map(t => t.name);
-    let totalRows = 0;
+    let total_rows = 0;
     for (const tableName of tableList) {
       try {
         const countResult = await db.sequelize.query(`SELECT COUNT(*) as count FROM "${tableName}"`);
-        totalRows += countResult[0][0].count;
+        total_rows += countResult[0][0].count;
       } catch (e) {
         // 忽略单个表的统计错误，继续统计其他表
       }
@@ -50,9 +50,9 @@ const getInfo = async () => {
       fileSize: fileSize,
       fileSizeFormatted: formatFileSize(fileSize),
       tableCount: tableList.length,
-      totalRows: totalRows,
+      total_rows: total_rows,
       version: version,
-      fileExists: fileExists
+      file_exists: file_exists
     };
   } catch (error) {
     console.error('获取数据库信息失败:', error);
@@ -154,17 +154,17 @@ const getTableData = async (params) => {
     const countResult = await db.sequelize.query(`SELECT COUNT(*) as count FROM "${tableName}"`);
     const total = countResult[0][0].count;
 
-    let orderClause = '';
+    let order_clause = '';
     if (sortBy && columns.includes(sortBy)) {
-      orderClause = ` ORDER BY "${sortBy}" ${sortOrder === 'DESC' ? 'DESC' : 'ASC'}`;
+      order_clause = ` ORDER BY "${sortBy}" ${sortOrder === 'DESC' ? 'DESC' : 'ASC'}`;
     } else if (columns.length > 0) {
-      orderClause = ` ORDER BY "${columns[0]}" ASC`;
+      order_clause = ` ORDER BY "${columns[0]}" ASC`;
     }
 
     const offset = (currentPage - 1) * pageSize;
     const limitClause = ` LIMIT ${pageSize} OFFSET ${offset}`;
 
-    const dataSql = `SELECT * FROM "${tableName}"${orderClause}${limitClause}`;
+    const dataSql = `SELECT * FROM "${tableName}"${order_clause}${limitClause}`;
     const dataResult = await db.sequelize.query(dataSql);
     const rows = dataResult[0];
 
@@ -198,20 +198,20 @@ const createData = async (params) => {
     const placeholders = keys.map(() => '?').join(', ');
     const columnsStr = keys.map(k => `"${k}"`).join(', ');
 
-    let insertedCount = 0;
+    let inserted_count = 0;
     const errors = [];
 
     for (const item of data) {
       try {
         const values = keys.map(k => item[k]);
         await db.sequelize.query(`INSERT INTO "${tableName}" (${columnsStr}) VALUES (${placeholders})`, { replacements: values });
-        insertedCount++;
+        inserted_count++;
       } catch (e) {
         errors.push({ data: item, error: e.message });
       }
     }
 
-    return { successCount: insertedCount, failCount: errors.length, errors: errors };
+    return { success_count: inserted_count, fail_count: errors.length, errors: errors };
   } catch (error) {
     console.error('创建数据失败:', error);
     throw error;
@@ -237,7 +237,7 @@ const updateData = async (params) => {
     }
     const pkName = primaryKey.name;
 
-    let updatedCount = 0;
+    let updated_count = 0;
     const errors = [];
 
     for (const item of data) {
@@ -251,13 +251,13 @@ const updateData = async (params) => {
         values.push(item[pkName]);
 
         await db.sequelize.query(`UPDATE "${tableName}" SET ${setClause} WHERE "${pkName}" = ?`, { replacements: values });
-        updatedCount++;
+        updated_count++;
       } catch (e) {
         errors.push({ data: item, error: e.message });
       }
     }
 
-    return { successCount: updatedCount, failCount: errors.length, errors: errors };
+    return { success_count: updated_count, fail_count: errors.length, errors: errors };
   } catch (error) {
     console.error('更新数据失败:', error);
     throw error;
@@ -283,19 +283,19 @@ const deleteData = async (params) => {
     }
     const pkName = primaryKey.name;
 
-    let deletedCount = 0;
+    let deleted_count = 0;
     const errors = [];
 
     for (const pkValue of data) {
       try {
         await db.sequelize.query(`DELETE FROM "${tableName}" WHERE "${pkName}" = ?`, { replacements: [pkValue] });
-        deletedCount++;
+        deleted_count++;
       } catch (e) {
         errors.push({ id: pkValue, error: e.message });
       }
     }
 
-    return { successCount: deletedCount, failCount: errors.length, errors: errors };
+    return { success_count: deleted_count, fail_count: errors.length, errors: errors };
   } catch (error) {
     console.error('删除数据失败:', error);
     throw error;
@@ -304,7 +304,7 @@ const deleteData = async (params) => {
 
 
 // 执行 SQL 查询
-const executeQuery = async (params) => {
+const execute_query = async (params) => {
   try {
     const { sql, queryParams = [] } = params;
     const trimSql = sql.trim().toUpperCase();
@@ -372,7 +372,7 @@ const deleteTable = async (params) => {
       throw new Error('表名必须是非空数组');
     }
 
-    let deletedCount = 0;
+    let deleted_count = 0;
     const errors = [];
 
     for (const tableName of data) {
@@ -381,13 +381,13 @@ const deleteTable = async (params) => {
           throw new Error('表名包含非法字符');
         }
         await db.sequelize.query(`DROP TABLE IF EXISTS "${tableName}"`);
-        deletedCount++;
+        deleted_count++;
       } catch (e) {
         errors.push({ table: tableName, error: e.message });
       }
     }
 
-    return { successCount: deletedCount, failCount: errors.length, errors: errors };
+    return { success_count: deleted_count, fail_count: errors.length, errors: errors };
   } catch (error) {
     console.error('删除表失败:', error);
     throw error;
@@ -544,7 +544,7 @@ const truncateTable = async (params) => {
       throw new Error('表名必须是非空数组');
     }
 
-    let truncatedCount = 0;
+    let truncated_count = 0;
     const errors = [];
 
     for (const tableName of data) {
@@ -566,13 +566,13 @@ const truncateTable = async (params) => {
         // 重置自增序列
         await db.sequelize.query(`DELETE FROM sqlite_sequence WHERE name='${tableName}'`);
 
-        truncatedCount++;
+        truncated_count++;
       } catch (e) {
         errors.push({ table: tableName, error: e.message });
       }
     }
 
-    return { successCount: truncatedCount, failCount: errors.length, errors: errors };
+    return { success_count: truncated_count, fail_count: errors.length, errors: errors };
   } catch (error) {
     console.error('清空表失败:', error);
     throw error;
@@ -670,7 +670,7 @@ const deleteIndex = async (params) => {
       throw new Error('索引名必须是非空数组');
     }
 
-    let deletedCount = 0;
+    let deleted_count = 0;
     const errors = [];
 
     for (const indexName of data) {
@@ -688,13 +688,13 @@ const deleteIndex = async (params) => {
         }
 
         await db.sequelize.query(`DROP INDEX "${indexName}"`);
-        deletedCount++;
+        deleted_count++;
       } catch (e) {
         errors.push({ index: indexName, error: e.message });
       }
     }
 
-    return { successCount: deletedCount, failCount: errors.length, errors: errors };
+    return { success_count: deleted_count, fail_count: errors.length, errors: errors };
   } catch (error) {
     console.error('删除索引失败:', error);
     throw error;
@@ -710,7 +710,7 @@ module.exports = {
   createData,
   updateData,
   deleteData,
-  executeQuery,
+  execute_query,
   createTable,
   deleteTable,
   createColumn,

@@ -22,25 +22,25 @@ const signUp = catchAsync(async (req, res) => {
 });
 
 const sendMessage = catchAsync(async (req, res) => {
-  const { apiKey, apiSecret } = req.body;
+  const { api_key, secret_key } = req.body;
   /** @type {{msg?: string} | null} */
-  let errorMsg = null;
+  let error_msg = null;
 
-  if (!apiKey) {
-    return sendError(res, 'apiKey 未定义', 400);
+  if (!api_key) {
+    return sendError(res, 'api_key 未定义', 400);
   }
 
   const result = await chatService.createChat(req.body).catch((err) => {
     if (typeof err === "string") {
-      errorMsg = JSON.parse(err);
+      error_msg = JSON.parse(err);
     }
     if (typeof err === "object") {
-      errorMsg = err;
+      error_msg = err;
     }
   });
 
-  if (errorMsg) {
-    return sendError(res, errorMsg.msg, 400);
+  if (error_msg) {
+    return sendError(res, error_msg.msg, 400);
   }
 
   if (result?.dataValues) {
@@ -51,25 +51,25 @@ const sendMessage = catchAsync(async (req, res) => {
 });
 
 const message = catchAsync(async (req, res) => {
-  const { apiKey, apiSecret } = req.query;
+  const { api_key, secret_key } = req.query;
   /** @type {{msg?: string} | null} */
-  let errorMsg = null;
+  let error_msg = null;
 
-  if (!apiKey) {
-    return sendError(res, 'apiKey 未定义', 400);
+  if (!api_key) {
+    return sendError(res, 'api_key 未定义', 400);
   }
 
   const result = await chatService.latestMessage(req.query).catch((err) => {
     if (typeof err === "string") {
-      errorMsg = JSON.parse(err);
+      error_msg = JSON.parse(err);
     }
     if (typeof err === "object") {
-      errorMsg = err;
+      error_msg = err;
     }
   });
 
-  if (errorMsg) {
-    return sendError(res, errorMsg.msg, 400);
+  if (error_msg) {
+    return sendError(res, error_msg.msg, 400);
   }
 
   if (result?.dataValues) {

@@ -19,10 +19,10 @@ function GridStrategyEditPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const id = searchParams.get('id');
-  const isEditing = Boolean(id);
+  const is_editing = Boolean(id);
 
   // 使用币安 store
-  const { apiKeyList, usdtPairs, init, loading, refreshTradingPairs } = useBinanceStore();
+  const { api_key_list, usdt_pairs, init, loading, refreshTradingPairs } = useBinanceStore();
 
   // 表单数据状态
   const [formData, setFormData] = useState<GridStrategyForm>(defaultGridStrategy);
@@ -83,44 +83,44 @@ function GridStrategyEditPage() {
 
   // 加载现有策略数据
   useEffect(() => {
-    if (isEditing && id) {
+    if (is_editing && id) {
       loadStrategy(id);
     }
-  }, [isEditing, id]);
+  }, [is_editing, id]);
 
   // 当交易对列表加载完成后，设置默认交易对为 BTCUSDT
   useEffect(() => {
     // 只在新建模式下，且交易对列表已加载，且当前交易对为空时设置默认值
-    if (!isEditing && usdtPairs.length > 0 && !formData.trading_pair) {
+    if (!is_editing && usdt_pairs.length > 0 && !formData.trading_pair) {
       // 精确匹配 BTCUSDT
-      if (usdtPairs.includes('BTCUSDT')) {
+      if (usdt_pairs.includes('BTCUSDT')) {
         setFormData(prev => ({ ...prev, trading_pair: 'BTCUSDT' }));
         console.log('已设置默认交易对: BTCUSDT');
       }
     }
-  }, [usdtPairs, isEditing, formData.trading_pair]);
+  }, [usdt_pairs, is_editing, formData.trading_pair]);
 
   // 当 API Key 列表加载完成后，自动选择第一个作为默认值
   useEffect(() => {
     // 只在新建模式下，且 API Key 列表已加载，且当前未选择 API Key 时设置默认值
-    if (!isEditing && apiKeyList.length > 0 && !formData._api_key_id) {
-      const firstApiKey = apiKeyList[0];
+    if (!is_editing && api_key_list.length > 0 && !formData._api_key_id) {
+      const first_api_key = api_key_list[0];
       // 直接设置 API Key 和 Secret
       setFormData(prev => ({
         ...prev,
-        api_key: firstApiKey.api_key,
-        secret_key: firstApiKey.secret_key,
-        _api_key_id: firstApiKey.id
+        api_key: first_api_key.api_key,
+        secret_key: first_api_key.secret_key,
+        _api_key_id: first_api_key.id
       }));
-      console.log('已设置默认 API Key:', firstApiKey.name, `(${firstApiKey.api_key.substring(0, 8)}...)`);
+      console.log('已设置默认 API Key:', first_api_key.name, `(${first_api_key.api_key.substring(0, 8)}...)`);
     }
-  }, [apiKeyList, isEditing, formData._api_key_id]);
+  }, [api_key_list, is_editing, formData._api_key_id]);
 
   // 保存策略数据
   async function saveStrategy(data: GridStrategyForm) {
     try {
       // 准备请求数据，直接使用表单字段名
-      const requestData = {
+      const request_data = {
         ...data,
         price_precision: 2,
         quantity_precision: 3,
@@ -130,7 +130,7 @@ function GridStrategyEditPage() {
       };
 
       let response;
-      if (isEditing && id) {
+      if (is_editing && id) {
         // 更新现有策略
         response = await GridStrategyApi.update({
           id,
@@ -138,7 +138,7 @@ function GridStrategyEditPage() {
         });
       } else {
         // 创建新策略
-        response = await GridStrategyApi.create(requestData);
+        response = await GridStrategyApi.create(request_data);
       }
 
       if (response.status === 'success') {
@@ -178,7 +178,7 @@ function GridStrategyEditPage() {
 
     const result = await saveStrategy(formData);
     if (result.success) {
-      showSuccess(isEditing ? '策略已更新' : '策略已创建');
+      showSuccess(is_editing ? '策略已更新' : '策略已创建');
 
       // 只有未通过智能配置看过返佣弹窗，才打开返佣提示弹窗
       if (!hasSeenCommissionReferral) {
@@ -210,7 +210,7 @@ function GridStrategyEditPage() {
 
   // 重置表单
   function handleReset() {
-    if (isEditing && id) {
+    if (is_editing && id) {
       loadStrategy(id);
     } else {
       setFormData(defaultGridStrategy);
@@ -237,14 +237,14 @@ function GridStrategyEditPage() {
       setFormData(prev => ({ ...prev, api_key: '', secret_key: '', _api_key_id: undefined }));
       return;
     }
-    const apiKeyId = parseInt(value);
-    const selectedKey = apiKeyList.find(k => k.id === apiKeyId);
-    if (selectedKey) {
+    const api_key_id = parseInt(value);
+    const selected_key = api_key_list.find(k => k.id === api_key_id);
+    if (selected_key) {
       setFormData(prev => ({
         ...prev,
-        api_key: selectedKey.api_key,
-        secret_key: selectedKey.secret_key,
-        _api_key_id: selectedKey.id
+        api_key: selected_key.api_key,
+        secret_key: selected_key.secret_key,
+        _api_key_id: selected_key.id
       }));
       // 选择API Key后自动刷新交易对列表
       refreshTradingPairs();
@@ -262,7 +262,7 @@ function GridStrategyEditPage() {
   function fillMockData() {
     const mockData: Partial<GridStrategyForm> = {
       position_side: Math.random() > 0.5 ? 'LONG' : 'SHORT',
-      trading_pair: usdtPairs[Math.floor(Math.random() * Math.min(usdtPairs.length, 10))] || 'ETHUSDT',
+      trading_pair: usdt_pairs[Math.floor(Math.random() * Math.min(usdt_pairs.length, 10))] || 'ETHUSDT',
       api_key: 'mock_api_key_' + Math.random().toString(36).substring(2, 10),
       secret_key: 'mock_secret_' + Math.random().toString(36).substring(2, 10),
       leverage: 20,
@@ -315,15 +315,15 @@ function GridStrategyEditPage() {
     setFormData(prev => {
       // 做多：价格高继续，价格低暂停
       // 做空：价格高暂停，价格低继续
-      const isLong = prev.position_side === 'LONG';
+      const is_long = prev.position_side === 'LONG';
       return {
         ...prev,
         grid_price_difference: config.grid_price_difference,
         grid_trade_quantity: config.grid_trade_quantity,
         gt_limitation_price: config.gt_limitation_price,
         lt_limitation_price: config.lt_limitation_price,
-        is_above_open_price: !isLong,  // 做多不暂停，做空暂停
-        is_below_open_price: isLong    // 做多暂停，做空不暂停
+        is_above_open_price: !is_long,  // 做多不暂停，做空暂停
+        is_below_open_price: is_long    // 做多暂停，做空不暂停
       };
     });
 
@@ -344,18 +344,18 @@ function GridStrategyEditPage() {
     if (saveStatus === 'saving') {
       return '保存中...';
     }
-    return isEditing ? '保存并重启' : '保存并启动';
+    return is_editing ? '保存并重启' : '保存并启动';
   }
 
   // API Key 下拉选项
-  const apiKeyOptions = apiKeyList.map(k => ({
+  const api_key_options = api_key_list.map(k => ({
     value: String(k.id),
     label: `${k.name} (${k.api_key.substring(0, 8)}...)`
   }));
 
   // 当前选中的 API Key
-  const currentApiKeyValue = formData._api_key_id ? String(formData._api_key_id) :
-    apiKeyList.find(k => k.api_key === formData.api_key)?.id.toString() || '';
+  const current_api_key_value = formData._api_key_id ? String(formData._api_key_id) :
+    api_key_list.find(k => k.api_key === formData.api_key)?.id.toString() || '';
 
   return (
     <div className="container">
@@ -368,11 +368,11 @@ function GridStrategyEditPage() {
             </Link>
             <span style={{ color: 'var(--color-text-muted)' }}>|</span>
             <h1 style={{ margin: 0, fontSize: 'var(--text-xl)' }}>
-              {isEditing ? '编辑网格策略' : '新建网格策略'}
+              {is_editing ? '编辑网格策略' : '新建网格策略'}
             </h1>
           </div>
           <div className="flex gap-8">
-            {!isEditing && (
+            {!is_editing && (
               <button
                 type="button"
                 className="btn btn-outline"
@@ -464,7 +464,7 @@ function GridStrategyEditPage() {
                 placeholder="搜索选择交易对"
                 searchable
                 clearable
-                data={usdtPairs}
+                data={usdt_pairs}
                 value={formData.trading_pair}
                 onChange={(value) => updateFormField('trading_pair', value || '')}
               />
@@ -480,8 +480,8 @@ function GridStrategyEditPage() {
               <Select
                 placeholder="选择API Key"
                 clearable
-                data={apiKeyOptions}
-                value={currentApiKeyValue}
+                data={api_key_options}
+                value={current_api_key_value}
                 onChange={handleApiKeyChange}
               />
               <div className="help">选择已配置的币安API密钥，Secret将自动填充</div>

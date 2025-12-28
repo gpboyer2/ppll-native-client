@@ -56,18 +56,18 @@ export const useDataManagementStore = createPersistedStore(
     },
     
     setBackupInterval: (hours: number) => {
-      const clampedHours = Math.max(1, Math.min(168, hours)); // 1小时到1周
+      const clamped_hours = Math.max(1, Math.min(168, hours)); // 1小时到1周
       set((state: DataManagementState) => ({
         ...state,
-        backupInterval: clampedHours,
+        backupInterval: clamped_hours,
       }));
     },
     
     setMaxBackupFiles: (count: number) => {
-      const clampedCount = Math.max(1, Math.min(50, count));
+      const clamped_count = Math.max(1, Math.min(50, count));
       set((state: DataManagementState) => ({
         ...state,
-        maxBackupFiles: clampedCount,
+        maxBackupFiles: clamped_count,
       }));
     },
     
@@ -113,25 +113,25 @@ export const useDataManagementStore = createPersistedStore(
     // 获取清理统计信息
     getClearStats: (): {
       totalClears: number;
-      lastClear: string;
-      daysSinceLastClear: number;
+      last_clear: string;
+      days_since_last_clear: number;
     } => {
       const state = get() as DataManagementState;
       
-      let daysSinceLastClear = 0;
-      let lastClear = '从未清理';
+      let days_since_last_clear = 0;
+      let last_clear = '从未清理';
       
       if (state.lastClearTime) {
         const lastClearDate = new Date(state.lastClearTime);
         const now = new Date();
-        daysSinceLastClear = Math.floor((now.getTime() - lastClearDate.getTime()) / (1000 * 60 * 60 * 24));
-        lastClear = lastClearDate.toLocaleString();
+        days_since_last_clear = Math.floor((now.getTime() - lastClearDate.getTime()) / (1000 * 60 * 60 * 24));
+        last_clear = lastClearDate.toLocaleString();
       }
       
       return {
         totalClears: state.clearCount,
-        lastClear,
-        daysSinceLastClear,
+        last_clear,
+        days_since_last_clear,
       };
     },
     

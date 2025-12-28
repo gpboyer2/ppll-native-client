@@ -13,14 +13,14 @@ const { filterUsdtPerpetualContracts } = require("../utils/trading-pairs");
  * 获取交易所信息
  */
 const getExchangeInfo = catchAsync(async (req, res) => {
-  const { apiKey, apiSecret } = extractApiCredentials(req);
+  const { api_key, secret_key } = extractApiCredentials(req);
 
   try {
     // 检查是否需要更新
     if (await binanceExchangeInfoService.needsUpdate()) {
       const exchangeInfo = await binanceExchangeInfoService.fetchExchangeInfo(
-        apiKey,
-        apiSecret
+        api_key,
+        secret_key
       );
       await binanceExchangeInfoService.updateExchangeInfo(exchangeInfo);
     }
@@ -48,13 +48,13 @@ const getExchangeInfo = catchAsync(async (req, res) => {
  * 强制更新交易所信息
  */
 const forceUpdate = catchAsync(async (req, res) => {
-  const { apiKey, apiSecret } = extractApiCredentials(req);
+  const { api_key, secret_key } = extractApiCredentials(req);
 
   try {
     const exchangeInfo =
       await binanceExchangeInfoService.forceUpdateExchangeInfo(
-        apiKey,
-        apiSecret
+        api_key,
+        secret_key
       );
 
     // 过滤交易对：只保留USDT永续合约
@@ -86,12 +86,12 @@ const getStatus = catchAsync(async (req, res) => {
  * 获取最新标记价格和资金费率
  */
 const getPremiumIndex = catchAsync(async (req, res) => {
-  const { apiKey, apiSecret } = extractApiCredentials(req);
+  const { api_key, secret_key } = extractApiCredentials(req);
 
   try {
     const premiumIndex = await binanceExchangeInfoService.fetchPremiumIndex(
-      apiKey,
-      apiSecret
+      api_key,
+      secret_key
     );
 
     return sendSuccess(res, premiumIndex, '获取标记价格和资金费率成功');
@@ -105,13 +105,13 @@ const getPremiumIndex = catchAsync(async (req, res) => {
  * 获取即将下架的U本位永续合约
  */
 const getDelistingPerpetualContracts = catchAsync(async (req, res) => {
-  const { apiKey, apiSecret } = extractApiCredentials(req);
+  const { api_key, secret_key } = extractApiCredentials(req);
   const daysAhead = parseInt(req.query.daysAhead) || 30;
 
   try {
     const delistingContracts = await binanceExchangeInfoService.getDelistingPerpetualContractsInfo(
-      apiKey,
-      apiSecret,
+      api_key,
+      secret_key,
       daysAhead
     );
 
@@ -134,12 +134,12 @@ const getDelistingPerpetualContracts = catchAsync(async (req, res) => {
  * 测试获取下架计划原始数据
  */
 const getDelistScheduleTest = catchAsync(async (req, res) => {
-  const { apiKey, apiSecret } = extractApiCredentials(req);
+  const { api_key, secret_key } = extractApiCredentials(req);
 
   try {
     const delistSchedule = await binanceExchangeInfoService.fetchDelistSchedule(
-      apiKey,
-      apiSecret
+      api_key,
+      secret_key
     );
 
     return sendSuccess(res, {

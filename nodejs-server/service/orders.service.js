@@ -18,14 +18,14 @@ const SKIP_SYMBOLS = ["USDCUSDT"]; // 跳过的币种
 
 /**
  * 创建币安客户端
- * @param {string} apiKey - API密钥
- * @param {string} apiSecret - API密钥Secret
+ * @param {string} api_key - API密钥
+ * @param {string} secret_key - API密钥Secret
  * @returns {USDMClient} 币安客户端实例
  */
-const createClient = (apiKey, apiSecret) => {
+const createClient = (api_key, secret_key) => {
   const options = {
-    api_key: apiKey,
-    api_secret: apiSecret,
+    api_key: api_key,
+    api_secret: secret_key,
     beautify: true,
   };
 
@@ -45,13 +45,13 @@ const createClient = (apiKey, apiSecret) => {
 
 /**
  * 获取账户信息（不检查余额）- 可用于平仓操作
- * @param {string} apiKey - API密钥
- * @param {string} apiSecret - API密钥Secret
+ * @param {string} api_key - API密钥
+ * @param {string} secret_key - API密钥Secret
  * @returns {Promise<Object>} 账户信息
  */
-const getAccountInfo = async (apiKey, apiSecret) => {
+const getAccountInfo = async (api_key, secret_key) => {
   try {
-    const client = createClient(apiKey, apiSecret);
+    const client = createClient(api_key, secret_key);
     return await client.getAccountInformation();
   } catch (error) {
     if (error instanceof ApiError) throw error;
@@ -62,13 +62,13 @@ const getAccountInfo = async (apiKey, apiSecret) => {
 
 /**
  * 获取交易对信息
- * @param {string} apiKey - API密钥
- * @param {string} apiSecret - API密钥Secret
+ * @param {string} api_key - API密钥
+ * @param {string} secret_key - API密钥Secret
  * @returns {Promise<Object>} 交易对信息
  */
-const getExchangeInfo = async (apiKey, apiSecret) => {
+const getExchangeInfo = async (api_key, secret_key) => {
   try {
-    const client = createClient(apiKey, apiSecret);
+    const client = createClient(api_key, secret_key);
     return await client.getExchangeInfo();
   } catch (error) {
     if (error instanceof ApiError) throw error;
@@ -79,13 +79,13 @@ const getExchangeInfo = async (apiKey, apiSecret) => {
 
 /**
  * 获取价格信息（实时更新）
- * @param {string} apiKey - API密钥
- * @param {string} apiSecret - API密钥Secret
+ * @param {string} api_key - API密钥
+ * @param {string} secret_key - API密钥Secret
  * @returns {Promise<Array>} 价格信息列表
  */
-const getPriceInfo = async (apiKey, apiSecret) => {
+const getPriceInfo = async (api_key, secret_key) => {
   try {
-    const client = createClient(apiKey, apiSecret);
+    const client = createClient(api_key, secret_key);
     return await client.getSymbolPriceTicker();
   } catch (error) {
     if (error instanceof ApiError) throw error;
@@ -96,21 +96,21 @@ const getPriceInfo = async (apiKey, apiSecret) => {
 
 /**
  * 获取USDT交易对列表
- * @param {string} apiKey - API密钥
- * @param {string} apiSecret - API密钥Secret
+ * @param {string} api_key - API密钥
+ * @param {string} secret_key - API密钥Secret
  * @param {string|Array} customPositions - 自定义交易对列表（JSON字符串或数组）
  * @returns {Promise<Array>} USDT交易对列表
  */
-const getUsdtTradingList = async (apiKey, apiSecret, customPositions = null) => {
+const getUsdtTradingList = async (api_key, secret_key, customPositions = null) => {
   try {
-    const priceInfo = await getPriceInfo(apiKey, apiSecret);
-    let usdtTradingList = priceInfo.filter(item => item.symbol.endsWith('USDT'));
+    const priceInfo = await getPriceInfo(api_key, secret_key);
+    let usdt_trading_list = priceInfo.filter(item => item.symbol.endsWith('USDT'));
 
     // 自定义建仓币种过滤
     if (customPositions) {
       try {
         const positions = typeof customPositions === 'string' ? JSON.parse(customPositions) : customPositions;
-        usdtTradingList = usdtTradingList.filter(item => {
+        usdt_trading_list = usdt_trading_list.filter(item => {
           return positions.find(p => p.symbol === item.symbol);
         });
       } catch (error) {
@@ -119,7 +119,7 @@ const getUsdtTradingList = async (apiKey, apiSecret, customPositions = null) => 
       }
     }
 
-    return usdtTradingList;
+    return usdt_trading_list;
   } catch (error) {
     if (error instanceof ApiError) throw error; // 如果错误已经是ApiError，直接抛出，避免覆盖具体错误信息
     throw error;
@@ -138,33 +138,33 @@ const executeDelay = async (range = 'MEDIUM') => {
 
 /**
  * 批量建仓（对冲单）
- * @param {string} apiKey - API密钥
- * @param {string} apiSecret - API密钥Secret
+ * @param {string} api_key - API密钥
+ * @param {string} secret_key - API密钥Secret
  * @param {number} longAmount - 多单金额
  * @param {number} shortAmount - 空单金额
  * @param {Array} positions - 自定义交易对列表
  * @returns {Promise<Object>} 执行结果
  */
-const batchBuildPosition = async (apiKey, apiSecret, longAmount, shortAmount, positions = null) => {
+const batchBuildPosition = async (api_key, secret_key, longAmount, shortAmount, positions = null) => {
   try {
     if (!longAmount || !shortAmount) {
       throw new Error('longAmount or shortAmount is not defined');
     }
 
     // 检查账户余额
-    const accountInfo = await getAccountInfo(apiKey, apiSecret);
-    if (new bigNumber(accountInfo.availableBalance).isLessThan(10)) {
-      throw new Error(`当前合约账户余额${accountInfo.availableBalance}, 不足10u, 请充值`);
+    const account_info = await getAccountInfo(api_key, secret_key);
+    if (new bigNumber(account_info.availableBalance).isLessThan(10)) {
+      throw new Error(`当前合约账户余额${account_info.availableBalance}, 不足10u, 请充值`);
     }
-    const exchangeInfo = await getExchangeInfo(apiKey, apiSecret);
-    const usdtTradingList = await getUsdtTradingList(apiKey, apiSecret, positions);
+    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
+    const usdt_trading_list = await getUsdtTradingList(api_key, secret_key, positions);
 
     // 立即返回响应数据，不等待for循环执行
     const responseData = {
       success: true,
       results: [],
       processedCount: 0,
-      totalPairs: usdtTradingList.length
+      totalPairs: usdt_trading_list.length
     };
 
     // 异步执行建仓操作，不阻塞函数返回
@@ -174,13 +174,13 @@ const batchBuildPosition = async (apiKey, apiSecret, longAmount, shortAmount, po
 
       try {
         // 遍历交易对执行建仓
-        for (let i = 0; i < usdtTradingList.length && sufficient; i++) {
+        for (let i = 0; i < usdt_trading_list.length && sufficient; i++) {
           const sequence = i + 1;
-          const currency = usdtTradingList[i];
+          const currency = usdt_trading_list[i];
 
           if (SKIP_SYMBOLS.includes(currency.symbol)) continue;
 
-          const currencyPos = accountInfo.positions.filter(item => {
+          const currencyPos = account_info.positions.filter(item => {
             return item.symbol === currency.symbol && item.notional !== '0';
           });
 
@@ -202,7 +202,7 @@ const batchBuildPosition = async (apiKey, apiSecret, longAmount, shortAmount, po
             const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, currency.symbol, rawQuantity.toString());
 
             try {
-              const client = createClient(apiKey, apiSecret);
+              const client = createClient(api_key, secret_key);
               await client.submitNewOrder({
                 symbol: currency.symbol,
                 side: 'BUY',
@@ -232,7 +232,7 @@ const batchBuildPosition = async (apiKey, apiSecret, longAmount, shortAmount, po
             const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, currency.symbol, rawQuantity.toString());
 
             try {
-              const client = createClient(apiKey, apiSecret);
+              const client = createClient(api_key, secret_key);
               await client.submitNewOrder({
                 symbol: currency.symbol,
                 side: 'SELL',
@@ -260,8 +260,8 @@ const batchBuildPosition = async (apiKey, apiSecret, longAmount, shortAmount, po
         UtilRecord.log('批量建仓后台执行完成:', {
           sufficient,
           totalProcessed: results.length,
-          successCount: results.filter(r => r.success).length,
-          totalPairs: usdtTradingList.length,
+          success_count: results.filter(r => r.success).length,
+          totalPairs: usdt_trading_list.length,
           results: results
         });
       } catch (error) {
@@ -279,12 +279,12 @@ const batchBuildPosition = async (apiKey, apiSecret, longAmount, shortAmount, po
 
 /**
  * 自定义建仓（对冲单）
- * @param {string} apiKey - API密钥
- * @param {string} apiSecret - API密钥Secret
+ * @param {string} api_key - API密钥
+ * @param {string} secret_key - API密钥Secret
  * @param {Array} positions - 自定义交易对列表
  * @returns {Promise<Object>} 执行结果
  */
-const customBuildPosition = async (apiKey, apiSecret, positions) => {
+const customBuildPosition = async (api_key, secret_key, positions) => {
   try {
     if (!positions?.length) {
       throw new Error('positions 参数异常');
@@ -295,12 +295,12 @@ const customBuildPosition = async (apiKey, apiSecret, positions) => {
     }
 
     // 检查账户余额
-    const accountInfo = await getAccountInfo(apiKey, apiSecret);
-    if (new bigNumber(accountInfo.availableBalance).isLessThan(10)) {
-      throw new Error(`当前合约账户余额${accountInfo.availableBalance}, 不足10u, 请充值`);
+    const account_info = await getAccountInfo(api_key, secret_key);
+    if (new bigNumber(account_info.availableBalance).isLessThan(10)) {
+      throw new Error(`当前合约账户余额${account_info.availableBalance}, 不足10u, 请充值`);
     }
-    const exchangeInfo = await getExchangeInfo(apiKey, apiSecret);
-    const priceInfo = await getPriceInfo(apiKey, apiSecret);
+    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
+    const priceInfo = await getPriceInfo(api_key, secret_key);
 
     // 立即返回响应数据，不等待for循环执行
     const responseData = {
@@ -332,7 +332,7 @@ const customBuildPosition = async (apiKey, apiSecret, positions) => {
               const rawQuantity = new bigNumber(longAmount).div(price);
               const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity.toString());
 
-              const client = createClient(apiKey, apiSecret);
+              const client = createClient(api_key, secret_key);
               await client.submitNewOrder({
                 symbol,
                 side: 'BUY',
@@ -357,7 +357,7 @@ const customBuildPosition = async (apiKey, apiSecret, positions) => {
               const rawQuantity = new bigNumber(shortAmount).div(price);
               const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity.toString());
 
-              const client = createClient(apiKey, apiSecret);
+              const client = createClient(api_key, secret_key);
               await client.submitNewOrder({
                 symbol,
                 side: 'SELL',
@@ -380,7 +380,7 @@ const customBuildPosition = async (apiKey, apiSecret, positions) => {
         // 记录最终执行结果
         UtilRecord.log('自定义建仓后台执行完成:', {
           totalProcessed: results.length,
-          successCount: results.filter(r => r.success).length,
+          success_count: results.filter(r => r.success).length,
           totalPositions: positions.length,
           results: results
         });
@@ -399,19 +399,19 @@ const customBuildPosition = async (apiKey, apiSecret, positions) => {
 
 /**
  * 指定平仓
- * @param {string} apiKey - API密钥
- * @param {string} apiSecret - API密钥Secret
+ * @param {string} api_key - API密钥
+ * @param {string} secret_key - API密钥Secret
  * @param {Array} positions - 平仓信息列表
  * @returns {Promise<Object>} 执行结果
  */
-const appointClosePosition = async (apiKey, apiSecret, positions) => {
+const appointClosePosition = async (api_key, secret_key, positions) => {
   try {
     if (!positions?.length) {
       throw new Error('positions 参数异常');
     }
 
     // 获取交易所信息用于精度处理
-    const exchangeInfo = await getExchangeInfo(apiKey, apiSecret);
+    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
 
     // 立即返回响应数据，不等待for循环执行
     const responseData = {
@@ -425,7 +425,7 @@ const appointClosePosition = async (apiKey, apiSecret, positions) => {
     // 异步执行平仓操作，不阻塞函数返回
     setImmediate(async () => {
       const results = [];
-      let errorMsg = null;
+      let error_msg = null;
 
       try {
         for (let i = 0; i < positions.length; i++) {
@@ -444,14 +444,14 @@ const appointClosePosition = async (apiKey, apiSecret, positions) => {
               positionSide
             };
 
-            const client = createClient(apiKey, apiSecret);
+            const client = createClient(api_key, secret_key);
             await client.submitNewOrder(orderParams);
             UtilRecord.log(`${symbol} 平仓成功`);
             results.push({ symbol, action: `CLOSE_${positionSide}`, success: true });
           } catch (error) {
             // 移除throw，确保异步流程不被中断
             UtilRecord.log(error);
-            errorMsg = error;
+            error_msg = error;
             results.push({ symbol, action: `CLOSE_${positionSide}`, success: false, error: error?.message || JSON.stringify(error) });
           }
 
@@ -461,9 +461,9 @@ const appointClosePosition = async (apiKey, apiSecret, positions) => {
         // 记录最终执行结果
         UtilRecord.log('指定平仓后台执行完成:', {
           totalProcessed: results.length,
-          successCount: results.filter(r => r.success).length,
+          success_count: results.filter(r => r.success).length,
           totalPositions: positions.length,
-          hasError: !!errorMsg,
+          hasError: !!error_msg,
           results: results
         });
       } catch (error) {
@@ -481,21 +481,21 @@ const appointClosePosition = async (apiKey, apiSecret, positions) => {
 
 /**
  * 批量平仓（对冲单）
- * @param {string} apiKey - API密钥
- * @param {string} apiSecret - API密钥Secret
+ * @param {string} api_key - API密钥
+ * @param {string} secret_key - API密钥Secret
  * @param {Array} positions - 交易对符号列表
  * @returns {Promise<Object>} 执行结果
  */
-const batchClosePositions = async (apiKey, apiSecret, positions) => {
+const batchClosePositions = async (api_key, secret_key, positions) => {
   try {
     if (!positions?.length) {
       throw new Error('positions 参数异常');
     }
 
     // 获取账户信息（不检查余额，因为是平仓操作）
-    const accountInfo = await getAccountInfo(apiKey, apiSecret);
-    const exchangeInfo = await getExchangeInfo(apiKey, apiSecret);
-    const accountPositions = accountInfo.positions.filter(poi => positions.includes(poi.symbol));
+    const account_info = await getAccountInfo(api_key, secret_key);
+    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
+    const accountPositions = account_info.positions.filter(poi => positions.includes(poi.symbol));
 
     // 立即返回响应数据，不等待for循环执行
     const responseData = {
@@ -523,7 +523,7 @@ const batchClosePositions = async (apiKey, apiSecret, positions) => {
           if (longPosition?.positionAmt) {
             try {
               const adjustedQuantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, longPosition.positionAmt);
-              const client = createClient(apiKey, apiSecret);
+              const client = createClient(api_key, secret_key);
               await client.submitNewOrder({
                 symbol,
                 side: 'SELL',
@@ -546,7 +546,7 @@ const batchClosePositions = async (apiKey, apiSecret, positions) => {
             try {
               const rawQuantity = new bigNumber(shortPosition.positionAmt).abs().toString();
               const adjustedQuantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity);
-              const client = createClient(apiKey, apiSecret);
+              const client = createClient(api_key, secret_key);
               await client.submitNewOrder({
                 symbol,
                 side: 'BUY',
@@ -572,7 +572,7 @@ const batchClosePositions = async (apiKey, apiSecret, positions) => {
         // 记录最终执行结果
         UtilRecord.log('批量平仓后台执行完成:', {
           totalProcessed: results.length,
-          successCount: results.filter(r => r.success).length,
+          success_count: results.filter(r => r.success).length,
           results: results
         });
       } catch (error) {
@@ -590,21 +590,21 @@ const batchClosePositions = async (apiKey, apiSecret, positions) => {
 
 /**
  * 自定义平仓（多个）- 只平多单
- * @param {string} apiKey - API密钥
- * @param {string} apiSecret - API密钥Secret
+ * @param {string} api_key - API密钥
+ * @param {string} secret_key - API密钥Secret
  * @param {Array} positions - 交易对符号列表
  * @returns {Promise<Object>} 执行结果
  */
-const customCloseMultiplePositions = async (apiKey, apiSecret, positions) => {
+const customCloseMultiplePositions = async (api_key, secret_key, positions) => {
   try {
     if (!positions?.length) {
       throw new Error('positions 参数异常');
     }
 
     // 获取账户信息（不检查余额，因为是平仓操作）
-    const accountInfo = await getAccountInfo(apiKey, apiSecret);
-    const exchangeInfo = await getExchangeInfo(apiKey, apiSecret);
-    const accountPositions = accountInfo.positions.filter(poi => positions.includes(poi.symbol));
+    const account_info = await getAccountInfo(api_key, secret_key);
+    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
+    const accountPositions = account_info.positions.filter(poi => positions.includes(poi.symbol));
 
     // 立即返回响应数据，不等待for循环执行
     const responseData = {
@@ -639,7 +639,7 @@ const customCloseMultiplePositions = async (apiKey, apiSecret, positions) => {
 
           // 平多单
           try {
-            const client = createClient(apiKey, apiSecret);
+            const client = createClient(api_key, secret_key);
             await client.submitNewOrder({
               symbol,
               side: 'SELL',
@@ -664,7 +664,7 @@ const customCloseMultiplePositions = async (apiKey, apiSecret, positions) => {
         // 记录最终执行结果
         UtilRecord.log('自定义平多单后台执行完成:', {
           totalProcessed: results.length,
-          successCount: results.filter(r => r.success).length,
+          success_count: results.filter(r => r.success).length,
           totalPositions: accountPositions.length,
           results: results
         });
@@ -683,20 +683,20 @@ const customCloseMultiplePositions = async (apiKey, apiSecret, positions) => {
 
 /**
  * 自定义平仓
- * @param {string} apiKey - API密钥
- * @param {string} apiSecret - API密钥Secret
+ * @param {string} api_key - API密钥
+ * @param {string} secret_key - API密钥Secret
  * @param {Array} positions - 平仓信息列表
  * @returns {Promise<Object>} 执行结果
  */
-const customClosePositions = async (apiKey, apiSecret, positions) => {
+const customClosePositions = async (api_key, secret_key, positions) => {
   try {
     if (!positions) {
       throw new Error('positions is not defined');
     }
 
     // 获取交易所信息用于精度处理和验证
-    const exchangeInfo = await getExchangeInfo(apiKey, apiSecret);
-    const client = createClient(apiKey, apiSecret);
+    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
+    const client = createClient(api_key, secret_key);
 
     // 过滤有效的平仓请求
     const validPositions = [];
@@ -826,8 +826,8 @@ const customClosePositions = async (apiKey, apiSecret, positions) => {
           validPositions: validPositions.length,
           skippedPositions: skippedPositions.length,
           processed: results.length,
-          successCount: results.filter(r => r.success).length,
-          failedCount: results.filter(r => !r.success).length
+          success_count: results.filter(r => r.success).length,
+          failed_count: results.filter(r => !r.success).length
         });
 
         // 记录失败的订单
@@ -850,15 +850,15 @@ const customClosePositions = async (apiKey, apiSecret, positions) => {
 
 /**
  * 为空单设置原价止盈
- * @param {string} apiKey - API密钥
- * @param {string} apiSecret - API密钥Secret
+ * @param {string} api_key - API密钥
+ * @param {string} secret_key - API密钥Secret
  * @param {Array} positions - 持仓列表 [{symbol, stopPrice, closeRatio}]
  * @returns {Promise<Object>} 设置结果
  */
-const setShortTakeProfit = async (apiKey, apiSecret, positions) => {
+const setShortTakeProfit = async (api_key, secret_key, positions) => {
   try {
-    const exchangeInfo = await getExchangeInfo(apiKey, apiSecret);
-    const accountInfo = await getAccountInfo(apiKey, apiSecret);
+    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
+    const account_info = await getAccountInfo(api_key, secret_key);
 
     // 立即返回响应数据，不等待for循环执行
     const responseData = {
@@ -871,11 +871,11 @@ const setShortTakeProfit = async (apiKey, apiSecret, positions) => {
     // 异步执行止盈设置，不阻塞函数返回
     setImmediate(async () => {
       const results = [];
-      let successCount = 0;
-      let failCount = 0;
+      let success_count = 0;
+      let fail_count = 0;
 
       try {
-        const client = createClient(apiKey, apiSecret);
+        const client = createClient(api_key, secret_key);
 
         for (let i = 0; i < positions.length; i++) {
           const { symbol, stopPrice, closeRatio } = positions[i];
@@ -884,7 +884,7 @@ const setShortTakeProfit = async (apiKey, apiSecret, positions) => {
             await executeDelay('SHORT');
 
             // 查找空单持仓
-            const shortPosition = accountInfo.positions.find(
+            const shortPosition = account_info.positions.find(
               pos => pos.symbol === symbol && pos.positionSide === 'SHORT' && Number(pos.positionAmt) < 0
             );
 
@@ -894,7 +894,7 @@ const setShortTakeProfit = async (apiKey, apiSecret, positions) => {
                 success: false,
                 message: '未找到空单持仓'
               });
-              failCount++;
+              fail_count++;
               continue;
             }
 
@@ -911,7 +911,7 @@ const setShortTakeProfit = async (apiKey, apiSecret, positions) => {
                 success: false,
                 message: '无法获取开仓价'
               });
-              failCount++;
+              fail_count++;
               continue;
             }
 
@@ -950,7 +950,7 @@ const setShortTakeProfit = async (apiKey, apiSecret, positions) => {
               closeRatio,
               message: '止盈订单设置成功'
             });
-            successCount++;
+            success_count++;
 
           } catch (error) {
             results.push({
@@ -958,7 +958,7 @@ const setShortTakeProfit = async (apiKey, apiSecret, positions) => {
               success: false,
               message: error?.message || JSON.stringify(error)
             });
-            failCount++;
+            fail_count++;
             UtilRecord.error(`设置${symbol}空单止盈失败:`, error?.message || JSON.stringify(error));
           }
         }
@@ -966,8 +966,8 @@ const setShortTakeProfit = async (apiKey, apiSecret, positions) => {
         // 记录最终执行结果
         UtilRecord.log('空单止盈设置后台执行完成:', {
           totalProcessed: results.length,
-          successCount,
-          failCount,
+          success_count,
+          fail_count,
           totalPositions: positions.length,
           results: results
         });

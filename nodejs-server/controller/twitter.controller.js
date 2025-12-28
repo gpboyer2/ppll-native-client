@@ -11,10 +11,10 @@ const downloadMedia = catchAsync(async (req, res) => {
   }
 
   // 基础的文件名清理，防止路径遍历攻击
-  const sanitizedFileName = fileName.replace(/\.\.\//g, '').replace(/\//g, '');
+  const sanitized_file_name = fileName.replace(/\.\.\//g, '').replace(/\//g, '');
 
   try {
-    const result = await twitterService.downloadMedia(downloadUrl, sanitizedFileName);
+    const result = await twitterService.downloadMedia(downloadUrl, sanitized_file_name);
 
     if (result.status === 'exists') {
       return sendSuccess(res, { path: result.path }, 'File with the same name already exists. Download skipped.');

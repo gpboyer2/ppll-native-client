@@ -13,7 +13,7 @@ function sanitize(record) {
   const data = record.toJSON ? record.toJSON() : record;
   // 移除或脱敏敏感字段
   if (data.password) delete data.password; // 禁止对外返回
-  // 出于安全考虑：对外返回时不暴露 apiSecret
+  // 出于安全考虑：对外返回时不暴露 secret_key
   if (data.apiSecret) {
     data.apiSecret = '***';
   }
@@ -95,21 +95,21 @@ async function detail(id) {
 
 // 写入（可选使用，默认仅允许安全字段）
 async function create(payload = {}) {
-  // 计算登录方式：支持 (username+password) 或 (apiKey+apiSecret)，两者都存在则标记为组合
+  // 计算登录方式：支持 (username+password) 或 (api_key+secret_key)，两者都存在则标记为组合
   const hasUserPair = Boolean(payload && payload.username && payload.password);
   const hasApiPair = Boolean(payload && payload.apiKey && payload.apiSecret);
-  let inferredMethod = 'unknown';
-  if (hasUserPair && hasApiPair) inferredMethod = 'apiKey+password';
-  else if (hasUserPair) inferredMethod = 'password';
-  else if (hasApiPair) inferredMethod = 'apiKey';
+  let inferred_method = 'unknown';
+  if (hasUserPair && hasApiPair) inferred_method = 'api_key+password';
+  else if (hasUserPair) inferred_method = 'password';
+  else if (hasApiPair) inferred_method = 'api_key';
 
   // 如检测到敏感字段存在，只记录提示日志，不打印具体值
-  // 不再拒绝持久化 apiSecret；根据业务要求允许入库
+  // 不再拒绝持久化 secret_key；根据业务要求允许入库
 
   const allow = {
     username: payload.username,
-    apiKey: payload.apiKey,
-    apiSecret: payload.apiSecret, // 根据需求允许入库
+    api_key: payload.apiKey,
+    secret_key: payload.apiSecret, // 根据需求允许入库
     login_time: payload.login_time || new Date(),
     ip: payload.ip,
     location: payload.location,
@@ -118,7 +118,7 @@ async function create(payload = {}) {
     os: payload.os,
     device: payload.device,
     // method 若未显式传入，则根据凭证对推断
-    method: payload.method || inferredMethod,
+    method: payload.method || inferred_method,
     login_system: payload.login_system,
     status: payload.status ?? 0,
     fail_reason: payload.fail_reason,
@@ -129,7 +129,7 @@ async function create(payload = {}) {
   return sanitize(created);
 }
 
-// 更新（仅允许安全字段，禁止更新 apiSecret/id）
+// 更新（仅允许安全字段，禁止更新 secret_key/id）
 async function update(payload = {}) {
   const { id } = payload || {};
   if (!id) throw new ApiError(httpStatus.BAD_REQUEST, '缺少参数 id');
@@ -138,7 +138,7 @@ async function update(payload = {}) {
   if (!record) throw new ApiError(httpStatus.NOT_FOUND, '记录不存在');
 
   const allowFields = [
-    'username', 'apiKey', 'login_time', 'ip', 'location', 'user_agent',
+    'username', 'api_key', 'login_time', 'ip', 'location', 'user_agent',
     'browser', 'os', 'device', 'method', 'login_system', 'status', 'fail_reason'
   ];
   const updateData = {};

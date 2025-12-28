@@ -9,11 +9,11 @@ const catchAsync = require("../utils/catch-async");
 const { sendSuccess, sendError } = require("../utils/api-response");
 
 const list = catchAsync(async (req, res) => {
-  let { apiKey, apiSecret } = req.apiCredentials;
+  let { api_key, secret_key } = req.apiCredentials;
   let { currentPage, pageSize } = req.query;
 
   let grid = await gridStrategyService.getAllGridStrategys(
-    { api_key: apiKey, api_secret: apiSecret },
+    { api_key: api_key, api_secret: secret_key },
     { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 }
   );
 
@@ -28,7 +28,7 @@ const list = catchAsync(async (req, res) => {
  * 
  */
 const create = catchAsync(async (req, res) => {
-  const { apiKey, apiSecret } = req.apiCredentials;
+  const { api_key, secret_key } = req.apiCredentials;
   const {
     trading_pair,
     position_side,
@@ -97,8 +97,8 @@ const create = catchAsync(async (req, res) => {
   }
 
   const strategyData = {
-    api_key: apiKey,
-    api_secret: apiSecret,
+    api_key: api_key,
+    api_secret: secret_key,
     trading_pair,
     position_side,
     grid_price_difference,
@@ -156,7 +156,7 @@ const create = catchAsync(async (req, res) => {
 
 /** 删除网格策略 */
 const deletes = catchAsync(async (req, res) => {
-  let { apiKey, apiSecret } = req.apiCredentials;
+  let { api_key, secret_key } = req.apiCredentials;
   let { id } = req.body;
   let result = null;
 
@@ -165,8 +165,8 @@ const deletes = catchAsync(async (req, res) => {
   }
 
   result = await gridStrategyService.deleteGridStrategyById({
-    api_key: apiKey,
-    api_secret: apiSecret,
+    api_key: api_key,
+    api_secret: secret_key,
     id: Number(id)
   });
 
@@ -179,7 +179,7 @@ const deletes = catchAsync(async (req, res) => {
 
 
 const update = catchAsync(async (req, res) => {
-  const { apiKey, apiSecret } = req.apiCredentials;
+  const { api_key, secret_key } = req.apiCredentials;
   const {
     id,
     grid_price_difference,
@@ -209,8 +209,8 @@ const update = catchAsync(async (req, res) => {
 
   const updateData = {
     id: Number(id),
-    api_key: apiKey,
-    api_secret: apiSecret,
+    api_key: api_key,
+    api_secret: secret_key,
     grid_price_difference,
     grid_trade_quantity,
     grid_long_open_quantity,
@@ -251,7 +251,7 @@ const update = catchAsync(async (req, res) => {
 
 /** 更新网格策略状态（暂停或继续） */
 const action = catchAsync(async (req, res) => {
-  let { apiKey, apiSecret } = req.apiCredentials;
+  let { api_key, secret_key } = req.apiCredentials;
   let { id, paused } = req.body;
 
   if (!id) {
@@ -260,8 +260,8 @@ const action = catchAsync(async (req, res) => {
 
   const result = await gridStrategyService.updateGridStrategyById({
     paused,
-    api_key: apiKey,
-    api_secret: apiSecret,
+    api_key: api_key,
+    api_secret: secret_key,
     id: Number(id)
   });
 
@@ -275,11 +275,11 @@ const action = catchAsync(async (req, res) => {
 
 
 const query = catchAsync(async (req, res) => {
-  let { apiKey, apiSecret } = req.apiCredentials;
+  let { api_key, secret_key } = req.apiCredentials;
   let { currentPage, pageSize } = req.query;
 
   let grid = await gridStrategyService.getAllGridStrategys(
-    { api_key: apiKey, api_secret: apiSecret },
+    { api_key: api_key, api_secret: secret_key },
     { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 }
   );
 
@@ -291,8 +291,8 @@ const query = catchAsync(async (req, res) => {
  * 智能网格参数优化
  * 根据K线数据自动计算最优网格参数
  */
-const optimizeParams = catchAsync(async (req, res) => {
-  const { apiKey, apiSecret } = req.apiCredentials;
+const optimize_params = catchAsync(async (req, res) => {
+  const { api_key, secret_key } = req.apiCredentials;
   const {
     symbol,
     interval,
@@ -320,8 +320,8 @@ const optimizeParams = catchAsync(async (req, res) => {
       enable_boundary_defense: false,
       min_trade_value: min_trade_value ? Number(min_trade_value) : 20,
       max_trade_value: max_trade_value ? Number(max_trade_value) : 100,
-      api_key: apiKey,
-      api_secret: apiSecret
+      api_key: api_key,
+      api_secret: secret_key
     });
 
     return sendSuccess(res, result, "获取优化参数成功");
@@ -339,5 +339,5 @@ module.exports = {
   update,
   action,
   query,
-  optimizeParams,
+  optimize_params,
 };

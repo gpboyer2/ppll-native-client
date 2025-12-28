@@ -63,35 +63,35 @@ const createApiKey = async (params) => {
 
 /**
  * 根据 ID 删除 ApiKey（软删除）
- * @param {number} apiKeyId - 要删除的 ApiKey ID
+ * @param {number} api_key_id - 要删除的 ApiKey ID
  * @returns {Promise<Object>} 删除成功的 ApiKey 信息对象
  */
-const deleteApiKeyById = async (apiKeyId) => {
-  const apiKey = await BinanceApiKey.findOne({
+const deleteApiKeyById = async (api_key_id) => {
+  const api_key = await BinanceApiKey.findOne({
     where: {
-      id: apiKeyId,
+      id: api_key_id,
       deleted: 0
     }
   });
 
-  if (!apiKey) {
+  if (!api_key) {
     throw new ApiError(httpStatus.NOT_FOUND, 'ApiKey 不存在');
   }
 
-  await apiKey.update({ deleted: 1 });
-  return apiKey.toJSON();
+  await api_key.update({ deleted: 1 });
+  return api_key.toJSON();
 };
 
 /**
  * 根据 ID 更新 ApiKey 信息
- * @param {number} apiKeyId - 要更新的 ApiKey ID
+ * @param {number} api_key_id - 要更新的 ApiKey ID
  * @param {Object} updateBody - 包含要更新字段的对象
  * @returns {Promise<Object>} 更新成功的 ApiKey 信息对象
  */
-const updateApiKeyById = async (apiKeyId, updateBody) => {
+const updateApiKeyById = async (api_key_id, updateBody) => {
   const existingKey = await BinanceApiKey.findOne({
     where: {
-      id: apiKeyId,
+      id: api_key_id,
       deleted: 0
     }
   });
@@ -119,7 +119,7 @@ const updateApiKeyById = async (apiKeyId, updateBody) => {
     const duplicateName = await BinanceApiKey.findOne({
       where: {
         name: name,
-        id: { [db.Sequelize.Op.ne]: apiKeyId },
+        id: { [db.Sequelize.Op.ne]: api_key_id },
         deleted: 0
       }
     });
@@ -135,7 +135,7 @@ const updateApiKeyById = async (apiKeyId, updateBody) => {
     const duplicateKey = await BinanceApiKey.findOne({
       where: {
         api_key: api_key,
-        id: { [db.Sequelize.Op.ne]: apiKeyId },
+        id: { [db.Sequelize.Op.ne]: api_key_id },
         deleted: 0
       }
     });
@@ -156,7 +156,7 @@ const updateApiKeyById = async (apiKeyId, updateBody) => {
   // 重新查询获取最新数据
   const updatedKey = await BinanceApiKey.findOne({
     where: {
-      id: apiKeyId,
+      id: api_key_id,
       deleted: 0
     }
   });
@@ -214,18 +214,18 @@ const getAllApiKeys = async (filter = {}, options = {}) => {
 
 /**
  * 根据 ID 获取单个 ApiKey
- * @param {number} apiKeyId - ApiKey ID
+ * @param {number} api_key_id - ApiKey ID
  * @returns {Promise<Object|null>} ApiKey 信息对象或 null
  */
-const getApiKeyById = async (apiKeyId) => {
-  const apiKey = await BinanceApiKey.findOne({
+const getApiKeyById = async (api_key_id) => {
+  const api_key = await BinanceApiKey.findOne({
     where: {
-      id: apiKeyId,
+      id: api_key_id,
       deleted: { [db.Sequelize.Op.ne]: 1 }
     }
   });
 
-  return apiKey ? apiKey.toJSON() : null;
+  return api_key ? api_key.toJSON() : null;
 };
 
 /**

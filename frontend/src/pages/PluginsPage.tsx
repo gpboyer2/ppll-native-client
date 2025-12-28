@@ -5,8 +5,8 @@ import { getPluginList, setPluginEnable, type PluginItem } from '../router';
 
 function PluginsPage() {
   const params = useParams();
-  const activePluginId = params.id;
-  const pluginContainerRef = useRef<HTMLDivElement>(null);
+  const active_plugin_id = params.id;
+  const plugin_container_ref = useRef<HTMLDivElement>(null);
 
   const [pluginList, setPluginList] = useState<PluginItem[]>(() => getPluginList());
   const [loading, setLoading] = useState(false);
@@ -18,13 +18,13 @@ function PluginsPage() {
 
   // 当路由参数变化时，挂载对应插件
   useEffect(() => {
-    if (activePluginId && pluginContainerRef.current) {
-      const plugin = pluginList.find(p => p.id === activePluginId);
+    if (active_plugin_id && plugin_container_ref.current) {
+      const plugin = pluginList.find(p => p.id === active_plugin_id);
       if (plugin?.enable) {
-        pluginRegistry.mount(activePluginId, pluginContainerRef.current);
+        pluginRegistry.mount(active_plugin_id, plugin_container_ref.current);
       }
     }
-  }, [activePluginId, pluginList]);
+  }, [active_plugin_id, pluginList]);
 
   // 切换插件启用状态
   async function togglePlugin(plugin: PluginItem) {
@@ -32,18 +32,18 @@ function PluginsPage() {
     setLoading(true);
         
     try {
-      const newEnable = !plugin.enable;
-      setPluginEnable(plugin.id, newEnable);
+      const new_enable = !plugin.enable;
+      setPluginEnable(plugin.id, new_enable);
             
-      if (!newEnable) {
+      if (!new_enable) {
         await pluginRegistry.disable(plugin.id);
-      } else if (pluginContainerRef.current) {
+      } else if (plugin_container_ref.current) {
         await pluginRegistry.enable({ 
           id: plugin.id, 
           name: plugin.name, 
           version: plugin.version, 
           enable: true 
-        }, pluginContainerRef.current);
+        }, plugin_container_ref.current);
       }
       refreshPluginList();
     } catch (error) {
@@ -54,14 +54,14 @@ function PluginsPage() {
   }
 
   // 过滤插件列表
-  const availablePluginList = pluginList.filter(p => p.status !== 'coming-soon');
-  const enabledPluginList = availablePluginList.filter(p => p.enable);
-  const disabledPluginList = availablePluginList.filter(p => !p.enable);
+  const available_plugin_list = pluginList.filter(p => p.status !== 'coming-soon');
+  const enabled_plugin_list = available_plugin_list.filter(p => p.enable);
+  const disabled_plugin_list = available_plugin_list.filter(p => !p.enable);
 
   // 插件详情页面
-  if (activePluginId) {
-    const plugin = pluginList.find(p => p.id === activePluginId);
-    const info = plugin || { name: activePluginId, description: '', icon: '🔧' };
+  if (active_plugin_id) {
+    const plugin = pluginList.find(p => p.id === active_plugin_id);
+    const info = plugin || { name: active_plugin_id, description: '', icon: '🔧' };
 
     return (
       <div className="plugin-detail-page">
@@ -82,7 +82,7 @@ function PluginsPage() {
           </div>
         </div>
         <div className="plugin-detail-content">
-          <div ref={pluginContainerRef} style={{ width: '100%', minHeight: 'calc(100vh - 60px)', padding: '0' }}>
+          <div ref={plugin_container_ref} style={{ width: '100%', minHeight: 'calc(100vh - 60px)', padding: '0' }}>
             {plugin?.enable ? (
               <div style={{ width: '100%', height: '100%', minHeight: 'calc(100vh - 60px)' }} />
             ) : (
@@ -115,13 +115,13 @@ function PluginsPage() {
             <div className="card-header">
               <div className="flex items-center space-between">
                 <span>已启用插件</span>
-                <span className="tag success">{enabledPluginList.length}</span>
+                <span className="tag success">{enabled_plugin_list.length}</span>
               </div>
             </div>
             <div className="card-content">
-              {enabledPluginList.length > 0 ? (
+              {enabled_plugin_list.length > 0 ? (
                 <div className="flex flex-col gap-8">
-                  {enabledPluginList.map(plugin => (
+                  {enabled_plugin_list.map(plugin => (
                     <div key={plugin.id} className="p-8 rounded border">
                       <div className="flex items-center space-between mb-8">
                         <Link to={`/plugins/${plugin.id}`} className="btn btn-ghost" style={{ height: 'auto', padding: '4px 8px', textAlign: 'left' }}>
@@ -149,13 +149,13 @@ function PluginsPage() {
             <div className="card-header">
               <div className="flex items-center space-between">
                 <span>可用插件</span>
-                <span className="tag">{disabledPluginList.length}</span>
+                <span className="tag">{disabled_plugin_list.length}</span>
               </div>
             </div>
             <div className="card-content">
-              {disabledPluginList.length > 0 ? (
+              {disabled_plugin_list.length > 0 ? (
                 <div className="flex flex-col gap-8">
-                  {disabledPluginList.map(plugin => (
+                  {disabled_plugin_list.map(plugin => (
                     <div key={plugin.id} className="p-8 rounded border">
                       <div className="flex items-center gap-8 mb-8">
                         <span style={{fontSize: '18px'}}>{plugin.icon}</span>
@@ -184,14 +184,14 @@ function PluginsPage() {
             <div className="card-content">
               <div className="flex flex-col gap-12">
                 {pluginList.map(plugin => {
-                  const isComingSoon = plugin.status === 'coming-soon';
+                  const is_coming_soon = plugin.status === 'coming-soon';
                   return (
                     <div key={plugin.id} className="flex items-center gap-12">
                       <div style={{fontSize: '24px'}}>{plugin.icon}</div>
                       <div style={{flex: 1}}>
                         <div style={{fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px'}}>
                           {plugin.name}
-                          {isComingSoon && <span className="tag warn" style={{fontSize: '10px', height: '18px'}}>即将推出</span>}
+                          {is_coming_soon && <span className="tag warn" style={{fontSize: '10px', height: '18px'}}>即将推出</span>}
                         </div>
                         <div className="text-muted" style={{fontSize: 'var(--text-sm)'}}>
                           {plugin.description}
@@ -200,7 +200,7 @@ function PluginsPage() {
                           )}
                         </div>
                       </div>
-                      {isComingSoon ? (
+                      {is_coming_soon ? (
                         <button className="btn btn-outline" disabled style={{opacity: 0.5}}>敬请期待</button>
                       ) : (
                         <Link to={`/plugins/${plugin.id}`} className="btn btn-outline">查看</Link>

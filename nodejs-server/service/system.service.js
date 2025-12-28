@@ -84,16 +84,16 @@ const getHealth = async () => {
   const uptimeMs = Date.now() - SERVICE_START_TIME;
 
   // 数据库健康检查
-  let dbHealthy = false;
+  let db_healthy = false;
   try {
     await db.sequelize.authenticate();
     const tables = await db.sequelize.query(
       "SELECT name FROM sqlite_master WHERE type='table'"
     );
     const tableNames = tables[0].map(t => t.name);
-    dbHealthy = tableNames.includes('grid_strategies');
+    db_healthy = tableNames.includes('grid_strategies');
   } catch (e) {
-    dbHealthy = false;
+    db_healthy = false;
   }
 
   // 资源使用
@@ -118,9 +118,9 @@ const getHealth = async () => {
       uptime: formatUptime(uptimeMs)
     },
     health: {
-      is_healthy: dbHealthy,
+      is_healthy: db_healthy,
       database: {
-        healthy: dbHealthy
+        healthy: db_healthy
       }
     },
     resources: {

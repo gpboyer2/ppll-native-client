@@ -66,7 +66,7 @@ const cleanupSubscriber = async (symbol, id, remark) => {
  */
 const createGridStrategy = async (/** @type {{api_key: string, api_secret: string, trading_pair: string, position_side: string, exchange_type?: string}} */ params) => {
   // 单用户系统：直接使用 API Key/Secret，无需查询用户表
-  let validParams = sanitizeParams(params, GridStrategy);
+  let valid_params = sanitizeParams(params, GridStrategy);
 
   const [row, created] = await GridStrategy.findOrCreate({
     where: {
@@ -75,20 +75,20 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
       trading_pair: params.trading_pair,
       position_side: params.position_side,
     },
-    defaults: validParams,
+    defaults: valid_params,
   });
 
   // 假设新创建的网格策略或者网格策略不存在时，初始化网格实例
   if (created || !gridMap[row.id]) {
     setTimeout(() => {
-      let infiniteGridParams = validParams;
-      infiniteGridParams.id = row.id;
-      infiniteGridParams.api_key = params.api_key; // 使用 API Key 作为用户标识
-      const wealthySoon = new InfiniteGrid(infiniteGridParams);
+      let infinite_grid_params = valid_params;
+      infinite_grid_params.id = row.id;
+      infinite_grid_params.api_key = params.api_key; // 使用 API Key 作为用户标识
+      const wealthySoon = new InfiniteGrid(infinite_grid_params);
       wealthySoon.initOrders();
       gridMap[row.id] = wealthySoon; // 存储网格实例
 
-      const symbol = validParams.trading_pair;
+      const symbol = valid_params.trading_pair;
 
       // 初始化订阅
       if (!gridStrategyRegistry.has(symbol)) {
@@ -109,7 +109,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
         UtilRecord.log('[grid-strategy] 新增网格订阅', {
           symbol,
           strategyId: row.id,
-          apiKey: params.api_key?.substring(0, 8),
+          api_key: params.api_key?.substring(0, 8),
           positionSide: params.position_side,
           productType: params.exchange_type || 'u本位合约',
           action: 'subscribe',
@@ -135,7 +135,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
         UtilRecord.log('[grid-strategy] 复用现有网格订阅', {
           symbol,
           strategyId: row.id,
-          apiKey: params.api_key?.substring(0, 8),
+          api_key: params.api_key?.substring(0, 8),
           positionSide: params.position_side,
           productType: params.exchange_type || 'u本位合约',
           action: 'subscribe',
@@ -169,7 +169,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
         // 错误处理
         UtilRecord.log('[grid-strategy] 网格策略错误', {
           strategyId: this.config.id,
-          apiKey: this.config.apiKey?.substring(0, 8),
+          api_key: this.config.apiKey?.substring(0, 8),
           symbol: this.config.tradingPair,
           positionSide: this.config.positionSide,
           productType: this.config.exchangeType || 'u本位合约',
@@ -370,8 +370,8 @@ const getGridStrategyByApiKey = async (api_key, api_secret) => {
  */
 const updateGridStrategyById = async (updateBody) => {
   // 单用户系统：直接使用 API Key/Secret，无需查询用户表
-  let gridStrategyInstance = GridStrategy.build(updateBody);
-  let params = gridStrategyInstance.get();
+  let grid_strategy_instance = GridStrategy.build(updateBody);
+  let params = grid_strategy_instance.get();
   let { id, api_key, api_secret, paused } = params;
 
   // 数据隔离：通过 api_key + api_secret
@@ -424,8 +424,8 @@ const updateGridStrategyById = async (updateBody) => {
  */
 const deleteGridStrategyById = async (updateBody) => {
   // 单用户系统：直接使用 API Key/Secret，无需查询用户表
-  let gridStrategyInstance = GridStrategy.build(updateBody);
-  let params = gridStrategyInstance.get();
+  let grid_strategy_instance = GridStrategy.build(updateBody);
+  let params = grid_strategy_instance.get();
   let { id, api_key, api_secret } = params;
 
   // 数据隔离：通过 api_key + api_secret

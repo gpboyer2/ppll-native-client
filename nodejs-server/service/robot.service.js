@@ -13,7 +13,7 @@ const ApiError = require('../utils/api-error');
 const createRobot = async (params) => {
   const [row, created] = await Robot.findOrCreate({
     where: {
-      apiKey: params.apiKey,
+      api_key: params.apiKey,
       tradingPair: params.tradingPair,
     },
     defaults: params,
@@ -30,8 +30,8 @@ const createRobot = async (params) => {
 const createSymbolWebsocket = async (params) => {
   // 使用传入的 API 密钥创建独立的 WebSocket 客户端
   const wsClient = createWsClient({
-    apiKey: params.apiKey,
-    apiSecret: params.apiSecret,
+    api_key: params.apiKey,
+    secret_key: params.apiSecret,
     beautify: true,
   });
 
@@ -60,10 +60,10 @@ const createSymbolWebsocket = async (params) => {
 
 
 async function latestMessage(params) {
-  const { apiKey, apiSecret } = params;
+  const { api_key, secret_key } = params;
 
   const result = await Robot.findOne({
-    where: { apiKey, apiSecret },
+    where: { api_key, secret_key },
     order: [['id', 'DESC']], // Assuming there's a created_at field to determine the order
     limit: 1
   });
@@ -88,16 +88,16 @@ const getRobotById = async (id) => {
 };
 
 
-const getRobotByApiKey = async (apiKey, apiSecret) => {
-  return Robot.findOne({ where: { apiKey, apiSecret } });
+const getRobotByApiKey = async (api_key, secret_key) => {
+  return Robot.findOne({ where: { api_key, secret_key } });
 };
 
 
 const updateRobotById = async (robotId, updateBody) => {
-  const { robotname, apiKey, active, status } = updateBody;
+  const { robotname, api_key, active, status } = updateBody;
   const robot = {
     robotname,
-    apiKey,
+    api_key,
     active,
     status,
   };

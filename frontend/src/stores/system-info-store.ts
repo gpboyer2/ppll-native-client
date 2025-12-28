@@ -56,9 +56,9 @@ interface HealthData {
 
 interface StaticInfo {
     frontendUrl: string;
-    appVersion: string;
+    app_version: string;
     appDescription: string;
-    nodejsUrl: string;
+    nodejs_url: string;
     environment: string;
     ipv4List: string[];
     databasePath?: string;
@@ -80,9 +80,9 @@ interface SystemInfoStore {
 
 const defaultStaticInfo: StaticInfo = {
   frontendUrl: typeof window !== 'undefined' ? window.location.origin : '',
-  appVersion: 'unknown',
+  app_version: 'unknown',
   appDescription: '',
-  nodejsUrl: '',
+  nodejs_url: '',
   environment: 'production',
   ipv4List: [],
   gitInfo: undefined
@@ -152,21 +152,21 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
 
       try {
         // 检查 Wails 环境是否可用
-        const isWailsAvailable = typeof window !== 'undefined' &&
+        const is_wails_available = typeof window !== 'undefined' &&
                                        (window as any).go &&
                                        (window as any).go.main;
 
-        if (!isWailsAvailable) {
+        if (!is_wails_available) {
           console.warn('Wails 环境未就绪，使用浏览器模式初始化');
 
           // 浏览器模式：使用默认 Node.js 服务地址
-          const nodejsUrl = 'http://localhost:54321';
+          const nodejs_url = 'http://localhost:54321';
 
           // 设置 staticInfo
           set({
             staticInfo: {
               ...defaultStaticInfo,
-              nodejsUrl
+              nodejs_url
             },
             loading: false
           });
@@ -194,23 +194,23 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
         }
 
         // Wails 桌面客户端模式
-        const [appDescription, nodejsUrl] = await Promise.all([
+        const [appDescription, nodejs_url] = await Promise.all([
           GetAppDescription(),
           GetNodejsServiceURL()
         ]);
 
         // 配置 API 客户端的 base_url
-        if (nodejsUrl) {
-          apiClient.configure({ base_url: nodejsUrl });
+        if (nodejs_url) {
+          apiClient.configure({ base_url: nodejs_url });
         }
 
         let ipv4List: string[] = [];
         let gitInfo: GitInfo | undefined;
-        let appVersion = 'unknown';
+        let app_version = 'unknown';
         let healthData: HealthData | null = null;
         let databasePath: string | undefined;
 
-        if (nodejsUrl) {
+        if (nodejs_url) {
           for (let i = 0; i < 60; i++) {
             try {
               const [ipResponse, gitResponse, healthResponse, dbPathResponse] = await Promise.allSettled([
@@ -229,7 +229,7 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
               if (gitResponse.status === 'fulfilled' && gitResponse.value) {
                 if (gitResponse.value.status === 'success' && gitResponse.value.data) {
                   gitInfo = gitResponse.value.data;
-                  appVersion = gitInfo?.tag || appVersion;
+                  app_version = gitInfo?.tag || app_version;
                 }
               }
 
@@ -257,9 +257,9 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
 
         const staticInfo: StaticInfo = {
           frontendUrl: typeof window !== 'undefined' ? window.location.origin : '',
-          appVersion,
+          app_version,
           appDescription,
-          nodejsUrl,
+          nodejs_url,
           environment: import.meta.env.MODE || 'production',
           ipv4List,
           databasePath,

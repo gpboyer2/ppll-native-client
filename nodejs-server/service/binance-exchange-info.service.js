@@ -20,14 +20,14 @@ const BinanceTools = require("../binance/tools.js");
 
 /**
  * 创建币安USDM合约客户端
- * @param {string} apiKey - 用户API Key
- * @param {string} apiSecret - 用户API Secret
+ * @param {string} api_key - 用户API Key
+ * @param {string} secret_key - 用户API Secret
  * @returns {USDMClient} 币安USDM合约客户端实例
  */
-const createUsdmClient = (apiKey, apiSecret) => {
+const createUsdmClient = (api_key, secret_key) => {
   const options = {
-    api_key: apiKey,
-    api_secret: apiSecret,
+    api_key: api_key,
+    api_secret: secret_key,
     baseUrl: config.baseUrl,
     beautify: true,
   };
@@ -47,13 +47,13 @@ const createUsdmClient = (apiKey, apiSecret) => {
 
 /**
  * 从币安API获取交易所信息
- * @param {string} apiKey - 用户API Key
- * @param {string} apiSecret - 用户API Secret
+ * @param {string} api_key - 用户API Key
+ * @param {string} secret_key - 用户API Secret
  * @returns {Promise<Object>} 交易所信息
  */
-const fetchExchangeInfo = async (apiKey, apiSecret) => {
+const fetchExchangeInfo = async (api_key, secret_key) => {
   try {
-    const client = createUsdmClient(apiKey, apiSecret);
+    const client = createUsdmClient(api_key, secret_key);
     return await client.getExchangeInfo();
   } catch (error) {
     console.error("使用官方API获取交易所信息失败，尝试备用方案:", error);
@@ -128,12 +128,12 @@ const updateExchangeInfo = async (exchangeInfo) => {
 
 /**
  * 强制更新交易所信息
- * @param {string} apiKey - 用户API Key
- * @param {string} apiSecret - 用户API Secret
+ * @param {string} api_key - 用户API Key
+ * @param {string} secret_key - 用户API Secret
  * @returns {Promise<Object>} 更新后的交易所信息
  */
-const forceUpdateExchangeInfo = async (apiKey, apiSecret) => {
-  const exchangeInfo = await fetchExchangeInfo(apiKey, apiSecret);
+const forceUpdateExchangeInfo = async (api_key, secret_key) => {
+  const exchangeInfo = await fetchExchangeInfo(api_key, secret_key);
   const record = await updateExchangeInfo(exchangeInfo);
   return ensureJsonObject(record.exchange_info);
 };
@@ -207,11 +207,11 @@ function ensureJsonObject(data) {
 
 /**
  * 从币安API获取标记价格和资金费率数据
- * @param {string} apiKey - 用户API Key
- * @param {string} apiSecret - 用户API Secret
+ * @param {string} api_key - 用户API Key
+ * @param {string} secret_key - 用户API Secret
  * @returns {Promise<Array>} 标记价格和资金费率数据数组
  */
-const fetchPremiumIndex = async (apiKey, apiSecret) => {
+const fetchPremiumIndex = async (api_key, secret_key) => {
   try {
     // 使用自定义request调用REST API
     const requestOptions = {
@@ -243,11 +243,11 @@ const fetchPremiumIndex = async (apiKey, apiSecret) => {
 
 /**
  * 从币安API获取保证金交易下架计划
- * @param {string} apiKey - 用户API Key
- * @param {string} apiSecret - 用户API Secret
+ * @param {string} api_key - 用户API Key
+ * @param {string} secret_key - 用户API Secret
  * @returns {Promise<Array>} 下架计划数组
  */
-const fetchDelistSchedule = async (apiKey, apiSecret) => {
+const fetchDelistSchedule = async (api_key, secret_key) => {
   try {
     const timestamp = Date.now();
     const params = {
@@ -256,8 +256,8 @@ const fetchDelistSchedule = async (apiKey, apiSecret) => {
     };
 
     // 使用BinanceTools生成签名参数
-    const signedParams = BinanceTools.getParams(params, apiSecret);
-    const headers = BinanceTools.getHeaders(apiKey);
+    const signedParams = BinanceTools.getParams(params, secret_key);
+    const headers = BinanceTools.getHeaders(api_key);
 
     const baseUrl = config.baseUrl.replace('/fapi', '');
     const requestOptions = {
@@ -373,23 +373,23 @@ const getDelistingPerpetualContracts = (exchangeInfo, delistSchedule = [], daysA
 
 /**
  * 获取即将下架的永续合约信息
- * @param {string} apiKey - 用户API Key  
- * @param {string} apiSecret - 用户API Secret
+ * @param {string} api_key - 用户API Key  
+ * @param {string} secret_key - 用户API Secret
  * @param {number} daysAhead - 提前多少天预警，默认30天
  * @returns {Promise<Array>} 即将下架的永续合约数组
  */
-const getDelistingPerpetualContractsInfo = async (apiKey, apiSecret, daysAhead = 30) => {
+const getDelistingPerpetualContractsInfo = async (api_key, secret_key, daysAhead = 30) => {
   // 并行获取交易所信息和下架计划
   const [latestInfo, delistSchedule] = await Promise.all([
     (async () => {
       // 先检查是否需要更新数据
       if (await needsUpdate()) {
-        const exchangeInfo = await fetchExchangeInfo(apiKey, apiSecret);
+        const exchangeInfo = await fetchExchangeInfo(api_key, secret_key);
         await updateExchangeInfo(exchangeInfo);
       }
       return await getLatestExchangeInfo();
     })(),
-    fetchDelistSchedule(apiKey, apiSecret)
+    fetchDelistSchedule(api_key, secret_key)
   ]);
 
   if (!latestInfo) {

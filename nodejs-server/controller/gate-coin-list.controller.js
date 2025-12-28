@@ -25,12 +25,12 @@ const getGainers = catchAsync(async (req, res) => {
     }, '数据正在加载中，请稍后再试');
   }
 
-  const startIndex = (parseInt(currentPage) - 1) * parseInt(pageSize);
-  const endIndex = startIndex + parseInt(pageSize);
-  const paginatedData = global.GATE_COIN_CACHE.gainers.slice(startIndex, endIndex);
+  const start_index = (parseInt(currentPage) - 1) * parseInt(pageSize);
+  const end_index = start_index + parseInt(pageSize);
+  const paginated_data = global.GATE_COIN_CACHE.gainers.slice(start_index, end_index);
 
   return sendSuccess(res, {
-    list: paginatedData,
+    list: paginated_data,
     pagination: {
       currentPage: parseInt(currentPage),
       pageSize: parseInt(pageSize),
@@ -58,12 +58,12 @@ const getLosers = catchAsync(async (req, res) => {
     }, '数据正在加载中，请稍后再试');
   }
 
-  const startIndex = (parseInt(currentPage) - 1) * parseInt(pageSize);
-  const endIndex = startIndex + parseInt(pageSize);
-  const paginatedData = global.GATE_COIN_CACHE.losers.slice(startIndex, endIndex);
+  const start_index = (parseInt(currentPage) - 1) * parseInt(pageSize);
+  const end_index = start_index + parseInt(pageSize);
+  const paginated_data = global.GATE_COIN_CACHE.losers.slice(start_index, end_index);
 
   return sendSuccess(res, {
-    list: paginatedData,
+    list: paginated_data,
     pagination: {
       currentPage: parseInt(currentPage),
       pageSize: parseInt(pageSize),
@@ -92,23 +92,23 @@ const getAllSorted = catchAsync(async (req, res) => {
   }
 
   // 按24h涨跌幅排序
-  let sortedData = [...global.GATE_COIN_CACHE.all];
-  sortedData.sort((a, b) => {
+  let sorted_data = [...global.GATE_COIN_CACHE.all];
+  sorted_data.sort((a, b) => {
     const aChange = parseFloat(a.dimension_24h) || 0;
     const bChange = parseFloat(b.dimension_24h) || 0;
     return sort === 'desc' ? bChange - aChange : aChange - bChange;
   });
 
-  const startIndex = (parseInt(currentPage) - 1) * parseInt(pageSize);
-  const endIndex = startIndex + parseInt(pageSize);
-  const paginatedData = sortedData.slice(startIndex, endIndex);
+  const start_index = (parseInt(currentPage) - 1) * parseInt(pageSize);
+  const end_index = start_index + parseInt(pageSize);
+  const paginated_data = sorted_data.slice(start_index, end_index);
 
   return sendSuccess(res, {
-    list: paginatedData,
+    list: paginated_data,
     pagination: {
       currentPage: parseInt(currentPage),
       pageSize: parseInt(pageSize),
-      total: sortedData.length
+      total: sorted_data.length
     },
     lastUpdate: global.GATE_COIN_CACHE.lastUpdate,
     sort: sort
@@ -119,10 +119,10 @@ const getAllSorted = catchAsync(async (req, res) => {
  * 获取缓存状态信息
  */
 const getCacheStatus = catchAsync(async (req, res) => {
-  const hasCache = global.GATE_COIN_CACHE && global.GATE_COIN_CACHE.lastUpdate;
+  const has_cache = global.GATE_COIN_CACHE && global.GATE_COIN_CACHE.lastUpdate;
 
   return sendSuccess(res, {
-    isReady: hasCache,
+    isReady: has_cache,
     lastUpdate: global.GATE_COIN_CACHE?.lastUpdate || null,
     gainersCount: global.GATE_COIN_CACHE?.gainers?.length || 0,
     losersCount: global.GATE_COIN_CACHE?.losers?.length || 0,

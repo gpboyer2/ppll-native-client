@@ -124,7 +124,7 @@ export class DatabaseApi {
   /**
    * 执行查询
    */
-  static async executeQuery(sql: string, queryParams?: any): Promise<Response<any>> {
+  static async execute_query(sql: string, queryParams?: any): Promise<Response<any>> {
     return RequestWrapper.post(`${this.BASE_PATH}/query`, { sql, queryParams });
   }
 }

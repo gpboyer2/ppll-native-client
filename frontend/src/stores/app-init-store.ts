@@ -46,9 +46,9 @@ export const useAppInitStore = create<AppInitState>((set, get) => ({
 
       set({ appReady: true, progress: 100 });
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : '未知错误';
-      console.error('应用初始化失败:', errorMessage);
-      set({ error: errorMessage });
+      const error_message = error instanceof Error ? error.message : '未知错误';
+      console.error('应用初始化失败:', error_message);
+      set({ error: error_message });
     } finally {
       set({ initializing: false });
     }

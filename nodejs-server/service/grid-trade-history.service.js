@@ -10,9 +10,9 @@ const ApiError = require("../utils/api-error");
  * @returns {Object}
  */
 const filterParams = (params, model) => {
-  const allowedFields = Object.keys(model.rawAttributes || {});
+  const allowed_fields = Object.keys(model.rawAttributes || {});
   return Object.keys(params || {}).reduce((acc, key) => {
-    if (allowedFields.includes(key)) acc[key] = params[key];
+    if (allowed_fields.includes(key)) acc[key] = params[key];
     return acc;
   }, {});
 };
@@ -25,9 +25,9 @@ const filterParams = (params, model) => {
 const createTradeHistory = async (body) => {
   // 仅保留模型字段，避免非法字段写入
   const instance = GridTradeHistory.build(body);
-  const validParams = instance.get();
+  const valid_params = instance.get();
   await instance.validate();
-  const row = await GridTradeHistory.create(validParams);
+  const row = await GridTradeHistory.create(valid_params);
   return row;
 };
 
@@ -73,17 +73,17 @@ const getTradeHistoryById = async (id) => {
 };
 
 /**
- * 更新交易历史（按 id + apiKey + 可选 id（网格策略ID） 进行约束更安全）
+ * 更新交易历史（按 id + api_key + 可选 id（网格策略ID） 进行约束更安全）
  * @param {Object} body 必须包含 id
  */
 const updateTradeHistoryById = async (body) => {
   const instance = GridTradeHistory.build(body);
   const params = instance.get();
-  const { id, apiKey } = params;
+  const { id, api_key } = params;
   if (!id) throw new Error("缺少参数: id");
 
   const where = { id };
-  if (apiKey) where.apiKey = apiKey; // 保护性约束
+  if (api_key) where.apiKey = api_key; // 保护性约束
 
   const row = await GridTradeHistory.update(filterParams(params, GridTradeHistory), { where });
 
@@ -96,15 +96,15 @@ const updateTradeHistoryById = async (body) => {
 
 /**
  * 批量删除交易历史
- * @param {{ ids: number[]; apiKey?: string }} body
+ * @param {{ ids: number[]; api_key?: string }} body
  */
 const deleteTradeHistoriesByIds = async (body) => {
-  const { ids = [], apiKey } = body || {};
+  const { ids = [], api_key } = body || {};
   if (!Array.isArray(ids) || ids.length === 0) {
     throw new Error("缺少参数: ids");
   }
   const where = { id: ids };
-  if (apiKey) where.apiKey = apiKey; // 保护性约束
+  if (api_key) where.apiKey = api_key; // 保护性约束
   const affected = await GridTradeHistory.destroy({ where });
   return { affected };
 };

@@ -17,7 +17,7 @@ function GridStrategyListPage() {
   const [loading, setLoading] = useState(false);
 
   // 防止 StrictMode 双重渲染导致重复请求
-  const hasLoadedRef = useRef(false);
+  const has_loaded_ref = useRef(false);
 
   // 筛选状态
   const [filter, setFilter] = useState<StrategyFilter>({
@@ -29,10 +29,10 @@ function GridStrategyListPage() {
   // 加载策略列表
   useEffect(() => {
     // 防止 StrictMode 双重渲染导致重复请求
-    if (hasLoadedRef.current) {
+    if (has_loaded_ref.current) {
       return;
     }
-    hasLoadedRef.current = true;
+    has_loaded_ref.current = true;
     loadStrategyList();
   }, []);
 
@@ -47,11 +47,11 @@ function GridStrategyListPage() {
 
       if (response.status === 'success' && response.data) {
         const list = response.data.list || [];
-        const transformedList = list.map((item: any): GridStrategy => ({
+        const transformed_list = list.map((item: any): GridStrategy => ({
           ...item,
           status: (item.paused ? 'paused' : (item.remark === 'error' ? 'stopped' : 'running')) as StrategyStatus,
         }));
-        setStrategyList(transformedList);
+        setStrategyList(transformed_list);
       } else {
         showError(response.message || '加载策略列表失败');
       }
@@ -83,14 +83,14 @@ function GridStrategyListPage() {
 
   // 切换策略状态
   async function handleToggleStatus(id: string, currentStatus: StrategyStatus) {
-    const newStatus = currentStatus === 'running' ? 'paused' : 'running';
-    const action = newStatus === 'paused' ? 'pause' : 'resume';
-    const apiMethod = newStatus === 'paused' ? GridStrategyApi.pause : GridStrategyApi.resume;
+    const new_status = currentStatus === 'running' ? 'paused' : 'running';
+    const action = new_status === 'paused' ? 'pause' : 'resume';
+    const api_method = new_status === 'paused' ? GridStrategyApi.pause : GridStrategyApi.resume;
 
     try {
-      const response = await apiMethod(Number(id));
+      const response = await api_method(Number(id));
       if (response.status === 'success') {
-        showSuccess(newStatus === 'paused' ? '策略已暂停' : '策略已恢复');
+        showSuccess(new_status === 'paused' ? '策略已暂停' : '策略已恢复');
         await loadStrategyList();
       } else {
         showError(response.message || '状态更新失败');
@@ -192,7 +192,7 @@ function GridStrategyListPage() {
     }
   }
 
-  const filteredList = getFilteredStrategyList();
+  const filtered_list = getFilteredStrategyList();
   const statistics = getStatistics();
 
   return (
@@ -293,9 +293,9 @@ function GridStrategyListPage() {
         <div className="text-muted" style={{ textAlign: 'center', padding: '48px' }}>
                     加载中...
         </div>
-      ) : filteredList.length > 0 ? (
+      ) : filtered_list.length > 0 ? (
         <div className="grid-strategy-list">
-          {filteredList.map(strategy => (
+          {filtered_list.map(strategy => (
             <div key={strategy.id} className="card grid-strategy-card">
               <div className="card-content">
                 {/* 策略头部 */}

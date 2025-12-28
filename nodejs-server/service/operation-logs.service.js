@@ -65,7 +65,7 @@ function toViewObject(data) {
   const os = data.os || uaParsed.os;
   const browser = data.browser || uaParsed.browser;
   const operator = data.operator || '系统';
-  const moduleName = data.module || deriveModule(data.page, extra);
+  const module_name = data.module || deriveModule(data.page, extra);
   const summary = data.summary || data.description || data.action || '';
   const ip = data.ip_address || '';
   const location = data.location || extra.location || '';
@@ -81,7 +81,7 @@ function toViewObject(data) {
   return {
     ...data,
     operator,         // 操作人员
-    module: moduleName,// 所属模块
+    module: module_name,// 所属模块
     summary,          // 操作概要
     ip,               // 操作 IP
     location,         // 操作地点
@@ -99,7 +99,7 @@ function toViewObject(data) {
  */
 function maskExtra(obj) {
   if (!obj || typeof obj !== 'object') return obj;
-  const sensitiveKeys = ['password', 'apiSecret', 'secret', 'api_secret', 'privateKey'];
+  const sensitiveKeys = ['password', 'secret_key', 'secret', 'api_secret', 'privateKey'];
   const cloned = { ...obj };
   for (const k of sensitiveKeys) {
     if (Object.prototype.hasOwnProperty.call(cloned, k)) {
@@ -206,10 +206,10 @@ async function create(req) {
   const userAgent = body.user_agent || req.headers['user-agent'] || null;
   const extraData = maskExtra(body.extra_data || body.extraData || null);
   const operator = body.operator || '系统';
-  const moduleName = body.module || deriveModule(page, extraData);
+  const module_name = body.module || deriveModule(page, extraData);
   const summary = body.summary || description || action || null;
   const status = typeof body.status !== 'undefined' ? (Number(body.status) === 1 ? 1 : 0) : undefined;
-  const operationTime = body.operation_time ? new Date(body.operation_time) : new Date();
+  const operation_time = body.operation_time ? new Date(body.operation_time) : new Date();
 
   if (!action) throw new ApiError(httpStatus.BAD_REQUEST, '缺少必要参数 action');
 
@@ -222,7 +222,7 @@ async function create(req) {
     ipAddress,
     userAgent,
     extraData,
-    { operator, module: moduleName, summary, status, operationTime }
+    { operator, module: module_name, summary, status, operation_time }
   );
 
   // 返回最近一条写入记录（无强一致性要求，仅便于客户端确认）
@@ -233,7 +233,7 @@ async function create(req) {
   return sanitize(
     created || {
       operator,
-      module: moduleName,
+      module: module_name,
       action,
       summary,
       description,
@@ -242,7 +242,7 @@ async function create(req) {
       user_agent: userAgent,
       extra_data: extraData,
       status: typeof status === 'number' ? status : 1,
-      operation_time: operationTime,
+      operation_time: operation_time,
     }
   );
 }
@@ -271,7 +271,7 @@ async function batchCreate(req, logs = []) {
     module: l.module || deriveModule(l.page, l.extra_data || l.extraData || {}),
     summary: l.summary || l.description || l.action || null,
     status: typeof l.status !== 'undefined' ? (Number(l.status) === 1 ? 1 : 0) : undefined,
-    operationTime: l.operation_time || l.operationTime || new Date(),
+    operation_time: l.operation_time || l.operationTime || new Date(),
   }));
 
   await AnalyticsService.batchLogUserActions(normalized);

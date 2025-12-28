@@ -231,14 +231,14 @@ const getFuturesOnlyPairs = async (suffix = null) => {
   ]);
 
   const spotPairsSet = new Set(spotPairs);
-  let futuresOnlyPairs = futuresPairs.filter(pair => !spotPairsSet.has(pair));
+  let futures_only_pairs = futuresPairs.filter(pair => !spotPairsSet.has(pair));
 
   // 应用后缀过滤
-  futuresOnlyPairs = filterPairsBySuffix(futuresOnlyPairs, suffix);
+  futures_only_pairs = filterPairsBySuffix(futures_only_pairs, suffix);
 
   return {
-    count: futuresOnlyPairs.length,
-    pairs: futuresOnlyPairs.sort(),
+    count: futures_only_pairs.length,
+    pairs: futures_only_pairs.sort(),
     description: suffix ? `以${suffix}结尾的有合约但没有现货的交易对` : "有合约但没有现货的交易对"
   };
 };
@@ -255,14 +255,14 @@ const getSpotOnlyPairs = async (suffix = null) => {
   ]);
 
   const futuresPairsSet = new Set(futuresPairs);
-  let spotOnlyPairs = spotPairs.filter(pair => !futuresPairsSet.has(pair));
+  let spot_only_pairs = spotPairs.filter(pair => !futuresPairsSet.has(pair));
 
   // 应用后缀过滤
-  spotOnlyPairs = filterPairsBySuffix(spotOnlyPairs, suffix);
+  spot_only_pairs = filterPairsBySuffix(spot_only_pairs, suffix);
 
   return {
-    count: spotOnlyPairs.length,
-    pairs: spotOnlyPairs.sort(),
+    count: spot_only_pairs.length,
+    pairs: spot_only_pairs.sort(),
     description: suffix ? `以${suffix}结尾的有现货但没有合约的交易对` : "有现货但没有合约的交易对"
   };
 };
@@ -282,10 +282,10 @@ const getComprehensiveReport = async (suffix = null) => {
 
   // 获取同时存在现货和合约的交易对
   const spotPairsSet = new Set(spotPairs);
-  let commonPairs = futuresPairs.filter(pair => spotPairsSet.has(pair));
+  let common_pairs = futuresPairs.filter(pair => spotPairsSet.has(pair));
 
   // 应用后缀过滤
-  commonPairs = filterPairsBySuffix(commonPairs, suffix);
+  common_pairs = filterPairsBySuffix(common_pairs, suffix);
 
   // 如果有后缀过滤，也需要重新过滤原始数据
   const filteredSpotPairs = filterPairsBySuffix(spotPairs, suffix);
@@ -334,7 +334,7 @@ const getComprehensiveReport = async (suffix = null) => {
     summary: {
       totalSpotPairs: filteredSpotPairs.length,
       totalFuturesPairs: filteredFuturesPairs.length,
-      commonPairs: commonPairs.length,
+      common_pairs: common_pairs.length,
       futuresOnlyCount: futuresOnlyResult.count,
       spotOnlyCount: spotOnlyResult.count,
       totalBaseAssets: assetAnalysis.totalBaseAssets,
@@ -342,9 +342,9 @@ const getComprehensiveReport = async (suffix = null) => {
       spotOnlyAssetsCount: assetAnalysis.spotOnlyAssets.length,
       futuresOnlyAssetsCount: assetAnalysis.futuresOnlyAssets.length
     },
-    commonPairs: {
-      count: commonPairs.length,
-      pairs: commonPairs.sort(),
+    common_pairs: {
+      count: common_pairs.length,
+      pairs: common_pairs.sort(),
       description: suffix ? `以${suffix}结尾的同时存在现货和合约的交易对` : "同时存在现货和合约的交易对"
     },
     futuresOnly: futuresOnlyResult,

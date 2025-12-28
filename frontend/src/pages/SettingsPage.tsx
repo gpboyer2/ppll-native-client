@@ -22,7 +22,7 @@ function SettingsPage() {
   } = useDataManagementStore();
 
   // 使用 binance store
-  const { init, apiKeyList, refreshApiKeys, activeApiKeyId, setActiveApiKey } = useBinanceStore();
+  const { init, api_key_list, refreshApiKeys, activeApiKeyId, setActiveApiKey } = useBinanceStore();
 
   // 更新设置状态
   const [feedURL, setFeedURL] = useState('');
@@ -133,14 +133,14 @@ function SettingsPage() {
     setShowAddApiKey(true);
   }
 
-  function handleEditApiKey(apiKey: BinanceApiKey) {
-    setEditingApiKey(apiKey);
+  function handleEditApiKey(api_key: BinanceApiKey) {
+    setEditingApiKey(api_key);
     setApiKeyForm({
-      name: apiKey.name,
-      api_key: apiKey.api_key,
-      secret_key: apiKey.secret_key,
-      status: apiKey.status,
-      remark: apiKey.remark || ''
+      name: api_key.name,
+      api_key: api_key.api_key,
+      secret_key: api_key.secret_key,
+      status: api_key.status,
+      remark: api_key.remark || ''
     });
     setShowAddApiKey(true);
   }
@@ -299,10 +299,10 @@ function SettingsPage() {
         </div>
         <div className="card-content">
           {/* API Key 列表 */}
-          {apiKeyList.length > 0 && (
+          {api_key_list.length > 0 && (
             <div className="binance-apikey-list">
-              {apiKeyList.map((item) => {
-                const isActive = String(item.id) === activeApiKeyId;
+              {api_key_list.map((item) => {
+                const is_active = String(item.id) === activeApiKeyId;
                 return (
                   <div key={item.id} className="binance-apikey-item">
                     <div className="binance-apikey-item-info">
@@ -326,10 +326,10 @@ function SettingsPage() {
                     </div>
                     <div className="binance-apikey-item-actions">
                       <button
-                        className={`btn ${isActive ? 'btn-primary' : 'btn-ghost'}`}
+                        className={`btn ${is_active ? 'btn-primary' : 'btn-ghost'}`}
                         onClick={() => handleSetActiveApiKey(String(item.id))}
                       >
-                        {isActive ? '当前使用' : '设为当前'}
+                        {is_active ? '当前使用' : '设为当前'}
                       </button>
                       <button
                         className="btn btn-ghost"
@@ -351,7 +351,7 @@ function SettingsPage() {
           )}
 
           {/* 空状态 - 只在没有 API Key 且没有显示表单时显示 */}
-          {apiKeyList.length === 0 && !showAddApiKey && (
+          {api_key_list.length === 0 && !showAddApiKey && (
             <div className="binance-apikey-empty">
               <div className="text-muted">暂无 API Key，点击上方按钮添加</div>
             </div>

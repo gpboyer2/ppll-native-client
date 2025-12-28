@@ -3,11 +3,11 @@ const Chat = db.chats;
 const ApiError = require("../utils/api-error");
 
 const createChat = async (params) => {
-  const { chatname, apiKey, message } = params;
+  const { chatname, api_key, message } = params;
 
   const chat = {
     chatname,
-    apiKey,
+    api_key,
     message,
     active: 0,
     status: 0,
@@ -20,10 +20,10 @@ const createChat = async (params) => {
 };
 
 async function latestMessage(params) {
-  const { apiKey, apiSecret } = params;
+  const { api_key, secret_key } = params;
 
   const result = await Chat.findOne({
-    where: { apiKey, apiSecret },
+    where: { api_key, secret_key },
     order: [["id", "DESC"]], // Assuming there's a created_at field to determine the order
     limit: 1,
   });
@@ -40,15 +40,15 @@ const getChatById = async (id) => {
   return Chat.findOne({ where: { id } });
 };
 
-const getChatByApiKey = async (apiKey, apiSecret) => {
-  return Chat.findOne({ where: { apiKey, apiSecret } });
+const getChatByApiKey = async (api_key, secret_key) => {
+  return Chat.findOne({ where: { api_key, secret_key } });
 };
 
 const updateChatById = async (chatId, updateBody) => {
-  const { chatname, apiKey, active, status } = updateBody;
+  const { chatname, api_key, active, status } = updateBody;
   const chat = {
     chatname,
-    apiKey,
+    api_key,
     active,
     status,
   };

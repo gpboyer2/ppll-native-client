@@ -104,21 +104,21 @@ const queryApiKey = catchAsync(async (req, res) => {
     if (currentPage > 1) options.offset = (Number(currentPage) - 1) * Number(pageSize);
   }
 
-  let apiKeyList = await binanceApiKeyService.getAllApiKeys(filter, options);
+  let api_key_list = await binanceApiKeyService.getAllApiKeys(filter, options);
 
   // 计算总数
   let total = 0;
   if (idList.length > 0) {
-    total = apiKeyList.length;
+    total = api_key_list.length;
   } else {
     total = await binanceApiKeyService.countApiKeys(filter);
   }
 
   return sendSuccess(res, {
-    list: apiKeyList,
+    list: api_key_list,
     pagination: {
       currentPage: idList.length > 0 ? 1 : Number(currentPage),
-      pageSize: idList.length > 0 ? apiKeyList.length : Number(pageSize),
+      pageSize: idList.length > 0 ? api_key_list.length : Number(pageSize),
       total: total
     }
   }, '查询 ApiKey 成功');
