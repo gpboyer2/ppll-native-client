@@ -31,11 +31,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         comment: "策略名称",
       },
-      user_id: {
-        type: DataTypes.BIGINT,
-        allowNull: true,
-        comment: "用户ID",
-      },
       trading_pair: {
         type: DataTypes.STRING(20),
         allowNull: false,
