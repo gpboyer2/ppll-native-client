@@ -30,53 +30,5 @@
         "NODE_ENV": "development",
       }
     },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "无限做多网格-websocket",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/temporary/无限做多网格-websocket.js",
-      "env": {
-        "NODE_ENV": "development",
-      }
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "无限做多网格-websocket-ar",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/temporary/无限做多网格-websocket-ar.js",
-      "env": {
-        "NODE_ENV": "development",
-      }
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "无限做多网格-websocket-btc",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/temporary/无限做多网格-websocket-btc.js",
-      "env": {
-        "NODE_ENV": "development",
-      }
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "HYPE-LONG-umInfiniteGrid",
-      "skipFiles": [
-        "<node_internals>/**"
-      ],
-      "program": "${workspaceFolder}/temporary/HYPE-LONG-umInfiniteGrid.js",
-      "env": {
-        "NODE_ENV": "development",
-      }
-    }
   ]
 }
