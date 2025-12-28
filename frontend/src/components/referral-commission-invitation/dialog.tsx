@@ -1,6 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { OpenBrowser } from '../../../wailsjs/go/main/App';
 import './dialog.scss';
+
+// 网格策略参数类型
+export interface GridStrategyParams {
+    tradingPair: string;
+    positionSide: 'LONG' | 'SHORT';
+    gridPriceDifference: number;
+    gridTradeQuantity?: number;
+    gridLongOpenQuantity?: number;
+    gridShortOpenQuantity?: number;
+}
 
 // 收益计算数据类型
 interface CommissionCalculationData {
@@ -18,17 +28,82 @@ interface CommissionCalculationData {
 }
 
 // 组件 props 类型
-interface ReferralCommissionDialogProps {
+export interface ReferralCommissionDialogProps {
     opened: boolean;
     onClose: () => void;
-    data?: CommissionCalculationData;
+    gridParams?: GridStrategyParams;
 }
 
 export function ReferralCommissionDialog({
     opened,
     onClose,
-    data
+    gridParams
 }: ReferralCommissionDialogProps) {
+    // 根据网格参数计算返佣数据
+    const calculatedData = useMemo<CommissionCalculationData | null>(() => {
+        if (!gridParams) return null;
+
+        const { positionSide, gridPriceDifference, gridTradeQuantity, gridLongOpenQuantity, gridShortOpenQuantity } = gridParams;
+
+        // 获取网格交易数量（优先使用分离数量，否则使用通用数量）
+        let tradeQuantity = gridTradeQuantity || 0;
+        
+        // 如果是做多，优先使用做多开仓数量
+        if (positionSide === 'LONG' && gridLongOpenQuantity) {
+            tradeQuantity = gridLongOpenQuantity;
+        }
+        // 如果是做空，优先使用做空开仓数量
+        else if (positionSide === 'SHORT' && gridShortOpenQuantity) {
+            tradeQuantity = gridShortOpenQuantity;
+        }
+
+        // 如果没有有效的交易数量或网格差价，返回 null
+        if (tradeQuantity <= 0 || gridPriceDifference <= 0) {
+            return null;
+        }
+
+        // 估算每笔交易金额 = 交易数量 × 网格差价
+        const estimatedTradeValue = tradeQuantity * gridPriceDifference;
+        
+        // 估算日交易频次：根据网格差价和市场波动估算
+        // 网格差价越小，触发频次越高
+        const estimatedDailyFrequency = Math.max(3, Math.min(20, Math.floor(100 / gridPriceDifference)));
+        
+        // 估算日收益：每次网格交易的利润 × 日频次
+        // 每次网格利润 ≈ 网格差价 × 交易数量 × 0.5（考虑双向交易）
+        const estimatedDailyProfit = gridPriceDifference * tradeQuantity * estimatedDailyFrequency * 0.5;
+
+        // 计算返佣相关数据
+        const commissionRate = 0.001; // 1‰
+        const rebateRate = 0.35; // 35%
+        const daysInMonth = 30;
+
+        // 月交易手续费 = 日频次 × 30天 × 每笔金额 × 1‰
+        const monthlyTradingFee = estimatedDailyFrequency * daysInMonth * estimatedTradeValue * commissionRate;
+
+        // 月返佣金额 = 月手续费 × 35%
+        const monthlyRebate = monthlyTradingFee * rebateRate;
+
+        // 用户月收益（不含返佣）
+        const monthlyUserProfit = estimatedDailyProfit * daysInMonth;
+
+        // 用户月收益（含返佣）
+        const monthlyUserProfitWithRebate = monthlyUserProfit + monthlyRebate;
+
+        return {
+            tradeValue: parseFloat(estimatedTradeValue.toFixed(2)),
+            dailyFrequency: estimatedDailyFrequency,
+            commissionRate: '1‰',
+            rebateRate: '最高 35%',
+            dailyRebateProfit: parseFloat((monthlyRebate / 30).toFixed(2)),
+            monthlyExtraProfit: parseFloat(monthlyRebate.toFixed(2)),
+            currentMonthlyProfit: parseFloat(monthlyUserProfit.toFixed(2)),
+            rebateMonthlyProfit: parseFloat(monthlyUserProfitWithRebate.toFixed(2)),
+            currentYearlyProfit: parseFloat((monthlyUserProfit * 12).toFixed(2)),
+            rebateYearlyProfit: parseFloat((monthlyUserProfitWithRebate * 12).toFixed(2)),
+            extraProfitRate: parseFloat(((monthlyRebate / monthlyUserProfit) * 100).toFixed(0))
+        };
+    }, [gridParams]);
     // ESC 键关闭弹窗
     useEffect(() => {
         if (!opened) return;
@@ -87,6 +162,21 @@ export function ReferralCommissionDialog({
 
     if (!opened) return null;
 
+    // 使用计算后的数据，如果没有则使用默认值
+    const data = calculatedData || {
+        tradeValue: 50,
+        dailyFrequency: 5,
+        commissionRate: '1‰',
+        rebateRate: '最高 35%',
+        dailyRebateProfit: 5,
+        monthlyExtraProfit: 150,
+        currentMonthlyProfit: 465,
+        rebateMonthlyProfit: 615,
+        currentYearlyProfit: 5580,
+        rebateYearlyProfit: 7380,
+        extraProfitRate: 32
+    };
+
     return (
         <div className="referral-commission-dialog-overlay">
             <div className="referral-commission-dialog">
@@ -116,7 +206,7 @@ export function ReferralCommissionDialog({
                                     当前状态（无返佣）
                                 </div>
                                 <div className="referral-commission-dialog-card-amount referral-commission-dialog-card-amount-normal">
-                                    {data?.currentMonthlyProfit || 465}
+                                    {data.currentMonthlyProfit}
                                 </div>
                                 <div className="referral-commission-dialog-card-period">USDT / 月</div>
                             </div>
@@ -125,13 +215,13 @@ export function ReferralCommissionDialog({
 
                             <div className="referral-commission-dialog-comparison-card referral-commission-dialog-comparison-card-highlight">
                                 <div className="referral-commission-dialog-extra-earnings-tag">
-                                    额外 +{data?.extraProfitRate || 32}%
+                                    额外 +{data.extraProfitRate}%
                                 </div>
                                 <div className="referral-commission-dialog-card-label referral-commission-dialog-card-label-highlight">
                                     开启返佣后
                                 </div>
                                 <div className="referral-commission-dialog-card-amount referral-commission-dialog-card-amount-highlight">
-                                    {data?.rebateMonthlyProfit || 615}
+                                    {data.rebateMonthlyProfit}
                                 </div>
                                 <div className="referral-commission-dialog-card-period">USDT / 月</div>
                             </div>
@@ -155,33 +245,33 @@ export function ReferralCommissionDialog({
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td><strong>每日</strong></td>
-                                        <td>{data?.currentMonthlyProfit ? (data.currentMonthlyProfit / 30).toFixed(2) : '15.50'} USDT</td>
+                                        <td><strong>日</strong></td>
+                                        <td>{(data.currentMonthlyProfit / 30).toFixed(2)} USDT</td>
                                         <td className="referral-commission-dialog-table-highlight-text">
-                                            <strong>{data?.dailyRebateProfit || 5} USDT</strong>
+                                            <strong>{data.dailyRebateProfit} USDT</strong>
                                         </td>
                                         <td className="referral-commission-dialog-table-diff-text">
-                                            +{data?.dailyRebateProfit || 5} USDT
+                                            +{data.dailyRebateProfit} USDT
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td><strong>每月</strong></td>
-                                        <td>{data?.currentMonthlyProfit || 465} USDT</td>
+                                        <td><strong>月</strong></td>
+                                        <td>{data.currentMonthlyProfit} USDT</td>
                                         <td className="referral-commission-dialog-table-highlight-text">
-                                            <strong>{data?.monthlyExtraProfit || 150} USDT</strong>
+                                            <strong>{data.monthlyExtraProfit} USDT</strong>
                                         </td>
                                         <td className="referral-commission-dialog-table-diff-text">
-                                            +{data?.monthlyExtraProfit || 150} USDT
+                                            +{data.monthlyExtraProfit} USDT
                                         </td>
                                     </tr>
                                     <tr className="referral-commission-dialog-table-total">
-                                        <td><strong>每年</strong></td>
-                                        <td><strong>{(data?.currentYearlyProfit || 5580).toLocaleString()} USDT</strong></td>
+                                        <td><strong>年</strong></td>
+                                        <td><strong>{data.currentYearlyProfit.toLocaleString()} USDT</strong></td>
                                         <td className="referral-commission-dialog-table-highlight-text">
-                                            <strong>{((data?.rebateYearlyProfit || 7380) - (data?.currentYearlyProfit || 5580)).toLocaleString()} USDT</strong>
+                                            <strong>{(data.rebateYearlyProfit - data.currentYearlyProfit).toLocaleString()} USDT</strong>
                                         </td>
                                         <td className="referral-commission-dialog-table-diff-text">
-                                            <strong>+{((data?.rebateYearlyProfit || 7380) - (data?.currentYearlyProfit || 5580)).toLocaleString()} USDT</strong>
+                                            <strong>+{(data.rebateYearlyProfit - data.currentYearlyProfit).toLocaleString()} USDT</strong>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -192,20 +282,20 @@ export function ReferralCommissionDialog({
                         <div className="referral-commission-dialog-params-info">
                             <div className="referral-commission-dialog-param-item">
                                 <span className="referral-commission-dialog-param-label">每笔交易金额：</span>
-                                <span className="referral-commission-dialog-param-value">{data?.tradeValue || 50} USDT</span>
+                                <span className="referral-commission-dialog-param-value">{data.tradeValue} USDT</span>
                             </div>
                             <div className="referral-commission-dialog-param-item">
                                 <span className="referral-commission-dialog-param-label">日交易次数：</span>
-                                <span className="referral-commission-dialog-param-value">{data?.dailyFrequency || 5} 次</span>
+                                <span className="referral-commission-dialog-param-value">{data.dailyFrequency} 次</span>
                             </div>
                             <div className="referral-commission-dialog-param-item">
                                 <span className="referral-commission-dialog-param-label">手续费率：</span>
-                                <span className="referral-commission-dialog-param-value">{data?.commissionRate || '1‰'}</span>
+                                <span className="referral-commission-dialog-param-value">{data.commissionRate}</span>
                             </div>
                             <div className="referral-commission-dialog-param-item">
                                 <span className="referral-commission-dialog-param-label">返佣比例：</span>
                                 <span className="referral-commission-dialog-param-value referral-commission-dialog-table-highlight-text">
-                                    {data?.rebateRate || '最高 35%'}
+                                    {data.rebateRate}
                                 </span>
                             </div>
                         </div>
@@ -218,6 +308,13 @@ export function ReferralCommissionDialog({
                     <div className="referral-commission-dialog-actions-section">
                         <div className="referral-commission-dialog-button-group">
                             <button
+                                className="referral-commission-dialog-btn referral-commission-dialog-btn-secondary"
+                                onClick={onClose}
+                                type="button"
+                            >
+                                知道了
+                            </button>
+                            <button
                                 className="referral-commission-dialog-btn referral-commission-dialog-btn-primary"
                                 onClick={handleEnableRebate}
                                 type="button"
@@ -226,13 +323,6 @@ export function ReferralCommissionDialog({
                                     <path d="M8 2L8 14M2 8L14 8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
                                 </svg>
                                 去启用返佣
-                            </button>
-                            <button
-                                className="referral-commission-dialog-btn referral-commission-dialog-btn-secondary"
-                                onClick={onClose}
-                                type="button"
-                            >
-                                知道了
                             </button>
                         </div>
 
