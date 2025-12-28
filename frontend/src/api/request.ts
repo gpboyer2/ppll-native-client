@@ -173,6 +173,7 @@ export class RequestWrapper {
 
   /**
    * 获取认证参数
+   * 从 binance-store 获取当前激活的 API Key
    */
   private static getAuthParams(): Record<string, string> {
     try {
@@ -256,9 +257,9 @@ export class RequestWrapper {
    * GET请求
    */
   static async get<T = any>(url: string, params?: Record<string, any>): Promise<Response<T>> {
-    // 如果需要认证，自动添加认证参数
+    // 如果需要认证，自动添加认证参数（手动传递的优先）
     const mergedParams = this.needsAuth(url)
-      ? { ...params, ...this.getAuthParams() }
+      ? { ...this.getAuthParams(), ...params }
       : params
     return this.request<T>('GET', url, () => apiClient.get<T>(url, mergedParams), mergedParams)
   }
@@ -267,9 +268,9 @@ export class RequestWrapper {
    * POST请求
    */
   static async post<T = any>(url: string, data?: any): Promise<Response<T>> {
-    // 如果需要认证，自动添加认证参数到请求体
+    // 如果需要认证，自动添加认证参数到请求体（手动传递的优先）
     const mergedData = this.needsAuth(url)
-      ? { ...data, ...this.getAuthParams() }
+      ? { ...this.getAuthParams(), ...data }
       : data
     return this.request<T>('POST', url, () => apiClient.post<T>(url, mergedData), undefined, mergedData)
   }
@@ -278,9 +279,9 @@ export class RequestWrapper {
    * PUT请求
    */
   static async put<T = any>(url: string, data?: any): Promise<Response<T>> {
-    // 如果需要认证，自动添加认证参数到请求体
+    // 如果需要认证，自动添加认证参数到请求体（手动传递的优先）
     const mergedData = this.needsAuth(url)
-      ? { ...data, ...this.getAuthParams() }
+      ? { ...this.getAuthParams(), ...data }
       : data
     return this.request<T>('PUT', url, () => apiClient.put<T>(url, mergedData), undefined, mergedData)
   }
@@ -289,9 +290,9 @@ export class RequestWrapper {
    * DELETE请求
    */
   static async delete<T = any>(url: string, data?: any): Promise<Response<T>> {
-    // 如果需要认证，自动添加认证参数到请求体
+    // 如果需要认证，自动添加认证参数到请求体（手动传递的优先）
     const mergedData = this.needsAuth(url)
-      ? { ...data, ...this.getAuthParams() }
+      ? { ...this.getAuthParams(), ...data }
       : data
     return this.request<T>('DELETE', url, () => apiClient.delete<T>(url, { data: mergedData }), undefined, mergedData)
   }
@@ -300,9 +301,9 @@ export class RequestWrapper {
    * PATCH请求
    */
   static async patch<T = any>(url: string, data?: any): Promise<Response<T>> {
-    // 如果需要认证，自动添加认证参数到请求体
+    // 如果需要认证，自动添加认证参数到请求体（手动传递的优先）
     const mergedData = this.needsAuth(url)
-      ? { ...data, ...this.getAuthParams() }
+      ? { ...this.getAuthParams(), ...data }
       : data
     return this.request<T>('PATCH', url, () => apiClient.patch<T>(url, mergedData), undefined, mergedData)
   }
