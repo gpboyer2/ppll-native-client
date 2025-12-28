@@ -1,41 +1,23 @@
 /**
  * 标记价格路由模块
  * 定义标记价格相关的API路由，提供价格数据查询和管理功能
+ * 本地客户端系统：无需认证
  */
 const express = require('express');
 const router = express.Router();
 const markPriceController = require('../../controller/mark-price.controller.js');
-const auth = require("../../middleware/auth");
-// const validate = require('../../middleware/validate.js');
-// const markPriceValidation = require('../../validations/mark-price.validation.js');
 
+// 创建一条标记价格记录
+router.post('/create', markPriceController.createMarkPrice);
 
+// 删除一条标记价格记录
+router.post('/delete', markPriceController.deleteMarkPrice);
 
-/**
- * 创建一条标记价格记录:
- * /v1/mark-price/create
- */
-router.post('/create', auth(['admin', 'super_admin']), markPriceController.createMarkPrice);
+// 更新一条标记价格记录
+router.post('/update', markPriceController.updateMarkPrice);
 
-/**
- * 删除一条标记价格记录:
- * /v1/mark-price/delete
- */
-router.post('/delete', auth(['admin', 'super_admin']), markPriceController.deleteMarkPrice);
-
-/**
- * 更新一条标记价格记录:
- * /v1/mark-price/update
- */
-router.post('/update', auth(['admin', 'super_admin']), markPriceController.updateMarkPrice);
-
-/**
- * 查询标记价格记录:
- * /v1/mark-price/query
- */
+// 查询标记价格记录
 router.get('/query', markPriceController.getMarkPrices);
-
-
 
 module.exports = router;
 

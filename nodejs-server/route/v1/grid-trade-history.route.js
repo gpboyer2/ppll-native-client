@@ -1,33 +1,23 @@
 /**
  * 网格交易历史路由模块
  * 定义网格交易历史相关的API路由，提供交易记录查询和统计功能
+ * 本地客户端系统：无需认证
  */
 const express = require('express');
 const router = express.Router();
-const auth = require("../../middleware/auth");
-
 const controller = require("../../controller/grid-trade-history.controller.js");
 const vipMiddleware = require("../../middleware/vip.js");
 
 // 固定路径需放在 /:id 之前，避免被占用
 
-/**
- * 创建一条交易历史
- * /v1/grid-trade-history/create
- */
-router.post('/create', auth(['admin', 'super_admin']), controller.create);
+// 创建一条交易历史
+router.post('/create', controller.create);
 
-/**
- * 更新一条交易历史
- * /v1/grid-trade-history/update
- */
-router.post('/update', auth(['admin', 'super_admin']), controller.update);
+// 更新一条交易历史
+router.post('/update', controller.update);
 
-/**
- * 批量删除交易历史
- * /v1/grid-trade-history/deletes
- */
-router.post('/deletes', auth(['admin', 'super_admin']), controller.deletes);
+// 批量删除交易历史
+router.post('/deletes', controller.deletes);
 
 /**
  * 分页查询网格交易历史

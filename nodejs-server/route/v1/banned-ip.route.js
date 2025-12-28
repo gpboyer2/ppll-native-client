@@ -1,10 +1,10 @@
 /**
  * IP封禁管理路由模块
  * 定义IP地址封禁和解封相关的API路由
+ * 本地客户端系统：无需认证
  */
 const express = require('express');
 const router = express.Router();
-const auth = require('../../middleware/auth');
 const bannedIpController = require('../../controller/banned-ip.controller.js');
 const validateMiddleware = require('../../middleware/validate');
 const Joi = require('joi');
@@ -46,11 +46,6 @@ const ipQuerySchema = {
     ip: Joi.string().ip().required()
   })
 };
-
-/**
- * 保护所有路由，要求管理员权限
- */
-router.use(auth(['admin', 'super_admin']));
 
 /**
  * 获取被封禁IP列表:

@@ -1,48 +1,27 @@
 /**
  * 登录日志路由
  * 提供登录日志的查询与（可选）写入接口
+ * 本地客户端系统：无需认证
  */
 const express = require('express');
 const router = express.Router();
 const path = require('path');
 const controller = require('../../controller/login-logs.controller.js');
-const auth = require('../../middleware/auth.js');
 
+// 新增登录日志
+router.post('/create', controller.create);
 
-/**
- * 新增登录日志（仅用于内部/管理员）:
- * /v1/login-logs/create
- */
-router.post('/create', auth('admin', 'super_admin'), controller.create);
+// 更新登录日志
+router.post('/update', controller.update);
 
+// 分页查询登录日志（支持按用户、IP、状态、时间范围过滤）
+router.get('/query', controller.list);
 
-/**
- * 更新登录日志（仅用于内部/管理员）:
- * /v1/login-logs/update
- */
-router.post('/update', auth('admin', 'super_admin'), controller.update);
+// 获取登录日志详情
+router.get('/detail', controller.detail);
 
-
-/**
- * 分页查询登录日志（支持按用户、IP、状态、时间范围过滤）:
- * /v1/login-logs/query
- */
-router.get('/query', auth('admin', 'super_admin'), controller.list);
-
-
-/**
- * 获取登录日志详情:
- * /v1/login-logs/detail
- */
-router.get('/detail', auth('admin', 'super_admin'), controller.detail);
-
-
-/**
- * 删除登录日志（仅用于内部/管理员）:
- * /v1/login-logs/delete
- */
-router.post('/delete', auth('admin', 'super_admin'), controller.remove);
-
+// 删除登录日志
+router.post('/delete', controller.remove);
 
 module.exports = router;
 

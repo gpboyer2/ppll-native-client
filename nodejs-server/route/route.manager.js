@@ -1,12 +1,11 @@
 /**
  * 路由管理器
  * 统一管理和注册所有API路由模块
- * 单用户系统：已移除 user 和 role 相关路由
+ * 本地客户端系统：已移除用户认证和权限系统
  *
  * 路由规范：所有路由统一使用 /api/v1 前缀
  * 示例：GET /api/v1/grid-strategy/list
  */
-const authRoute = require("./v1/auth.route");
 const chatRoute = require("./v1/chat.route");
 const robotRoute = require("./v1/robot.route");
 const helloRoute = require("./v1/hello.route");
@@ -35,7 +34,6 @@ const databaseAdminRoute = require("./v1/database-admin.route");
 
 const routeManager = (app) => {
   // API V1 Routes - 统一使用 /api/v1 前缀
-  app.use("/api/v1/auth", authRoute);
   app.use("/api/v1/chat", chatRoute);
   app.use("/api/v1/robot", robotRoute);
   app.use("/api/v1/hello", helloRoute);

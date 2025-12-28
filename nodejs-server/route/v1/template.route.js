@@ -1,33 +1,20 @@
 /**
  * 模板路由模块
  * 定义模板相关的API路由
+ * 本地客户端系统：无需认证
  */
 const express = require('express');
 const router = express.Router();
-const auth = require("../../middleware/auth");
-
 const orderController = require("../../controller/template.controller.js");
 
+// 创建新订单
+router.post('/create', orderController.createOrder);
 
-/** 
- * 创建新订单: 
- * /v1/template/create
- */
-router.post('/create', auth(['admin', 'super_admin']), orderController.createOrder);
+// 删除订单
+router.post('/delete', orderController.deleteOrder);
 
-
-/**
- * 删除订单:
- * /v1/template/delete
- */
-router.post('/delete', auth(['admin', 'super_admin']), orderController.deleteOrder);
-
-
-/**
- * 更新订单:
- * /v1/template/update
- */
-router.put('/update', auth(['admin', 'super_admin']), orderController.updateOrder);
+// 更新订单
+router.put('/update', orderController.updateOrder);
 
 
 /**

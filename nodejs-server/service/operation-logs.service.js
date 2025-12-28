@@ -1,6 +1,7 @@
 /**
  * 操作日志服务
  * 基于 operation_logs 表，提供查询、详情、写入与批量写入能力
+ * 本地客户端系统：无需用户系统，直接使用 operator 字段
  */
 const httpStatus = require('http-status');
 const ApiError = require('../utils/api-error');
@@ -55,27 +56,15 @@ function deriveModule(page, extra = {}) {
 }
 
 /**
- * 批量查询用户名称映射（user_id -> username），避免 N+1
- */
-async function buildUserNameMap(userIds = []) {
-  const ids = Array.from(new Set(userIds.filter(Boolean)));
-  if (ids.length === 0) return {};
-  const users = await db.users.findAll({ where: { id: { [Op.in]: ids } }, attributes: ['id', 'username'] });
-  const map = {};
-  for (const u of users) map[u.id] = u.username || '';
-  return map;
-}
-
-/**
  * 组合含展示字段的视图对象
  */
-function toViewObject(data, userNameMap = {}) {
+function toViewObject(data) {
   const extra = (data && data.extra_data) || {};
   // 优先使用数据库字段，其次从 UA/扩展数据推断
   const uaParsed = parseUa(data.user_agent);
   const os = data.os || uaParsed.os;
   const browser = data.browser || uaParsed.browser;
-  const operator = data.operator || userNameMap[data.user_id] || (data.user_id ? `用户#${data.user_id}` : '匿名');
+  const operator = data.operator || '系统';
   const moduleName = data.module || deriveModule(data.page, extra);
   const summary = data.summary || data.description || data.action || '';
   const ip = data.ip_address || '';
@@ -126,13 +115,12 @@ function maskExtra(obj) {
  */
 function buildWhere(filter = {}) {
   const where = {};
-  const { id, ids, user_id, action, description, page_path, ip, start, end, module, operator, status } = filter;
+  const { id, ids, action, description, page_path, ip, start, end, module, operator, status } = filter;
 
   // 支持按单个或多个ID查询
   if (Array.isArray(ids) && ids.length > 0) where.id = { [Op.in]: ids };
   else if (id) where.id = id;
 
-  if (user_id) where.user_id = user_id;
   if (action) where.action = { [Op.like]: `%${action}%` };
   if (description) where.description = { [Op.like]: `%${description}%` };
   if (page_path) where.page = { [Op.like]: `%${page_path}%` };
@@ -164,10 +152,8 @@ async function list(filter = {}, options = {}) {
       order: [['operation_time', 'DESC'], ['id', 'DESC']],
     });
     const plainRows = rows.map(sanitize);
-    const userIdList = plainRows.map(r => r.user_id);
-    const userNameMap = await buildUserNameMap(userIdList);
     return {
-      list: plainRows.map(r => toViewObject(r, userNameMap)),
+      list: plainRows.map(r => toViewObject(r)),
       pagination: {
         currentPage: 1,
         pageSize: plainRows.length,
@@ -184,11 +170,9 @@ async function list(filter = {}, options = {}) {
   });
 
   const plainRows = rows.map(sanitize);
-  const userIdList = plainRows.map(r => r.user_id);
-  const userNameMap = await buildUserNameMap(userIdList);
 
   return {
-    list: plainRows.map(r => toViewObject(r, userNameMap)),
+    list: plainRows.map(r => toViewObject(r)),
     pagination: {
       currentPage,
       pageSize,
@@ -205,25 +189,23 @@ async function detail(id) {
   const item = await db.operation_logs.findByPk(id);
   if (!item) throw new ApiError(httpStatus.NOT_FOUND, '记录不存在');
   const plain = sanitize(item);
-  const map = await buildUserNameMap([plain.user_id]);
-  return toViewObject(plain, map);
+  return toViewObject(plain);
 }
 
 /**
  * 新增单条操作日志（复用 AnalyticsService.logUserAction）
- * @param {import('express').Request} req 请求对象（用于拿 user、ip/ua）
+ * @param {import('express').Request} req 请求对象（用于拿 ip/ua）
  */
 async function create(req) {
   const body = req.body || {};
   // 提取必要字段
-  const userId = body.user_id || req.user?.id || null;
   const action = body.action;
   const description = body.description || null;
   const page = body.page || null;
   const ipAddress = body.ip || req.ip || req.headers['x-forwarded-for'] || null;
   const userAgent = body.user_agent || req.headers['user-agent'] || null;
   const extraData = maskExtra(body.extra_data || body.extraData || null);
-  const operator = body.operator || req.user?.username || null;
+  const operator = body.operator || '系统';
   const moduleName = body.module || deriveModule(page, extraData);
   const summary = body.summary || description || action || null;
   const status = typeof body.status !== 'undefined' ? (Number(body.status) === 1 ? 1 : 0) : undefined;
@@ -233,7 +215,7 @@ async function create(req) {
 
   // 复用分析服务写入能力，传入扩展选项以兼容新表字段
   await AnalyticsService.logUserAction(
-    userId,
+    null,
     action,
     description,
     page,
@@ -245,12 +227,11 @@ async function create(req) {
 
   // 返回最近一条写入记录（无强一致性要求，仅便于客户端确认）
   const created = await db.operation_logs.findOne({
-    where: { user_id: userId, action, description, page },
+    where: { action, description, page },
     order: [['operation_time', 'DESC']],
   });
   return sanitize(
     created || {
-      user_id: userId,
       operator,
       module: moduleName,
       action,
@@ -274,13 +255,12 @@ async function batchCreate(req, logs = []) {
     throw new ApiError(httpStatus.BAD_REQUEST, '缺少参数 logs');
   }
 
-  const userIdFromReq = req.user?.id || null;
   const ip = req.ip || req.headers['x-forwarded-for'] || null;
   const ua = req.headers['user-agent'] || null;
 
   // 规范化并脱敏扩展字段
   const normalized = logs.map((l) => ({
-    userId: l.user_id || l.userId || userIdFromReq,
+    userId: null,
     action: l.action,
     description: l.description || null,
     page: l.page || null,
@@ -288,7 +268,7 @@ async function batchCreate(req, logs = []) {
     userAgent: l.user_agent || l.userAgent || ua,
     extraData: maskExtra(l.extra_data || l.extraData || null),
     created_at: l.created_at || l.created_at || new Date(),
-    operator: l.operator || req.user?.username || null,
+    operator: l.operator || '系统',
     module: l.module || deriveModule(l.page, l.extra_data || l.extraData || {}),
     summary: l.summary || l.description || l.action || null,
     status: typeof l.status !== 'undefined' ? (Number(l.status) === 1 ? 1 : 0) : undefined,

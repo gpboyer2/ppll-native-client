@@ -1,11 +1,11 @@
 /**
  * 资金流路由模块
  * 定义资金流相关的API路由，提供资金流向查询和分析功能
+ * 本地客户端系统：无需认证
  */
 const express = require('express');
 const router = express.Router();
 const fundFlowsController = require('../../controller/fund-flows.controller.js');
-const auth = require('../../middleware/auth.js');
 const validate = require('../../middleware/validate.js');
 const vipMiddleware = require("../../middleware/vip.js");
 

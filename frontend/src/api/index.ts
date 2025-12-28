@@ -14,9 +14,6 @@
 export { SystemApi } from './modules/system'
 export { SystemLogsApi } from './modules/system-logs'
 
-// 认证管理
-export { AuthApi } from './modules/auth'
-
 // 数据库管理
 export { DatabaseApi } from './modules/database'
 

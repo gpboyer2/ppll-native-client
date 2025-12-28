@@ -23,52 +23,6 @@ export class ApiEndpoints {
     return RequestWrapper.get('/api/system/health')
   }
 
-  // ==================== 认证相关 ====================
-
-  /**
-   * 用户登录
-   */
-  static async login(credentials: { username: string; password: string }) {
-    return RequestWrapper.post('/api/auth/login', credentials)
-  }
-
-  /**
-   * 用户登出
-   */
-  static async logout() {
-    return RequestWrapper.post('/api/auth/logout')
-  }
-
-  /**
-   * 刷新令牌
-   */
-  static async refreshToken() {
-    return RequestWrapper.post('/api/auth/refresh')
-  }
-
-  // ==================== 用户相关 ====================
-
-  /**
-   * 获取用户信息
-   */
-  static async getUserInfo() {
-    return RequestWrapper.get('/api/user/profile')
-  }
-
-  /**
-   * 更新用户信息
-   */
-  static async updateUserInfo(data: Partial<any>) {
-    return RequestWrapper.put('/api/user/profile', data)
-  }
-
-  /**
-   * 修改密码
-   */
-  static async changePassword(data: { oldPassword: string; newPassword: string }) {
-    return RequestWrapper.post('/api/user/change-password', data)
-  }
-
   // ==================== 插件相关 ====================
 
   /**

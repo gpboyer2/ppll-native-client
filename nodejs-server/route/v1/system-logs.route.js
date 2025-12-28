@@ -1,22 +1,22 @@
 /**
  * 系统日志路由
  * 提供系统日志（system_logs）的查询、详情、写入与批量写入接口
+ * 本地客户端系统：无需认证
  */
 const express = require('express');
 const router = express.Router();
 const controller = require('../../controller/system-logs.controller.js');
-const auth = require('../../middleware/auth.js');
 
-// 写入接口：默认限制管理员，避免被滥用；如需开放，可将 auth('admin','super_admin') 调整为 auth()
-router.post('/create', auth('admin', 'super_admin'), controller.create);
-router.post('/batch-create', auth('admin', 'super_admin'), controller.batchCreate);
+// 写入接口
+router.post('/create', controller.create);
+router.post('/batch-create', controller.batchCreate);
 
-// 查询与详情：仅管理员/超管可查
-router.get('/query', auth('admin', 'super_admin'), controller.list);
-router.get('/detail', auth('admin', 'super_admin'), controller.detail);
+// 查询与详情
+router.get('/query', controller.list);
+router.get('/detail', controller.detail);
 
-// 删除：仅管理员/超管
-router.post('/delete', auth('admin', 'super_admin'), controller.remove);
+// 删除
+router.post('/delete', controller.remove);
 
 module.exports = router;
 

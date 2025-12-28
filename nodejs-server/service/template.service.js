@@ -73,7 +73,6 @@ const getOrderById = async (id) => {
  * @param {Object} filter - 查询条件
  * @param {string|number} filter.id - 单个订单ID
  * @param {string} filter.ids - 多个订单ID，逗号分隔
- * @param {string|number} filter.user_id - 用户ID
  * @param {Object} options - 分页选项
  * @param {number} options.page - 页码，默认为1
  * @param {number} options.pageSize - 每页数量，默认为10
@@ -81,17 +80,17 @@ const getOrderById = async (id) => {
  */
 const queryOrders = async (filter = {}, options = {}) => {
   try {
-    const { id, ids, user_id, ...otherFilters } = filter;
+    const { id, ids, ...otherFilters } = filter;
     const { page = 1, pageSize = 10 } = options;
-        
+
     // 构建查询条件
     let where = { ...otherFilters };
-        
+
     // 处理单个ID查询
     if (id) {
       where.id = id;
     }
-        
+
     // 处理多个ID查询
     if (ids) {
       const idArray = ids.split(',').map(id => parseInt(id.trim())).filter(id => !isNaN(id));
@@ -99,14 +98,9 @@ const queryOrders = async (filter = {}, options = {}) => {
         where.id = idArray;
       }
     }
-        
-    // 处理用户ID过滤
-    if (user_id) {
-      where.user_id = user_id;
-    }
-        
+
     // 如果是查询单个ID，直接返回该记录
-    if (id && !ids && !user_id) {
+    if (id && !ids) {
       const order = await Order.findOne({ where });
       return {
         list: order ? [order.toJSON()] : [],

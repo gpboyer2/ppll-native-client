@@ -1,41 +1,26 @@
 /**
  * 操作日志路由
  * 基于表 operation_logs，提供查询、详情、写入与批量写入接口
+ * 本地客户端系统：无需认证
  */
 const express = require('express');
 const router = express.Router();
 const controller = require('../../controller/operation-logs.controller.js');
-const auth = require('../../middleware/auth.js');
 
-/**
- * 写入操作日志:
- * /v1/operation-logs/create
- */
-router.post('/create', auth(), controller.create);
+// 写入操作日志
+router.post('/create', controller.create);
 
-/**
- * 批量写入操作日志:
- * /v1/operation-logs/batch-create
- */
-router.post('/batch-create', auth(), controller.batchCreate);
+// 批量写入操作日志
+router.post('/batch-create', controller.batchCreate);
 
-/**
- * 分页查询操作日志:
- * /v1/operation-logs/query
- */
-router.get('/query', auth('admin', 'super_admin'), controller.list);
+// 分页查询操作日志
+router.get('/query', controller.list);
 
-/**
- * 获取操作日志详情:
- * /v1/operation-logs/detail
- */
-router.get('/detail', auth('admin', 'super_admin'), controller.detail);
+// 获取操作日志详情
+router.get('/detail', controller.detail);
 
-/**
- * 删除操作日志:
- * /v1/operation-logs/delete
- */
-router.post('/delete', auth('admin', 'super_admin'), controller.remove);
+// 删除操作日志
+router.post('/delete', controller.remove);
 
 module.exports = router;
 

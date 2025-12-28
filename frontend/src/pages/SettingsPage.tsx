@@ -3,7 +3,6 @@ import { UpdateSaveConfig, UpdateCheckNow, ClearAllData, GetDataSize, GetNodejsS
 import { EventsOn } from '../../wailsjs/runtime';
 import type { Response } from '../core/response';
 import { feedURLExamples } from '../router';
-import { useUserStore } from '../stores/user-store';
 import { useDataManagementStore } from '../stores/data-management-store';
 import { useSystemInfoStore } from '../stores/system-info-store';
 import { useBinanceStore } from '../stores/binance-store';
@@ -15,9 +14,6 @@ import { showSuccess } from '../utils/api-error';
 function SettingsPage() {
     // 使用系统信息 store
     const { staticInfo: systemStaticInfo, dynamicInfo: systemDynamicInfo } = useSystemInfoStore();
-
-    // 使用 user store
-    const { resetToDefaults } = useUserStore();
 
     // 使用数据管理 store
     const {
@@ -261,9 +257,6 @@ function SettingsPage() {
 
             // 记录清理操作到数据管理 store
             recordClearOperation();
-
-            // 清理成功后，重置所有 store 状态
-            resetToDefaults();
 
             // 重新加载数据大小
             await loadDataSize();

@@ -1,6 +1,6 @@
 /**
  * 模板控制器
- * 单用户系统：处理模板相关的业务逻辑，提供模板管理功能
+ * 本地客户端系统：处理模板相关的业务逻辑，提供模板管理功能
  */
 const orderService = require("../service/template.service");
 const httpStatus = require("http-status");
@@ -62,7 +62,7 @@ const queryOrders = catchAsync(async (req, res) => {
   // 获取查询参数
   const { id, ids, currentPage = 1, pageSize = 10 } = req.query;
 
-  // 构建查询条件（单用户系统，移除 user_id）
+  // 构建查询条件（本地客户端系统，无需 user_id）
   const filter = {};
   if (id) filter.id = id;
   if (ids) filter.ids = ids;

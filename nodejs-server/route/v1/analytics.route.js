@@ -1,6 +1,7 @@
 /**
  * 数据分析路由模块
  * 定义系统性能分析、用户行为分析等数据统计相关的API路由
+ * 本地客户端系统：无需认证
  */
 const express = require('express');
 const router = express.Router();
@@ -8,12 +9,6 @@ const AnalyticsService = require('../../service/analytics.service.js');
 const analyticsController = require('../../controller/analytics.controller.js');
 const validateMiddleware = require('../../middleware/validate');
 const Joi = require('joi');
-const auth = require('../../middleware/auth');
-
-/**
- * 保护所有分析接口，要求管理员权限
- */
-router.use(auth(['admin', 'super_admin']));
 
 /**
  * 获取系统分析数据概览:

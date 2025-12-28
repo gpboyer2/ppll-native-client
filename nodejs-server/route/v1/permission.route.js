@@ -1,11 +1,11 @@
 /**
  * 权限路由模块
  * 定义权限管理相关的API路由，包括权限的增删改查和树形结构获取
+ * 本地客户端系统：无需认证
  */
 const express = require('express');
 const router = express.Router();
 const permissionController = require('../../controller/permission.controller.js');
-const auth = require("../../middleware/auth");
 
 /**
  * @swagger
@@ -934,56 +934,56 @@ const auth = require("../../middleware/auth");
  * 创建权限
  * /v1/permission/create
  */
-router.post('/create', auth(['admin', 'super_admin']), permissionController.createPermission);
+router.post('/create', permissionController.createPermission);
 
 
 /**
  * 删除权限
  * /v1/permission/delete
  */
-router.post('/delete', auth(['admin', 'super_admin']), permissionController.deletePermission);
+router.post('/delete', permissionController.deletePermission);
 
 
 /**
  * 更新权限
  * /v1/permission/update
  */
-router.post('/update', auth(['admin', 'super_admin']), permissionController.updatePermission);
+router.post('/update', permissionController.updatePermission);
 
 
 /**
  * 查询权限
  * /v1/permission/query
  */
-router.get('/query', auth(['admin', 'super_admin']), permissionController.queryPermissions);
+router.get('/query', permissionController.queryPermissions);
 
 
 /**
  * 获取权限树
  * /v1/permission/tree
  */
-router.get('/tree', auth(['admin', 'super_admin']), permissionController.getPermissionTree);
+router.get('/tree', permissionController.getPermissionTree);
 
 
 /**
  * 获取菜单树
  * /v1/permission/menu-tree
  */
-router.get('/menu-tree', auth(), permissionController.getMenuTree);
+router.get('/menu-tree', permissionController.getMenuTree);
 
 
 /**
  * 根据类型获取权限
  * /v1/permission/type/:type
  */
-router.get('/type/:type', auth(['admin', 'super_admin']), permissionController.getPermissionsByType);
+router.get('/type/:type', permissionController.getPermissionsByType);
 
 
 /**
  * 根据编码获取权限详情
  * /v1/permission/code/:code
  */
-router.get('/code/:code', auth(['admin', 'super_admin']), permissionController.getPermissionByCode);
+router.get('/code/:code', permissionController.getPermissionByCode);
 
 
 module.exports = router;

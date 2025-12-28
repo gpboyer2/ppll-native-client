@@ -13,8 +13,6 @@ const db = require("./models/index");
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const swaggerDocs = require("./swagger.js");
-const passport = require("passport");
-const { jwtStrategy } = require("./config/passport");
 const xss = require("xss-clean");
 const ipUtil = require("./utils/ip");
 const morgan = require("morgan");
@@ -126,10 +124,6 @@ const dbSyncPromise = db.sequelize.sync({ alter: true })
   .catch((err) => {
     console.log("数据库同步失败: " + err.message);
   });
-
-// jwt authentication
-app.use(passport.initialize());
-passport.use("jwt", jwtStrategy);
 
 // 配置和启动一个基于Express的Node.js应用程序，并使用Swagger来生成API文档
 routeManager(app);
