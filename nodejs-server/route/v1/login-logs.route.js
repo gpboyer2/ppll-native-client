@@ -48,7 +48,7 @@ module.exports = router;
  *           type: string
  *           example: "user123"
  *           description: 用户名
- *         apiKey:
+ *         api_key:
  *           type: string
  *           example: "abcd12***34"
  *           description: API密钥（已脱敏）
@@ -299,10 +299,10 @@ module.exports = router;
  *               password:
  *                 type: string
  *                 description: 密码（可选，仅用于判定登录方式，不落库）
- *               apiKey:
+ *               api_key:
  *                 type: string
  *                 description: API密钥
- *               apiSecret:
+ *               secret_key:
  *                 type: string
  *                 description: API密钥Secret（可选，仅用于判定登录方式，不落库）
  *               login_time:
@@ -394,7 +394,7 @@ module.exports = router;
  *               username:
  *                 type: string
  *                 description: 用户名
- *               apiKey:
+ *               api_key:
  *                 type: string
  *                 description: API密钥
  *               login_time:

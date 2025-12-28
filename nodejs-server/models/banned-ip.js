@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
      * @returns {boolean} 是否已过期
      */
     isExpired() {
-      return this.expiresAt < new Date();
+      return this.banned_at < new Date();
     }
 
     /**
@@ -41,7 +41,7 @@ module.exports = (sequelize, DataTypes) => {
       const bannedRecord = await this.findOne({
         where: {
           ip,
-          expiresAt: {
+          expires_at: {
             [Op.gt]: new Date()
           },
           status: 1
@@ -74,9 +74,9 @@ module.exports = (sequelize, DataTypes) => {
         // 如果已存在，更新封禁信息
         await existingRecord.update({
           reason,
-          bannedAt: new Date(),
-          expiresAt: permanentExpiresAt, // 永久封禁
-          createdBy,
+          banned_at: new Date(),
+          expires_at: permanentExpiresAt, // 永久封禁
+          created_by,
           status: 1,
           remark
         });
@@ -86,9 +86,9 @@ module.exports = (sequelize, DataTypes) => {
         return await this.create({
           ip,
           reason,
-          bannedAt: new Date(),
-          expiresAt: permanentExpiresAt, // 永久封禁
-          createdBy,
+          banned_at: new Date(),
+          expires_at: permanentExpiresAt, // 永久封禁
+          created_by,
           status: 1,
           remark
         });
@@ -108,7 +108,7 @@ module.exports = (sequelize, DataTypes) => {
       if (record) {
         await record.update({
           status: 0,
-          expiresAt: new Date()
+          expires_at: new Date()
         });
         return true;
       }
@@ -125,7 +125,7 @@ module.exports = (sequelize, DataTypes) => {
         { status: 0 },
         {
           where: {
-            expiresAt: {
+            expires_at: {
               [Op.lt]: new Date()
             },
             status: 1
@@ -154,23 +154,20 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       comment: '封禁原因'
     },
-    bannedAt: {
+    banned_at: {
       type: DataTypes.DATE,
       allowNull: false,
-      field: 'banned_at',
       defaultValue: DataTypes.NOW,
       comment: '封禁时间'
     },
-    expiresAt: {
+    expires_at: {
       type: DataTypes.DATE,
       allowNull: false,
-      field: 'expires_at',
       comment: '过期时间'
     },
-    createdBy: {
+    created_by: {
       type: DataTypes.BIGINT,
       allowNull: false,
-      field: 'created_by',
       defaultValue: 0,
       comment: '创建者用户ID'
     },

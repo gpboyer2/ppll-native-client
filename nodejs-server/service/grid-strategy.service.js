@@ -169,10 +169,10 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
         // 错误处理
         UtilRecord.log('[grid-strategy] 网格策略错误', {
           strategyId: this.config.id,
-          api_key: this.config.apiKey?.substring(0, 8),
-          symbol: this.config.tradingPair,
-          positionSide: this.config.positionSide,
-          productType: this.config.exchangeType || 'u本位合约',
+          api_key: this.config.api_key?.substring(0, 8),
+          symbol: this.config.trading_pair,
+          positionSide: this.config.position_side,
+          productType: this.config.exchange_type || 'u本位合约',
           error: data,
           timestamp: dayjs().format('YYYY-MM-DD HH:mm:ss')
         });
@@ -182,19 +182,19 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
       // 建仓成功事件处理
       wealthySoon.onOpenPosition = async function (data) {
         // 根据持仓方向获取网格交易数量
-        const gridTradeQuantity = wealthySoon.config.positionSide === 'LONG'
-          ? (wealthySoon.config.gridLongOpenQuantity || wealthySoon.config.gridTradeQuantity)
-          : (wealthySoon.config.gridShortOpenQuantity || wealthySoon.config.gridTradeQuantity);
+        const gridTradeQuantity = wealthySoon.config.position_side === 'LONG'
+          ? (wealthySoon.config.grid_long_open_quantity || wealthySoon.config.grid_trade_quantity)
+          : (wealthySoon.config.grid_short_open_quantity || wealthySoon.config.grid_trade_quantity);
 
         await createTradeHistory({
           grid_id: data.id, // 网格策略ID
           trading_pair: data.symbol, // 交易对
-          api_key: wealthySoon.config.apiKey, // API密钥
-          grid_price_difference: wealthySoon.config.gridPriceDifference, // 网格价差
+          api_key: wealthySoon.config.api_key, // API密钥
+          grid_price_difference: wealthySoon.config.grid_price_difference, // 网格价差
           grid_trade_quantity: gridTradeQuantity, // 网格交易数量
-          max_position_quantity: wealthySoon.config.maxOpenPositionQuantity || 0, // 最大持仓数量
-          min_position_quantity: wealthySoon.config.minOpenPositionQuantity || 0, // 最小持仓数量
-          fall_prevention_coefficient: wealthySoon.config.fallPreventionCoefficient || 0, // 防跌系数
+          max_position_quantity: wealthySoon.config.max_open_position_quantity || 0, // 最大持仓数量
+          min_position_quantity: wealthySoon.config.min_open_position_quantity || 0, // 最小持仓数量
+          fall_prevention_coefficient: wealthySoon.config.fall_prevention_coefficient || 0, // 防跌系数
           entry_order_id: data.orderId, // 开仓订单ID
           exit_order_id: "", // 平仓订单ID（开仓时为空）
           grid_level: 0, // 网格层级（暂时设为0）
@@ -226,7 +226,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
           retry_count: 0, // 重试次数
           error_message: "", // 错误信息
           trade_direction: data.side, // 交易方向(BUY/SELL)
-          position_side: data.positionSide || null, // 持仓方向(LONG/SHORT)
+          position_side: data.position_side || null, // 持仓方向(LONG/SHORT)
           order_type: data.type, // 订单类型(MARKET/LIMIT)
           time_in_force: data.timeInForce || "GTC", // 订单有效期(GTC/IOC/FOK)
           avg_entry_price: data.avgPrice, // 平均开仓价格
@@ -260,15 +260,15 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
       wealthySoon.onClosePosition = async function (data) {
         try {
           // 根据持仓方向获取网格交易数量
-          const gridTradeQuantity = wealthySoon.config.positionSide === 'LONG'
-            ? (wealthySoon.config.gridLongCloseQuantity || wealthySoon.config.gridTradeQuantity)
-            : (wealthySoon.config.gridShortCloseQuantity || wealthySoon.config.gridTradeQuantity);
+          const gridTradeQuantity = wealthySoon.config.position_side === 'LONG'
+            ? (wealthySoon.config.grid_long_close_quantity || wealthySoon.config.grid_trade_quantity)
+            : (wealthySoon.config.grid_short_close_quantity || wealthySoon.config.grid_trade_quantity);
 
           await createTradeHistory({
             grid_id: data.id, // 网格策略ID
             trading_pair: data.symbol, // 交易对
-            api_key: wealthySoon.config.apiKey, // API密钥
-            grid_price_difference: wealthySoon.config.gridPriceDifference, // 网格价差
+            api_key: wealthySoon.config.api_key, // API密钥
+            grid_price_difference: wealthySoon.config.grid_price_difference, // 网格价差
             grid_trade_quantity: gridTradeQuantity, // 网格交易数量
             entry_order_id: "", // 开仓订单ID（平仓时为空）
             exit_order_id: data.orderId, // 平仓订单ID
@@ -277,7 +277,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
             entry_time: null, // 开仓时间（平仓时为空）
             exit_time: new Date(data.time), // 平仓时间
             trade_direction: data.side, // 交易方向(BUY/SELL)
-            position_side: data.positionSide || null, // 持仓方向(LONG/SHORT)
+            position_side: data.position_side || null, // 持仓方向(LONG/SHORT)
             order_type: data.type, // 订单类型(MARKET/LIMIT)
             position_quantity: data.executedQty, // 仓位数量
             exchange: "BINANCE", // 交易所

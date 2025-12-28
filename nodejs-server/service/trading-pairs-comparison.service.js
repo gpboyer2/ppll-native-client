@@ -306,10 +306,10 @@ const getComprehensiveReport = async (suffix = null) => {
   const allBaseAssets = new Set([...spotBaseAssets, ...futuresBaseAssets]);
 
   const assetAnalysis = {
-    totalBaseAssets: allBaseAssets.size,
-    spotOnlyAssets: [],
-    futuresOnlyAssets: [],
-    commonAssets: []
+    total_base_assets: allBaseAssets.size,
+    spot_only_assets: [],
+    futures_only_assets: [],
+    common_assets: []
   };
 
   allBaseAssets.forEach(asset => {
@@ -317,30 +317,30 @@ const getComprehensiveReport = async (suffix = null) => {
     const hasFutures = futuresBaseAssets.has(asset);
 
     if (hasSpot && hasFutures) {
-      assetAnalysis.commonAssets.push(asset);
+      assetAnalysis.common_assets.push(asset);
     } else if (hasSpot && !hasFutures) {
-      assetAnalysis.spotOnlyAssets.push(asset);
+      assetAnalysis.spot_only_assets.push(asset);
     } else if (!hasSpot && hasFutures) {
-      assetAnalysis.futuresOnlyAssets.push(asset);
+      assetAnalysis.futures_only_assets.push(asset);
     }
   });
 
   // 排序
-  assetAnalysis.spotOnlyAssets.sort();
-  assetAnalysis.futuresOnlyAssets.sort();
-  assetAnalysis.commonAssets.sort();
+  assetAnalysis.spot_only_assets.sort();
+  assetAnalysis.futures_only_assets.sort();
+  assetAnalysis.common_assets.sort();
 
   return {
     summary: {
-      totalSpotPairs: filteredSpotPairs.length,
-      totalFuturesPairs: filteredFuturesPairs.length,
+      total_spot_pairs: filteredSpotPairs.length,
+      total_futures_pairs: filteredFuturesPairs.length,
       common_pairs: common_pairs.length,
-      futuresOnlyCount: futuresOnlyResult.count,
-      spotOnlyCount: spotOnlyResult.count,
-      totalBaseAssets: assetAnalysis.totalBaseAssets,
-      commonAssetsCount: assetAnalysis.commonAssets.length,
-      spotOnlyAssetsCount: assetAnalysis.spotOnlyAssets.length,
-      futuresOnlyAssetsCount: assetAnalysis.futuresOnlyAssets.length
+      futures_only_count: futuresOnlyResult.count,
+      spot_only_count: spotOnlyResult.count,
+      total_base_assets: assetAnalysis.total_base_assets,
+      common_assets_count: assetAnalysis.common_assets.length,
+      spot_only_assets_count: assetAnalysis.spot_only_assets.length,
+      futures_only_assets_count: assetAnalysis.futures_only_assets.length
     },
     common_pairs: {
       count: common_pairs.length,
@@ -351,10 +351,10 @@ const getComprehensiveReport = async (suffix = null) => {
     spotOnly: spotOnlyResult,
     assetAnalysis: {
       summary: {
-        totalBaseAssets: assetAnalysis.totalBaseAssets,
-        commonAssetsCount: assetAnalysis.commonAssets.length,
-        spotOnlyAssetsCount: assetAnalysis.spotOnlyAssets.length,
-        futuresOnlyAssetsCount: assetAnalysis.futuresOnlyAssets.length
+        total_base_assets: assetAnalysis.total_base_assets,
+        common_assets_count: assetAnalysis.common_assets.length,
+        spot_only_assets_count: assetAnalysis.spot_only_assets.length,
+        futures_only_assets_count: assetAnalysis.futures_only_assets.length
       },
       details: assetAnalysis,
       generatedAt: new Date().toISOString()

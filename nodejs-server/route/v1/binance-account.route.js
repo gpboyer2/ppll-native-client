@@ -241,14 +241,14 @@ module.exports = router;
  *       - 保证金信息：初始保证金、维持保证金、保证金模式等
  *     parameters:
  *       - in: query
- *         name: apiKey
+ *         name: api_key
  *         schema:
  *           type: string
  *         required: true
  *         description: 币安API Key
  *         example: "your_binance_api_key"
  *       - in: query
- *         name: apiSecret
+ *         name: secret_key
  *         schema:
  *           type: string
  *         required: true
@@ -373,14 +373,14 @@ module.exports = router;
  *       - 权限信息：支持的操作权限
  *     parameters:
  *       - in: query
- *         name: apiKey
+ *         name: api_key
  *         schema:
  *           type: string
  *         required: true
  *         description: 币安API Key
  *         example: "your_binance_api_key"
  *       - in: query
- *         name: apiSecret
+ *         name: secret_key
  *         schema:
  *           type: string
  *         required: true
@@ -481,14 +481,14 @@ module.exports = router;
  *       - 保证金信息：保证金模式、维持保证金等
  *     parameters:
  *       - in: query
- *         name: apiKey
+ *         name: api_key
  *         schema:
  *           type: string
  *         required: true
  *         description: 币安API Key
  *         example: "your_binance_api_key"
  *       - in: query
- *         name: apiSecret
+ *         name: secret_key
  *         schema:
  *           type: string
  *         required: true

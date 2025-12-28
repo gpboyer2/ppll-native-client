@@ -23,10 +23,10 @@ router.put('/update', orderController.updateOrder);
  * 查询参数：
  * - id: 单个订单ID（可选）
  * - ids: 多个订单ID，用逗号分隔（可选，例如：1,2,3）
- * - currentPage: 页码（可选，默认为1）
- * - pageSize: 每页数量（可选，默认为10，最大100）
- * - apiKey: 币安API密钥（VIP验证用）
- * - apiSecret: 币安API密钥Secret（VIP验证用）
+ * - current_page: 页码（可选，默认为1）
+ * - page_size: 每页数量（可选，默认为10，最大100）
+ * - api_key: 币安API密钥（VIP验证用）
+ * - secret_key: 币安API密钥Secret（VIP验证用）
  *
  * 优先级：id > ids > 分页查询所有
  */
@@ -142,11 +142,11 @@ module.exports = router;
  *         - type
  *         - quantity
  *       properties:
- *         apiKey:
+ *         api_key:
  *           type: string
  *           description: 币安API密钥
  *           example: "your_binance_api_key"
- *         apiSecret:
+ *         secret_key:
  *           type: string
  *           description: 币安API密钥Secret
  *           example: "your_binance_api_secret"
@@ -252,8 +252,8 @@ module.exports = router;
  *             limit_buy_order:
  *               summary: 限价买单示例
  *               value:
- *                 apiKey: "your_binance_api_key"
- *                 apiSecret: "your_binance_api_secret"
+ *                 api_key: "your_binance_api_key"
+ *                 secret_key: "your_binance_api_secret"
  *                 symbol: "BTCUSDT"
  *                 side: "BUY"
  *                 type: "LIMIT"
@@ -264,8 +264,8 @@ module.exports = router;
  *             market_sell_order:
  *               summary: 市价卖单示例
  *               value:
- *                 apiKey: "your_binance_api_key"
- *                 apiSecret: "your_binance_api_secret"
+ *                 api_key: "your_binance_api_key"
+ *                 secret_key: "your_binance_api_secret"
  *                 symbol: "ETHUSDT"
  *                 side: "SELL"
  *                 type: "MARKET"
@@ -274,8 +274,8 @@ module.exports = router;
  *             grid_order:
  *               summary: 网格交易订单示例
  *               value:
- *                 apiKey: "your_binance_api_key"
- *                 apiSecret: "your_binance_api_secret"
+ *                 api_key: "your_binance_api_key"
+ *                 secret_key: "your_binance_api_secret"
  *                 symbol: "ADAUSDT"
  *                 side: "BUY"
  *                 type: "LIMIT"
@@ -440,11 +440,11 @@ module.exports = router;
  *                 type: integer
  *                 description: 要更新的订单ID
  *                 example: 1001
- *               apiKey:
+ *               api_key:
  *                 type: string
  *                 description: 币安API密钥（VIP验证用）
  *                 example: "your_binance_api_key"
- *               apiSecret:
+ *               secret_key:
  *                 type: string
  *                 description: 币安API密钥Secret（VIP验证用）
  *                 example: "your_binance_api_secret"
@@ -473,8 +473,8 @@ module.exports = router;
  *               summary: 更新订单示例
  *               value:
  *                 id: 1001
- *                 apiKey: "your_binance_api_key"
- *                 apiSecret: "your_binance_api_secret"
+ *                 api_key: "your_binance_api_key"
+ *                 secret_key: "your_binance_api_secret"
  *                 ordername: "BTC买入订单-已确认"
  *                 active: 1
  *                 status: 2
@@ -608,14 +608,14 @@ module.exports = router;
  *         description: 每页数量
  *         example: 10
  *       - in: query
- *         name: apiKey
+ *         name: api_key
  *         required: false
  *         schema:
  *           type: string
  *         description: 币安API密钥（VIP验证用）
  *         example: "your_binance_api_key"
  *       - in: query
- *         name: apiSecret
+ *         name: secret_key
  *         required: false
  *         schema:
  *           type: string

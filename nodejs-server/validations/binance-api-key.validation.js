@@ -14,24 +14,24 @@ const createApiKey = {
       'string.max': '名称长度不能超过64个字符',
       'any.required': '名称是必填项'
     }),
-    apiKey: Joi.string().min(10).max(255).required().messages({
+    api_key: Joi.string().min(10).max(255).required().messages({
       'string.min': 'API Key 长度不能少于10个字符',
       'string.max': 'API Key 长度不能超过255个字符',
       'any.required': 'API Key 是必填项'
     }),
-    secretKey: Joi.string().min(10).max(255).required().messages({
+    secret_key: Joi.string().min(10).max(255).required().messages({
       'string.min': 'Secret Key 长度不能少于10个字符',
       'string.max': 'Secret Key 长度不能超过255个字符',
       'any.required': 'Secret Key 是必填项'
     }),
     status: Joi.number().integer().valid(1, 2, 3).optional().messages({
       'number.base': '状态必须是数字',
-      'any.only': '状态必须是 1(未知)、2(启用) 或 3(禁用)'
+      'number.only': '状态必须是 1(未知)、2(启用) 或 3(禁用)'
     }),
     remark: Joi.string().max(255).allow('').optional().messages({
       'string.max': '备注长度不能超过255个字符'
     }),
-    vipExpireAt: Joi.date().optional().messages({
+    vip_expire_at: Joi.date().optional().messages({
       'date.base': 'VIP过期时间格式不正确'
     })
   })
@@ -64,22 +64,22 @@ const updateApiKey = {
       'string.min': '名称不能为空',
       'string.max': '名称长度不能超过64个字符'
     }),
-    apiKey: Joi.string().min(10).max(255).optional().messages({
+    api_key: Joi.string().min(10).max(255).optional().messages({
       'string.min': 'API Key 长度不能少于10个字符',
       'string.max': 'API Key 长度不能超过255个字符'
     }),
-    secretKey: Joi.string().min(10).max(255).optional().messages({
+    secret_key: Joi.string().min(10).max(255).optional().messages({
       'string.min': 'Secret Key 长度不能少于10个字符',
       'string.max': 'Secret Key 长度不能超过255个字符'
     }),
     status: Joi.number().integer().valid(1, 2, 3).optional().messages({
       'number.base': '状态必须是数字',
-      'any.only': '状态必须是 1(未知)、2(启用) 或 3(禁用)'
+      'number.only': '状态必须是 1(未知)、2(启用) 或 3(禁用)'
     }),
     remark: Joi.string().max(255).allow('').optional().messages({
       'string.max': '备注长度不能超过255个字符'
     }),
-    vipExpireAt: Joi.date().optional().messages({
+    vip_expire_at: Joi.date().optional().messages({
       'date.base': 'VIP过期时间格式不正确'
     })
   }).min(2).messages({
@@ -99,8 +99,8 @@ const getApiKeys = {
     ),
     name: Joi.string().optional(),
     status: Joi.number().integer().valid(1, 2, 3).optional(),
-    pageSize: Joi.number().integer().min(1).max(100).optional(),
-    currentPage: Joi.number().integer().min(1).optional()
+    page_size: Joi.number().integer().min(1).max(100).optional(),
+    current_page: Joi.number().integer().min(1).optional()
   })
 };
 

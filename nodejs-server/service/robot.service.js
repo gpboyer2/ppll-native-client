@@ -13,8 +13,8 @@ const ApiError = require('../utils/api-error');
 const createRobot = async (params) => {
   const [row, created] = await Robot.findOrCreate({
     where: {
-      api_key: params.apiKey,
-      tradingPair: params.tradingPair,
+      api_key: params.api_key,
+      trading_pair: params.trading_pair,
     },
     defaults: params,
   });
@@ -30,12 +30,12 @@ const createRobot = async (params) => {
 const createSymbolWebsocket = async (params) => {
   // 使用传入的 API 密钥创建独立的 WebSocket 客户端
   const wsClient = createWsClient({
-    api_key: params.apiKey,
-    secret_key: params.apiSecret,
+    api_key: params.api_key,
+    secret_key: params.secret_key,
     beautify: true,
   });
 
-  wsClient.subscribeContinuousContractKlines(params.tradingPair, 'perpetual', '1m', 'usdm');
+  wsClient.subscribeContinuousContractKlines(params.trading_pair, 'perpetual', '1m', 'usdm');
 
   let wealthySoon = new InfiniteLongGrid(params);
   wealthySoon.initOrders();
@@ -94,9 +94,9 @@ const getRobotByApiKey = async (api_key, secret_key) => {
 
 
 const updateRobotById = async (robotId, updateBody) => {
-  const { robotname, api_key, active, status } = updateBody;
+  const { robot_name, api_key, active, status } = updateBody;
   const robot = {
-    robotname,
+    robot_name,
     api_key,
     active,
     status,

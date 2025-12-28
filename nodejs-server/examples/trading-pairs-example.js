@@ -53,11 +53,11 @@ async function advancedExample() {
     const report = await tradingPairsService.getComparisonReport();
 
     console.log('   报告摘要:');
-    console.log(`   - 总现货交易对: ${report.summary.totalSpotPairs}`);
-    console.log(`   - 总合约交易对: ${report.summary.totalFuturesPairs}`);
-    console.log(`   - 共同交易对: ${report.summary.commonPairs}`);
-    console.log(`   - 仅合约交易对: ${report.summary.futuresOnlyCount}`);
-    console.log(`   - 仅现货交易对: ${report.summary.spotOnlyCount}`);
+    console.log(`   - 总现货交易对: ${report.summary.total_spot_pairs}`);
+    console.log(`   - 总合约交易对: ${report.summary.total_futures_pairs}`);
+    console.log(`   - 共同交易对: ${report.summary.common_pairs}`);
+    console.log(`   - 仅合约交易对: ${report.summary.futures_only_count}`);
+    console.log(`   - 仅现货交易对: ${report.summary.spot_only_count}`);
     console.log();
 
     // 2. 基础资产分析
@@ -65,13 +65,13 @@ async function advancedExample() {
     const assetAnalysis = await tradingPairsService.getBaseAssetAnalysis();
 
     console.log('   基础资产统计:');
-    console.log(`   - 总基础资产数: ${assetAnalysis.summary.totalBaseAssets}`);
-    console.log(`   - 共同资产数: ${assetAnalysis.summary.commonAssetsCount}`);
-    console.log(`   - 仅现货资产数: ${assetAnalysis.summary.spotOnlyAssetsCount}`);
-    console.log(`   - 仅合约资产数: ${assetAnalysis.summary.futuresOnlyAssetsCount}`);
+    console.log(`   - 总基础资产数: ${assetAnalysis.summary.total_base_assets}`);
+    console.log(`   - 共同资产数: ${assetAnalysis.summary.common_assets_count}`);
+    console.log(`   - 仅现货资产数: ${assetAnalysis.summary.spot_only_assets_count}`);
+    console.log(`   - 仅合约资产数: ${assetAnalysis.summary.futures_only_assets_count}`);
 
-    if (assetAnalysis.details.futuresOnlyAssets.length > 0) {
-      console.log(`   - 仅合约资产示例: ${assetAnalysis.details.futuresOnlyAssets.slice(0, 10).join(', ')}`);
+    if (assetAnalysis.details.futures_only_assets.length > 0) {
+      console.log(`   - 仅合约资产示例: ${assetAnalysis.details.futures_only_assets.slice(0, 10).join(', ')}`);
     }
     console.log();
 

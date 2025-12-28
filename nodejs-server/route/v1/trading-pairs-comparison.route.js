@@ -103,31 +103,31 @@ module.exports = router;
  *         summary:
  *           type: object
  *           properties:
- *             totalSpotPairs:
+ *             total_spot_pairs:
  *               type: integer
  *               description: 现货交易对总数
- *             totalFuturesPairs:
+ *             total_futures_pairs:
  *               type: integer
  *               description: 合约交易对总数
- *             commonPairs:
+ *             common_pairs:
  *               type: integer
  *               description: 同时存在现货和合约的交易对数量
- *             futuresOnlyCount:
+ *             futures_only_count:
  *               type: integer
  *               description: 仅有合约的交易对数量
- *             spotOnlyCount:
+ *             spot_only_count:
  *               type: integer
  *               description: 仅有现货的交易对数量
- *             totalBaseAssets:
+ *             total_base_assets:
  *               type: integer
  *               description: 基础资产总数
- *             commonAssetsCount:
+ *             common_assets_count:
  *               type: integer
  *               description: 同时在现货和合约市场存在的资产数量
- *             spotOnlyAssetsCount:
+ *             spot_only_assets_count:
  *               type: integer
  *               description: 仅在现货市场存在的资产数量
- *             futuresOnlyAssetsCount:
+ *             futures_only_assets_count:
  *               type: integer
  *               description: 仅在合约市场存在的资产数量
  *         commonPairs:
@@ -142,28 +142,28 @@ module.exports = router;
  *             summary:
  *               type: object
  *               properties:
- *                 totalBaseAssets:
+ *                 total_base_assets:
  *                   type: integer
- *                 commonAssetsCount:
+ *                 common_assets_count:
  *                   type: integer
- *                 spotOnlyAssetsCount:
+ *                 spot_only_assets_count:
  *                   type: integer
- *                 futuresOnlyAssetsCount:
+ *                 futures_only_assets_count:
  *                   type: integer
  *             details:
  *               type: object
  *               properties:
- *                 totalBaseAssets:
+ *                 total_base_assets:
  *                   type: integer
- *                 spotOnlyAssets:
+ *                 spot_only_assets:
  *                   type: array
  *                   items:
  *                     type: string
- *                 futuresOnlyAssets:
+ *                 futures_only_assets:
  *                   type: array
  *                   items:
  *                     type: string
- *                 commonAssets:
+ *                 common_assets:
  *                   type: array
  *                   items:
  *                     type: string
@@ -350,15 +350,15 @@ module.exports = router;
  *                   success: true
  *                   data:
  *                     summary:
- *                       totalSpotPairs: 1500
- *                       totalFuturesPairs: 200
- *                       commonPairs: 180
- *                       futuresOnlyCount: 20
- *                       spotOnlyCount: 1320
- *                       totalBaseAssets: 150
- *                       commonAssetsCount: 80
- *                       spotOnlyAssetsCount: 50
- *                       futuresOnlyAssetsCount: 20
+ *                       total_spot_pairs: 1500
+ *                       total_futures_pairs: 200
+ *                       common_pairs: 180
+ *                       futures_only_count: 20
+ *                       spot_only_count: 1320
+ *                       total_base_assets: 150
+ *                       common_assets_count: 80
+ *                       spot_only_assets_count: 50
+ *                       futures_only_assets_count: 20
  *                     commonPairs:
  *                       count: 180
  *                       pairs: ["BTCUSDT", "ETHUSDT"]
@@ -373,15 +373,15 @@ module.exports = router;
  *                       description: "有现货但没有合约的交易对"
  *                     assetAnalysis:
  *                       summary:
- *                         totalBaseAssets: 150
- *                         commonAssetsCount: 80
- *                         spotOnlyAssetsCount: 50
- *                         futuresOnlyAssetsCount: 20
+ *                         total_base_assets: 150
+ *                         common_assets_count: 80
+ *                         spot_only_assets_count: 50
+ *                         futures_only_assets_count: 20
  *                       details:
- *                         totalBaseAssets: 150
- *                         spotOnlyAssets: ["USDC", "BUSD"]
- *                         futuresOnlyAssets: ["XRP", "ADA"]
- *                         commonAssets: ["BTC", "ETH"]
+ *                         total_base_assets: 150
+ *                         spot_only_assets: ["USDC", "BUSD"]
+ *                         futures_only_assets: ["XRP", "ADA"]
+ *                         common_assets: ["BTC", "ETH"]
  *                       generatedAt: "2023-01-01T00:00:00.000Z"
  *                     generatedAt: "2023-01-01T00:00:00.000Z"
  *                   message: "成功获取综合分析报告"

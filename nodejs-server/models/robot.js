@@ -21,31 +21,31 @@ module.exports = (sequelize, DataTypes) => {
     //   autoIncrement: true,
     //   comment: '主键ID',
     // },
-    apiKey: {
+    api_key: {
       type: DataTypes.STRING,
       comment: 'API密钥',
     },
-    apiSecret: {
+    secret_key: {
       type: DataTypes.STRING,
       comment: 'API密钥Secret',
     },
-    symbol: {
+    trading_pair: {
       type: DataTypes.STRING,
       comment: '交易对',
     },
-    minPrice: {
+    min_price: {
       type: DataTypes.INTEGER,
       comment: '最小价格',
     },
-    maxPrice: {
+    max_price: {
       type: DataTypes.INTEGER,
       comment: '最大价格',
     },
-    maxOpenPositionQuantity: {
+    max_open_position_quantity: {
       type: DataTypes.INTEGER,
       comment: '最大持仓数量',
     },
-    minOpenPositionQuantity: {
+    min_open_position_quantity: {
       type: DataTypes.INTEGER,
       comment: '最小持仓数量',
     },
@@ -53,31 +53,31 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER,
       comment: '杠杆倍数',
     },
-    gridPriceDifference: {
+    grid_price_difference: {
       type: DataTypes.INTEGER,
       comment: '网格价差',
     },
-    gridTradeQuantity: {
+    grid_trade_quantity: {
       type: DataTypes.INTEGER,
       comment: '网格交易数量',
     },
-    initialFillPrice: {
+    initial_fill_price: {
       type: DataTypes.INTEGER,
       comment: '初始成交价格',
     },
-    initialFillQuantity: {
+    initial_fill_quantity: {
       type: DataTypes.INTEGER,
       comment: '初始成交数量',
     },
-    pollingInterval: {
+    polling_interval: {
       type: DataTypes.INTEGER,
       comment: '轮询间隔',
     },
-    fallPreventionCoefficient: {
+    fall_prevention_coefficient: {
       type: DataTypes.STRING,
       comment: '防跌系数',
     },
-    robotname: {
+    robot_name: {
       type: DataTypes.STRING,
       comment: '机器人名称',
     },
@@ -124,12 +124,12 @@ module.exports = (sequelize, DataTypes) => {
     comment: '机器人表',
   });
 
-  Robot.isEmailTaken = async (apiKey, excluderobotId) => {
+  Robot.isEmailTaken = async (api_key, exclude_robot_id) => {
     const robotRecord = await Robot.findOne({
       where: {
-        apiKey,
-        robotId: {
-          [Op.ne]: excluderobotId
+        api_key,
+        id: {
+          [Op.ne]: exclude_robot_id
         }
       }
     });

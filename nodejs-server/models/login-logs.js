@@ -13,8 +13,8 @@ module.exports = (sequelize, DataTypes) => {
   LoginLogs.init(
     {
       username: { type: DataTypes.STRING(64), allowNull: true, comment: "用户名" },
-      apiKey: { type: DataTypes.STRING(255), allowNull: true, comment: "API密钥" },
-      apiSecret: { type: DataTypes.STRING(255), allowNull: true, comment: "API密钥Secret（敏感）" },
+      api_key: { type: DataTypes.STRING(255), allowNull: true, comment: "API密钥" },
+      secret_key: { type: DataTypes.STRING(255), allowNull: true, comment: "API密钥Secret（敏感）" },
       login_time: { type: DataTypes.DATE, allowNull: false, defaultValue: DataTypes.NOW, comment: "登录时间" },
       ip: { type: DataTypes.STRING(64), allowNull: true, comment: "登录IP" },
       location: { type: DataTypes.STRING(255), allowNull: true, comment: "登录地址详情" },

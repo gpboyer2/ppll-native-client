@@ -14,12 +14,12 @@ function sanitize(record) {
   // 移除或脱敏敏感字段
   if (data.password) delete data.password; // 禁止对外返回
   // 出于安全考虑：对外返回时不暴露 secret_key
-  if (data.apiSecret) {
-    data.apiSecret = '***';
+  if (data.api_secret) {
+    data.api_secret = '***';
   }
-  if (data.apiKey) {
-    const k = String(data.apiKey);
-    data.apiKey = k.length <= 8 ? `${k.slice(0, 2)}***` : `${k.slice(0, 4)}***${k.slice(-2)}`;
+  if (data.api_key) {
+    const k = String(data.api_key);
+    data.api_key = k.length <= 8 ? `${k.slice(0, 2)}***` : `${k.slice(0, 4)}***${k.slice(-2)}`;
   }
   return data;
 }
@@ -97,7 +97,7 @@ async function detail(id) {
 async function create(payload = {}) {
   // 计算登录方式：支持 (username+password) 或 (api_key+secret_key)，两者都存在则标记为组合
   const hasUserPair = Boolean(payload && payload.username && payload.password);
-  const hasApiPair = Boolean(payload && payload.apiKey && payload.apiSecret);
+  const hasApiPair = Boolean(payload && payload.api_key && payload.api_secret);
   let inferred_method = 'unknown';
   if (hasUserPair && hasApiPair) inferred_method = 'api_key+password';
   else if (hasUserPair) inferred_method = 'password';
@@ -108,8 +108,8 @@ async function create(payload = {}) {
 
   const allow = {
     username: payload.username,
-    api_key: payload.apiKey,
-    secret_key: payload.apiSecret, // 根据需求允许入库
+    api_key: payload.api_key,
+    secret_key: payload.api_secret, // 根据需求允许入库
     login_time: payload.login_time || new Date(),
     ip: payload.ip,
     location: payload.location,

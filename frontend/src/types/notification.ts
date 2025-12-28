@@ -76,19 +76,19 @@ export interface NotificationFilter {
 // 通知设置
 export interface NotificationSettings {
   // 通知显示设置
-  enableSound: boolean
-  enableDesktop: boolean
-  enableInApp: boolean
+  enable_sound: boolean
+  enable_desktop: boolean
+  enable_in_app: boolean
 
   // 自动清除设置
-  autoClear: boolean
-  clearAfter: number // 毫秒
+  auto_clear: boolean
+  clear_after: number // 毫秒
 
   // 保留数量
-  maxHistory: number
+  max_history: number
 
   // 类型设置
-  typeSettings: {
+  type_settings: {
     [key in NotificationType]: {
       enabled: boolean
       sound?: string

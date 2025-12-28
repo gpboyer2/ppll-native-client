@@ -42,7 +42,7 @@ const detail = catchAsync(async (req, res) => {
   if (!id) return sendError(res, "缺少参数: id", 400);
 
   const row = await service.getTradeHistoryById(Number(id));
-  if (!row || row.apiKey !== api_key) {
+  if (!row || row.api_key !== api_key) {
     return sendError(res, "未找到该记录或无权限访问", 404);
   }
   return sendSuccess(res, row, "获取交易历史详情成功");

@@ -135,17 +135,17 @@ module.exports = router;
  *           type: string
  *           description: 封禁原因
  *           example: "频繁恶意请求"
- *         bannedAt:
+ *         banned_at:
  *           type: string
  *           format: date-time
  *           description: 封禁时间
  *           example: "2024-01-15T10:30:00Z"
- *         expiresAt:
+ *         expires_at:
  *           type: string
  *           format: date-time
  *           description: 过期时间
  *           example: "2124-01-15T10:30:00Z"
- *         createdBy:
+ *         created_by:
  *           type: integer
  *           description: 创建者用户ID
  *           example: 1
@@ -225,9 +225,9 @@ module.exports = router;
  *               - id: 1001
  *                 ip: "192.168.1.100"
  *                 reason: "频繁恶意请求"
- *                 bannedAt: "2024-01-15T10:30:00Z"
- *                 expiresAt: "2124-01-15T10:30:00Z"
- *                 createdBy: 1
+ *                 banned_at: "2024-01-15T10:30:00Z"
+ *                 expires_at: "2124-01-15T10:30:00Z"
+ *                 created_by: 1
  *                 status: 1
  *                 remark: "系统自动封禁"
  *                 created_at: "2024-01-15T10:30:00Z"
@@ -235,9 +235,9 @@ module.exports = router;
  *               - id: 1002
  *                 ip: "10.0.0.50"
  *                 reason: "恶意攻击"
- *                 bannedAt: "2024-01-14T15:20:00Z"
- *                 expiresAt: "2124-01-14T15:20:00Z"
- *                 createdBy: 1
+ *                 banned_at: "2024-01-14T15:20:00Z"
+ *                 expires_at: "2124-01-14T15:20:00Z"
+ *                 created_by: 1
  *                 status: 1
  *                 remark: "手动封禁"
  *                 created_at: "2024-01-14T15:20:00Z"
@@ -376,9 +376,9 @@ module.exports = router;
  *               id: 1001
  *               ip: "192.168.1.100"
  *               reason: "频繁恶意请求"
- *               bannedAt: "2024-01-15T10:30:00Z"
- *               expiresAt: "2124-01-15T10:30:00Z"
- *               createdBy: 1
+ *               banned_at: "2024-01-15T10:30:00Z"
+ *               expires_at: "2124-01-15T10:30:00Z"
+ *               created_by: 1
  *               status: 1
  *               remark: "系统自动封禁"
  *               created_at: "2024-01-15T10:30:00Z"

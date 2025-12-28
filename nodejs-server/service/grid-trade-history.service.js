@@ -83,7 +83,7 @@ const updateTradeHistoryById = async (body) => {
   if (!id) throw new Error("缺少参数: id");
 
   const where = { id };
-  if (api_key) where.apiKey = api_key; // 保护性约束
+  if (api_key) where.api_key = api_key; // 保护性约束
 
   const row = await GridTradeHistory.update(filterParams(params, GridTradeHistory), { where });
 
@@ -104,7 +104,7 @@ const deleteTradeHistoriesByIds = async (body) => {
     throw new Error("缺少参数: ids");
   }
   const where = { id: ids };
-  if (api_key) where.apiKey = api_key; // 保护性约束
+  if (api_key) where.api_key = api_key; // 保护性约束
   const affected = await GridTradeHistory.destroy({ where });
   return { affected };
 };

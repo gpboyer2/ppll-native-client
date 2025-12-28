@@ -107,7 +107,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
       // 从 localStorage 恢复 activeApiKeyId
       const saved_id = localStorage.getItem('activeApiKeyId');
-      const after_api_keys = get().apiKeyList;
+      const after_api_keys = get().api_key_list;
 
       if (after_api_keys.length > 0) {
         // 优先使用保存的 API Key ID
@@ -156,7 +156,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
     if (!nodejs_url) return;
 
     // 从 api_key_list 中获取第一个可用的 api_key
-    const api_key_list = get().apiKeyList;
+    const api_key_list = get().api_key_list;
     if (api_key_list.length === 0) {
       console.warn('[binance-store] 无可用的 API Key，跳过获取交易对');
       return;
@@ -205,7 +205,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
   // 根据 ID 获取 API Key
   getApiKeyById: (id: number) => {
-    return get().apiKeyList.find(k => k.id === id);
+    return get().api_key_list.find(k => k.id === id);
   },
 
   // 设置当前激活的 API Key

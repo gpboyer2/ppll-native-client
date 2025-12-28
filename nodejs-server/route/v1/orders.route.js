@@ -203,16 +203,16 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - apiKey
- *               - apiSecret
+ *               - api_key
+ *               - secret_key
  *               - longAmount
  *               - shortAmount
  *             properties:
- *               apiKey:
+ *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               apiSecret:
+ *               secret_key:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
@@ -275,15 +275,15 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - apiKey
- *               - apiSecret
+ *               - api_key
+ *               - secret_key
  *               - positions
  *             properties:
- *               apiKey:
+ *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               apiSecret:
+ *               secret_key:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
@@ -329,15 +329,15 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - apiKey
- *               - apiSecret
+ *               - api_key
+ *               - secret_key
  *               - positions
  *             properties:
- *               apiKey:
+ *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               apiSecret:
+ *               secret_key:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
@@ -392,14 +392,14 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - apiKey
- *               - apiSecret
+ *               - api_key
+ *               - secret_key
  *             properties:
- *               apiKey:
+ *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               apiSecret:
+ *               secret_key:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
@@ -448,15 +448,15 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - apiKey
- *               - apiSecret
+ *               - api_key
+ *               - secret_key
  *               - positions
  *             properties:
- *               apiKey:
+ *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               apiSecret:
+ *               secret_key:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
@@ -510,15 +510,15 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - apiKey
- *               - apiSecret
+ *               - api_key
+ *               - secret_key
  *               - positions
  *             properties:
- *               apiKey:
+ *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               apiSecret:
+ *               secret_key:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
@@ -580,15 +580,15 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - apiKey
- *               - apiSecret
+ *               - api_key
+ *               - secret_key
  *               - positions
  *             properties:
- *               apiKey:
+ *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               apiSecret:
+ *               secret_key:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"

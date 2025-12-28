@@ -43,7 +43,7 @@ const getAccount = async (api_key, secret_key) => {
   // 检查缓存
   const currentTime = Date.now();
   const cachedInfo = accountInfoCache.get(api_key);
-  const cacheValid = cachedInfo && cachedInfo.apiSecret === secret_key;
+  const cacheValid = cachedInfo && cachedInfo.secret_key === secret_key;
   const cacheExpired = cacheValid && (currentTime - cachedInfo.timestamp) >= CACHE_EXPIRY_TIME;
 
   // 缓存有效且未过期，直接返回

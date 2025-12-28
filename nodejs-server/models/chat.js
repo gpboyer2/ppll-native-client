@@ -27,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       comment: '聊天名称'
     },
-    apiKey: {
+    api_key: {
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'API密钥'
@@ -69,12 +69,12 @@ module.exports = (sequelize, DataTypes) => {
     updatedAt: 'updated_at',
   });
 
-  Chat.isEmailTaken = async (apiKey, excludeChatId) => {
+  Chat.isEmailTaken = async (api_key, exclude_chat_id) => {
     const chatRecord = await Chat.findOne({
       where: {
-        apiKey,
-        chatId: {
-          [Op.ne]: excludeChatId
+        api_key,
+        id: {
+          [Op.ne]: exclude_chat_id
         }
       }
     });

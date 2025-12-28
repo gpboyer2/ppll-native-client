@@ -16,7 +16,7 @@ const BinanceApiKey = db.binance_api_keys;
  * @param {Function} next - Express下一个中间件函数
  *
  * 验证流程：
- * 1. 从req.body或req.query中提取apiKey和apiSecret
+ * 1. 从req.body或req.query中提取api_key和secret_key
  * 2. 验证 binance_api_key 表中是否存在匹配的记录
  * 3. 检查 VIP 是否过期
  * 4. 如果验证通过，调用next()继续处理
@@ -24,17 +24,17 @@ const BinanceApiKey = db.binance_api_keys;
 const validateVipAccess = async (req, res, next) => {
   try {
     // 从请求体或查询参数中获取API凭证
-    const apiKey = req.body?.apiKey || req.query?.apiKey;
-    const apiSecret = req.body?.apiSecret || req.query?.apiSecret;
+    const api_key = req.body?.api_key || req.query?.api_key;
+    const secret_key = req.body?.secret_key || req.query?.secret_key;
 
-    // 如果提供了apiKey，进行验证
-    if (apiKey && apiSecret) {
+    // 如果提供了api_key，进行验证
+    if (api_key && secret_key) {
       try {
         // 验证 binance_api_key 表中是否存在匹配的记录
         const keyRecord = await BinanceApiKey.findOne({
           where: {
-            api_key: apiKey,
-            secret_key: apiSecret,
+            api_key: api_key,
+            secret_key: secret_key,
             deleted: 0,
           }
         });
@@ -62,7 +62,7 @@ const validateVipAccess = async (req, res, next) => {
         req.vipUser = {
           id: keyRecord.id,
           username: keyRecord.name || 'admin',
-          apiKey: apiKey,
+          api_key: api_key,
           vipExpireAt: keyRecord.vip_expire_at,
         };
       } catch (error) {
@@ -70,7 +70,7 @@ const validateVipAccess = async (req, res, next) => {
         return sendError(res, '验证失败', 403);
       }
     } else {
-      return sendError(res, '缺失参数 apiKey 或 apiSecret', 403);
+      return sendError(res, '缺失参数 api_key 或 secret_key', 403);
     }
 
     // 验证通过，继续处理请求

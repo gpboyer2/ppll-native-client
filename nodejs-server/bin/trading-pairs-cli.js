@@ -81,11 +81,11 @@ program
       const result = await tradingPairsComparisonService.getComparisonReport();
 
       console.log(`📊 总体统计:`);
-      console.log(`   总现货交易对数: ${result.summary.totalSpotPairs}`);
-      console.log(`   总合约交易对数: ${result.summary.totalFuturesPairs}`);
-      console.log(`   共同交易对数: ${result.summary.commonPairs}`);
-      console.log(`   仅合约交易对数: ${result.summary.futuresOnlyCount}`);
-      console.log(`   仅现货交易对数: ${result.summary.spotOnlyCount}`);
+      console.log(`   总现货交易对数: ${result.summary.total_spot_pairs}`);
+      console.log(`   总合约交易对数: ${result.summary.total_futures_pairs}`);
+      console.log(`   共同交易对数: ${result.summary.common_pairs}`);
+      console.log(`   仅合约交易对数: ${result.summary.futures_only_count}`);
+      console.log(`   仅现货交易对数: ${result.summary.spot_only_count}`);
       console.log(`   生成时间: ${result.generatedAt}\n`);
 
       if (options.details) {
@@ -142,41 +142,41 @@ program
       const result = await tradingPairsComparisonService.getBaseAssetAnalysis();
 
       console.log(`📊 基础资产统计:`);
-      console.log(`   总基础资产数: ${result.summary.totalBaseAssets}`);
-      console.log(`   共同资产数: ${result.summary.commonAssetsCount}`);
-      console.log(`   仅现货资产数: ${result.summary.spotOnlyAssetsCount}`);
-      console.log(`   仅合约资产数: ${result.summary.futuresOnlyAssetsCount}`);
+      console.log(`   总基础资产数: ${result.summary.total_base_assets}`);
+      console.log(`   共同资产数: ${result.summary.common_assets_count}`);
+      console.log(`   仅现货资产数: ${result.summary.spot_only_assets_count}`);
+      console.log(`   仅合约资产数: ${result.summary.futures_only_assets_count}`);
       console.log(`   分析时间: ${result.generatedAt}\n`);
 
       if (options.details) {
-        if (result.details.futuresOnlyAssets.length > 0) {
-          console.log(`📈 仅合约资产 (${result.details.futuresOnlyAssets.length}个):`);
-          result.details.futuresOnlyAssets.slice(0, 30).forEach((asset, index) => {
+        if (result.details.futures_only_assets.length > 0) {
+          console.log(`📈 仅合约资产 (${result.details.futures_only_assets.length}个):`);
+          result.details.futures_only_assets.slice(0, 30).forEach((asset, index) => {
             console.log(`   ${(index + 1).toString().padStart(3)}: ${asset}`);
           });
-          if (result.details.futuresOnlyAssets.length > 30) {
-            console.log(`   ... 还有 ${result.details.futuresOnlyAssets.length - 30} 个资产`);
+          if (result.details.futures_only_assets.length > 30) {
+            console.log(`   ... 还有 ${result.details.futures_only_assets.length - 30} 个资产`);
           }
           console.log();
         }
 
-        if (result.details.spotOnlyAssets.length > 0) {
-          console.log(`💰 仅现货资产 (${result.details.spotOnlyAssets.length}个):`);
-          result.details.spotOnlyAssets.slice(0, 30).forEach((asset, index) => {
+        if (result.details.spot_only_assets.length > 0) {
+          console.log(`💰 仅现货资产 (${result.details.spot_only_assets.length}个):`);
+          result.details.spot_only_assets.slice(0, 30).forEach((asset, index) => {
             console.log(`   ${(index + 1).toString().padStart(3)}: ${asset}`);
           });
-          if (result.details.spotOnlyAssets.length > 30) {
-            console.log(`   ... 还有 ${result.details.spotOnlyAssets.length - 30} 个资产`);
+          if (result.details.spot_only_assets.length > 30) {
+            console.log(`   ... 还有 ${result.details.spot_only_assets.length - 30} 个资产`);
           }
           console.log();
         }
 
         console.log(`🔄 共同资产 (前30个):`);
-        result.details.commonAssets.slice(0, 30).forEach((asset, index) => {
+        result.details.common_assets.slice(0, 30).forEach((asset, index) => {
           console.log(`   ${(index + 1).toString().padStart(3)}: ${asset}`);
         });
-        if (result.details.commonAssets.length > 30) {
-          console.log(`   ... 还有 ${result.details.commonAssets.length - 30} 个资产`);
+        if (result.details.common_assets.length > 30) {
+          console.log(`   ... 还有 ${result.details.common_assets.length - 30} 个资产`);
         }
       }
     } catch (error) {
