@@ -39,6 +39,8 @@ function GridStrategyEditPage() {
         expectedDailyProfit: number;
         tradeValue: number;
     } | null>(null);
+    // 标记用户是否已经通过智能配置看过返佣弹窗
+    const [hasSeenCommissionReferral, setHasSeenCommissionReferral] = useState(false);
 
     // 初始化 store
     useEffect(() => {
@@ -153,8 +155,10 @@ function GridStrategyEditPage() {
             if (success) {
                 showSuccess(isEditing ? '策略已更新' : '策略已创建');
 
-                // 打开返佣提示弹窗
-                setCommissionRebateOpened(true);
+                // 只有未通过智能配置看过返佣弹窗，才打开返佣提示弹窗
+                if (!hasSeenCommissionReferral) {
+                    setCommissionRebateOpened(true);
+                }
 
                 // setTimeout(() => {
                 //     navigate(ROUTES.GRID_STRATEGY);
@@ -289,6 +293,9 @@ function GridStrategyEditPage() {
         if (commissionData) {
             setCommissionData(commissionData);
         }
+
+        // 标记用户已经看过返佣弹窗
+        setHasSeenCommissionReferral(true);
 
         // 应用智能配置后也打开返佣弹窗
         setCommissionRebateOpened(true);
