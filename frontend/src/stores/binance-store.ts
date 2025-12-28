@@ -31,13 +31,16 @@ interface BinanceStore {
     usdtPairs: string[];
     initialized: boolean;
     loading: boolean;
-    isInitializing: boolean; // 新增：标识是否正在初始化
+    isInitializing: boolean; // 标识是否正在初始化
+    activeApiKeyId: string | null; // 当前激活的 API Key ID
 
     // Actions
     init: () => Promise<void>;
     refreshApiKeys: () => Promise<void>;
     refreshTradingPairs: () => Promise<void>;
     getApiKeyById: (id: number) => BinanceApiKey | undefined;
+    setActiveApiKey: (id: string) => void; // 设置当前激活的 API Key
+    getActiveApiKey: () => BinanceApiKey | null; // 获取当前激活的 API Key
 }
 
 // 获取 auth token
@@ -82,13 +85,20 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
     usdtPairs: [],
     initialized: false,
     loading: false,
-    isInitializing: false, // 新增：初始化状态
+    isInitializing: false,
+    activeApiKeyId: null,
 
     // 初始化：先获取 API Key 列表，成功且有数据时才获取交易对
     init: async () => {
         const { loading, apiKeyList, usdtPairs, isInitializing } = get();
         // 如果正在加载、正在初始化或已经成功初始化且有数据，则跳过
         if (loading || isInitializing || (apiKeyList.length > 0 && usdtPairs.length > 0)) return;
+
+        // 从 localStorage 恢复 activeApiKeyId
+        const savedId = localStorage.getItem('activeApiKeyId');
+        if (savedId) {
+            set({ activeApiKeyId: savedId });
+        }
 
         set({ loading: true, isInitializing: true });
 
@@ -201,5 +211,17 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
     // 根据 ID 获取 API Key
     getApiKeyById: (id: number) => {
         return get().apiKeyList.find(k => k.id === id);
+    },
+
+    // 设置当前激活的 API Key
+    setActiveApiKey: (id: string) => {
+        set({ activeApiKeyId: id });
+        localStorage.setItem('activeApiKeyId', id);
+    },
+
+    // 获取当前激活的 API Key
+    getActiveApiKey: () => {
+        const { apiKeyList, activeApiKeyId } = get();
+        return apiKeyList.find(key => String(key.id) === activeApiKeyId) || apiKeyList[0] || null;
     }
 }));
