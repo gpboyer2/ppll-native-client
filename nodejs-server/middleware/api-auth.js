@@ -4,9 +4,9 @@
 const { sendError } = require('../utils/api-response');
 
 const apiAuth = (req, res, next) => {
-  // 从 params 或 body 中提取 apiKey 和 apiSecret
-  const apiKey = req.params?.apiKey || req.body?.apiKey;
-  const apiSecret = req.params?.apiSecret || req.body?.apiSecret;
+  // 从 query、params 或 body 中提取 apiKey 和 apiSecret
+  const apiKey = req.query?.apiKey || req.params?.apiKey || req.body?.apiKey;
+  const apiSecret = req.query?.apiSecret || req.params?.apiSecret || req.body?.apiSecret;
 
   // 验证是否存在
   if (!apiKey || !apiSecret) {
