@@ -174,16 +174,9 @@ export function ReferralCommissionDialog({
             // 浏览器环境：使用 window.open 打开新标签页
             try {
                 const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
-
-                // 如果 window.open 被阻止（例如浏览器弹窗拦截），使用当前页面跳转
-                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
-                    console.warn('弹窗被拦截，使用当前页面跳转');
-                    window.location.href = url;
-                }
             } catch (error) {
                 console.error('打开链接失败:', error);
                 // 备用方案：使用当前页面跳转
-                window.location.href = url;
             }
         }
     }

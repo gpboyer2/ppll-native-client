@@ -1,15 +1,15 @@
 /**
  * 网格策略服务
+ * 单用户系统：API Key 即为用户标识，通过 API Key/Secret 实现数据隔离
  * 提供网格交易策略相关的业务逻辑处理，包括策略创建、管理和执行
  */
 const db = require("../models/index.js");
 const fs = require("fs");
 const path = require("path");
 const GridStrategy = db.grid_strategies;
-const User = db.users;
 const InfiniteGrid = require("../plugin/umInfiniteGrid.js");
 const { readLocalFile } = require("../utils/file.js");
-const { sanitizeParams } = require('../utils/pick.js');   // 下文给出实现
+const { sanitizeParams } = require('../utils/pick.js');
 const { mapKeys, camelCase } = require('lodash');
 const { createTradeHistory } = require('./grid-trade-history.service.js');
 const dayjs = require("dayjs");
@@ -22,27 +22,6 @@ const gridMap = {}; // 存储所有网格实例：id -> grid 实例
 const gridStrategyRegistry = new Map();
 // 标记全局 tick 事件监听器是否已绑定
 let tickListenerBound = false;
-
-/**
- * 根据 api_key 和 api_secret 查询用户 ID
- * @param {string} apiKey - API密钥
- * @param {string} api_secret - API密钥Secret
- * @returns {Promise<number|null>} - 用户ID或null
- */
-const getUserIdByApiKey = async (apiKey, api_secret) => {
-  if (!apiKey || !api_secret) {
-    return null;
-  }
-
-  const user = await User.findOne({
-    where: {
-      apiKey: apiKey,
-      apiSecret: api_secret
-    }
-  });
-
-  return user ? user.id : null;
-};
 
 /**
  * 错误与关闭处理：移除订阅者，必要时退订
@@ -76,21 +55,19 @@ const cleanupSubscriber = async (symbol, id, remark) => {
 
 /**
  * 创建网格交易策略
- * 该函数使用findOrCreate方法在数据库中查找或创建网格交易策略。
- * 如果找到现有策略，则返回null；如果创建新策略，则返回新创建的策略对象。
+ * 单用户系统：API Key 即为用户标识，通过 api_key + api_secret 实现数据隔离
  * @async
  * @function createGridStrategy
  * @param {Object} params - 网格策略参数
- * @param {string} params.api_key - API密钥
+ * @param {string} params.api_key - API密钥（用户标识）
  * @param {string} params.api_secret - API密钥Secret
  * @param {string} params.trading_pair - 交易对
  * @param {string} params.position_side - 持仓方向
- * @returns {Promise<Object|null>} - 如果创建新策略则返回策略对象，否则返回null
+ * @returns {Promise<Object>} - 返回创建的策略对象和是否创建成功的标记
  */
 const createGridStrategy = async (/** @type {{api_key: string, api_secret: string, trading_pair: string, position_side: string, exchange_type?: string}} */ params) => {
-  // 根据 api_key 和 api_secret 查询用户 ID
-  const userId = await getUserIdByApiKey(params.api_key, params.api_secret);
-  let validParams = sanitizeParams({ ...params, user_id: userId }, GridStrategy);
+  // 单用户系统：直接使用 API Key/Secret，无需查询用户表
+  let validParams = sanitizeParams(params, GridStrategy);
 
   const [row, created] = await GridStrategy.findOrCreate({
     where: {
@@ -107,7 +84,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
     setTimeout(() => {
       let infiniteGridParams = convertKeysToCamelCase(validParams);
       infiniteGridParams.id = row.id;
-      infiniteGridParams.userId = userId; // 传入 userId 以使用缓存机制
+      infiniteGridParams.userId = params.api_key; // 使用 API Key 作为用户标识
       const wealthySoon = new InfiniteGrid(infiniteGridParams);
       wealthySoon.initOrders();
       gridMap[row.id] = wealthySoon; // 存储网格实例
@@ -119,21 +96,21 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
         gridStrategyRegistry.set(symbol, new Set());
         const logMessage = `
 ╔══════════════════════════════════════════════════╗
-                 🎉 新增一个网格订阅                  
+                 🎉 新增一个网格订阅
 ╠══════════════════════════════════════════════════╣
- 交易对: ${symbol}                      
- 时间: ${dayjs().format('YYYY-MM-DD HH:mm:ss')}      
- 策略ID: ${row.id}           
- 用户ID: ${userId ? userId : '未获取'} 
- 持仓方向: ${params.position_side}      
- 产品类型: ${params.exchange_type || 'u本位合约'}      
+ 交易对: ${symbol}
+ 时间: ${dayjs().format('YYYY-MM-DD HH:mm:ss')}
+ 策略ID: ${row.id}
+ API Key: ${params.api_key?.substring(0, 8)}...
+ 持仓方向: ${params.position_side}
+ 产品类型: ${params.exchange_type || 'u本位合约'}
 ╚══════════════════════════════════════════════════╝
 `;
         console.log(logMessage);
         UtilRecord.log('[grid-strategy] 新增网格订阅', {
           symbol,
           strategyId: row.id,
-          userId,
+          apiKey: params.api_key?.substring(0, 8),
           positionSide: params.position_side,
           productType: params.exchange_type || 'u本位合约',
           action: 'subscribe',
@@ -144,22 +121,22 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
         const currentCount = gridStrategyRegistry.get(symbol).size;
         const logMessage = `
 ╔══════════════════════════════════════════════════╗
-                 🔄 复用现有网格订阅                  
+                 🔄 复用现有网格订阅
 ╠══════════════════════════════════════════════════╣
- 交易对: ${symbol}                      
- 时间: ${dayjs().format('YYYY-MM-DD HH:mm:ss')}      
- 策略ID: ${row.id}           
- 用户ID: ${userId ? userId : '未获取'} 
- 持仓方向: ${params.position_side}      
+ 交易对: ${symbol}
+ 时间: ${dayjs().format('YYYY-MM-DD HH:mm:ss')}
+ 策略ID: ${row.id}
+ API Key: ${params.api_key?.substring(0, 8)}...
+ 持仓方向: ${params.position_side}
  产品类型: ${params.exchange_type || 'u本位合约'}
- 当前订阅数: ${currentCount + 1}                   
+ 当前订阅数: ${currentCount + 1}
 ╚══════════════════════════════════════════════════╝
 `;
         console.log(logMessage);
         UtilRecord.log('[grid-strategy] 复用现有网格订阅', {
           symbol,
           strategyId: row.id,
-          userId,
+          apiKey: params.api_key?.substring(0, 8),
           positionSide: params.position_side,
           productType: params.exchange_type || 'u本位合约',
           action: 'subscribe',
@@ -193,7 +170,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
         // 错误处理
         UtilRecord.log('[grid-strategy] 网格策略错误', {
           strategyId: this.config.id,
-          userId: this.config.userId,
+          apiKey: this.config.apiKey?.substring(0, 8),
           symbol: this.config.tradingPair,
           positionSide: this.config.positionSide,
           productType: this.config.exchangeType || 'u本位合约',
@@ -274,7 +251,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
           latency: 0, // 网络延迟(ms)
           partial_fill_count: 0, // 部分成交次数
           cancel_count: 0, // 撤单次数
-          user_id: userId, // 用户ID
+          user_id: params.api_key, // 使用 API Key 作为用户标识
           execution_type: "WEBSOCKET", // 执行方式(HTTP/WEBSOCKET)
           status: "COMPLETED", // 状态(COMPLETED/FAILED)
           remark: "Open position" // 备注
@@ -321,8 +298,6 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
 
   return { row, created };
 };
-
-
 async function latestMessage(params) {
   const { api_key, api_secret } = params;
 
@@ -336,38 +311,23 @@ async function latestMessage(params) {
 }
 
 /**
- * 判断用户是否为管理员
- * @param {Object} user - 用户对象
- * @returns {boolean}
- */
-const isAdmin = (user) => {
-  return user?.role === 'admin' || user?.role === 'super_admin';
-};
-
-/**
  * 获取所有网格策略
+ * 单用户系统：通过 api_key + api_secret 实现数据隔离
  * @param {Object} filter - 查询条件
  * @param {Object} options - 分页选项
- * @param {Object} currentUser - 当前用户（来自 req.vipUser）
  * @returns {Promise<any>} 包含网格策略数据和分页信息的对象
  */
 const getAllGridStrategys = async (
   filter = {},
-  options = { currentPage: 1, pageSize: 10 },
-  currentUser = null
+  options = { currentPage: 1, pageSize: 10 }
 ) => {
   try {
     const { currentPage = 1, pageSize = 10 } = options;
     const offset = currentPage ? (currentPage - 1) * pageSize : 0;
 
-    // 数据隔离：非管理员只能查看自己的数据
-    const whereCondition = { ...filter };
-    if (currentUser && !isAdmin(currentUser)) {
-      whereCondition.user_id = currentUser.id;
-    }
-
+    // 单用户系统：filter 中应包含 api_key 和 api_secret 用于数据隔离
     const { count, rows } = await GridStrategy.findAndCountAll({
-      where: whereCondition,
+      where: filter,
       limit: pageSize,
       offset,
       order: [["id", "DESC"]],
@@ -405,29 +365,19 @@ const getGridStrategyByApiKey = async (api_key, api_secret) => {
 
 /**
  * 根据ID更新网格策略的sql数据
+ * 单用户系统：通过 api_key + api_secret 实现数据隔离
  *
  * @param {Object} updateBody - 更新的数据对象
- * @param {Object} currentUser - 当前用户（来自 req.vipUser）
  * @returns {Promise<Object>} - 返回更新后的网格策略对象
  */
-const updateGridStrategyById = async (updateBody, currentUser = null) => {
-  // 根据 api_key 和 api_secret 查询用户 ID
-  const userId = await getUserIdByApiKey(updateBody.api_key, updateBody.api_secret);
-
-  const updateBodyWithUserId = {
-    ...updateBody,
-    user_id: userId
-  };
-
-  let gridStrategyInstance = GridStrategy.build(updateBodyWithUserId);
+const updateGridStrategyById = async (updateBody) => {
+  // 单用户系统：直接使用 API Key/Secret，无需查询用户表
+  let gridStrategyInstance = GridStrategy.build(updateBody);
   let params = gridStrategyInstance.get();
   let { id, api_key, api_secret, paused } = params;
 
-  // 数据隔离：非管理员只能更新自己的数据
+  // 数据隔离：通过 api_key + api_secret
   const whereCondition = { id, api_key, api_secret };
-  if (currentUser && !isAdmin(currentUser)) {
-    whereCondition.user_id = currentUser.id;
-  }
 
   const [affectedCount] = await GridStrategy.update(params, {
     where: whereCondition,
@@ -469,29 +419,19 @@ const updateGridStrategyById = async (updateBody, currentUser = null) => {
 
 /**
  * 根据ID删除网格策略的sql数据
+ * 单用户系统：通过 api_key + api_secret 实现数据隔离
  *
  * @param {Object} updateBody - 删除的数据对象
- * @param {Object} currentUser - 当前用户（来自 req.vipUser）
  * @returns {Promise<Object>} - 返回删除结果
  */
-const deleteGridStrategyById = async (updateBody, currentUser = null) => {
-  // 根据 api_key 和 api_secret 查询用户 ID
-  const userId = await getUserIdByApiKey(updateBody.api_key, updateBody.api_secret);
-
-  const updateBodyWithUserId = {
-    ...updateBody,
-    user_id: userId
-  };
-
-  let gridStrategyInstance = GridStrategy.build(updateBodyWithUserId);
+const deleteGridStrategyById = async (updateBody) => {
+  // 单用户系统：直接使用 API Key/Secret，无需查询用户表
+  let gridStrategyInstance = GridStrategy.build(updateBody);
   let params = gridStrategyInstance.get();
   let { id, api_key, api_secret } = params;
 
-  // 数据隔离：非管理员只能删除自己的数据
+  // 数据隔离：通过 api_key + api_secret
   const whereCondition = { id, api_key, api_secret };
-  if (currentUser && !isAdmin(currentUser)) {
-    whereCondition.user_id = currentUser.id;
-  }
 
   // 获取 symbol 用于退订引用计数
   const existed = await GridStrategy.findOne({ where: whereCondition });

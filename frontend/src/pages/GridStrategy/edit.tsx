@@ -5,9 +5,10 @@ import { SmartConfigModal } from '../../components/grid-strategy/SmartConfigModa
 import { ReferralCommissionDialog } from '../../components/referral-commission-invitation';
 import { ROUTES } from '../../router';
 import { useBinanceStore } from '../../stores/binance-store';
+import { GridStrategyApi } from '../../api';
 import type { GridStrategy, GridStrategyForm, PositionSide, OptimizedConfig } from '../../types/grid-strategy';
 import { defaultGridStrategy } from '../../types/grid-strategy';
-import { showWarning, showSuccess } from '../../utils/api-error';
+import { showWarning, showSuccess, showError } from '../../utils/api-error';
 
 /**
  * 网格策略表单页面
@@ -41,6 +42,8 @@ function GridStrategyEditPage() {
     } | null>(null);
     // 标记用户是否已经通过智能配置看过返佣弹窗
     const [hasSeenCommissionReferral, setHasSeenCommissionReferral] = useState(false);
+    // 标记返佣弹窗关闭后是否需要跳转（通过保存按钮打开的弹窗才需要跳转）
+    const [shouldNavigateAfterClose, setShouldNavigateAfterClose] = useState(false);
 
     // 初始化 store
     useEffect(() => {
@@ -99,36 +102,64 @@ function GridStrategyEditPage() {
     }
 
     // 保存策略数据
-    function saveStrategy(data: GridStrategyForm) {
+    async function saveStrategy(data: GridStrategyForm) {
         try {
-            const stored = localStorage.getItem('grid-strategy-list');
-            let list: GridStrategy[] = stored ? JSON.parse(stored) : [];
+            // 准备请求数据，使用后端期望的字段名
+            const requestData = {
+                apiKey: data.apiKey,
+                apiSecret: data.apiSecret,
+                tradingPair: data.tradingPair,
+                positionSide: data.positionSide,
+                gridPriceDifference: data.gridPriceDifference,
+                gridTradeQuantity: data.gridTradeQuantity,
+                gridLongOpenQuantity: data.gridLongOpenQuantity,
+                gridLongCloseQuantity: data.gridLongCloseQuantity,
+                gridShortOpenQuantity: data.gridShortOpenQuantity,
+                gridShortCloseQuantity: data.gridShortCloseQuantity,
+                maxOpenPositionQuantity: data.maxOpenPositionQuantity,
+                minOpenPositionQuantity: data.minOpenPositionQuantity,
+                fallPreventionCoefficient: data.fallPreventionCoefficient,
+                pollingInterval: data.pollingInterval,
+                pricePrecision: 2,
+                quantityPrecision: 3,
+                name: `${data.positionSide} ${data.tradingPair}`,
+                leverage: data.leverage,
+                marginType: 'cross',
+                stopLossPrice: data.stopLossPrice,
+                takeProfitPrice: data.takeProfitPrice,
+                gtLimitationPrice: data.gtLimitationPrice,
+                ltLimitationPrice: data.ltLimitationPrice,
+                isAboveOpenPrice: data.isAboveOpenPrice,
+                isBelowOpenPrice: data.isBelowOpenPrice,
+                priorityCloseOnTrend: data.priorityCloseOnTrend,
+                exchangeType: 'binance'
+            };
 
+            let response;
             if (isEditing && id) {
                 // 更新现有策略
-                list = list.map(s => s.id === id ? { ...data, id, status: s.status, createdAt: s.createdAt, updatedAt: new Date().toISOString() } : s);
+                response = await GridStrategyApi.update({
+                    id,
+                    ...requestData
+                });
             } else {
                 // 创建新策略
-                const newStrategy: GridStrategy = {
-                    ...data,
-                    id: Date.now().toString(),
-                    status: 'stopped',
-                    createdAt: new Date().toISOString(),
-                    updatedAt: new Date().toISOString()
-                };
-                list.push(newStrategy);
+                response = await GridStrategyApi.create(requestData);
             }
 
-            localStorage.setItem('grid-strategy-list', JSON.stringify(list));
-            return true;
-        } catch (error) {
+            if (response.status === 'success') {
+                return { success: true, data: response.data };
+            } else {
+                return { success: false, error: response.message };
+            }
+        } catch (error: any) {
             console.error('保存策略失败:', error);
-            return false;
+            return { success: false, error: error.message || '保存失败' };
         }
     }
 
     // 表单提交处理
-    function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
 
         // 验证必填字段
@@ -150,24 +181,37 @@ function GridStrategyEditPage() {
         }
 
         setSaveStatus('saving');
-        setTimeout(() => {
-            const success = saveStrategy(formData);
-            if (success) {
-                showSuccess(isEditing ? '策略已更新' : '策略已创建');
 
-                // 只有未通过智能配置看过返佣弹窗，才打开返佣提示弹窗
-                if (!hasSeenCommissionReferral) {
-                    setCommissionRebateOpened(true);
-                }
+        const result = await saveStrategy(formData);
+        if (result.success) {
+            showSuccess(isEditing ? '策略已更新' : '策略已创建');
 
-                // setTimeout(() => {
-                //     navigate(ROUTES.GRID_STRATEGY);
-                // }, 500);
+            // 只有未通过智能配置看过返佣弹窗，才打开返佣提示弹窗
+            if (!hasSeenCommissionReferral) {
+                // 标记弹窗关闭后需要跳转
+                setShouldNavigateAfterClose(true);
+                setCommissionRebateOpened(true);
             } else {
-                setSaveStatus('error');
-                setTimeout(() => setSaveStatus('idle'), 2000);
+                // 已经看过返佣弹窗，直接跳转到列表页
+                setTimeout(() => {
+                    navigate(ROUTES.GRID_STRATEGY);
+                }, 500);
             }
-        }, 300);
+        } else {
+            setSaveStatus('error');
+            showError(result.error || '保存失败，请重试');
+            setTimeout(() => setSaveStatus('idle'), 2000);
+        }
+    }
+
+    // 返佣弹窗关闭处理
+    function handleCommissionDialogClose() {
+        setCommissionRebateOpened(false);
+        // 如果是通过保存按钮打开的弹窗，关闭后跳转到列表页
+        if (shouldNavigateAfterClose) {
+            setShouldNavigateAfterClose(false);
+            navigate(ROUTES.GRID_STRATEGY);
+        }
     }
 
     // 重置表单
@@ -806,7 +850,7 @@ function GridStrategyEditPage() {
             {/* 返佣提示弹窗 */}
             <ReferralCommissionDialog
                 opened={commissionRebateOpened}
-                onClose={() => setCommissionRebateOpened(false)}
+                onClose={handleCommissionDialogClose}
                 gridParams={{
                     tradingPair: formData.tradingPair,
                     positionSide: formData.positionSide,

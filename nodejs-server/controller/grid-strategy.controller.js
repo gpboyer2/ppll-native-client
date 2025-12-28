@@ -13,8 +13,7 @@ const list = catchAsync(async (req, res) => {
 
   let grid = await gridStrategyService.getAllGridStrategys(
     { api_key: apiKey, api_secret: apiSecret },
-    { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 },
-    req.vipUser
+    { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 }
   );
 
   return sendSuccess(res, grid, '获取网格策略列表成功');
@@ -168,7 +167,7 @@ const deletes = catchAsync(async (req, res) => {
     api_key: apiKey,
     api_secret: apiSecret,
     id: Number(id)
-  }, req.vipUser);
+  });
 
   if (result?.status) {
     return sendSuccess(res, {}, '网格策略删除成功');
@@ -240,7 +239,7 @@ const update = catchAsync(async (req, res) => {
     }
   });
 
-  const result = await gridStrategyService.updateGridStrategyById(updateData, req.vipUser);
+  const result = await gridStrategyService.updateGridStrategyById(updateData);
 
   if (result.affectedCount > 0) {
     return sendSuccess(res, result.data, "网格策略更新成功");
@@ -263,7 +262,7 @@ const action = catchAsync(async (req, res) => {
     api_key: apiKey,
     api_secret: apiSecret,
     id: Number(id)
-  }, req.vipUser);
+  });
 
   // result.affectedCount > 0 表示更新成功
   if (result.affectedCount > 0) {
@@ -279,8 +278,7 @@ const query = catchAsync(async (req, res) => {
 
   let grid = await gridStrategyService.getAllGridStrategys(
     { api_key: apiKey, api_secret: apiSecret },
-    { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 },
-    req.vipUser
+    { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 }
   );
 
   return sendSuccess(res, grid, '查询网格策略成功');

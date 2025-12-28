@@ -52,21 +52,21 @@ export class GridStrategyApi {
   /**
    * 删除网格策略
    */
-  static async delete(ids: string[]): Promise<Response<any>> {
-    return RequestWrapper.post(`${this.BASE_PATH}/deletes`, { data: ids })
+  static async delete(id: number): Promise<Response<any>> {
+    return RequestWrapper.post(`${this.BASE_PATH}/deletes`, { id })
   }
 
   /**
    * 暂停网格策略
    */
-  static async pause(id: string): Promise<Response<any>> {
+  static async pause(id: number): Promise<Response<any>> {
     return RequestWrapper.post(`${this.BASE_PATH}/paused`, { id })
   }
 
   /**
    * 恢复网格策略
    */
-  static async resume(id: string): Promise<Response<any>> {
+  static async resume(id: number): Promise<Response<any>> {
     return RequestWrapper.post(`${this.BASE_PATH}/resume`, { id })
   }
 

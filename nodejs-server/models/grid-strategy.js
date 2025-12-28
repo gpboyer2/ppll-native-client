@@ -9,9 +9,12 @@ const { Model, Op } = require("sequelize");
 module.exports = (sequelize, DataTypes) => {
   class GridStrategy extends Model {
     /**
-     * 关联关系定义（如果有外键关系，可在此处补充）
+     * 关联关系定义
+     * 单用户系统：API Key 即为用户标识，无需额外关联
      */
-    static associate(models) { }
+    static associate(models) {
+      // API Key 本身就是用户标识，通过 api_key + api_secret 实现数据隔离
+    }
   }
 
   GridStrategy.init(
