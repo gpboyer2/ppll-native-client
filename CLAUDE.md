@@ -221,9 +221,9 @@ Vue Router 使用 hash 模式，URL 格式必须为：
 
 正确示例2：
 ```scss
-.details-content-body { 
-  .details-properties-table { 
-    tbody { 
+.details-content-body {
+  .details-properties-table {
+    tbody {
       tr { }
       tr:hover { }
     }
@@ -237,6 +237,59 @@ Vue Router 使用 hash 模式，URL 格式必须为：
 .details-properties-table { }
 tbody {}
 ```
+
+动态样式处理：
+- 严禁在 React/Vue 组件中使用内联 `style` 属性处理动态样式
+- 所有样式必须在 CSS/SCSS 文件中定义，包括根据状态变化的样式
+- 使用 CSS 类名修饰符来处理不同状态的样式
+- 组件中只负责根据状态动态添加对应的类名
+
+正确示例：
+```scss
+/* CSS 文件 - 定义所有样式 */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.status-badge.active {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: rgb(16, 185, 129);
+}
+
+.status-badge.inactive {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: rgb(107, 114, 128);
+}
+```
+
+```tsx
+// React 组件 - 只负责添加类名
+<span className={`status-badge ${isActive ? 'active' : 'inactive'}`}>
+  {statusText}
+</span>
+```
+
+错误示例：
+```tsx
+// ❌ 不要在组件中使用内联 style
+<span
+  className="status-badge"
+  style={{
+    backgroundColor: isActive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(107, 114, 128, 0.1)',
+    color: isActive ? 'rgb(16, 185, 129)' : 'rgb(107, 114, 128)'
+  }}
+>
+```
+
+颜色使用规范：
+- 优先使用 `rgba()` 或 `rgb()` 硬编码颜色值，避免使用 CSS 变量
+- 硬编码颜色可以确保在浅色/深色主题下都能正常显示
+- 如需使用主题颜色，应通过 CSS 变量并在 CSS 文件中定义，而非在组件中动态计算
 
 
 ### 2. JS/Vue 代码规范

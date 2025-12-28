@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { TextInput } from '../../components/mantine';
 import { ROUTES } from '../../router';
+import { NumberFormat } from '../../utils';
 import type { GridStrategy, StrategyFilter, StrategyStatus, PositionSide } from '../../types/grid-strategy';
 
 /**
@@ -269,8 +270,7 @@ function GridStrategyListPage() {
                                 <div className="flex items-center space-between mb-12">
                                     <div className="flex items-center gap-8">
                                         <span
-                                            className="grid-strategy-position-badge"
-                                            style={{ backgroundColor: colorMix(getPositionSideColor(strategy.positionSide), 0.1), color: getPositionSideColor(strategy.positionSide) }}
+                                            className={`grid-strategy-position-badge ${strategy.positionSide.toLowerCase()}`}
                                         >
                                             {getPositionSideText(strategy.positionSide)}
                                         </span>
@@ -282,8 +282,7 @@ function GridStrategyListPage() {
                                         </span>
                                     </div>
                                     <span
-                                        className="grid-strategy-status-badge"
-                                        style={{ backgroundColor: colorMix(getStatusColor(strategy.status || 'stopped'), 0.1), color: getStatusColor(strategy.status || 'stopped') }}
+                                        className={`grid-strategy-status-badge ${(strategy.status || 'stopped').toLowerCase()}`}
                                     >
                                         {getStatusText(strategy.status || 'stopped')}
                                     </span>
@@ -293,24 +292,30 @@ function GridStrategyListPage() {
                                 <div className="flex flex-col gap-6 mb-12">
                                     <div className="flex items-center gap-8">
                                         <span className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>网格差价:</span>
-                                        <span style={{ fontWeight: 500 }}>{strategy.gridPriceDifference}</span>
+                                        <span style={{ fontWeight: 500 }}>
+                                            {strategy.gridPriceDifference ? NumberFormat.truncateDecimal(strategy.gridPriceDifference) : '-'}
+                                        </span>
                                     </div>
                                     <div className="flex items-center gap-8">
                                         <span className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>交易数量:</span>
                                         <span style={{ fontWeight: 500 }}>
-                                            {strategy.gridTradeQuantity || '-'}
+                                            {strategy.gridTradeQuantity ? NumberFormat.truncateDecimal(strategy.gridTradeQuantity) : '-'}
                                         </span>
                                     </div>
                                     {strategy.gtLimitationPrice && (
                                         <div className="flex items-center gap-8">
                                             <span className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>价格上限:</span>
-                                            <span style={{ fontWeight: 500 }}>{strategy.gtLimitationPrice}</span>
+                                            <span style={{ fontWeight: 500 }}>
+                                                {NumberFormat.truncateDecimal(strategy.gtLimitationPrice)}
+                                            </span>
                                         </div>
                                     )}
                                     {strategy.ltLimitationPrice && (
                                         <div className="flex items-center gap-8">
                                             <span className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>价格下限:</span>
-                                            <span style={{ fontWeight: 500 }}>{strategy.ltLimitationPrice}</span>
+                                            <span style={{ fontWeight: 500 }}>
+                                                {NumberFormat.truncateDecimal(strategy.ltLimitationPrice)}
+                                            </span>
                                         </div>
                                     )}
                                 </div>

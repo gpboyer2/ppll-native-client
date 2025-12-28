@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { IconX } from '@tabler/icons-react';
 import { NumberInput } from '../mantine';
 import { showWarning, showSuccess } from '../../utils/api-error';
+import { NumberFormat } from '../../utils';
 import { calculateCommission } from '../../utils/commission-calculator';
 import { GridStrategyApi } from '../../api';
 import type {
@@ -308,11 +309,11 @@ export function SmartConfigModal({
             <div className="smart-config-market-analysis">
               <div className="smart-config-analysis-item">
                 <span className="label">支撑位</span>
-                <span className="value">{optimizationResult.market.support} USDT</span>
+                <span className="value">{NumberFormat.truncateDecimal(optimizationResult.market.support)} USDT</span>
               </div>
               <div className="smart-config-analysis-item">
                 <span className="label">阻力位</span>
-                <span className="value">{optimizationResult.market.resistance} USDT</span>
+                <span className="value">{NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT</span>
               </div>
               <div className="smart-config-analysis-item">
                 <span className="label">当前价格波动率</span>
@@ -339,7 +340,7 @@ export function SmartConfigModal({
               {/* 当前价格 */}
               <div className="smart-config-current-price">
                 <span className="label">当前价格</span>
-                <span className="value">{optimizationResult.market.currentPrice} USDT</span>
+                <span className="value">{NumberFormat.truncateDecimal(optimizationResult.market.currentPrice)} USDT</span>
                 <span className="position-badge">
                   {(() => {
                     const current = parseFloat(optimizationResult.market.currentPrice);
@@ -354,19 +355,19 @@ export function SmartConfigModal({
               {defaultParams?.positionSide === 'LONG' ? (
                 <>
                   <div className="smart-config-range-rule">
-                    价格高于 {optimizationResult.market.resistance} USDT，暂停开仓，规避上涨风险
+                    价格高于 {NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT，暂停开仓，规避上涨风险
                   </div>
                   <div className="smart-config-range-rule">
-                    价格低于 {optimizationResult.market.support} USDT，继续网格，持续更高收益
+                    价格低于 {NumberFormat.truncateDecimal(optimizationResult.market.support)} USDT，继续网格，持续更高收益
                   </div>
                 </>
               ) : (
                 <>
                   <div className="smart-config-range-rule">
-                    价格高于 {optimizationResult.market.resistance} USDT，继续网格，持续更高收益
+                    价格高于 {NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT，继续网格，持续更高收益
                   </div>
                   <div className="smart-config-range-rule">
-                    价格低于 {optimizationResult.market.support} USDT，暂停开仓，规避下跌风险
+                    价格低于 {NumberFormat.truncateDecimal(optimizationResult.market.support)} USDT，暂停开仓，规避下跌风险
                   </div>
                 </>
               )}
@@ -400,9 +401,9 @@ export function SmartConfigModal({
                     onClick={() => setSelectedConfigIndex(index)}
                   >
                     <td>{config.gridSpacingPercent}</td>
-                    <td>{config.tradeValue}</td>
-                    <td>{config.expectedDailyFrequency}</td>
-                    <td>{config.expectedDailyProfit}</td>
+                    <td>{NumberFormat.truncateDecimal(config.tradeValue)}</td>
+                    <td>{NumberFormat.truncateDecimal(config.expectedDailyFrequency)}</td>
+                    <td>{NumberFormat.truncateDecimal(config.expectedDailyProfit)}</td>
                     <td>{config.expectedDailyROI}</td>
                   </tr>
                 ))}
@@ -421,31 +422,31 @@ export function SmartConfigModal({
                 <div className="smart-config-selected-item">
                   <span className="label">网格区间</span>
                   <span className="value">
-                    {optimizationResult.market.support} ~ {optimizationResult.market.resistance} USDT
+                    {NumberFormat.truncateDecimal(optimizationResult.market.support)} ~ {NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT
                   </span>
                 </div>
                 <div className="smart-config-selected-item">
                   <span className="label">每笔交易数量</span>
                   <span className="value">
-                    {optimizationResult.recommended.analysis.topList[selectedConfigIndex].tradeQuantity} {defaultParams?.tradingPair?.replace('USDT', '') || 'BTC'}
+                    {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.topList[selectedConfigIndex].tradeQuantity)} {defaultParams?.tradingPair?.replace('USDT', '') || 'BTC'}
                   </span>
                 </div>
                 <div className="smart-config-selected-item">
                   <span className="label">每笔交易金额</span>
                   <span className="value">
-                    {optimizationResult.recommended.analysis.topList[selectedConfigIndex].tradeValue} USDT
+                    {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.topList[selectedConfigIndex].tradeValue)} USDT
                   </span>
                 </div>
                 <div className="smart-config-selected-item">
                   <span className="label">预期日频</span>
                   <span className="value">
-                    {optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyFrequency} 次/天
+                    {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyFrequency)} 次/天
                   </span>
                 </div>
                 <div className="smart-config-selected-item">
                   <span className="label">预期日收益</span>
                   <span className="value">
-                    {optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyProfit} USDT
+                    {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyProfit)} USDT
                   </span>
                 </div>
               </div>

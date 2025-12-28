@@ -1,4 +1,5 @@
 // 格式化工具函数
+import BigNumber from 'bignumber.js';
 
 /**
  * 数字格式化
@@ -34,6 +35,30 @@ export class NumberFormat {
     if (num < 1000000) return `${(num / 1000).toFixed(1)}K`
     if (num < 1000000000) return `${(num / 1000000).toFixed(1)}M`
     return `${(num / 1000000000).toFixed(1)}B`
+  }
+
+  /**
+   * 格式化数值，最多保留 8 位小数，向下取整（直接丢弃多余部分）
+   * 使用 BigNumber 确保精度
+   * @param value 数值，支持 number、string、BigNumber
+   * @param maxDecimals 最大小数位数，默认 8
+   * @returns 格式化后的字符串
+   */
+  static truncateDecimal(value: number | string | BigNumber, maxDecimals: number = 8): string {
+    const bn = new BigNumber(value);
+
+    // 如果是整数或小数位数少于最大值，直接返回
+    const decimalPlaces = bn.decimalPlaces();
+    if (decimalPlaces <= maxDecimals) {
+      return bn.toFixed();
+    }
+
+    // 使用 BigNumber 的向下取整：乘以 10^n，向下取整，再除以 10^n
+    const multiplier = new BigNumber(10).pow(maxDecimals);
+    const truncated = bn.times(multiplier).integerValue(BigNumber.ROUND_DOWN).div(multiplier);
+
+    // 移除末尾的 0（可选）
+    return truncated.toFixed();
   }
 }
 

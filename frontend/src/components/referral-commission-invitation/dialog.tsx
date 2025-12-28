@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { OpenBrowser } from '../../../wailsjs/go/main/App';
+import { NumberFormat } from '../../utils';
 import './dialog.scss';
 
 // 网格策略参数类型
@@ -64,16 +65,16 @@ export function ReferralCommissionDialog({
             const dailyRebate = monthlyTradingFee / daysInMonth * rebateRate;
 
             return {
-                tradeValue: parseFloat(tradeValue.toFixed(2)),
+                tradeValue: parseFloat(NumberFormat.truncateDecimal(tradeValue)),
                 dailyFrequency: expectedDailyFrequency,
                 commissionRate: '1‰',
                 rebateRate: '最高 35%',
-                dailyRebateProfit: parseFloat(dailyRebate.toFixed(2)),
-                monthlyExtraProfit: parseFloat(monthlyRebate.toFixed(2)),
-                currentMonthlyProfit: parseFloat(monthlyUserProfit.toFixed(2)),
-                rebateMonthlyProfit: parseFloat(monthlyUserProfitWithRebate.toFixed(2)),
-                currentYearlyProfit: parseFloat((expectedDailyProfit * daysInYear).toFixed(2)),
-                rebateYearlyProfit: parseFloat(((expectedDailyProfit + dailyRebate) * daysInYear).toFixed(2)),
+                dailyRebateProfit: parseFloat(NumberFormat.truncateDecimal(dailyRebate)),
+                monthlyExtraProfit: parseFloat(NumberFormat.truncateDecimal(monthlyRebate)),
+                currentMonthlyProfit: parseFloat(NumberFormat.truncateDecimal(monthlyUserProfit)),
+                rebateMonthlyProfit: parseFloat(NumberFormat.truncateDecimal(monthlyUserProfitWithRebate)),
+                currentYearlyProfit: parseFloat(NumberFormat.truncateDecimal(expectedDailyProfit * daysInYear)),
+                rebateYearlyProfit: parseFloat(NumberFormat.truncateDecimal((expectedDailyProfit + dailyRebate) * daysInYear)),
                 extraProfitRate: parseFloat(((monthlyRebate / monthlyUserProfit) * 100).toFixed(0))
             };
         }
@@ -125,16 +126,16 @@ export function ReferralCommissionDialog({
         const monthlyUserProfitWithRebate = monthlyUserProfit + monthlyRebate;
 
         return {
-            tradeValue: parseFloat(estimatedTradeValue.toFixed(2)),
+            tradeValue: parseFloat(NumberFormat.truncateDecimal(estimatedTradeValue)),
             dailyFrequency: estimatedDailyFrequency,
             commissionRate: '1‰',
             rebateRate: '最高 35%',
-            dailyRebateProfit: parseFloat((monthlyRebate / 30).toFixed(2)),
-            monthlyExtraProfit: parseFloat(monthlyRebate.toFixed(2)),
-            currentMonthlyProfit: parseFloat(monthlyUserProfit.toFixed(2)),
-            rebateMonthlyProfit: parseFloat(monthlyUserProfitWithRebate.toFixed(2)),
-            currentYearlyProfit: parseFloat((monthlyUserProfit * 12).toFixed(2)),
-            rebateYearlyProfit: parseFloat((monthlyUserProfitWithRebate * 12).toFixed(2)),
+            dailyRebateProfit: parseFloat(NumberFormat.truncateDecimal(monthlyRebate / 30)),
+            monthlyExtraProfit: parseFloat(NumberFormat.truncateDecimal(monthlyRebate)),
+            currentMonthlyProfit: parseFloat(NumberFormat.truncateDecimal(monthlyUserProfit)),
+            rebateMonthlyProfit: parseFloat(NumberFormat.truncateDecimal(monthlyUserProfitWithRebate)),
+            currentYearlyProfit: parseFloat(NumberFormat.truncateDecimal(monthlyUserProfit * 12)),
+            rebateYearlyProfit: parseFloat(NumberFormat.truncateDecimal(monthlyUserProfitWithRebate * 12)),
             extraProfitRate: parseFloat(((monthlyRebate / monthlyUserProfit) * 100).toFixed(0))
         };
     }, [gridParams]);
@@ -240,7 +241,7 @@ export function ReferralCommissionDialog({
                                     当前状态（无返佣）
                                 </div>
                                 <div className="referral-commission-dialog-card-amount referral-commission-dialog-card-amount-normal">
-                                    {data.currentMonthlyProfit}
+                                    {NumberFormat.truncateDecimal(data.currentMonthlyProfit)}
                                 </div>
                                 <div className="referral-commission-dialog-card-period">USDT / 月</div>
                             </div>
@@ -255,7 +256,7 @@ export function ReferralCommissionDialog({
                                     开启返佣后
                                 </div>
                                 <div className="referral-commission-dialog-card-amount referral-commission-dialog-card-amount-highlight">
-                                    {data.rebateMonthlyProfit}
+                                    {NumberFormat.truncateDecimal(data.rebateMonthlyProfit)}
                                 </div>
                                 <div className="referral-commission-dialog-card-period">USDT / 月</div>
                             </div>
@@ -280,32 +281,32 @@ export function ReferralCommissionDialog({
                                 <tbody>
                                     <tr>
                                         <td><strong>日</strong></td>
-                                        <td>{(data.currentMonthlyProfit / 30).toFixed(2)} USDT</td>
+                                        <td>{NumberFormat.truncateDecimal(data.currentMonthlyProfit / 30)} USDT</td>
                                         <td className="referral-commission-dialog-table-highlight-text">
-                                            <strong>{data.dailyRebateProfit} USDT</strong>
+                                            <strong>{NumberFormat.truncateDecimal(data.dailyRebateProfit)} USDT</strong>
                                         </td>
                                         <td className="referral-commission-dialog-table-diff-text">
-                                            +{data.dailyRebateProfit} USDT
+                                            +{NumberFormat.truncateDecimal(data.dailyRebateProfit)} USDT
                                         </td>
                                     </tr>
                                     <tr>
                                         <td><strong>月</strong></td>
-                                        <td>{data.currentMonthlyProfit} USDT</td>
+                                        <td>{NumberFormat.truncateDecimal(data.currentMonthlyProfit)} USDT</td>
                                         <td className="referral-commission-dialog-table-highlight-text">
-                                            <strong>{data.monthlyExtraProfit} USDT</strong>
+                                            <strong>{NumberFormat.truncateDecimal(data.monthlyExtraProfit)} USDT</strong>
                                         </td>
                                         <td className="referral-commission-dialog-table-diff-text">
-                                            +{data.monthlyExtraProfit} USDT
+                                            +{NumberFormat.truncateDecimal(data.monthlyExtraProfit)} USDT
                                         </td>
                                     </tr>
                                     <tr className="referral-commission-dialog-table-total">
                                         <td><strong>年</strong></td>
-                                        <td><strong>{data.currentYearlyProfit.toLocaleString()} USDT</strong></td>
+                                        <td><strong>{NumberFormat.truncateDecimal(data.currentYearlyProfit)} USDT</strong></td>
                                         <td className="referral-commission-dialog-table-highlight-text">
-                                            <strong>{(data.rebateYearlyProfit - data.currentYearlyProfit).toLocaleString()} USDT</strong>
+                                            <strong>{NumberFormat.truncateDecimal(data.rebateYearlyProfit - data.currentYearlyProfit)} USDT</strong>
                                         </td>
                                         <td className="referral-commission-dialog-table-diff-text">
-                                            <strong>+{(data.rebateYearlyProfit - data.currentYearlyProfit).toLocaleString()} USDT</strong>
+                                            <strong>+{NumberFormat.truncateDecimal(data.rebateYearlyProfit - data.currentYearlyProfit)} USDT</strong>
                                         </td>
                                     </tr>
                                 </tbody>
@@ -316,11 +317,11 @@ export function ReferralCommissionDialog({
                         <div className="referral-commission-dialog-params-info">
                             <div className="referral-commission-dialog-param-item">
                                 <span className="referral-commission-dialog-param-label">每笔交易金额：</span>
-                                <span className="referral-commission-dialog-param-value">{data.tradeValue} USDT</span>
+                                <span className="referral-commission-dialog-param-value">{NumberFormat.truncateDecimal(data.tradeValue)} USDT</span>
                             </div>
                             <div className="referral-commission-dialog-param-item">
                                 <span className="referral-commission-dialog-param-label">日交易次数：</span>
-                                <span className="referral-commission-dialog-param-value">{data.dailyFrequency} 次</span>
+                                <span className="referral-commission-dialog-param-value">{NumberFormat.truncateDecimal(data.dailyFrequency)} 次</span>
                             </div>
                             <div className="referral-commission-dialog-param-item">
                                 <span className="referral-commission-dialog-param-label">手续费率：</span>
