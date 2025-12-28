@@ -90,7 +90,7 @@ const calculateRiskLevel = (volatility_level, leverage = 20, grid_spacing_percen
  * 
  * @param {Array} kline_list - 周期K线数据
  * @param {Array} dailyKlineList - 日K线数据（可选）
- * @returns {Object} { support, resistance, avg_price, volatility, priceRange, identify_result }
+ * @returns {Object} { support, resistance, avg_price, volatility, price_range, identify_result }
  */
 const calculateSupportResistance = (kline_list, dailyKlineList, symbol, atr) => {
   if (!kline_list || kline_list.length === 0) {
@@ -193,7 +193,7 @@ const estimateTradeFrequency = (kline_list, grid_spacing, support, resistance) =
  */
 const optimizeForProfit = (params) => {
   const { kline_list, market, total_capital, interval_config, min_trade_value: userMinTradeValue, max_trade_value: userMaxTradeValue } = params;
-  const { support, resistance, avg_price, priceRange } = market;
+  const { support, resistance, avg_price, price_range } = market;
   const atr = calculateATR(kline_list);
 
   // 每笔交易金额范围：用户指定 或 默认 20~100 USDT
@@ -333,7 +333,7 @@ const optimizeForProfit = (params) => {
  */
 const optimizeForCostReduction = (params) => {
   const { kline_list, market, total_capital, interval_config, min_trade_value: userMinTradeValue, max_trade_value: userMaxTradeValue } = params;
-  const { support, resistance, avg_price, priceRange } = market;
+  const { support, resistance, avg_price, price_range } = market;
   const atr = calculateATR(kline_list);
 
   let best_config = null;
@@ -356,7 +356,7 @@ const optimizeForCostReduction = (params) => {
     // 跳过间距过小的配置（小于价格的0.05%）
     if (grid_spacing < avg_price * 0.0005) continue;
     // 跳过间距超出价格区间的配置
-    if (grid_spacing > priceRange * 0.3) continue;
+    if (grid_spacing > price_range * 0.3) continue;
 
     // 估算交易频率（与trade_value无关）
     const freq_per_kline = estimateTradeFrequency(kline_list, grid_spacing, support, resistance);
@@ -475,7 +475,7 @@ const optimizeForCostReduction = (params) => {
  */
 const optimizeForBoundary = (params) => {
   const { kline_list, market, total_capital, interval_config, min_trade_value: userMinTradeValue } = params;
-  const { support, resistance, avg_price, priceRange } = market;
+  const { support, resistance, avg_price, price_range } = market;
   const atr = calculateATR(kline_list);
 
   // 每笔交易金额：固定为最小值
@@ -493,7 +493,7 @@ const optimizeForBoundary = (params) => {
     const grid_spacing = atr * atrMultiple;
 
     // 跳过间距超出价格区间的配置
-    if (grid_spacing > priceRange * 0.8) continue;
+    if (grid_spacing > price_range * 0.8) continue;
     // 跳过间距过小的配置（小于价格的0.1%）
     if (grid_spacing < avg_price * 0.001) continue;
 

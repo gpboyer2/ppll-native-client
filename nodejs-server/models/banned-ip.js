@@ -76,7 +76,7 @@ module.exports = (sequelize, DataTypes) => {
           reason,
           banned_at: new Date(),
           expires_at: permanentExpiresAt, // 永久封禁
-          created_by,
+          created_by: createdBy,
           status: 1,
           remark
         });
@@ -88,7 +88,7 @@ module.exports = (sequelize, DataTypes) => {
           reason,
           banned_at: new Date(),
           expires_at: permanentExpiresAt, // 永久封禁
-          created_by,
+          created_by: createdBy,
           status: 1,
           remark
         });
