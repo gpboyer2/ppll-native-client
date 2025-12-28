@@ -10,6 +10,7 @@ import { useBinanceStore } from '../stores/binance-store';
 import { TextInput, PasswordInput, NumberInput } from '../components/mantine';
 import { BinanceApiKeyApi } from '../api';
 import type { BinanceApiKey } from '../stores/binance-store';
+import { showSuccess } from '../utils/api-error';
 
 function SettingsPage() {
     // 使用系统信息 store
@@ -25,7 +26,7 @@ function SettingsPage() {
     } = useDataManagementStore();
 
     // 使用 binance store
-    const { init, apiKeyList, refreshApiKeys } = useBinanceStore();
+    const { init, apiKeyList, refreshApiKeys, activeApiKeyId, setActiveApiKey } = useBinanceStore();
 
     // 更新设置状态
     const [feedURL, setFeedURL] = useState('');
@@ -219,6 +220,13 @@ function SettingsPage() {
         }
     }
 
+    function handleSetActiveApiKey(id: string) {
+        setActiveApiKey(id);
+        showSuccess('已切换 API Key');
+        // 刷新相关数据
+        window.location.reload();
+    }
+
     function maskApiKey(key: string | undefined): string {
         if (!key) return '';
         if (key.length <= 8) return key;
@@ -300,43 +308,52 @@ function SettingsPage() {
                     {/* API Key 列表 */}
                     {apiKeyList.length > 0 && (
                         <div className="binance-apikey-list">
-                            {apiKeyList.map((item) => (
-                                <div key={item.id} className="binance-apikey-item">
-                                    <div className="binance-apikey-item-info">
-                                        <div className="binance-apikey-item-header">
-                                            <span className="binance-apikey-item-name">{item.name}</span>
+                            {apiKeyList.map((item) => {
+                                const isActive = String(item.id) === activeApiKeyId;
+                                return (
+                                    <div key={item.id} className="binance-apikey-item">
+                                        <div className="binance-apikey-item-info">
+                                            <div className="binance-apikey-item-header">
+                                                <span className="binance-apikey-item-name">{item.name}</span>
+                                            </div>
+                                            <div className="binance-apikey-item-details">
+                                                <div className="binance-apikey-item-detail">
+                                                    <span className="text-muted">API Key:</span>
+                                                    <span className="binance-apikey-masked">{maskApiKey(item.apiKey)}</span>
+                                                </div>
+                                                <div className="binance-apikey-item-detail">
+                                                    <span className="text-muted">Secret Key:</span>
+                                                    <span className="binance-apikey-masked">{maskApiKey(item.secretKey)}</span>
+                                                </div>
+                                                <div className="binance-apikey-item-detail">
+                                                    <span className="text-muted">创建时间:</span>
+                                                    <span>{new Date(item.created_at).toLocaleString()}</span>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="binance-apikey-item-details">
-                                            <div className="binance-apikey-item-detail">
-                                                <span className="text-muted">API Key:</span>
-                                                <span className="binance-apikey-masked">{maskApiKey(item.apiKey)}</span>
-                                            </div>
-                                            <div className="binance-apikey-item-detail">
-                                                <span className="text-muted">Secret Key:</span>
-                                                <span className="binance-apikey-masked">{maskApiKey(item.secretKey)}</span>
-                                            </div>
-                                            <div className="binance-apikey-item-detail">
-                                                <span className="text-muted">创建时间:</span>
-                                                <span>{new Date(item.created_at).toLocaleString()}</span>
-                                            </div>
+                                        <div className="binance-apikey-item-actions">
+                                            <button
+                                                className={`btn ${isActive ? 'btn-primary' : 'btn-ghost'}`}
+                                                onClick={() => handleSetActiveApiKey(String(item.id))}
+                                            >
+                                                {isActive ? '当前使用' : '设为当前'}
+                                            </button>
+                                            <button
+                                                className="btn btn-ghost"
+                                                onClick={() => handleEditApiKey(item)}
+                                            >
+                                                编辑
+                                            </button>
+                                            <button
+                                                className="btn btn-danger"
+                                                onClick={() => handleDeleteApiKey(item.id)}
+                                            >
+                                                删除
+                                            </button>
                                         </div>
                                     </div>
-                                    <div className="binance-apikey-item-actions">
-                                        <button
-                                            className="btn btn-ghost"
-                                            onClick={() => handleEditApiKey(item)}
-                                        >
-                                            编辑
-                                        </button>
-                                        <button
-                                            className="btn btn-danger"
-                                            onClick={() => handleDeleteApiKey(item.id)}
-                                        >
-                                            删除
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
 
