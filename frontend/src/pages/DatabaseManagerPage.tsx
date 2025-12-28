@@ -451,7 +451,7 @@ function DatabaseManagerPage() {
           </div>
           <div className="card stat-card">
             <div className="stat-label">总记录数</div>
-            <div className="stat-value">{dbInfo.totalRows}</div>
+            <div className="stat-value">{dbInfo.total_rows}</div>
           </div>
           <div className="card stat-card">
             <div className="stat-label">SQLite 版本</div>

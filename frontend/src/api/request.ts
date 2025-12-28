@@ -11,8 +11,8 @@ import dayjs from 'dayjs';
 function getNodejsUrl(): string {
   try {
     const staticInfo = getStaticInfo();
-    if (staticInfo?.nodejsUrl) {
-      return staticInfo.nodejsUrl;
+    if (staticInfo?.nodejs_url) {
+      return staticInfo.nodejs_url;
     }
   } catch {
     // 静默失败，使用默认值

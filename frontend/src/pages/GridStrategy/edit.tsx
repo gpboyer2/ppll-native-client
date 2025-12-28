@@ -134,7 +134,7 @@ function GridStrategyEditPage() {
         // 更新现有策略
         response = await GridStrategyApi.update({
           id,
-          ...requestData
+          ...request_data
         });
       } else {
         // 创建新策略

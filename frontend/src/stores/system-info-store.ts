@@ -275,7 +275,7 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
 
         setInterval(async () => {
           const store = get();
-          if (!store.initialized || !store.staticInfo?.nodejsUrl) return;
+          if (!store.initialized || !store.staticInfo?.nodejs_url) return;
 
           try {
             const response = await SystemApi.healthCheck();
@@ -305,7 +305,7 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
 
   refreshDynamic: async () => {
     const store = get();
-    if (!store.staticInfo?.nodejsUrl) return;
+    if (!store.staticInfo?.nodejs_url) return;
 
     try {
       const response = await SystemApi.healthCheck();

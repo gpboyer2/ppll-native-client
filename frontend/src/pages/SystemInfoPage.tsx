@@ -53,12 +53,12 @@ function SystemInfoPage() {
           <div className="card-content">
             <div className="info-item-list">
               <InfoItem label="前端地址" value={staticInfo.frontendUrl} />
-              <InfoItem label="API 地址" value={staticInfo.nodejsUrl} />
+              <InfoItem label="API 地址" value={staticInfo.nodejs_url} />
               <InfoItem
                 label="API 文档"
-                value={`${staticInfo.nodejsUrl}/api/v1/docs`}
+                value={`${staticInfo.nodejs_url}/api/v1/docs`}
                 type="link"
-                onClick={() => window.open(`${staticInfo.nodejsUrl}/api/v1/docs`, '_blank')}
+                onClick={() => window.open(`${staticInfo.nodejs_url}/api/v1/docs`, '_blank')}
               />
             </div>
           </div>
@@ -73,7 +73,7 @@ function SystemInfoPage() {
           </div>
           <div className="card-content">
             <div className="info-item-list">
-              <InfoItem label="应用版本" value={staticInfo.appVersion} type="status" status="success" />
+              <InfoItem label="应用版本" value={staticInfo.app_version} type="status" status="success" />
               <InfoItem
                 label="运行环境"
                 value={staticInfo.environment}

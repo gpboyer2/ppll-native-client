@@ -622,12 +622,12 @@ function SettingsPage() {
                       </div>
                       <div className="flex space-between">
                         <span>上次清理:</span>
-                        <span>{stats.lastClear}</span>
+                        <span>{stats.last_clear}</span>
                       </div>
                       {stats.totalClears > 0 && (
                         <div className="flex space-between">
                           <span>距今天数:</span>
-                          <span>{stats.daysSinceLastClear} 天</span>
+                          <span>{stats.days_since_last_clear} 天</span>
                         </div>
                       )}
                     </div>
@@ -742,7 +742,7 @@ function SettingsPage() {
               <>
                 <div className="flex space-between">
                   <span className="text-muted">应用版本</span>
-                  <span>v{systemStaticInfo.appVersion}</span>
+                  <span>v{systemStaticInfo.app_version}</span>
                 </div>
                 <div className="flex space-between">
                   <span className="text-muted">运行环境</span>
