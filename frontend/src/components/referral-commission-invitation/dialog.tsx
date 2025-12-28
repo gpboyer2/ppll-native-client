@@ -10,6 +10,10 @@ export interface GridStrategyParams {
     gridTradeQuantity?: number;
     gridLongOpenQuantity?: number;
     gridShortOpenQuantity?: number;
+    // 预计算的返佣数据（优先使用）
+    expectedDailyFrequency?: number;
+    expectedDailyProfit?: number;
+    tradeValue?: number;
 }
 
 // 收益计算数据类型
@@ -43,11 +47,38 @@ export function ReferralCommissionDialog({
     const calculatedData = useMemo<CommissionCalculationData | null>(() => {
         if (!gridParams) return null;
 
-        const { positionSide, gridPriceDifference, gridTradeQuantity, gridLongOpenQuantity, gridShortOpenQuantity } = gridParams;
+        const { positionSide, gridPriceDifference, gridTradeQuantity, gridLongOpenQuantity, gridShortOpenQuantity, expectedDailyFrequency, expectedDailyProfit, tradeValue } = gridParams;
 
+        // 如果提供了预计算的数据，直接使用（优先）
+        if (expectedDailyFrequency && expectedDailyProfit && tradeValue) {
+            const commissionRate = 0.001;
+            const rebateRate = 0.35;
+            const daysInMonth = 30;
+
+            const monthlyTradingFee = expectedDailyFrequency * daysInMonth * tradeValue * commissionRate;
+            const monthlyRebate = monthlyTradingFee * rebateRate;
+            const monthlyUserProfit = expectedDailyProfit * daysInMonth;
+            const monthlyUserProfitWithRebate = monthlyUserProfit + monthlyRebate;
+
+            return {
+                tradeValue: parseFloat(tradeValue.toFixed(2)),
+                dailyFrequency: expectedDailyFrequency,
+                commissionRate: '1‰',
+                rebateRate: '最高 35%',
+                dailyRebateProfit: parseFloat((monthlyRebate / 30).toFixed(2)),
+                monthlyExtraProfit: parseFloat(monthlyRebate.toFixed(2)),
+                currentMonthlyProfit: parseFloat(monthlyUserProfit.toFixed(2)),
+                rebateMonthlyProfit: parseFloat(monthlyUserProfitWithRebate.toFixed(2)),
+                currentYearlyProfit: parseFloat((monthlyUserProfit * 12).toFixed(2)),
+                rebateYearlyProfit: parseFloat((monthlyUserProfitWithRebate * 12).toFixed(2)),
+                extraProfitRate: parseFloat(((monthlyRebate / monthlyUserProfit) * 100).toFixed(0))
+            };
+        }
+
+        // 否则，使用估算逻辑
         // 获取网格交易数量（优先使用分离数量，否则使用通用数量）
         let tradeQuantity = gridTradeQuantity || 0;
-        
+
         // 如果是做多，优先使用做多开仓数量
         if (positionSide === 'LONG' && gridLongOpenQuantity) {
             tradeQuantity = gridLongOpenQuantity;
@@ -64,11 +95,11 @@ export function ReferralCommissionDialog({
 
         // 估算每笔交易金额 = 交易数量 × 网格差价
         const estimatedTradeValue = tradeQuantity * gridPriceDifference;
-        
+
         // 估算日交易频次：根据网格差价和市场波动估算
         // 网格差价越小，触发频次越高
         const estimatedDailyFrequency = Math.max(3, Math.min(20, Math.floor(100 / gridPriceDifference)));
-        
+
         // 估算日收益：每次网格交易的利润 × 日频次
         // 每次网格利润 ≈ 网格差价 × 交易数量 × 0.5（考虑双向交易）
         const estimatedDailyProfit = gridPriceDifference * tradeQuantity * estimatedDailyFrequency * 0.5;

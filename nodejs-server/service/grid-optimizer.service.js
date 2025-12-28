@@ -292,7 +292,18 @@ const optimizeForProfit = (params) => {
   if (configList.length > 0) {
     const topList = configList
       .sort((a, b) => b.dailyProfit - a.dailyProfit)
-      .slice(0, 5);
+      .slice(0, 5)
+      .map(config => ({
+        gridSpacing: new BigNumber(config.gridSpacing).toFixed(6),
+        gridSpacingPercent: new BigNumber(config.gridSpacingPercent).toFixed(4) + '%',
+        tradeQuantity: new BigNumber(config.tradeQuantity).toFixed(6),
+        tradeValue: new BigNumber(config.tradeValue).toFixed(2),
+        expectedDailyFrequency: new BigNumber(config.dailyFrequency).toFixed(2),
+        expectedDailyProfit: new BigNumber(config.dailyProfit).toFixed(2),
+        expectedDailyROI: new BigNumber(config.dailyROI * 100).toFixed(4) + '%',
+        singleNetProfit: new BigNumber(config.netProfit).toFixed(6),
+        turnoverRatio: new BigNumber(config.turnoverRatio * 100).toFixed(2) + '%'
+      }));
     analysis = {
       totalConfigCount: configList.length,
       topList,
@@ -423,7 +434,18 @@ const optimizeForCostReduction = (params) => {
   if (configList.length > 0) {
     const topList = configList
       .sort((a, b) => b.efficiency - a.efficiency)
-      .slice(0, 3);
+      .slice(0, 3)
+      .map(config => ({
+        gridSpacing: new BigNumber(config.gridSpacing).toFixed(6),
+        gridSpacingPercent: new BigNumber(config.gridSpacing / avgPrice * 100).toFixed(4) + '%',
+        tradeQuantity: new BigNumber(config.tradeQuantity).toFixed(6),
+        tradeValue: new BigNumber(config.tradeValue).toFixed(2),
+        expectedDailyFrequency: new BigNumber(config.dailyFrequency).toFixed(2),
+        expectedDailyProfit: new BigNumber(config.dailyProfit).toFixed(2),
+        expectedDailyROI: new BigNumber((config.dailyProfit / totalCapital) * 100).toFixed(4) + '%',
+        singleNetProfit: new BigNumber(config.netProfit).toFixed(6),
+        turnoverRatio: new BigNumber(config.turnoverRatio * 100).toFixed(2) + '%'
+      }));
     analysis = {
       totalConfigCount: configList.length,
       topList,
@@ -541,7 +563,18 @@ const optimizeForBoundary = (params) => {
   if (configList.length > 0) {
     const topList = configList
       .sort((a, b) => a.dailyFrequency - b.dailyFrequency) // 按频率从低到高排序
-      .slice(0, 3);
+      .slice(0, 3)
+      .map(config => ({
+        gridSpacing: new BigNumber(config.gridSpacing).toFixed(6),
+        gridSpacingPercent: new BigNumber(config.gridSpacingPercent).toFixed(4) + '%',
+        tradeQuantity: new BigNumber(config.tradeQuantity).toFixed(6),
+        tradeValue: new BigNumber(config.tradeValue).toFixed(2),
+        expectedDailyFrequency: new BigNumber(config.dailyFrequency).toFixed(2),
+        expectedDailyProfit: new BigNumber(config.dailyProfit).toFixed(2),
+        expectedDailyROI: new BigNumber(config.dailyROI * 100).toFixed(4) + '%',
+        singleNetProfit: new BigNumber(config.netProfit).toFixed(6),
+        turnoverRatio: new BigNumber(config.turnoverRatio * 100).toFixed(2) + '%'
+      }));
     analysis = {
       totalConfigCount: configList.length,
       topList,

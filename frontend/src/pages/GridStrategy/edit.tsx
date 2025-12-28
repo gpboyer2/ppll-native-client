@@ -33,6 +33,11 @@ function GridStrategyEditPage() {
 
     // 返佣提示弹窗状态
     const [commissionRebateOpened, setCommissionRebateOpened] = useState(false);
+    const [commissionData, setCommissionData] = useState<{
+        expectedDailyFrequency: number;
+        expectedDailyProfit: number;
+        tradeValue: number;
+    } | null>(null);
 
     // 初始化 store
     useEffect(() => {
@@ -259,7 +264,11 @@ function GridStrategyEditPage() {
     }
 
     // 应用智能配置
-    function handleApplySmartConfig(config: OptimizedConfig) {
+    function handleApplySmartConfig(config: OptimizedConfig, commissionData?: {
+        expectedDailyFrequency: number;
+        expectedDailyProfit: number;
+        tradeValue: number;
+    }) {
         setFormData(prev => ({
             ...prev,
             gridPriceDifference: config.gridPriceDifference,
@@ -267,6 +276,11 @@ function GridStrategyEditPage() {
             gtLimitationPrice: config.gtLimitationPrice,
             ltLimitationPrice: config.ltLimitationPrice
         }));
+
+        // 保存返佣数据
+        if (commissionData) {
+            setCommissionData(commissionData);
+        }
 
         // 应用智能配置后也打开返佣弹窗
         setCommissionRebateOpened(true);
@@ -776,7 +790,11 @@ function GridStrategyEditPage() {
                     gridPriceDifference: formData.gridPriceDifference || 0,
                     gridTradeQuantity: formData.gridTradeQuantity,
                     gridLongOpenQuantity: formData.gridLongOpenQuantity,
-                    gridShortOpenQuantity: formData.gridShortOpenQuantity
+                    gridShortOpenQuantity: formData.gridShortOpenQuantity,
+                    // 传递智能配置计算的准确数据
+                    expectedDailyFrequency: commissionData?.expectedDailyFrequency,
+                    expectedDailyProfit: commissionData?.expectedDailyProfit,
+                    tradeValue: commissionData?.tradeValue
                 }}
             />
         </div>
