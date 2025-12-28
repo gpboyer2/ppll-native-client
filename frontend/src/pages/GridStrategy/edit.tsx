@@ -270,13 +270,20 @@ function GridStrategyEditPage() {
         expectedDailyProfit: number;
         tradeValue: number;
     }) {
-        setFormData(prev => ({
-            ...prev,
-            gridPriceDifference: config.gridPriceDifference,
-            gridTradeQuantity: config.gridTradeQuantity,
-            gtLimitationPrice: config.gtLimitationPrice,
-            ltLimitationPrice: config.ltLimitationPrice
-        }));
+        setFormData(prev => {
+            // 做多：价格高继续，价格低暂停
+            // 做空：价格高暂停，价格低继续
+            const isLong = prev.positionSide === 'LONG';
+            return {
+                ...prev,
+                gridPriceDifference: config.gridPriceDifference,
+                gridTradeQuantity: config.gridTradeQuantity,
+                gtLimitationPrice: config.gtLimitationPrice,
+                ltLimitationPrice: config.ltLimitationPrice,
+                isAboveOpenPrice: !isLong,  // 做多不暂停，做空暂停
+                isBelowOpenPrice: isLong    // 做多暂停，做空不暂停
+            };
+        });
 
         // 保存返佣数据
         if (commissionData) {
