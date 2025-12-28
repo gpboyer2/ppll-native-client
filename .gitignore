@@ -146,3 +146,6 @@ cache/gate_cookies.json
 
 # Kiro specs
 .kiro/
+
+# Git worktrees
+.worktrees/

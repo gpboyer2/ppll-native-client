@@ -83,6 +83,12 @@ export interface GridStrategy {
   /** 计算平均成本价的默认天数 */
   avgCostPriceDays: number;
 
+  /** 止损价格 */
+  stopLossPrice?: number;
+
+  /** 止盈价格 */
+  takeProfitPrice?: number;
+
   /** 策略运行状态（前端维护） */
   status?: StrategyStatus;
 
@@ -133,7 +139,9 @@ export const defaultGridStrategy: GridStrategyForm = {
   pollingInterval: 10000,
   enableLog: true,
   priorityCloseOnTrend: true,
-  avgCostPriceDays: 30
+  avgCostPriceDays: 30,
+  stopLossPrice: undefined,
+  takeProfitPrice: undefined
 };
 
 /** 筛选条件类型 */

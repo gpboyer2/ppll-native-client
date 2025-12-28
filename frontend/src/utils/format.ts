@@ -51,14 +51,15 @@ export class NumberFormat {
     const bn = new BigNumber(valueStr);
 
     // 如果是整数或小数位数少于最大值，直接返回
+    // decimalPlaces() 可能返回 null（当值为 NaN、Infinity 时）
     const decimalPlaces = bn.decimalPlaces();
-    if (decimalPlaces <= maxDecimals) {
+    if (decimalPlaces === null || decimalPlaces <= maxDecimals) {
       return bn.toFixed();
     }
 
     // 使用 BigNumber 的向下取整：乘以 10^n，向下取整，再除以 10^n
     const multiplier = new BigNumber(10).pow(maxDecimals);
-    const truncated = bn.times(multiplier).floor().div(multiplier);
+    const truncated = bn.times(multiplier).integerValue(3).div(multiplier);
 
     // 移除末尾的 0（可选）
     return truncated.toFixed();

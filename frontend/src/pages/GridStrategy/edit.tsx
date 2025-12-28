@@ -85,19 +85,59 @@ function GridStrategyEditPage() {
         }
     }, [apiKeyList, isEditing, formData._apiKeyId]);
 
-    // 加载策略数据
-    function loadStrategy(strategyId: string) {
+    // 从后端 API 加载策略数据
+    async function loadStrategy(strategyId: string) {
         try {
-            const stored = localStorage.getItem('grid-strategy-list');
-            if (stored) {
-                const list = JSON.parse(stored) as GridStrategy[];
-                const strategy = list.find(s => s.id === strategyId);
+            const response = await GridStrategyApi.list({
+                currentPage: 1,
+                pageSize: 1000
+            });
+
+            if (response.status === 'success' && response.data) {
+                const list = response.data.list || [];
+                const strategy = list.find(s => String(s.id) === strategyId);
                 if (strategy) {
-                    setFormData(strategy);
+                    // 将后端返回的字段名转换为前端表单需要的格式
+                    const formData: GridStrategyForm = {
+                        id: strategy.id,
+                        apiKey: strategy.api_key,
+                        apiSecret: strategy.api_secret,
+                        tradingPair: strategy.trading_pair,
+                        positionSide: strategy.position_side,
+                        gridPriceDifference: strategy.grid_price_difference,
+                        gridTradeQuantity: strategy.grid_trade_quantity,
+                        gridLongOpenQuantity: strategy.grid_long_open_quantity,
+                        gridLongCloseQuantity: strategy.grid_long_close_quantity,
+                        gridShortOpenQuantity: strategy.grid_short_open_quantity,
+                        gridShortCloseQuantity: strategy.grid_short_close_quantity,
+                        maxOpenPositionQuantity: strategy.max_open_position_quantity,
+                        minOpenPositionQuantity: strategy.min_open_position_quantity,
+                        fallPreventionCoefficient: strategy.fall_prevention_coefficient,
+                        pollingInterval: strategy.polling_interval,
+                        leverage: strategy.leverage,
+                        marginType: strategy.margin_type,
+                        stopLossPrice: strategy.stop_loss_price,
+                        takeProfitPrice: strategy.take_profit_price,
+                        gtLimitationPrice: strategy.gt_limitation_price,
+                        ltLimitationPrice: strategy.lt_limitation_price,
+                        isAboveOpenPrice: strategy.is_above_open_price,
+                        isBelowOpenPrice: strategy.is_below_open_price,
+                        priorityCloseOnTrend: strategy.priority_close_on_trend,
+                        avgCostPriceDays: strategy.avg_cost_price_days || 30,
+                        enableLog: true,
+                        _apiKeyId: '',
+                    };
+                    setFormData(formData);
+                } else {
+                    showError('未找到该策略');
+                    navigate(ROUTES.GRID_STRATEGY_LIST);
                 }
+            } else {
+                showError(response.message || '加载策略失败');
             }
         } catch (error) {
             console.error('加载策略失败:', error);
+            showError('加载策略失败，请稍后重试');
         }
     }
 

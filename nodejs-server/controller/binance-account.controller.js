@@ -49,11 +49,9 @@ const handleError = (error, res, operation) => {
 const getUSDMFuturesAccount = catchAsync(async (req, res) => {
   let { apiKey, apiSecret, includePositions } = extractApiCredentials(req);
   includePositions = convertToBoolean(includePositions);
-  // 从 VIP 中间件获取用户ID
-  const userId = req.vipUser?.id;
 
   // 记录API调用日志
-  UtilRecord.debug('获取U本位合约账户信息', `userId: ${userId}, apiKey: ${apiKey ? apiKey.substring(0, 8) + '...' : 'undefined'}`);
+  UtilRecord.debug('获取U本位合约账户信息', `apiKey: ${apiKey ? apiKey.substring(0, 8) + '...' : 'undefined'}`);
 
   // 验证必需参数
   if (!apiKey || !apiSecret) {
@@ -64,7 +62,6 @@ const getUSDMFuturesAccount = catchAsync(async (req, res) => {
     const accountInfo = await binanceAccountService.getUSDMFuturesAccount(
       apiKey,
       apiSecret,
-      userId,
       includePositions
     );
 
@@ -98,8 +95,6 @@ const getUSDMFuturesAccount = catchAsync(async (req, res) => {
 const getSpotAccount = catchAsync(async (req, res) => {
   let { apiKey, apiSecret, includeEmptyBalances } = extractApiCredentials(req);
   includeEmptyBalances = convertToBoolean(includeEmptyBalances);
-  // 从 VIP 中间件获取用户ID
-  const userId = req.vipUser?.id;
 
   // 验证必需参数
   if (!apiKey || !apiSecret) {
@@ -110,7 +105,6 @@ const getSpotAccount = catchAsync(async (req, res) => {
     const accountInfo = await binanceAccountService.getSpotAccount(
       apiKey,
       apiSecret,
-      userId,
       includeEmptyBalances
     );
 
@@ -151,8 +145,6 @@ const getSpotAccount = catchAsync(async (req, res) => {
 const getCoinMFuturesAccount = catchAsync(async (req, res) => {
   let { apiKey, apiSecret, includePositions } = extractApiCredentials(req);
   includePositions = convertToBoolean(includePositions);
-  // 从 VIP 中间件获取用户ID
-  const userId = req.vipUser?.id;
 
   // 验证必需参数
   if (!apiKey || !apiSecret) {
@@ -163,7 +155,6 @@ const getCoinMFuturesAccount = catchAsync(async (req, res) => {
     const accountInfo = await binanceAccountService.getCoinMFuturesAccount(
       apiKey,
       apiSecret,
-      userId,
       includePositions
     );
 

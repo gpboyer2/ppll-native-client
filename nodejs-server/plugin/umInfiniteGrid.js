@@ -744,21 +744,13 @@ function InfiniteGrid(options) {
    */
   this.getAccountInfo = async () => {
     try {
-      // 使用 Service 层获取账户信息（带缓存和限流保护）
-      // 如果没有 userId，则直接调用 client（向后兼容）
-      let accountInfo;
-      if (this.config.userId) {
-        accountInfo = await binanceAccountService.getUSDMFuturesAccount(
-          this.config.apiKey,
-          this.config.apiSecret,
-          this.config.userId,
-          true // includePositions
-        );
-      } else {
-        // 向后兼容：没有 userId 时使用原有方式
-        this.logger.warn('未提供 userId，使用直接API调用（无缓存保护）');
-        accountInfo = await this.client.getAccountInformation();
-      }
+      // 单用户系统：使用 Service 层获取账户信息（带缓存和限流保护）
+      // 通过 api_key 实现数据隔离
+      const accountInfo = await binanceAccountService.getUSDMFuturesAccount(
+        this.config.apiKey,
+        this.config.apiSecret,
+        true // includePositions
+      );
 
       if (!accountInfo || !accountInfo.positions) {
         throw new Error('账户信息为空或格式异常');

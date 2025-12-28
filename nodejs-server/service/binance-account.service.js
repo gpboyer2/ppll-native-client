@@ -90,31 +90,31 @@ const createCoinMClient = (apiKey, apiSecret) => /** @type {CoinMClient} */ (cre
 
 /**
  * 通用账户信息获取函数（内部使用）
+ * 单用户系统：通过 api_key 实现数据隔离和缓存
  * 统一处理缓存逻辑，减少重复代码
  * 使用三层缓存策略: 内存缓存(20秒) -> 数据库缓存(20秒) -> API调用
  * @param {string} marketType - 市场类型：spot | usdm | coinm
- * @param {string} apiKey - 用户API Key
+ * @param {string} apiKey - 用户API Key（用于数据隔离）
  * @param {string} apiSecret - 用户API Secret
- * @param {number} userId - 用户ID，用于数据库缓存
  * @param {Object} filterOptions - 过滤选项
  * @param {boolean} filterOptions.includePositions - 是否包含持仓信息（usdm/coinm）
  * @param {boolean} filterOptions.includeEmptyBalances - 是否包含空余额币种（spot）
  * @returns {Promise<Object>} 账户信息
  */
-const getAccountInfo = async (marketType, apiKey, apiSecret, userId, filterOptions = {}) => {
+const getAccountInfo = async (marketType, apiKey, apiSecret, filterOptions = {}) => {
   const modelName = DB_MODEL_MAP[marketType];
   const marketLabel = { spot: '现货', usdm: 'U本位合约', coinm: '币本位合约' }[marketType];
 
   try {
-    // 1. 先查询数据库缓存
-    if (userId && db[modelName]) {
-      const cached = await db[modelName].findOne({ where: { user_id: userId } });
+    // 1. 先查询数据库缓存（通过 api_key）
+    if (apiKey && db[modelName]) {
+      const cached = await db[modelName].findOne({ where: { api_key: apiKey } });
       if (cached) {
         const updated_at = new Date(cached.updated_at).getTime();
         // 缓存未过期，直接返回
         if (Date.now() - updated_at < CACHE_TTL_MS) {
           const accountInfo = JSON.parse(cached.account_json);
-          UtilRecord.debug(`[账户服务] 数据库缓存命中: ${marketLabel} (userId: ${userId})`);
+          UtilRecord.debug(`[账户服务] 数据库缓存命中: ${marketLabel} (apiKey: ${apiKey.substring(0, 8)}...)`);
           return applyAccountFilter(accountInfo, marketType, filterOptions);
         }
       }
@@ -134,13 +134,13 @@ const getAccountInfo = async (marketType, apiKey, apiSecret, userId, filterOptio
       }
     );
 
-    // 3. 更新数据库缓存
-    if (userId && db[modelName]) {
+    // 3. 更新数据库缓存（通过 api_key）
+    if (apiKey && db[modelName]) {
       await db[modelName].upsert({
-        user_id: userId,
+        api_key: apiKey,
         account_json: JSON.stringify(accountInfo)
       });
-      UtilRecord.debug(`[账户服务] 已更新数据库缓存: ${marketLabel} (userId: ${userId})`);
+      UtilRecord.debug(`[账户服务] 已更新数据库缓存: ${marketLabel} (apiKey: ${apiKey.substring(0, 8)}...)`);
     }
 
     return applyAccountFilter(accountInfo, marketType, filterOptions);
@@ -179,38 +179,38 @@ const applyAccountFilter = (accountInfo, marketType, filterOptions) => {
 
 /**
  * 获取U本位合约账户信息
- * @param {string} apiKey - 用户API Key
+ * 单用户系统：通过 api_key 实现数据隔离
+ * @param {string} apiKey - 用户API Key（用于数据隔离）
  * @param {string} apiSecret - 用户API Secret
- * @param {number} userId - 用户ID，用于数据库缓存
  * @param {boolean} includePositions - 是否包含持仓信息，默认true
  * @returns {Promise<Object>} U本位合约账户信息
  */
-const getUSDMFuturesAccount = async (apiKey, apiSecret, userId, includePositions = true) => {
-  return getAccountInfo('usdm', apiKey, apiSecret, userId, { includePositions });
+const getUSDMFuturesAccount = async (apiKey, apiSecret, includePositions = true) => {
+  return getAccountInfo('usdm', apiKey, apiSecret, { includePositions });
 };
 
 /**
  * 获取现货账户信息
- * @param {string} apiKey - 用户API Key
+ * 单用户系统：通过 api_key 实现数据隔离
+ * @param {string} apiKey - 用户API Key（用于数据隔离）
  * @param {string} apiSecret - 用户API Secret
- * @param {number} userId - 用户ID，用于数据库缓存
  * @param {boolean} includeEmptyBalances - 是否包含空余额币种，默认true
  * @returns {Promise<Object>} 现货账户信息
  */
-const getSpotAccount = async (apiKey, apiSecret, userId, includeEmptyBalances = true) => {
-  return getAccountInfo('spot', apiKey, apiSecret, userId, { includeEmptyBalances });
+const getSpotAccount = async (apiKey, apiSecret, includeEmptyBalances = true) => {
+  return getAccountInfo('spot', apiKey, apiSecret, { includeEmptyBalances });
 };
 
 /**
  * 获取币本位合约账户信息
- * @param {string} apiKey - 用户API Key
+ * 单用户系统：通过 api_key 实现数据隔离
+ * @param {string} apiKey - 用户API Key（用于数据隔离）
  * @param {string} apiSecret - 用户API Secret
- * @param {number} userId - 用户ID，用于数据库缓存
  * @param {boolean} includePositions - 是否包含持仓信息，默认true
  * @returns {Promise<Object>} 币本位合约账户信息
  */
-const getCoinMFuturesAccount = async (apiKey, apiSecret, userId, includePositions = true) => {
-  return getAccountInfo('coinm', apiKey, apiSecret, userId, { includePositions, includeEmptyBalances: false });
+const getCoinMFuturesAccount = async (apiKey, apiSecret, includePositions = true) => {
+  return getAccountInfo('coinm', apiKey, apiSecret, { includePositions, includeEmptyBalances: false });
 };
 
 /**

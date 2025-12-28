@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { TextInput } from '../../components/mantine';
 import { ROUTES } from '../../router';
 import { NumberFormat } from '../../utils';
+import { GridStrategyApi } from '../../api';
+import { showSuccess, showError } from '../../utils/api-error';
 import type { GridStrategy, StrategyFilter, StrategyStatus, PositionSide } from '../../types/grid-strategy';
 
 /**
@@ -14,6 +16,9 @@ function GridStrategyListPage() {
     const [strategyList, setStrategyList] = useState<GridStrategy[]>([]);
     const [loading, setLoading] = useState(false);
 
+    // 防止 StrictMode 双重渲染导致重复请求
+    const hasLoadedRef = useRef(false);
+
     // 筛选状态
     const [filter, setFilter] = useState<StrategyFilter>({
         keyword: '',
@@ -21,52 +26,106 @@ function GridStrategyListPage() {
         status: 'all'
     });
 
-    // 从本地存储加载策略列表
+    // 加载策略列表
     useEffect(() => {
+        // 防止 StrictMode 双重渲染导致重复请求
+        if (hasLoadedRef.current) {
+            return;
+        }
+        hasLoadedRef.current = true;
         loadStrategyList();
     }, []);
 
-    // 加载策略列表
-    function loadStrategyList() {
+    // 从后端 API 加载策略列表
+    async function loadStrategyList() {
         setLoading(true);
         try {
-            const stored = localStorage.getItem('grid-strategy-list');
-            if (stored) {
-                const list = JSON.parse(stored) as GridStrategy[];
-                setStrategyList(list);
+            const response = await GridStrategyApi.list({
+                currentPage: 1,
+                pageSize: 100
+            });
+
+            if (response.status === 'success' && response.data) {
+                const list = response.data.list || [];
+                // 将后端的 snake_case 字段转换为前端的 camelCase 字段
+                const transformedList = list.map((item: any) => ({
+                    id: item.id,
+                    apiKey: item.api_key,
+                    apiSecret: item.api_secret,
+                    tradingPair: item.trading_pair,
+                    positionSide: item.position_side,
+                    gridPriceDifference: item.grid_price_difference,
+                    gridTradeQuantity: item.grid_trade_quantity,
+                    gridLongOpenQuantity: item.grid_long_open_quantity,
+                    gridLongCloseQuantity: item.grid_long_close_quantity,
+                    gridShortOpenQuantity: item.grid_short_open_quantity,
+                    gridShortCloseQuantity: item.grid_short_close_quantity,
+                    maxOpenPositionQuantity: item.max_open_position_quantity,
+                    minOpenPositionQuantity: item.min_open_position_quantity,
+                    fallPreventionCoefficient: item.fall_prevention_coefficient,
+                    pollingInterval: item.polling_interval,
+                    leverage: item.leverage,
+                    marginType: item.margin_type,
+                    stopLossPrice: item.stop_loss_price,
+                    takeProfitPrice: item.take_profit_price,
+                    gtLimitationPrice: item.gt_limitation_price,
+                    ltLimitationPrice: item.lt_limitation_price,
+                    isAboveOpenPrice: item.is_above_open_price,
+                    isBelowOpenPrice: item.is_below_open_price,
+                    priorityCloseOnTrend: item.priority_close_on_trend,
+                    avgCostPriceDays: item.avg_cost_price_days,
+                    status: item.paused ? 'paused' : (item.remark === 'error' ? 'stopped' : 'running'),
+                    createdAt: item.created_at,
+                    updatedAt: item.updated_at,
+                }));
+                setStrategyList(transformedList);
+            } else {
+                showError(response.message || '加载策略列表失败');
             }
         } catch (error) {
             console.error('加载策略列表失败:', error);
+            showError('加载策略列表失败，请稍后重试');
         } finally {
             setLoading(false);
         }
     }
 
-    // 保存策略列表到本地存储
-    function saveStrategyList(list: GridStrategy[]) {
-        localStorage.setItem('grid-strategy-list', JSON.stringify(list));
-    }
-
     // 删除策略
-    function handleDeleteStrategy(id: string) {
-        if (confirm('确认删除此策略？')) {
-            const newList = strategyList.filter(s => s.id !== id);
-            setStrategyList(newList);
-            saveStrategyList(newList);
+    async function handleDeleteStrategy(id: string) {
+        if (!confirm('确认删除此策略？')) return;
+
+        try {
+            const response = await GridStrategyApi.delete(Number(id));
+            if (response.status === 'success') {
+                showSuccess('策略删除成功');
+                await loadStrategyList();
+            } else {
+                showError(response.message || '策略删除失败');
+            }
+        } catch (error) {
+            console.error('删除策略失败:', error);
+            showError('删除策略失败，请稍后重试');
         }
     }
 
     // 切换策略状态
-    function handleToggleStatus(id: string) {
-        const newList = strategyList.map(s => {
-            if (s.id === id) {
-                const newStatus: StrategyStatus = s.status === 'running' ? 'paused' : 'running';
-                return { ...s, status: newStatus };
+    async function handleToggleStatus(id: string, currentStatus: StrategyStatus) {
+        const newStatus = currentStatus === 'running' ? 'paused' : 'running';
+        const action = newStatus === 'paused' ? 'pause' : 'resume';
+        const apiMethod = newStatus === 'paused' ? GridStrategyApi.pause : GridStrategyApi.resume;
+
+        try {
+            const response = await apiMethod(Number(id));
+            if (response.status === 'success') {
+                showSuccess(newStatus === 'paused' ? '策略已暂停' : '策略已恢复');
+                await loadStrategyList();
+            } else {
+                showError(response.message || '状态更新失败');
             }
-            return s;
-        });
-        setStrategyList(newList);
-        saveStrategyList(newList);
+        } catch (error) {
+            console.error('更新策略状态失败:', error);
+            showError('更新策略状态失败，请稍后重试');
+        }
     }
 
     // 更新筛选条件
@@ -325,7 +384,7 @@ function GridStrategyListPage() {
                                     <button
                                         className="btn btn-ghost"
                                         style={{ flex: 1, height: '32px' }}
-                                        onClick={() => handleToggleStatus(strategy.id)}
+                                        onClick={() => handleToggleStatus(strategy.id, strategy.status)}
                                     >
                                         {strategy.status === 'running' ? '暂停' : '启动'}
                                     </button>

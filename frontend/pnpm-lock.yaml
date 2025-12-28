@@ -26,6 +26,9 @@ importers:
       '@tabler/icons-react':
         specifier: ^3.36.0
         version: 3.36.0(react@18.3.1)
+      bignumber.js:
+        specifier: ^9.3.1
+        version: 9.3.1
       dayjs:
         specifier: ^1.11.19
         version: 1.11.19
@@ -594,6 +597,9 @@ packages:
 
   bignumber.js@2.4.0:
     resolution: {integrity: sha512-uw4ra6Cv483Op/ebM0GBKKfxZlSmn6NgFRby5L3yGTlunLj53KQgndDlqy2WVFOwgvurocApYkSud0aO+mvrpQ==}
+
+  bignumber.js@9.3.1:
+    resolution: {integrity: sha512-Ko0uX15oIUS7wJ3Rb30Fs6SkVbLmPBAKdlm7q9+ak9bbIeFf0MwuBsQV6z7+X768/cHsfg+WlysDWJcmthjsjQ==}
 
   bmp-js@0.0.1:
     resolution: {integrity: sha512-OS74Rlt0Aynu2mTPmY9RZOUOXlqWecFIILFXr70vv16/xCZnFxvri9IKkF1IGxQ8r9dOE62qGNpKxXx8Lko8bg==}
@@ -2062,6 +2068,8 @@ snapshots:
       tweetnacl: 0.14.5
 
   bignumber.js@2.4.0: {}
+
+  bignumber.js@9.3.1: {}
 
   bmp-js@0.0.1: {}
 
