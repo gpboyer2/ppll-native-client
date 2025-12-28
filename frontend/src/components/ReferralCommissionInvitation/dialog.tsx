@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { OpenBrowser } from '../../../wailsjs/go/main/App';
 import './dialog.scss';
 
 // 收益计算数据类型
@@ -43,8 +44,38 @@ export function ReferralCommissionDialog({
     }, [opened, onClose]);
 
     // 跳转到返佣注册页面
-    function handleEnableRebate() {
-        window.open('https://senmo.hk', '_blank');
+    async function handleEnableRebate() {
+        const url = 'https://senmo.hk';
+
+        // 检查是否在 Wails 桌面客户端环境中
+        const isWailsAvailable = typeof window !== 'undefined' &&
+                                (window as any).go &&
+                                (window as any).go.main &&
+                                (window as any).go.main.App;
+
+        if (isWailsAvailable) {
+            // 桌面客户端：使用系统浏览器打开
+            try {
+                await OpenBrowser(url);
+            } catch (error) {
+                console.error('打开系统浏览器失败:', error);
+            }
+        } else {
+            // 浏览器环境：使用 window.open 打开新标签页
+            try {
+                const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+
+                // 如果 window.open 被阻止（例如浏览器弹窗拦截），使用当前页面跳转
+                if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                    console.warn('弹窗被拦截，使用当前页面跳转');
+                    window.location.href = url;
+                }
+            } catch (error) {
+                console.error('打开链接失败:', error);
+                // 备用方案：使用当前页面跳转
+                window.location.href = url;
+            }
+        }
     }
 
     // 下次不再提示
@@ -77,14 +108,6 @@ export function ReferralCommissionDialog({
                 </div>
 
                 <div className="referral-commission-dialog-content">
-                    {/* 零成本强调横幅 */}
-                    <div className="referral-commission-dialog-zero-cost-banner">
-                        <div className="referral-commission-dialog-zero-cost-title">零成本，纯额外收益</div>
-                        <div className="referral-commission-dialog-zero-cost-subtitle">
-                            无需改变交易策略，直接获得手续费返还
-                        </div>
-                    </div>
-
                     {/* 月度收益对比 */}
                     <div className="referral-commission-dialog-comparison-section">
                         <div className="referral-commission-dialog-comparison-cards">
@@ -115,74 +138,81 @@ export function ReferralCommissionDialog({
                         </div>
                     </div>
 
-                    {/* 年收益对比 */}
-                    <div className="referral-commission-dialog-yearly-comparison">
-                        <div className="referral-commission-dialog-yearly-title">单账号年收益对比</div>
-                        <div className="referral-commission-dialog-yearly-grid">
-                            <div className="referral-commission-dialog-yearly-item">
-                                <div className="referral-commission-dialog-yearly-label">无返佣年收益</div>
-                                <div className="referral-commission-dialog-yearly-amount referral-commission-dialog-yearly-amount-normal">
-                                    {data?.currentYearlyProfit?.toLocaleString() || '5,580'}
-                                </div>
-                                <div className="referral-commission-dialog-yearly-description">USDT / 年</div>
-                            </div>
-                            <div className="referral-commission-dialog-yearly-item referral-commission-dialog-yearly-item-highlight">
-                                <div className="referral-commission-dialog-yearly-label">有返佣年收益</div>
-                                <div className="referral-commission-dialog-yearly-amount referral-commission-dialog-yearly-amount-highlight">
-                                    {data?.rebateYearlyProfit?.toLocaleString() || '7,380'}
-                                </div>
-                                <div className="referral-commission-dialog-yearly-description">
-                                    USDT / 年 (+{((data?.rebateYearlyProfit || 7380) - (data?.currentYearlyProfit || 5580)).toLocaleString()})
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* 计算明细 */}
                     <div className="referral-commission-dialog-details-section">
-                        <div className="referral-commission-dialog-details-title">收益计算明细</div>
-                        <div className="referral-commission-dialog-details-grid">
-                            <div className="referral-commission-dialog-detail-item">
-                                <span className="referral-commission-dialog-detail-label">每笔交易金额</span>
-                                <span className="referral-commission-dialog-detail-value">
-                                    {data?.tradeValue || 50} USDT
-                                </span>
+                        <div className="referral-commission-dialog-details-title">收益对比明细</div>
+
+                        {/* 对比表格 */}
+                        <div className="referral-commission-dialog-comparison-table">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th className="referral-commission-dialog-table-label">时间周期</th>
+                                        <th className="referral-commission-dialog-table-normal">网格收益</th>
+                                        <th className="referral-commission-dialog-table-highlight">返佣收益</th>
+                                        <th className="referral-commission-dialog-table-diff">差额</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>每日</strong></td>
+                                        <td>{data?.currentMonthlyProfit ? (data.currentMonthlyProfit / 30).toFixed(2) : '15.50'} USDT</td>
+                                        <td className="referral-commission-dialog-table-highlight-text">
+                                            <strong>{data?.dailyRebateProfit || 5} USDT</strong>
+                                        </td>
+                                        <td className="referral-commission-dialog-table-diff-text">
+                                            +{data?.dailyRebateProfit || 5} USDT
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>每月</strong></td>
+                                        <td>{data?.currentMonthlyProfit || 465} USDT</td>
+                                        <td className="referral-commission-dialog-table-highlight-text">
+                                            <strong>{data?.monthlyExtraProfit || 150} USDT</strong>
+                                        </td>
+                                        <td className="referral-commission-dialog-table-diff-text">
+                                            +{data?.monthlyExtraProfit || 150} USDT
+                                        </td>
+                                    </tr>
+                                    <tr className="referral-commission-dialog-table-total">
+                                        <td><strong>每年</strong></td>
+                                        <td><strong>{(data?.currentYearlyProfit || 5580).toLocaleString()} USDT</strong></td>
+                                        <td className="referral-commission-dialog-table-highlight-text">
+                                            <strong>{((data?.rebateYearlyProfit || 7380) - (data?.currentYearlyProfit || 5580)).toLocaleString()} USDT</strong>
+                                        </td>
+                                        <td className="referral-commission-dialog-table-diff-text">
+                                            <strong>+{((data?.rebateYearlyProfit || 7380) - (data?.currentYearlyProfit || 5580)).toLocaleString()} USDT</strong>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* 参数说明 */}
+                        <div className="referral-commission-dialog-params-info">
+                            <div className="referral-commission-dialog-param-item">
+                                <span className="referral-commission-dialog-param-label">每笔交易金额：</span>
+                                <span className="referral-commission-dialog-param-value">{data?.tradeValue || 50} USDT</span>
                             </div>
-                            <div className="referral-commission-dialog-detail-item">
-                                <span className="referral-commission-dialog-detail-label">日交易次数</span>
-                                <span className="referral-commission-dialog-detail-value">
-                                    {data?.dailyFrequency || 5} 次
-                                </span>
+                            <div className="referral-commission-dialog-param-item">
+                                <span className="referral-commission-dialog-param-label">日交易次数：</span>
+                                <span className="referral-commission-dialog-param-value">{data?.dailyFrequency || 5} 次</span>
                             </div>
-                            <div className="referral-commission-dialog-detail-item">
-                                <span className="referral-commission-dialog-detail-label">手续费率</span>
-                                <span className="referral-commission-dialog-detail-value">
-                                    {data?.commissionRate || '1‰'}
-                                </span>
+                            <div className="referral-commission-dialog-param-item">
+                                <span className="referral-commission-dialog-param-label">手续费率：</span>
+                                <span className="referral-commission-dialog-param-value">{data?.commissionRate || '1‰'}</span>
                             </div>
-                            <div className="referral-commission-dialog-detail-item">
-                                <span className="referral-commission-dialog-detail-label">返佣比例</span>
-                                <span className="referral-commission-dialog-detail-value referral-commission-dialog-detail-value-highlight">
+                            <div className="referral-commission-dialog-param-item">
+                                <span className="referral-commission-dialog-param-label">返佣比例：</span>
+                                <span className="referral-commission-dialog-param-value referral-commission-dialog-table-highlight-text">
                                     {data?.rebateRate || '最高 35%'}
-                                </span>
-                            </div>
-                            <div className="referral-commission-dialog-detail-item">
-                                <span className="referral-commission-dialog-detail-label">日返佣收益</span>
-                                <span className="referral-commission-dialog-detail-value referral-commission-dialog-detail-value-highlight">
-                                    {data?.dailyRebateProfit || 5} USDT
-                                </span>
-                            </div>
-                            <div className="referral-commission-dialog-detail-item">
-                                <span className="referral-commission-dialog-detail-label">月额外收益</span>
-                                <span className="referral-commission-dialog-detail-value referral-commission-dialog-detail-value-highlight">
-                                    {data?.monthlyExtraProfit || 150} USDT
                                 </span>
                             </div>
                         </div>
                     </div>
 
                     <p className="referral-commission-dialog-info-text">
-                        * 基于您的实际策略参数计算，年收益按360天计算
+                        * 基于您的实际策略参数计算，年收益按365天计算
                     </p>
 
                     <div className="referral-commission-dialog-actions-section">

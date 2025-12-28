@@ -64,20 +64,20 @@
     font-size: 22px;
     font-weight: 700;
     color: var(--color-text);
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .referral-commission-dialog-value-proposition {
-    font-size: 16px;
+    font-size: 18px;
     color: var(--color-primary);
-    font-weight: 600;
-    margin-bottom: 12px;
+    font-weight: 700;
+    margin-bottom: 6px;
 }
 
 .referral-commission-dialog-subtitle {
     font-size: 14px;
     color: var(--color-text-muted);
-    line-height: 1.5;
+    line-height: 1.4;
     margin: 0;
 }
 
@@ -106,49 +106,6 @@
 // Dialog content
 .referral-commission-dialog-content {
     padding: 28px 32px;
-}
-
-// Zero cost banner
-.referral-commission-dialog-zero-cost-banner {
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-700) 100%);
-    color: white;
-    padding: 16px 24px;
-    border-radius: 10px;
-    margin-bottom: 24px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-}
-
-.referral-commission-dialog-zero-cost-banner::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-    animation: referral-commission-dialog-shimmer 3s infinite;
-}
-
-@keyframes referral-commission-dialog-shimmer {
-    0% {
-        left: -100%;
-    }
-    100% {
-        left: 100%;
-    }
-}
-
-.referral-commission-dialog-zero-cost-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 4px;
-}
-
-.referral-commission-dialog-zero-cost-subtitle {
-    font-size: 14px;
-    opacity: 0.9;
 }
 
 // Monthly comparison section
@@ -263,66 +220,6 @@
     }
 }
 
-// Yearly comparison section
-.referral-commission-dialog-yearly-comparison {
-    background: var(--color-bg);
-    border-radius: 12px;
-    padding: 24px;
-    margin-bottom: 28px;
-    border: 1px solid var(--color-border);
-}
-
-.referral-commission-dialog-yearly-title {
-    font-size: 15px;
-    font-weight: 600;
-    color: var(--color-text);
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.referral-commission-dialog-yearly-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-}
-
-.referral-commission-dialog-yearly-item {
-    text-align: center;
-    padding: 20px;
-    background: var(--color-surface);
-    border-radius: 10px;
-}
-
-.referral-commission-dialog-yearly-item-highlight {
-    background: linear-gradient(135deg, var(--color-surface) 0%, var(--color-primary-50) 100%);
-    border: 1px solid var(--color-primary);
-}
-
-.referral-commission-dialog-yearly-label {
-    font-size: 13px;
-    color: var(--color-text-muted);
-    margin-bottom: 8px;
-}
-
-.referral-commission-dialog-yearly-amount {
-    font-size: 28px;
-    font-weight: 700;
-}
-
-.referral-commission-dialog-yearly-amount-normal {
-    color: var(--color-text);
-}
-
-.referral-commission-dialog-yearly-amount-highlight {
-    color: var(--color-primary);
-}
-
-.referral-commission-dialog-yearly-description {
-    font-size: 12px;
-    color: var(--color-text-muted);
-    margin-top: 4px;
-}
-
 // Details section
 .referral-commission-dialog-details-section {
     background: var(--color-bg);
@@ -339,33 +236,135 @@
     margin-bottom: 18px;
 }
 
-.referral-commission-dialog-details-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 14px;
+// Comparison table
+.referral-commission-dialog-comparison-table {
+    width: 100%;
+    overflow-x: auto;
 }
 
-.referral-commission-dialog-detail-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
+.referral-commission-dialog-comparison-table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.referral-commission-dialog-comparison-table thead tr {
+    border-bottom: 2px solid var(--color-border);
+}
+
+.referral-commission-dialog-comparison-table th {
+    padding: 12px 8px;
+    text-align: center;
+    font-weight: 600;
+    color: var(--color-text);
     background: var(--color-surface);
-    border-radius: 8px;
-    font-size: 14px;
 }
 
-.referral-commission-dialog-detail-label {
+.referral-commission-dialog-table-label {
+    text-align: left !important;
+    padding-left: 12px !important;
+}
+
+.referral-commission-dialog-table-normal {
     color: var(--color-text-muted);
 }
 
-.referral-commission-dialog-detail-value {
+.referral-commission-dialog-table-highlight {
+    color: var(--color-primary);
+    background: var(--color-primary-50) !important;
+}
+
+.referral-commission-dialog-table-diff {
+    color: var(--color-success, #0ecb81);
+}
+
+.referral-commission-dialog-table-fee {
+    color: var(--color-error, #f6465d);
+}
+
+.referral-commission-dialog-comparison-table tbody tr {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.referral-commission-dialog-comparison-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.referral-commission-dialog-comparison-table td {
+    padding: 12px 8px;
+    text-align: center;
     color: var(--color-text);
+}
+
+.referral-commission-dialog-table-center {
+    text-align: center !important;
+}
+
+.referral-commission-dialog-table-highlight-text {
+    color: var(--color-primary);
     font-weight: 600;
 }
 
-.referral-commission-dialog-detail-value-highlight {
-    color: var(--color-primary);
+.referral-commission-dialog-table-diff-text {
+    color: var(--color-success, #0ecb81);
+    font-weight: 600;
+}
+
+.referral-commission-dialog-table-fee-text {
+    color: var(--color-error, #f6465d);
+    font-weight: 600;
+}
+
+.referral-commission-dialog-table-divider {
+    background: var(--color-surface);
+}
+
+.referral-commission-dialog-table-divider td {
+    padding: 8px 0;
+    border-bottom: 2px solid var(--color-border);
+}
+
+.referral-commission-dialog-table-total {
+    background: var(--color-primary-50);
+}
+
+.referral-commission-dialog-table-total td {
+    padding: 16px 8px;
+    font-size: 14px;
+}
+
+.referral-commission-dialog-table-total td:first-child {
+    border-radius: 8px 0 0 8px;
+}
+
+.referral-commission-dialog-table-total td:last-child {
+    border-radius: 0 8px 8px 0;
+}
+
+// Parameters info
+.referral-commission-dialog-params-info {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--color-border);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.referral-commission-dialog-param-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+}
+
+.referral-commission-dialog-param-label {
+    color: var(--color-text-muted);
+}
+
+.referral-commission-dialog-param-value {
+    color: var(--color-text);
+    font-weight: 600;
 }
 
 // Info text
@@ -405,12 +404,12 @@
 }
 
 .referral-commission-dialog-btn-primary {
-    background: #4A90E2;
+    background: var(--color-primary);
     color: white;
 }
 
 .referral-commission-dialog-btn-primary:hover {
-    background: #3a7bc8;
+    background: var(--color-primary-700);
     transform: translateY(-1px);
 }
 
@@ -471,13 +470,17 @@
         grid-template-columns: 1fr;
     }
 
-    .referral-commission-dialog-yearly-grid {
-        grid-template-columns: 1fr;
-        gap: 16px;
-    }
-
     .referral-commission-dialog-header,
     .referral-commission-dialog-content {
         padding: 24px;
+    }
+
+    .referral-commission-dialog-comparison-table table {
+        font-size: 12px;
+    }
+
+    .referral-commission-dialog-comparison-table th,
+    .referral-commission-dialog-comparison-table td {
+        padding: 8px 4px;
     }
 }

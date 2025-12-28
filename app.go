@@ -8,6 +8,7 @@ import (
     "os"
     "path/filepath"
 
+    "github.com/wailsapp/wails/v2/pkg/runtime"
     "ppll-native-client/internal/services"
 )
 
@@ -449,4 +450,12 @@ func (a *App) GetSystemInfo() map[string]any {
         "nodejsStatus":    a.GetNodejsServiceStatus(),
         "nodejsURL":       a.GetNodejsServiceURL(),
     }
+}
+
+// OpenBrowser 打开系统浏览器访问指定 URL
+// 参数：url - 要访问的网址
+// 在桌面客户端中打开系统浏览器，在浏览器环境中不做任何操作
+func (a *App) OpenBrowser(url string) error {
+    runtime.BrowserOpenURL(a.ctx, url)
+    return nil
 }
