@@ -41,11 +41,6 @@ module.exports = router;
  *           format: int64
  *           example: 1001
  *           description: 主键ID
- *         user_id:
- *           type: integer
- *           format: int64
- *           example: 123456
- *           description: 用户ID（可能为空）
  *         api_endpoint:
  *           type: string
  *           example: "/v1/orders/create"
@@ -159,11 +154,6 @@ module.exports = router;
  *         style: form
  *         explode: false
  *         description: 多个日志ID，支持数组或逗号分隔字符串，例如 ids=1,2,3
- *       - in: query
- *         name: user_id
- *         schema:
- *           type: integer
- *         description: 用户ID
  *       - in: query
  *         name: api_endpoint
  *         schema:

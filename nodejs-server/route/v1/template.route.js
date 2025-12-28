@@ -18,17 +18,16 @@ router.put('/update', orderController.updateOrder);
 
 
 /**
- * 查询订单:
+ * 查询订单（单用户系统）:
  * /v1/template/query - 支持查询单个ID、多个ID、所有订单
  * 查询参数：
  * - id: 单个订单ID（可选）
  * - ids: 多个订单ID，用逗号分隔（可选，例如：1,2,3）
- * - user_id: 用户ID过滤（可选）
  * - currentPage: 页码（可选，默认为1）
  * - pageSize: 每页数量（可选，默认为10，最大100）
  * - apiKey: 币安API密钥（VIP验证用）
  * - apiSecret: 币安API密钥Secret（VIP验证用）
- * 
+ *
  * 优先级：id > ids > 分页查询所有
  */
 router.get('/query', orderController.queryOrders);
@@ -589,13 +588,6 @@ module.exports = router;
  *         explode: false
  *         description: 多个订单ID，支持数组或逗号分隔字符串，例如 ids=1,2,3
  *         example: [1001,1002]
- *       - in: query
- *         name: user_id
- *         required: false
- *         schema:
- *           type: integer
- *         description: 用户ID过滤
- *         example: 123
  *       - in: query
  *         name: currentPage
  *         required: false

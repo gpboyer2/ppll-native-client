@@ -98,15 +98,14 @@ function toViewObject(data) {
 }
 
 /**
- * 构建 where 条件
+ * 构建 where 条件（单用户系统）
  */
 function buildWhere(filter = {}) {
   const where = {};
-  const { id, ids, user_id, module, api_endpoint, http_method, status_code, error_code, ip, location, start, end } = filter;
+  const { id, ids, module, api_endpoint, http_method, status_code, error_code, ip, location, start, end } = filter;
   // 支持按单个或多个ID查询
   if (Array.isArray(ids) && ids.length > 0) where.id = { [Op.in]: ids };
   else if (id) where.id = id;
-  if (user_id) where.user_id = user_id;
   if (module) where.module = { [Op.like]: `%${module}%` };
   if (api_endpoint) where.api_endpoint = { [Op.like]: `%${api_endpoint}%` };
   if (http_method) where.http_method = http_method;
@@ -176,14 +175,13 @@ async function detail(id) {
 }
 
 /**
- * 新增单条系统日志
+ * 新增单条系统日志（单用户系统）
  * 注意：该接口通常由服务端内部调用。若对外暴露路由，建议限制管理员角色。
- * @param {import('express').Request} req 请求对象（用于拿 user、ip/ua）
+ * @param {import('express').Request} req 请求对象（用于拿 ip/ua）
  */
 async function create(req) {
   const body = req.body || {};
   // 基础字段组装
-  const userId = body.user_id || req.user?.id || null;
   const module = body.module || deriveModule(body.api_endpoint);
   const api_endpoint = body.api_endpoint; // 必填
   const http_method = body.http_method || req.method || null;
@@ -216,7 +214,6 @@ async function create(req) {
   }
 
   const created = await SystemLog.create({
-    user_id: userId,
     module,
     api_endpoint,
     http_method,
@@ -238,14 +235,13 @@ async function create(req) {
 }
 
 /**
- * 批量新增
+ * 批量新增（单用户系统）
  */
 async function batchCreate(req, logs = []) {
   if (!Array.isArray(logs) || logs.length === 0) {
     throw new ApiError(httpStatus.BAD_REQUEST, '缺少参数 logs');
   }
 
-  const userIdFromReq = req.user?.id || null;
   const ip = req.ip || req.headers['x-forwarded-for'] || null;
   const ua = req.headers['user-agent'] || null;
 
@@ -254,7 +250,6 @@ async function batchCreate(req, logs = []) {
     const { os: os_name, browser: browser_name } = parseUa(l.user_agent || ua);
 
     return {
-      user_id: l.user_id || userIdFromReq,
       module: l.module || deriveModule(l.api_endpoint),
       api_endpoint: l.api_endpoint,
       http_method: l.http_method || null,

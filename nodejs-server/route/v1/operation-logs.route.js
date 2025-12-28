@@ -47,11 +47,6 @@ module.exports = router;
  *           format: int64
  *           example: 1001
  *           description: 主键ID
- *         user_id:
- *           type: integer
- *           format: int64
- *           example: 123456
- *           description: 用户ID
  *         operator:
  *           type: string
  *           example: "张三"
@@ -146,12 +141,6 @@ module.exports = router;
  *         style: form
  *         explode: false
  *         description: 多个日志ID，支持数组或逗号分隔字符串，例如 ids=1,2,3
- *       - in: query
- *         name: user_id
- *         schema:
- *           type: integer
- *           format: int64
- *         description: 用户ID
  *       - in: query
  *         name: module
  *         schema:
@@ -296,7 +285,7 @@ module.exports = router;
  *   post:
  *     tags: [OperationLogs]
  *     summary: 新增操作日志
- *     description: 记录单条用户操作日志（需要登录）。服务端自动从 token/请求头补全 userId、operator、IP 与 User-Agent；扩展字段会对常见敏感键脱敏。
+ *     description: 记录单条用户操作日志（单用户系统）。服务端自动补全 operator、IP 与 User-Agent；扩展字段会对常见敏感键脱敏。
  *     security:
  *       - bearerAuth: []
  *     requestBody:

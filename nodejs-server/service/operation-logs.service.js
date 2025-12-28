@@ -258,9 +258,8 @@ async function batchCreate(req, logs = []) {
   const ip = req.ip || req.headers['x-forwarded-for'] || null;
   const ua = req.headers['user-agent'] || null;
 
-  // 规范化并脱敏扩展字段
+  // 规范化并脱敏扩展字段（单用户系统）
   const normalized = logs.map((l) => ({
-    userId: null,
     action: l.action,
     description: l.description || null,
     page: l.page || null,

@@ -69,7 +69,7 @@ async function recoverSingleStrategy(strategy) {
   let s, strategyInfo;
   try {
     s = strategy.dataValues || strategy;
-    strategyInfo = `策略[ID:${s.id}, 交易对:${s.trading_pair}, 用户:${s.user_id}]`;
+    strategyInfo = `策略[ID:${s.id}, 交易对:${s.trading_pair}, API Key:${s.api_key?.substring(0, 8)}...]`;
     UtilRecord.log(`🔄 开始恢复 ${strategyInfo}...`);
 
     // 检查策略数据完整性

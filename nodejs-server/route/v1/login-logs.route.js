@@ -44,11 +44,6 @@ module.exports = router;
  *     LoginLog:
  *       type: object
  *       properties:
- *         user_id:
- *           type: integer
- *           format: int64
- *           example: 123456
- *           description: 用户ID
  *         username:
  *           type: string
  *           example: "user123"
@@ -144,12 +139,6 @@ module.exports = router;
  *         style: form
  *         explode: false
  *         description: 多个登录日志ID，支持数组或逗号分隔字符串，例如 ids=1,2,3
- *       - in: query
- *         name: user_id
- *         schema:
- *           type: integer
- *           format: int64
- *         description: 用户ID
  *       - in: query
  *         name: username
  *         schema:
@@ -304,10 +293,6 @@ module.exports = router;
  *           schema:
  *             type: object
  *             properties:
- *               user_id:
- *                 type: integer
- *                 format: int64
- *                 description: 用户ID
  *               username:
  *                 type: string
  *                 description: 用户名
@@ -406,10 +391,6 @@ module.exports = router;
  *                 type: integer
  *                 format: int64
  *                 description: 登录日志ID
- *               user_id:
- *                 type: integer
- *                 format: int64
- *                 description: 用户ID
  *               username:
  *                 type: string
  *                 description: 用户名
