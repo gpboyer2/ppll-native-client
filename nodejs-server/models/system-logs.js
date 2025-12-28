@@ -7,7 +7,7 @@
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class system_logs extends Model {
+  class SystemLogs extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
 
-  system_logs.init(
+  SystemLogs.init(
     {
       id: {
         type: DataTypes.BIGINT,
@@ -116,5 +116,5 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  return system_logs;
+  return SystemLogs;
 };

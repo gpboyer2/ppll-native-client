@@ -6,13 +6,13 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class usd_m_futures_account extends Model {
+  class UsdMFuturesAccount extends Model {
     static associate(models) {
       // 单用户系统，通过 api_key 实现数据隔离，无需用户关联
     }
   }
 
-  usd_m_futures_account.init({
+  UsdMFuturesAccount.init({
     api_key: {
       type: DataTypes.STRING(128),
       allowNull: false,
@@ -45,5 +45,5 @@ module.exports = (sequelize, DataTypes) => {
     updatedAt: 'updated_at',
   });
 
-  return usd_m_futures_account;
+  return UsdMFuturesAccount;
 };

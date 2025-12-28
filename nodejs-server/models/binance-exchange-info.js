@@ -3,7 +3,7 @@
 const { Model, Op } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class binance_exchange_info extends Model {
+  class BinanceExchangeInfo extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -39,7 +39,7 @@ module.exports = (sequelize, DataTypes) => {
 
     /**
      * 获取最新的有效交易所信息记录
-     * @returns {Promise<binance_exchange_info|null>} 返回最新有效记录
+     * @returns {Promise<BinanceExchangeInfo|null>} 返回最新有效记录
      */
     static async getLatest() {
       try {
@@ -59,7 +59,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
 
-  binance_exchange_info.init(
+  BinanceExchangeInfo.init(
     {
       id: {
         type: DataTypes.INTEGER,
@@ -109,5 +109,5 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  return binance_exchange_info;
+  return BinanceExchangeInfo;
 };

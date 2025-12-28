@@ -3,7 +3,7 @@
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class page_view_log extends Model {
+  class PageViewLog extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
 
-  page_view_log.init(
+  PageViewLog.init(
     {
       // id: {
       //   type: DataTypes.BIGINT,
@@ -68,5 +68,5 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  return page_view_log;
+  return PageViewLog;
 };

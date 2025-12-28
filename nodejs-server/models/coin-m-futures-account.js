@@ -6,13 +6,13 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class coin_m_futures_account extends Model {
+  class CoinMFuturesAccount extends Model {
     static associate(models) {
       // 单用户系统，无需用户关联
     }
   }
 
-  coin_m_futures_account.init({
+  CoinMFuturesAccount.init({
     account_json: {
       type: DataTypes.TEXT('long'),
       allowNull: false,
@@ -39,5 +39,5 @@ module.exports = (sequelize, DataTypes) => {
     updatedAt: 'updated_at',
   });
 
-  return coin_m_futures_account;
+  return CoinMFuturesAccount;
 };

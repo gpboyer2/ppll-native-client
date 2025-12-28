@@ -7,7 +7,7 @@
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class operation_logs extends Model {
+  class OperationLogs extends Model {
     /**
      * 定义模型关联关系（单用户系统，无关联）
      */
@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
 
-  operation_logs.init(
+  OperationLogs.init(
     {
       id: {
         type: DataTypes.BIGINT,
@@ -111,6 +111,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  return operation_logs;
+  return OperationLogs;
 };
 

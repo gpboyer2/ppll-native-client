@@ -4,13 +4,13 @@
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class login_logs extends Model {
+  class LoginLogs extends Model {
     static associate(models) {
       // 单用户系统，无需用户关联
     }
   }
 
-  login_logs.init(
+  LoginLogs.init(
     {
       username: { type: DataTypes.STRING(64), allowNull: true, comment: "用户名" },
       apiKey: { type: DataTypes.STRING(255), allowNull: true, comment: "API密钥" },
@@ -37,6 +37,6 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  return login_logs;
+  return LoginLogs;
 };
 

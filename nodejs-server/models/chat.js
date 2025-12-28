@@ -3,7 +3,7 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class chat extends Model {
+  class Chat extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
 
-  chat.init({
+  Chat.init({
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
@@ -69,8 +69,8 @@ module.exports = (sequelize, DataTypes) => {
     updatedAt: 'updated_at',
   });
 
-  chat.isEmailTaken = async (apiKey, excludeChatId) => {
-    const chatRecord = await chat.findOne({
+  Chat.isEmailTaken = async (apiKey, excludeChatId) => {
+    const chatRecord = await Chat.findOne({
       where: {
         apiKey,
         chatId: {
@@ -81,5 +81,5 @@ module.exports = (sequelize, DataTypes) => {
     return chatRecord;
   };
 
-  return chat;
+  return Chat;
 };

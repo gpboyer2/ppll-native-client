@@ -9,7 +9,7 @@ const {
 } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class binance_api_keys extends Model {
+  class BinanceApiKeys extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -19,7 +19,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
 
-  binance_api_keys.init({
+  BinanceApiKeys.init({
     name: {
       type: DataTypes.STRING(64),
       allowNull: false,
@@ -78,5 +78,5 @@ module.exports = (sequelize, DataTypes) => {
     updatedAt: 'updated_at',
   });
 
-  return binance_api_keys;
+  return BinanceApiKeys;
 };

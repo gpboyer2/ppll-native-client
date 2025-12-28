@@ -6,13 +6,13 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class spot_account extends Model {
+  class SpotAccount extends Model {
     static associate(models) {
       // 单用户系统，无需用户关联
     }
   }
 
-  spot_account.init({
+  SpotAccount.init({
     account_json: {
       type: DataTypes.TEXT('long'),
       allowNull: false,
@@ -39,5 +39,5 @@ module.exports = (sequelize, DataTypes) => {
     updatedAt: 'updated_at',
   });
 
-  return spot_account;
+  return SpotAccount;
 };

@@ -7,7 +7,7 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class order extends Model {
+  class Order extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
 
-  order.init({
+  Order.init({
     // id: {
     //   type: DataTypes.BIGINT,
     //   primaryKey: true,
@@ -181,8 +181,8 @@ module.exports = (sequelize, DataTypes) => {
     updatedAt: 'updated_at',
   });
 
-  order.isEmailTaken = async (email, excludeOrderId) => {
-    const orderRecord = await order.findOne({
+  Order.isEmailTaken = async (email, excludeOrderId) => {
+    const orderRecord = await Order.findOne({
       where: {
         email,
         orderId: {
@@ -193,9 +193,9 @@ module.exports = (sequelize, DataTypes) => {
     return orderRecord;
   };
 
-  order.isPasswordMatch = async (password, hash) => {
+  Order.isPasswordMatch = async (password, hash) => {
     return Date.now();
   };
 
-  return order;
+  return Order;
 };

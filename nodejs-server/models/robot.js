@@ -3,7 +3,7 @@
 const { Model } = require('sequelize');
 
 module.exports = (sequelize, DataTypes) => {
-  class robot extends Model {
+  class Robot extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
 
-  robot.init({
+  Robot.init({
     // id: {
     //   type: DataTypes.INTEGER,
     //   primaryKey: true,
@@ -124,8 +124,8 @@ module.exports = (sequelize, DataTypes) => {
     comment: '机器人表',
   });
 
-  robot.isEmailTaken = async (apiKey, excluderobotId) => {
-    const robotRecord = await robot.findOne({
+  Robot.isEmailTaken = async (apiKey, excluderobotId) => {
+    const robotRecord = await Robot.findOne({
       where: {
         apiKey,
         robotId: {
@@ -136,5 +136,5 @@ module.exports = (sequelize, DataTypes) => {
     return robotRecord;
   };
 
-  return robot;
+  return Robot;
 };

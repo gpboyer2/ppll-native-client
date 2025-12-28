@@ -10,7 +10,6 @@ const GridStrategy = db.grid_strategies;
 const InfiniteGrid = require("../plugin/umInfiniteGrid.js");
 const { readLocalFile } = require("../utils/file.js");
 const { sanitizeParams } = require('../utils/pick.js');
-const { mapKeys, camelCase } = require('lodash');
 const { createTradeHistory } = require('./grid-trade-history.service.js');
 const dayjs = require("dayjs");
 const UtilRecord = require('../utils/record-log.js');
@@ -82,9 +81,9 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
   // 假设新创建的网格策略或者网格策略不存在时，初始化网格实例
   if (created || !gridMap[row.id]) {
     setTimeout(() => {
-      let infiniteGridParams = convertKeysToCamelCase(validParams);
+      let infiniteGridParams = validParams;
       infiniteGridParams.id = row.id;
-      infiniteGridParams.apiKey = params.api_key; // 使用 API Key 作为用户标识
+      infiniteGridParams.api_key = params.api_key; // 使用 API Key 作为用户标识
       const wealthySoon = new InfiniteGrid(infiniteGridParams);
       wealthySoon.initOrders();
       gridMap[row.id] = wealthySoon; // 存储网格实例
@@ -476,38 +475,6 @@ const deleteGridStrategyById = async (updateBody) => {
   }
 
   return { status: row };
-};
-
-
-/**
- * 递归地将对象的所有键（key）从下划线命名法（snake_case）转换为驼峰命名法（camelCase）。
- * 支持深层嵌套对象和数组的键名转换。
- * 
- * @param {Object|Array} obj - 需要转换键名的对象或数组。如果是基本类型（如 string/number），则直接返回。
- * @returns {Object|Array} 转换后的新对象或数组，原对象不会被修改（深拷贝）。
- * 
- * @example
- * // 转换普通对象
- * const snakeCaseObj = { user_name: 'Alice', contact_info: { phone_number: '123' } };
- * const camelCaseObj = convertKeysToCamelCase(snakeCaseObj);
- * // 返回: { userName: 'Alice', contactInfo: { phoneNumber: '123' } }
- * 
- * @example
- * // 转换数组中的对象
- * const data = [{ order_id: 1 }, { order_id: 2 }];
- * convertKeysToCamelCase(data);
- * // 返回: [{ orderId: 1 }, { orderId: 2 }]
- * 
- * @example
- * // 非对象类型直接返回
- * convertKeysToCamelCase('hello_world'); // 返回 'hello_world'（字符串不会自动转换）
- * 
- * @throws {TypeError} 如果参数是 null 或 undefined（因为 typeof null === 'object'）
- */
-const convertKeysToCamelCase = (obj) => {
-  if (typeof obj !== 'object' || obj === null) return obj;
-  if (Array.isArray(obj)) return obj.map(convertKeysToCamelCase);
-  return mapKeys(obj, (value, key) => camelCase(key));
 };
 
 

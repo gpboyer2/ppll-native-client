@@ -7,7 +7,7 @@
 const { Model } = require("sequelize");
 
 module.exports = (sequelize, DataTypes) => {
-  class api_error_log extends Model {
+  class ApiErrorLog extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -18,7 +18,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
 
-  api_error_log.init(
+  ApiErrorLog.init(
     {
       // id: {
       //   type: DataTypes.BIGINT,
@@ -91,5 +91,5 @@ module.exports = (sequelize, DataTypes) => {
     }
   );
 
-  return api_error_log;
+  return ApiErrorLog;
 };
