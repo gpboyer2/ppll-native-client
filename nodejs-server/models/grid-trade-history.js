@@ -345,11 +345,6 @@ module.exports = (sequelize) => {
         defaultValue: 0,
         comment: "撤单次数",
       },
-      user_id: {
-        type: DataTypes.BIGINT,
-        allowNull: true,
-        comment: "用户ID",
-      },
       execution_type: {
         type: DataTypes.STRING(20),
         allowNull: true,
