@@ -84,6 +84,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
       let infinite_grid_params = valid_params;
       infinite_grid_params.id = row.id;
       infinite_grid_params.api_key = params.api_key; // 使用 API Key 作为用户标识
+      infinite_grid_params.secret_key = params.api_secret; // 映射 secret_key 字段
       const wealthySoon = new InfiniteGrid(infinite_grid_params);
       wealthySoon.initOrders();
       gridMap[row.id] = wealthySoon; // 存储网格实例
