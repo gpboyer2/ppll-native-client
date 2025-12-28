@@ -46,7 +46,8 @@ const IconNetwork = () => (
     - 除非必要,不要使用get/set,因为多此一举;
     - 除非必要,不要新增文件或者变量;
     - 返回值一定要明确返回undefined和空字符串对用户和运行时的含义,除非必要不要返回空字符串;
-    - 命名习惯中使用`list`而不是`s`,例如对应 account 的应该使用 accountList 而不是 accounts, 其他的变量名或者函数名都应该按照这个逻辑;
+    - 变量名（含局部变量）使用 snake_case，例如 `grid_strategy` 而不是 `gridStrategy`;
+    - 集合变量使用 `list` 后缀，例如 `account_list` 而不是 `accounts`;
 - 确认需求与上下文：明确功能点、设计目标、性能和安全要求，梳理实现思路，聚合生成AI提示词，等待用户确认。  
 - 在MVC架构的 services 中, 如果捕获到异常, 或者需要返回错误信息, 请确保与返回正确信息的格式一致, 即: 都必须使用相同的响应数据结构。
 - 样式统一维护在前端项目根目录的 `./index.scss` 中，禁止在 React 文件内编写样式。
@@ -114,14 +115,20 @@ Vue Router 使用 hash 模式，URL 格式必须为：
 
 ### 2. 命名规范
 
-变量命名：
-- 使用 `list` 而不是 `s`
-- 例如：`account_list` 而不是 `accounts`
+| 类别 | 规范 | 示例 |
+|------|------|------|
+| 数据库表名 | snake_case | `grid_strategies`, `grid_trade_history` |
+| 数据库字段名 | snake_case | `trading_pair`, `grid_price_difference` |
+| JavaScript 类名 | 保持不变 | `class Robot`（类名都是 PascalCase） |
+| Model 字段定义 | snake_case | `api_key: DataTypes.STRING` |
+| 函数/方法名 | 保持不变 | `getOrderList()`, `createStrategy()`（PascalCase优先） |
+| 变量名（含局部变量） | snake_case | `const grid_strategy = ...` |
+| 集合变量名 | snake_case + list 后缀 | `const account_list = ...` |
+| 前端类型定义字段 | snake_case | `interface Strategy { trading_pair: string }` |
+| API 请求/响应字段 | snake_case | `{ trading_pair: "BTCUSDT" }` |
 
-数据库命名：
-- 表名：小写加下划线，如 `users`、`user_sessions`
-- 字段名：小写加下划线，如 `user_id`、`user_name`
-- 禁止使用大写
+**第三方交互例外**：
+与币安等第三方交互时，保持第三方原有的命名风格（如币安的 `symbol`, `positionSide` 等），只在代码内部进行映射转换。
 
 
 ### 3. API 接口设计规范
@@ -169,10 +176,10 @@ Vue Router 使用 hash 模式，URL 格式必须为：
 - 导入方式：`const { sendSuccess, sendError } = require('../utils/api-response')`
 
 分页字段说明：
-- currentPage: 当前页码（从1开始）
-- pageSize: 每页数量
+- current_page: 当前页码（从1开始）
+- page_size: 每页数量
 - total: 总记录数
-- 禁止使用 page、size、pages、pageNum、totalCount 等变体
+- 禁止使用 page、size、pages、page_num、total_count 等变体
 
 接口精简原则：
 - 基础接口只需要增删改查四个
