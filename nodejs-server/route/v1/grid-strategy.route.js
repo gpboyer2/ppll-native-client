@@ -4,13 +4,13 @@
  */
 const express = require('express');
 const router = express.Router();
-const { apiAuth } = require("../../middleware/api-auth");
+const { apiKeyIdentity } = require("../../middleware/api-key-identity");
 
 const gridStrategyController = require("../../controller/grid-strategy.controller.js");
 const vipMiddleware = require("../../middleware/vip.js");
 
-// 应用认证中间件到所有路由
-router.use(apiAuth);
+// 应用 API Key 标识中间件到所有路由，实现数据隔离
+router.use(apiKeyIdentity);
 
 
 /**
