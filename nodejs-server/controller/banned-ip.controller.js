@@ -30,8 +30,8 @@ const getBannedIps = catchAsync(async (req, res) => {
   const { count, rows } = await BannedIP.findAndCountAll({
     where: whereClause,
     order: [['created_at', 'DESC']],
-    limit: parseInt(pageSize),
-    offset: parseInt(offset)
+    limit: parseInt(String(pageSize)),
+    offset: parseInt(String(offset))
   });
 
   // 获取内存中的IP统计信息和系统内存使用情况

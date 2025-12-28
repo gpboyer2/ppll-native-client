@@ -150,7 +150,7 @@ export class DataFormat {
     if (typeof obj === 'object') {
       const cloned = {} as any;
       for (const key in obj) {
-        if (obj.hasOwnProperty(key)) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
           cloned[key] = DataFormat.deepClone(obj[key]);
         }
       }
@@ -166,7 +166,7 @@ export class DataFormat {
     const flattened: KeyValue = {};
 
     for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         const newKey = prefix ? `${prefix}.${key}` : key;
 
         if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
@@ -187,7 +187,7 @@ export class DataFormat {
     const result: any = {};
 
     for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
         const keys = key.split('.');
         let current = result;
 

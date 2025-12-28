@@ -192,13 +192,13 @@ const estimateTradeFrequency = (klineList, gridSpacing, support, resistance) => 
  * @returns {Object} 最优配置
  */
 const optimizeForProfit = (params) => {
-  const { klineList, market, totalCapital, intervalConfig, minTradeValue: userMinTradeValue, maxTradeValue: userMaxTradeValue } = params;
+  const { klineList, market, total_capital, intervalConfig, min_trade_value: userMinTradeValue, max_trade_value: userMaxTradeValue } = params;
   const { support, resistance, avgPrice, priceRange } = market;
   const atr = calculateATR(klineList);
 
   // 每笔交易金额范围：用户指定 或 默认 20~100 USDT
-  const minTradeValue = userMinTradeValue || 20;
-  const maxTradeValue = userMaxTradeValue || 100;
+  const min_trade_value = userMinTradeValue || 20;
+  const max_trade_value = userMaxTradeValue || 100;
 
   // 本金约束：日换手率上限（默认500%）
   const maxTurnoverRatio = 5;
@@ -226,7 +226,7 @@ const optimizeForProfit = (params) => {
     const dailyFrequency = freqPerKline * klinePerDay;
 
     // 遍历不同的每笔交易金额
-    for (let tradeValue = minTradeValue; tradeValue <= maxTradeValue; tradeValue += 2) {
+    for (let tradeValue = min_trade_value; tradeValue <= max_trade_value; tradeValue += 2) {
       // 每笔交易数量
       const tradeQuantity = tradeValue / avgPrice;
 
@@ -247,17 +247,17 @@ const optimizeForProfit = (params) => {
 
       // 日换手率
       const dailyTurnover = tradeValue * dailyFrequency;
-      const turnoverRatio = dailyTurnover / totalCapital;
+      const turnoverRatio = dailyTurnover / total_capital;
 
       // 约束条件2：日换手率不超过上限（保护本金）
       if (turnoverRatio > maxTurnoverRatio) continue;
 
       // 日收益率
-      const dailyROI = dailyProfit / totalCapital;
+      const dailyROI = dailyProfit / total_capital;
 
       configList.push({
         gridSpacing,
-        gridSpacingPercent: gridSpacing / avgPrice * 100,
+        grid_spacing_percent: gridSpacing / avgPrice * 100,
         tradeValue,
         dailyFrequency,
         dailyProfit,
@@ -272,16 +272,16 @@ const optimizeForProfit = (params) => {
       if (dailyProfit > maxDailyProfit) {
         maxDailyProfit = dailyProfit;
         bestConfig = {
-          gridSpacing: new BigNumber(gridSpacing).toFixed(6),
-          gridSpacingPercent: new BigNumber(gridSpacing / avgPrice * 100).toFixed(4) + '%',
-          tradeQuantity: new BigNumber(tradeQuantity).toFixed(6),
-          tradeValue: new BigNumber(tradeValue).toFixed(2),
-          expectedDailyFrequency: new BigNumber(dailyFrequency).toFixed(2),
-          expectedDailyProfit: new BigNumber(dailyProfit).toFixed(2),
-          expectedDailyFee: new BigNumber(dailyFee).toFixed(2),
-          expectedDailyROI: new BigNumber(dailyROI * 100).toFixed(4) + '%',
-          singleNetProfit: new BigNumber(netProfit).toFixed(6),
-          turnoverRatio: new BigNumber(turnoverRatio * 100).toFixed(2) + '%'
+          grid_spacing: new BigNumber(gridSpacing).toFixed(6),
+          grid_spacing_percent: new BigNumber(gridSpacing / avgPrice * 100).toFixed(4) + '%',
+          trade_quantity: new BigNumber(tradeQuantity).toFixed(6),
+          trade_value: new BigNumber(tradeValue).toFixed(2),
+          expected_daily_frequency: new BigNumber(dailyFrequency).toFixed(2),
+          expected_daily_profit: new BigNumber(dailyProfit).toFixed(2),
+          expected_daily_fee: new BigNumber(dailyFee).toFixed(2),
+          expected_daily_roi: new BigNumber(dailyROI * 100).toFixed(4) + '%',
+          single_net_profit: new BigNumber(netProfit).toFixed(6),
+          turnover_ratio: new BigNumber(turnoverRatio * 100).toFixed(2) + '%'
         };
       }
     }
@@ -294,15 +294,15 @@ const optimizeForProfit = (params) => {
       .sort((a, b) => b.dailyProfit - a.dailyProfit)
       .slice(0, 5)
       .map(config => ({
-        gridSpacing: new BigNumber(config.gridSpacing).toFixed(6),
-        gridSpacingPercent: new BigNumber(config.gridSpacingPercent).toFixed(4) + '%',
-        tradeQuantity: new BigNumber(config.tradeQuantity).toFixed(6),
-        tradeValue: new BigNumber(config.tradeValue).toFixed(2),
-        expectedDailyFrequency: new BigNumber(config.dailyFrequency).toFixed(2),
-        expectedDailyProfit: new BigNumber(config.dailyProfit).toFixed(2),
-        expectedDailyROI: new BigNumber(config.dailyROI * 100).toFixed(4) + '%',
-        singleNetProfit: new BigNumber(config.netProfit).toFixed(6),
-        turnoverRatio: new BigNumber(config.turnoverRatio * 100).toFixed(2) + '%'
+        grid_spacing: new BigNumber(config.grid_spacing).toFixed(6),
+        grid_spacing_percent: new BigNumber(config.grid_spacingPercent).toFixed(4) + '%',
+        trade_quantity: new BigNumber(config.trade_quantity).toFixed(6),
+        trade_value: new BigNumber(config.trade_value).toFixed(2),
+        expected_daily_frequency: new BigNumber(config.daily_frequency).toFixed(2),
+        expected_daily_profit: new BigNumber(config.daily_profit).toFixed(2),
+        expected_daily_roi: new BigNumber(config.daily_roi * 100).toFixed(4) + '%',
+        single_net_profit: new BigNumber(config.net_profit).toFixed(6),
+        turnover_ratio: new BigNumber(config.turnover_ratio * 100).toFixed(2) + '%'
       }));
     analysis = {
       totalConfigCount: configList.length,
@@ -332,7 +332,7 @@ const optimizeForProfit = (params) => {
  * @returns {Object} 最优配置
  */
 const optimizeForCostReduction = (params) => {
-  const { klineList, market, totalCapital, intervalConfig, minTradeValue: userMinTradeValue, maxTradeValue: userMaxTradeValue } = params;
+  const { klineList, market, total_capital, intervalConfig, min_trade_value: userMinTradeValue, max_trade_value: userMaxTradeValue } = params;
   const { support, resistance, avgPrice, priceRange } = market;
   const atr = calculateATR(klineList);
 
@@ -340,8 +340,8 @@ const optimizeForCostReduction = (params) => {
   let maxEfficiency = -Infinity; // 换手效率
 
   // 每笔交易金额范围：用户指定 或 默认 20~100 USDT
-  const minTradeValue = userMinTradeValue || 20;
-  const maxTradeValue = userMaxTradeValue || 100;
+  const min_trade_value = userMinTradeValue || 20;
+  const max_trade_value = userMaxTradeValue || 100;
 
   // 本金约束：日换手率上限（默认500%，即每天最多交易本金的5倍）
   const maxTurnoverRatio = 5;
@@ -363,7 +363,7 @@ const optimizeForCostReduction = (params) => {
     if (freqPerKline <= 0) continue;
 
     // 遍历不同的每笔交易金额（步长更细，1U）
-    for (let tradeValue = minTradeValue; tradeValue <= maxTradeValue; tradeValue += 2) {
+    for (let tradeValue = min_trade_value; tradeValue <= max_trade_value; tradeValue += 2) {
       // 每笔交易数量
       const tradeQuantity = tradeValue / avgPrice;
 
@@ -386,7 +386,7 @@ const optimizeForCostReduction = (params) => {
 
       // 成本摊薄效果
       const dailyTurnover = tradeValue * dailyFrequency;
-      const turnoverRatio = dailyTurnover / totalCapital;
+      const turnoverRatio = dailyTurnover / total_capital;
 
       // 约束条件2：日换手率不超过上限（保护本金）
       if (turnoverRatio > maxTurnoverRatio) continue;
@@ -412,18 +412,18 @@ const optimizeForCostReduction = (params) => {
       if (efficiency > maxEfficiency) {
         maxEfficiency = efficiency;
         bestConfig = {
-          gridSpacing: new BigNumber(gridSpacing).toFixed(6),
-          gridSpacingPercent: new BigNumber(gridSpacing / avgPrice * 100).toFixed(4) + '%',
-          tradeQuantity: new BigNumber(tradeQuantity).toFixed(6),
-          tradeValue: new BigNumber(tradeValue).toFixed(2),
-          expectedDailyFrequency: new BigNumber(dailyFrequency).toFixed(2),
-          expectedDailyProfit: new BigNumber(dailyProfit).toFixed(2),
-          expectedDailyFee: new BigNumber(dailyFee).toFixed(2),
-          dailyTurnover: new BigNumber(dailyTurnover).toFixed(2),
-          turnoverRatio: new BigNumber(turnoverRatio * 100).toFixed(2) + '%',
+          grid_spacing: new BigNumber(gridSpacing).toFixed(6),
+          grid_spacing_percent: new BigNumber(gridSpacing / avgPrice * 100).toFixed(4) + '%',
+          trade_quantity: new BigNumber(tradeQuantity).toFixed(6),
+          trade_value: new BigNumber(tradeValue).toFixed(2),
+          expected_daily_frequency: new BigNumber(dailyFrequency).toFixed(2),
+          expected_daily_profit: new BigNumber(dailyProfit).toFixed(2),
+          expected_daily_fee: new BigNumber(dailyFee).toFixed(2),
+          daily_turnover: new BigNumber(dailyTurnover).toFixed(2),
+          turnover_ratio: new BigNumber(turnoverRatio * 100).toFixed(2) + '%',
           // 新增：效率指标
           efficiency: new BigNumber(efficiency).toFixed(6),
-          singleNetProfit: new BigNumber(netProfit).toFixed(6)
+          single_net_profit: new BigNumber(netProfit).toFixed(6)
         };
       }
     }
@@ -436,15 +436,15 @@ const optimizeForCostReduction = (params) => {
       .sort((a, b) => b.efficiency - a.efficiency)
       .slice(0, 3)
       .map(config => ({
-        gridSpacing: new BigNumber(config.gridSpacing).toFixed(6),
-        gridSpacingPercent: new BigNumber(config.gridSpacing / avgPrice * 100).toFixed(4) + '%',
-        tradeQuantity: new BigNumber(config.tradeQuantity).toFixed(6),
-        tradeValue: new BigNumber(config.tradeValue).toFixed(2),
-        expectedDailyFrequency: new BigNumber(config.dailyFrequency).toFixed(2),
-        expectedDailyProfit: new BigNumber(config.dailyProfit).toFixed(2),
-        expectedDailyROI: new BigNumber((config.dailyProfit / totalCapital) * 100).toFixed(4) + '%',
-        singleNetProfit: new BigNumber(config.netProfit).toFixed(6),
-        turnoverRatio: new BigNumber(config.turnoverRatio * 100).toFixed(2) + '%'
+        grid_spacing: new BigNumber(config.grid_spacing).toFixed(6),
+        grid_spacing_percent: new BigNumber(config.grid_spacing / avgPrice * 100).toFixed(4) + '%',
+        trade_quantity: new BigNumber(config.trade_quantity).toFixed(6),
+        trade_value: new BigNumber(config.trade_value).toFixed(2),
+        expected_daily_frequency: new BigNumber(config.daily_frequency).toFixed(2),
+        expected_daily_profit: new BigNumber(config.daily_profit).toFixed(2),
+        expected_daily_roi: new BigNumber((config.daily_profit / total_capital) * 100).toFixed(4) + '%',
+        single_net_profit: new BigNumber(config.net_profit).toFixed(6),
+        turnover_ratio: new BigNumber(config.turnover_ratio * 100).toFixed(2) + '%'
       }));
     analysis = {
       totalConfigCount: configList.length,
@@ -466,7 +466,7 @@ const optimizeForCostReduction = (params) => {
  * 场景：价格突破用户设定的边界后，进入低频、低资金的"冬眠"状态
  * 
  * 策略逻辑：
- * 1. 每笔金额固定为 minTradeValue（最小值）
+ * 1. 每笔金额固定为 min_trade_value（最小值）
  * 2. 网格间距最大化（在单笔不亏的前提下）
  * 3. 目标：日交易频率最低（像乌龟一样慢慢呼吸）
  * 
@@ -474,7 +474,7 @@ const optimizeForCostReduction = (params) => {
  * @returns {Object} 最优配置
  */
 const optimizeForBoundary = (params) => {
-  const { klineList, market, totalCapital, intervalConfig, minTradeValue: userMinTradeValue } = params;
+  const { klineList, market, total_capital, intervalConfig, min_trade_value: userMinTradeValue } = params;
   const { support, resistance, avgPrice, priceRange } = market;
   const atr = calculateATR(klineList);
 
@@ -523,13 +523,13 @@ const optimizeForBoundary = (params) => {
     const dailyFee = fee * dailyFrequency;
     // 日换手率
     const dailyTurnover = tradeValue * dailyFrequency;
-    const turnoverRatio = dailyTurnover / totalCapital;
+    const turnoverRatio = dailyTurnover / total_capital;
     // 日收益率
-    const dailyROI = dailyProfit / totalCapital;
+    const dailyROI = dailyProfit / total_capital;
 
     configList.push({
       gridSpacing,
-      gridSpacingPercent: gridSpacing / avgPrice * 100,
+      grid_spacing_percent: gridSpacing / avgPrice * 100,
       tradeValue,
       dailyFrequency,
       dailyProfit,
@@ -544,16 +544,16 @@ const optimizeForBoundary = (params) => {
     if (dailyFrequency < minDailyFrequency) {
       minDailyFrequency = dailyFrequency;
       bestConfig = {
-        gridSpacing: new BigNumber(gridSpacing).toFixed(6),
-        gridSpacingPercent: new BigNumber(gridSpacing / avgPrice * 100).toFixed(4) + '%',
-        tradeQuantity: new BigNumber(tradeQuantity).toFixed(6),
-        tradeValue: new BigNumber(tradeValue).toFixed(2),
-        expectedDailyFrequency: new BigNumber(dailyFrequency).toFixed(2),
-        expectedDailyProfit: new BigNumber(dailyProfit).toFixed(2),
-        expectedDailyFee: new BigNumber(dailyFee).toFixed(2),
-        expectedDailyROI: new BigNumber(dailyROI * 100).toFixed(4) + '%',
-        singleNetProfit: new BigNumber(netProfit).toFixed(6),
-        turnoverRatio: new BigNumber(turnoverRatio * 100).toFixed(2) + '%'
+        grid_spacing: new BigNumber(gridSpacing).toFixed(6),
+        grid_spacing_percent: new BigNumber(gridSpacing / avgPrice * 100).toFixed(4) + '%',
+        trade_quantity: new BigNumber(tradeQuantity).toFixed(6),
+        trade_value: new BigNumber(tradeValue).toFixed(2),
+        expected_daily_frequency: new BigNumber(dailyFrequency).toFixed(2),
+        expected_daily_profit: new BigNumber(dailyProfit).toFixed(2),
+        expected_daily_fee: new BigNumber(dailyFee).toFixed(2),
+        expected_daily_roi: new BigNumber(dailyROI * 100).toFixed(4) + '%',
+        single_net_profit: new BigNumber(netProfit).toFixed(6),
+        turnover_ratio: new BigNumber(turnoverRatio * 100).toFixed(2) + '%'
       };
     }
   }
@@ -565,15 +565,15 @@ const optimizeForBoundary = (params) => {
       .sort((a, b) => a.dailyFrequency - b.dailyFrequency) // 按频率从低到高排序
       .slice(0, 3)
       .map(config => ({
-        gridSpacing: new BigNumber(config.gridSpacing).toFixed(6),
-        gridSpacingPercent: new BigNumber(config.gridSpacingPercent).toFixed(4) + '%',
-        tradeQuantity: new BigNumber(config.tradeQuantity).toFixed(6),
-        tradeValue: new BigNumber(config.tradeValue).toFixed(2),
-        expectedDailyFrequency: new BigNumber(config.dailyFrequency).toFixed(2),
-        expectedDailyProfit: new BigNumber(config.dailyProfit).toFixed(2),
-        expectedDailyROI: new BigNumber(config.dailyROI * 100).toFixed(4) + '%',
-        singleNetProfit: new BigNumber(config.netProfit).toFixed(6),
-        turnoverRatio: new BigNumber(config.turnoverRatio * 100).toFixed(2) + '%'
+        grid_spacing: new BigNumber(config.grid_spacing).toFixed(6),
+        grid_spacing_percent: new BigNumber(config.grid_spacingPercent).toFixed(4) + '%',
+        trade_quantity: new BigNumber(config.trade_quantity).toFixed(6),
+        trade_value: new BigNumber(config.trade_value).toFixed(2),
+        expected_daily_frequency: new BigNumber(config.daily_frequency).toFixed(2),
+        expected_daily_profit: new BigNumber(config.daily_profit).toFixed(2),
+        expected_daily_roi: new BigNumber(config.daily_roi * 100).toFixed(4) + '%',
+        single_net_profit: new BigNumber(config.net_profit).toFixed(6),
+        turnover_ratio: new BigNumber(config.turnover_ratio * 100).toFixed(2) + '%'
       }));
     analysis = {
       totalConfigCount: configList.length,
@@ -594,32 +594,32 @@ const optimizeForBoundary = (params) => {
  * @param {Object} options - 配置参数
  * @param {string} options.symbol - 交易对，如 'BTCUSDT'
  * @param {string} options.interval - K线周期: '1h' | '4h' | '1d' | '1w' | '1M'
- * @param {number} options.totalCapital - 总投入资金 (USDT)
- * @param {string} options.optimizeTarget - 优化目标: 'profit' | 'cost'
- * @param {boolean} options.enableBoundaryDefense - 是否开启防守边界选项，默认false
- * @param {number} options.minTradeValue - 每笔交易金额下限 (USDT)，默认20
- * @param {number} options.maxTradeValue - 每笔交易金额上限 (USDT)，默认100
- * @param {string} options.apiKey - 币安API Key
- * @param {string} options.apiSecret - 币安API Secret
+ * @param {number} options.total_capital - 总投入资金 (USDT)
+ * @param {string} options.optimize_target - 优化目标: 'profit' | 'cost'
+ * @param {boolean} options.enable_boundary_defense - 是否开启防守边界选项，默认false
+ * @param {number} options.min_trade_value - 每笔交易金额下限 (USDT)，默认20
+ * @param {number} options.max_trade_value - 每笔交易金额上限 (USDT)，默认100
+ * @param {string} options.api_key - 币安API Key
+ * @param {string} options.api_secret - 币安API Secret
  * @returns {Promise<Object>} 优化结果
  */
 const optimizeGridParams = async (options) => {
   const {
     symbol,
     interval = '4h',
-    totalCapital,
-    optimizeTarget = 'profit',
-    enableBoundaryDefense = false,
-    minTradeValue = 20,
-    maxTradeValue = 100,
-    apiKey,
-    apiSecret
+    total_capital,
+    optimize_target = 'profit',
+    enable_boundary_defense = false,
+    min_trade_value = 20,
+    max_trade_value = 100,
+    api_key,
+    api_secret
   } = options;
 
   // 参数校验
   if (!symbol) throw new Error('缺少交易对参数 symbol');
-  if (!totalCapital || totalCapital <= 0) throw new Error('总资金必须大于0');
-  if (!apiKey || !apiSecret) throw new Error('缺少API凭证');
+  if (!total_capital || total_capital <= 0) throw new Error('总资金必须大于0');
+  if (!api_key || !api_secret) throw new Error('缺少API凭证');
 
   const intervalConfig = INTERVAL_MAP[interval];
   if (!intervalConfig) {
@@ -627,7 +627,7 @@ const optimizeGridParams = async (options) => {
   }
 
   // 创建客户端
-  const client = createClient(apiKey, apiSecret);
+  const client = createClient(api_key, api_secret);
 
   // 获取100根周期K线数据
   const klineList = await fetchKlineList(client, symbol, interval);
@@ -661,10 +661,10 @@ const optimizeGridParams = async (options) => {
   market.currentPrice = currentPrice; // 添加实时价格
 
   // 根据优化目标选择算法
-  const optimizeParams = { klineList, market, totalCapital, intervalConfig, minTradeValue, maxTradeValue };
+  const optimizeParams = { klineList, market, total_capital, intervalConfig, min_trade_value, max_trade_value };
   let recommended;
 
-  if (optimizeTarget === 'cost') {
+  if (optimize_target === 'cost') {
     recommended = optimizeForCostReduction(optimizeParams);
   } else {
     recommended = optimizeForProfit(optimizeParams);
@@ -675,13 +675,13 @@ const optimizeGridParams = async (options) => {
       `无法找到合适的网格配置。` +
       `当前价格区间: ${market.support.toFixed(2)} - ${market.resistance.toFixed(2)}, ` +
       `波动率: ${(market.volatility * 100).toFixed(2)}%。` +
-      `建议: 增加资金(当前${totalCapital} USDT)或选择波动更大的交易对`
+      `建议: 增加资金(当前${total_capital} USDT)或选择波动更大的交易对`
     );
   }
 
   // 如果开启防守边界选项，计算蛰伏状态参数
   let boundaryDefense = undefined;
-  if (enableBoundaryDefense) {
+  if (enable_boundary_defense) {
     boundaryDefense = optimizeForBoundary(optimizeParams);
   }
 
@@ -699,42 +699,42 @@ const optimizeGridParams = async (options) => {
   return {
     symbol,
     interval,
-    intervalLabel: intervalConfig.label,
-    optimizeTarget,
-    optimizeTargetLabel: optimizeTarget === 'profit' ? '收益最大化' : '成本摊薄',
-    enableBoundaryDefense,
-    totalCapital,
-    minTradeValue,
-    maxTradeValue,
-    feeRate: FEE_RATE,
+    interval_label: intervalConfig.label,
+    optimize_target,
+    optimize_target_label: optimize_target === 'profit' ? '收益最大化' : '成本摊薄',
+    enable_boundary_defense,
+    total_capital,
+    min_trade_value,
+    max_trade_value,
+    fee_rate: FEE_RATE,
 
     // 市场分析数据
     market: {
-      currentPrice: new BigNumber(market.currentPrice).toFixed(6),
+      current_price: new BigNumber(market.currentPrice).toFixed(6),
       support: new BigNumber(market.support).toFixed(6),
       resistance: new BigNumber(market.resistance).toFixed(6),
-      avgPrice: new BigNumber(market.avgPrice).toFixed(6),
-      priceRange: new BigNumber(market.priceRange).toFixed(6),
+      avg_price: new BigNumber(market.avgPrice).toFixed(6),
+      price_range: new BigNumber(market.priceRange).toFixed(6),
       // 波动率及其评级
       volatility: new BigNumber(volatilityPercent).toFixed(2) + '%',
-      volatilityLevel,
-      volatilityAdvice: market.volatility > 0.05
+      volatility_level: volatilityLevel,
+      volatility_advice: market.volatility > 0.05
         ? `市场活跃度高，价格波动达 ${volatilityPercent.toFixed(2)}%，网格策略捕捉收益机会充足，适合激进型投资者追求更高回报`
         : market.volatility > 0.02
           ? `市场波动适中，价格波动约 ${volatilityPercent.toFixed(2)}%，网格策略收益稳定，风险可控，适合稳健型投资者`
           : `市场波动偏低（${volatilityPercent.toFixed(2)}%），价格变化较小，网格策略收益空间有限，建议选择波动更大的交易对或降低交易频次`,
       // ATR及其说明
       atr: new BigNumber(atr).toFixed(2),
-      atrDesc: `每${intervalConfig.label}平均波动 ${new BigNumber(atr).toFixed(2)} USDT`,
-      klineCount: klineList.length,
+      atr_desc: `每${intervalConfig.label}平均波动 ${new BigNumber(atr).toFixed(2)} USDT`,
+      kline_count: klineList.length,
       // 算法状态信息
-      algorithmStatus: market.algorithmStatus,
-      algorithmSource: market.algorithmSource,
+      algorithm_status: market.algorithmStatus,
+      algorithm_source: market.algorithmSource,
       // 间距信息（供日志使用）
-      spreadStr: market.identifyResult?.meta?.spreadStr,
-      spreadRatio: market.identifyResult?.meta?.spreadRatio,
+      spread_str: market.identifyResult?.meta?.spreadStr,
+      spread_ratio: market.identifyResult?.meta?.spreadRatio,
       // 识别结果详情（供日志使用）
-      identifyResult: market.identifyResult
+      identify_result: market.identifyResult
     },
 
     // 风险评估

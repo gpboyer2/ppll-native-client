@@ -7,7 +7,7 @@ const db = require('../models');
 const User = db.User;
 const { Op } = require('sequelize');
 const ApiError = require('../utils/api-error');
-/** @type {import('axios').default} */
+/** @type {import('axios')} */
 const axios = require('axios');
 
 

@@ -1,3 +1,4 @@
+/** @type {import('socket.io')} */
 const socketIo = require('socket.io');
 const UtilRecord = require('../utils/record-log.js');
 
@@ -200,7 +201,7 @@ const init = (server, wsManagerInstance) => {
 
 /**
  * 清理 Socket 的所有订阅（内部使用）
- * @param {Socket} socket - Socket.IO 客户端实例
+ * @param {import('socket.io').Socket} socket - Socket.IO 客户端实例
  */
 const cleanupSocketSubscription = (socket) => {
   // 清理用户数据流订阅

@@ -64,7 +64,8 @@ async function placeOrderByValue(orderParams, apiKey, apiSecret, maxRetries = 3)
   }
 
   // 使用基础精度调整数量
-  quantity = quantity.toFixed(quantityPrecision);
+  const quantityString = quantity.toFixed(quantityPrecision);
+  quantity = new bigNumber(quantityString);
 
   let lastError = null;
 
@@ -93,10 +94,10 @@ async function placeOrderByValue(orderParams, apiKey, apiSecret, maxRetries = 3)
       const client = new USDMClient(options, requestOptions);
       const orderResult = await client.submitNewOrder({
         symbol,
-        side,
+        side: /** @type {any} */ (side),
         type: 'MARKET',
-        quantity: quantity.toString(),
-        positionSide
+        quantity: String(quantity),
+        positionSide: /** @type {any} */ (positionSide)
       });
 
       console.log(`✅ ${symbol} 下单成功, 数量: ${quantity}`);
@@ -120,21 +121,21 @@ async function placeOrderByValue(orderParams, apiKey, apiSecret, maxRetries = 3)
         // 策略1: 减少小数位数
         if (attempt === 1) {
           const newPrecision = Math.max(0, quantityPrecision - 1);
-          quantity = new bigNumber(quantity).toFixed(newPrecision);
+          quantity = new bigNumber(new bigNumber(quantity).toFixed(newPrecision));
           console.log(`调整精度到 ${newPrecision} 位: ${quantity}`);
           continue;
         }
 
         // 策略2: 进一步减少数量
         if (attempt === 2) {
-          quantity = new bigNumber(quantity).multipliedBy(0.99).toFixed(quantityPrecision);
+          quantity = new bigNumber(new bigNumber(quantity).multipliedBy(0.99).toFixed(quantityPrecision));
           console.log(`减少1%数量: ${quantity}`);
           continue;
         }
 
         // 策略3: 使用最小步长
         if (attempt === 3) {
-          quantity = new bigNumber(quantity).toFixed(0);
+          quantity = new bigNumber(new bigNumber(quantity).toFixed(0));
           console.log(`使用整数数量: ${quantity}`);
           continue;
         }

@@ -112,11 +112,11 @@ class BinanceRateLimiter {
    * 执行带限流保护的API请求
    * @param {Function} apiCall - API调用函数
    * @param {Object} options - 选项
-   * @param {string} options.apiKey - API Key
-   * @param {string} options.method - 方法名
-   * @param {Object} options.params - 请求参数
-   * @param {boolean} options.useCache - 是否使用缓存,默认true
-   * @param {number} options.retries - 重试次数,默认3
+   * @param {string} [options.apiKey] - API Key
+   * @param {string} [options.method] - 方法名
+   * @param {Object} [options.params] - 请求参数
+   * @param {boolean} [options.useCache] - 是否使用缓存,默认true
+   * @param {number} [options.retries] - 重试次数,默认3
    * @returns {Promise<Object>} API响应数据
    */
   async execute(apiCall, options = {}) {
@@ -228,7 +228,7 @@ class BinanceRateLimiter {
 
   /**
    * 判断是否是限流错误
-   * @param {Error} error - 错误对象
+   * @param {any} error - 错误对象
    * @returns {boolean} 是否是限流错误
    */
   isRateLimitError(error) {

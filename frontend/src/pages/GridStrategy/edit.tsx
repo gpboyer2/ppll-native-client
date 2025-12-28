@@ -50,6 +50,37 @@ function GridStrategyEditPage() {
     init();
   }, [init]);
 
+  // 从后端 API 加载策略数据
+  async function loadStrategy(strategyId: string) {
+    try {
+      const response = await GridStrategyApi.list({
+        current_page: 1,
+        page_size: 1000
+      });
+
+      if (response.status === 'success' && response.data) {
+        const list = response.data.list || [];
+        const strategy = list.find(s => String(s.id) === strategyId);
+        if (strategy) {
+          // 直接使用后端返回的字段名，不做任何转换
+          const formData: GridStrategyForm = {
+            ...strategy,
+            _api_key_id: undefined,
+          };
+          setFormData(formData);
+        } else {
+          showError('未找到该策略');
+          navigate(ROUTES.GRID_STRATEGY);
+        }
+      } else {
+        showError(response.message || '加载策略失败');
+      }
+    } catch (error) {
+      console.error('加载策略失败:', error);
+      showError('加载策略失败，请稍后重试');
+    }
+  }
+
   // 加载现有策略数据
   useEffect(() => {
     if (isEditing && id) {
@@ -84,37 +115,6 @@ function GridStrategyEditPage() {
       console.log('已设置默认 API Key:', firstApiKey.name, `(${firstApiKey.api_key.substring(0, 8)}...)`);
     }
   }, [apiKeyList, isEditing, formData._api_key_id]);
-
-  // 从后端 API 加载策略数据
-  async function loadStrategy(strategyId: string) {
-    try {
-      const response = await GridStrategyApi.list({
-        current_page: 1,
-        page_size: 1000
-      });
-
-      if (response.status === 'success' && response.data) {
-        const list = response.data.list || [];
-        const strategy = list.find(s => String(s.id) === strategyId);
-        if (strategy) {
-          // 直接使用后端返回的字段名，不做任何转换
-          const formData: GridStrategyForm = {
-            ...strategy,
-            _api_key_id: undefined,
-          };
-          setFormData(formData);
-        } else {
-          showError('未找到该策略');
-          navigate(ROUTES.GRID_STRATEGY);
-        }
-      } else {
-        showError(response.message || '加载策略失败');
-      }
-    } catch (error) {
-      console.error('加载策略失败:', error);
-      showError('加载策略失败，请稍后重试');
-    }
-  }
 
   // 保存策略数据
   async function saveStrategy(data: GridStrategyForm) {

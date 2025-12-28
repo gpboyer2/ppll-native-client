@@ -49,7 +49,7 @@ const plugin: Plugin = {
       if (Number.isNaN(cfg.step) || cfg.step <= 0 || cfg.step > 100) return '步长(%) 必须大于0且不超过100';
       return null;
     };
-    startBtn && (startBtn.onclick = () => {
+    void (startBtn && (startBtn.onclick = () => {
       const cfg = {
         symbol: $("#symbol").value.trim(),
         top: Number($("#top").value||0),
@@ -62,11 +62,11 @@ const plugin: Plugin = {
         return;
       }
       log().textContent = `[${new Date().toLocaleTimeString()}] 启动天地针网格（占位）\n` + (log().textContent || '');
-    });
-    stopBtn && (stopBtn.onclick = () => {
+    }));
+    void (stopBtn && (stopBtn.onclick = () => {
       log().textContent = `[${new Date().toLocaleTimeString()}] 停止天地针网格（占位）\n` + (log().textContent || '');
-    });
-    saveBtn && (saveBtn.onclick = async () => {
+    }));
+    void (saveBtn && (saveBtn.onclick = async () => {
       const cfg = {
         symbol: $("#symbol").value,
         top: Number($("#top").value || 0),
@@ -75,7 +75,7 @@ const plugin: Plugin = {
       };
       await PluginSaveConfig('u-grid-tdz', cfg as any);
       log().textContent = `[${new Date().toLocaleTimeString()}] 已保存配置\n` + (log().textContent || '');
-    });
+    }));
     const applyCfg = (cfg: any) => {
       if (!cfg) return;
       if (cfg.symbol) $("#symbol").value = String(cfg.symbol);
@@ -83,11 +83,11 @@ const plugin: Plugin = {
       if (cfg.bottom != null) $("#bottom").value = String(cfg.bottom);
       if (cfg.step != null) $("#step").value = String(cfg.step);
     };
-    loadBtn && (loadBtn.onclick = async () => {
+    void (loadBtn && (loadBtn.onclick = async () => {
       const res: any = await PluginGetConfig('u-grid-tdz');
       if (res && res.status === 'success') applyCfg(res.data);
       log().textContent = `[${new Date().toLocaleTimeString()}] 已读取配置\n` + (log().textContent || '');
-    });
+    }));
     // 初次挂载：无配置则写入默认值后应用
     const defaults = { symbol: 'ETHUSDT', top: 2500, bottom: 2000, step: 0.5 };
     PluginGetConfig('u-grid-tdz').then(async (res: any) => {

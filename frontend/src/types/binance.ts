@@ -25,7 +25,7 @@ export interface BinanceErrorResponse {
 // ==================== 账户相关 ====================
 
 // 账户详情请求
-export interface AccountInfoRequest extends BinanceCredentials {}
+export type AccountInfoRequest = BinanceCredentials;
 
 // 账户详情响应数据（具体结构根据币安API返回调整）
 export interface AccountInfo {

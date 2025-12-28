@@ -60,7 +60,7 @@ const plugin: Plugin = {
       if (Number.isNaN(lev) || lev < 1 || lev > 125) return '杠杆倍数必须在1-125之间';
       return null;
     };
-    startBtn && (startBtn.onclick = () => {
+    void (startBtn && (startBtn.onclick = () => {
       const cfg = {
         symbol: $("#symbol").value.trim(),
         minFundingRate: Number($("#minFundingRate").value||0),
@@ -76,11 +76,11 @@ const plugin: Plugin = {
       }
       const typeText = cfg.strategyType === 'positive' ? '正向套利' : '双向自动';
       log().textContent = `[${new Date().toLocaleTimeString()}] 启动币本位资金费率套利（占位）\n交易对: ${cfg.symbol}, 策略: ${typeText}, 杠杆: ${cfg.leverage}x\n` + (log().textContent || '');
-    });
-    stopBtn && (stopBtn.onclick = () => {
+    }));
+    void (stopBtn && (stopBtn.onclick = () => {
       log().textContent = `[${new Date().toLocaleTimeString()}] 停止币本位资金费率套利（占位）\n` + (log().textContent || '');
-    });
-    saveBtn && (saveBtn.onclick = async () => {
+    }));
+    void (saveBtn && (saveBtn.onclick = async () => {
       const cfg = {
         symbol: $("#symbol").value,
         minFundingRate: Number($("#minFundingRate").value || 0),
@@ -91,7 +91,7 @@ const plugin: Plugin = {
       };
       await PluginSaveConfig('coin-funding-rate-arbitrage', cfg as any);
       log().textContent = `[${new Date().toLocaleTimeString()}] 已保存配置\n` + (log().textContent || '');
-    });
+    }));
     const applyCfg = (cfg: any) => {
       if (!cfg) return;
       if (cfg.symbol) $("#symbol").value = String(cfg.symbol);
@@ -101,11 +101,11 @@ const plugin: Plugin = {
       if (cfg.leverage != null) $("#leverage").value = String(cfg.leverage);
       if (cfg.strategyType) $("#strategyType").value = String(cfg.strategyType);
     };
-    loadBtn && (loadBtn.onclick = async () => {
+    void (loadBtn && (loadBtn.onclick = async () => {
       const res: any = await PluginGetConfig('coin-funding-rate-arbitrage');
       if (res && res.status === 'success') applyCfg(res.data);
       log().textContent = `[${new Date().toLocaleTimeString()}] 已读取配置\n` + (log().textContent || '');
-    });
+    }));
     // 初次挂载：若无配置则写入默认值后应用
     const defaults = {
       symbol: 'BTCUSD',

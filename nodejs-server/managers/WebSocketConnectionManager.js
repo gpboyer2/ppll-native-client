@@ -97,7 +97,7 @@ class WebSocketConnectionManager extends EventEmitter {
 
     const elapsed = Date.now() - state.lastConnectedAt;
     if (elapsed > CONNECTION_TIMEOUT && !state.reconnectTimer) {
-      UtilRecord.warn(`[WSManager] 连接可能已超时 (${clientKey})，上次连接: ${elapsed}ms 前`);
+      UtilRecord.log(`[WSManager] 连接可能已超时 (${clientKey})，上次连接: ${elapsed}ms 前`);
     }
   }
 
@@ -115,6 +115,14 @@ class WebSocketConnectionManager extends EventEmitter {
   }
 
   // 获取或创建 WS Client
+  /**
+   * @param {object} params 参数对象
+   * @param {string} params.market 市场标识
+   * @param {string} params.scope 作用域
+   * @param {string} [params.apiKey] API密钥
+   * @param {string} [params.apiSecret] API密钥
+   * @param {string} [params.wsKey] WebSocket密钥
+   */
   _getClient({ market = 'um', scope = 'public', apiKey, apiSecret, wsKey } = {}) {
     const clientKey = `${market}:${scope}${wsKey ? ':' + wsKey : ''}`;
 

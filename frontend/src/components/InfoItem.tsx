@@ -21,17 +21,12 @@ const InfoItem: React.FC<InfoItemProps> = ({
 
   const renderValue = () => {
     if (type === 'status' && status) {
-      const customStyle = style || {};
-      if (status === 'success' && !style) {
-        customStyle.background = 'color-mix(in srgb, #28a745 20%, var(--color-bg))';
-        customStyle.color = '#28a745';
-      } else if (status === 'danger' && !style) {
-        customStyle.background = 'color-mix(in srgb, #dc3545 20%, var(--color-bg))';
-        customStyle.color = '#dc3545';
-      } else if (status === 'warning' && !style) {
-        customStyle.background = 'color-mix(in srgb, #ffc107 20%, var(--color-bg))';
-        customStyle.color = '#ffc107';
-      }
+      const statusStyles = {
+        success: { background: 'color-mix(in srgb, #28a745 20%, var(--color-bg))', color: '#28a745' },
+        danger: { background: 'color-mix(in srgb, #dc3545 20%, var(--color-bg))', color: '#dc3545' },
+        warning: { background: 'color-mix(in srgb, #ffc107 20%, var(--color-bg))', color: '#ffc107' }
+      };
+      const customStyle = style ? { ...style } : (statusStyles[status] || {});
       return <span className={`info-status ${status}`} style={customStyle}>{displayValue}</span>;
     }
 

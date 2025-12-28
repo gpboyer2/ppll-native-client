@@ -82,10 +82,10 @@ function isInBanPeriod() {
 
 /**
  * 获取账户信息
- * @param {number} params.recvWindow  与币安api服务端的最大差额时间
- * @param {number} params.timestamp   时间戳
+ * @param {object} params 参数对象
+ * @param {number} params.recvWindow 与币安api服务端的最大差额时间
+ * @param {number} params.timestamp 时间戳
  * @returns
- *
  */
 async function getAccount(params) {
   var { recvWindow, timestamp, apiKey, apiSecret } = params;
@@ -285,16 +285,15 @@ async function order(params, apiKey, apiSecret) {
 /**
  * 查询订单
  *
- * @param {*object} params
- * @param {*string} params.symbol             币种
- * @param {*number} params.orderId            系统订单号
- * @param {number} params.origClientOrderId             用户自定义的订单号
- * @param {number} params.timestamp           时间戳
- * @param {string} apiKey
- * @param {string} apiSecret
+ * @param {object} params 参数对象
+ * @param {string} params.symbol 币种
+ * @param {number} params.orderId 系统订单号
+ * @param {string} params.origClientOrderId 用户自定义的订单号
+ * @param {number} params.timestamp 时间戳
+ * @param {string} apiKey API密钥
+ * @param {string} apiSecret API密钥
  *
  * @returns
- *
  */
 async function queryOrder(params, apiKey, apiSecret) {
   return new Promise((resolve, reject) => {
@@ -321,18 +320,18 @@ async function queryOrder(params, apiKey, apiSecret) {
 /**
  * 查询订单 - 账户成交历史
  * TODO 没有调试成功/2024年12月29日
- * @param {string} params.symbol      交易对
- * @param {number} params.orderId     必须要和参数symbol一起使用
- * @param {number} params.startTime   起始时间
- * @param {number} params.endTime     结束时间
- * @param {number} params.fromId      返回该fromId及之后的成交，缺省返回最近的成交
- * @param {number} params.limit       返回的结果集数量 默认值:500 最大值:1000
- * @param {number} params.timestamp   时间戳
- * @param {string} apiKey
- * @param {string} apiSecret
+ * @param {object} params 参数对象
+ * @param {string} params.symbol 交易对
+ * @param {number} params.orderId 必须要和参数symbol一起使用
+ * @param {number} params.startTime 起始时间
+ * @param {number} params.endTime 结束时间
+ * @param {number} params.fromId 返回该fromId及之后的成交，缺省返回最近的成交
+ * @param {number} params.limit 返回的结果集数量 默认值:500 最大值:1000
+ * @param {number} params.timestamp 时间戳
+ * @param {string} apiKey API密钥
+ * @param {string} apiSecret API密钥
  *
  * @returns
- *
  */
 async function queryOrders(params, apiKey, apiSecret) {
   return new Promise((resolve, reject) => {

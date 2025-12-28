@@ -60,7 +60,9 @@ async function getAuthToken(): Promise<string> {
     } else if (typeof tokenRes === 'string') {
       return tokenRes;
     }
-  } catch {}
+  } catch {
+    // 忽略错误，返回空字符串
+  }
   return '';
 }
 
@@ -74,7 +76,9 @@ async function getNodejsUrl(): Promise<string> {
     }
 
     return await GetNodejsServiceURL();
-  } catch {}
+  } catch {
+    // 忽略错误，返回默认 URL
+  }
   // 发生错误时返回默认 URL（后端服务端口）
   return 'http://localhost:54321';
 }

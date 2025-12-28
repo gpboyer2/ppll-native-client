@@ -9,22 +9,22 @@ import { SystemApi } from '../api';
 interface GitInfo {
     branch: string;
     tag: string;
-    commitHash: string;
-    commitAuthor: string;
-    commitDate: string;
-    commitMessage: string;
+    commit_hash: string;
+    commit_author: string;
+    commit_date: string;
+    commit_message: string;
     timestamp: string;
 }
 
 interface HealthData {
     service: {
-        isRunning?: boolean;
+        is_running?: boolean;
         pid?: number;
-        startTime?: string;
+        start_time?: string;
         uptime?: string;
     };
     health: {
-        isHealthy?: boolean;
+        is_healthy?: boolean;
         database?: {
             healthy?: boolean;
         };
@@ -44,7 +44,7 @@ interface HealthData {
         websocket?: {
             active?: number;
             public?: number;
-            userData?: number;
+            user_data?: number;
             total?: number;
         };
         socketio?: {
@@ -90,13 +90,13 @@ const defaultStaticInfo: StaticInfo = {
 
 const defaultHealthData: HealthData = {
   service: {
-    isRunning: false,
+    is_running: false,
     pid: 0,
-    startTime: '',
+    start_time: '',
     uptime: ''
   },
   health: {
-    isHealthy: false,
+    is_healthy: false,
     database: {
       healthy: false
     }
@@ -116,7 +116,7 @@ const defaultHealthData: HealthData = {
     websocket: {
       active: 0,
       public: 0,
-      userData: 0,
+      user_data: 0,
       total: 0
     },
     socketio: {
@@ -248,7 +248,9 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
               if (ipv4List.length > 0 || gitInfo || healthData || databasePath) {
                 break;
               }
-            } catch {}
+            } catch {
+              // 忽略重试循环中的错误
+            }
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
         }
@@ -280,7 +282,9 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
             if (response.status === 'success' && response.data) {
               set({ dynamicInfo: { health: response.data } });
             }
-          } catch {}
+          } catch {
+            // 忽略定期健康检查的错误
+          }
         }, 10000);
       } catch (error) {
         console.error('初始化系统信息失败:', error);

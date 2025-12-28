@@ -304,7 +304,7 @@ export class DOM {
  * 事件处理类
  */
 export class EventHandler {
-  private static listeners: Map<Element, Map<string, Function[]>> = new Map();
+  private static listeners: Map<Element, Map<string, ((...args: any[]) => any)[]>> = new Map();
 
   /**
    * 添加事件监听

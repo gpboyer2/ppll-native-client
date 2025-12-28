@@ -30,6 +30,8 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      // 关闭在 useEffect 中同步调用 setState 的警告
+      'react-hooks/set-state-in-effect': 'off',
       // React 规则
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',

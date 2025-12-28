@@ -8,6 +8,7 @@ const catchAsync = require("../utils/catch-async");
 const { sendSuccess, sendError } = require("../utils/api-response");
 
 const createOrder = catchAsync(async (req, res) => {
+  /** @type {{msg?: string} | null} */
   let errorMsg = null;
   const { apiKey, apiSecret } = req.body;
 

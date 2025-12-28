@@ -14,7 +14,9 @@ function getNodejsUrl(): string {
     if (staticInfo?.nodejsUrl) {
       return staticInfo.nodejsUrl;
     }
-  } catch { }
+  } catch {
+    // 静默失败，使用默认值
+  }
   // 默认回退到 54321 端口
   return 'http://localhost:54321';
 }

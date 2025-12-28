@@ -2,6 +2,7 @@
  * 资金流控制器
  * 处理资金流相关的业务逻辑，提供资金流向查询和分析功能
  */
+/** @type {import('axios')} */
 const axios = require('axios');
 const httpStatus = require('http-status');
 const Mock = require('mockjs');

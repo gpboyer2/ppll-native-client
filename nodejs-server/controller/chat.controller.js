@@ -23,6 +23,7 @@ const signUp = catchAsync(async (req, res) => {
 
 const sendMessage = catchAsync(async (req, res) => {
   const { apiKey, apiSecret } = req.body;
+  /** @type {{msg?: string} | null} */
   let errorMsg = null;
 
   if (!apiKey) {
@@ -51,6 +52,7 @@ const sendMessage = catchAsync(async (req, res) => {
 
 const message = catchAsync(async (req, res) => {
   const { apiKey, apiSecret } = req.query;
+  /** @type {{msg?: string} | null} */
   let errorMsg = null;
 
   if (!apiKey) {

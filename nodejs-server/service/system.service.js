@@ -112,13 +112,13 @@ const getHealth = async () => {
 
   return {
     service: {
-      isRunning: true,
+      is_running: true,
       pid,
-      startTime: new Date(SERVICE_START_TIME).toISOString(),
+      start_time: new Date(SERVICE_START_TIME).toISOString(),
       uptime: formatUptime(uptimeMs)
     },
     health: {
-      isHealthy: dbHealthy,
+      is_healthy: dbHealthy,
       database: {
         healthy: dbHealthy
       }
@@ -138,7 +138,7 @@ const getHealth = async () => {
       websocket: {
         active: wsStats.active,
         public: wsStats.public || 0,
-        userData: wsStats.userData || 0,
+        user_data: wsStats.userData || 0,
         total: wsStats.total
       },
       socketio: {

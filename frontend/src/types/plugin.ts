@@ -78,8 +78,8 @@ export interface PluginAPI {
   destroy?(): Promise<void>
 
   // 事件系统
-  on?(event: string, handler: Function): void
-  off?(event: string, handler: Function): void
+  on?(event: string, handler: (...args: any[]) => void): void
+  off?(event: string, handler: (...args: any[]) => void): void
   emit?(event: string, data?: any): void
 }
 

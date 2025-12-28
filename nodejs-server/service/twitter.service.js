@@ -1,4 +1,4 @@
-/** @type {import('axios').default} */
+/** @type {import('axios')} */
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path');

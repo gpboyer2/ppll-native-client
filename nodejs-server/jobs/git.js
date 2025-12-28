@@ -120,10 +120,10 @@ function getGitInfo() {
   const gitInfo = {
     branch: getCurrentBranch(),
     tag: getLatestTag(),
-    commitHash: getLatestCommitHash(),
-    commitAuthor: getLatestCommitAuthor(),
-    commitDate: getLatestCommitDate(),
-    commitMessage: getLatestCommitMessage(),
+    commit_hash: getLatestCommitHash(),
+    commit_author: getLatestCommitAuthor(),
+    commit_date: getLatestCommitDate(),
+    commit_message: getLatestCommitMessage(),
     timestamp: new Date().toISOString()
   };
 

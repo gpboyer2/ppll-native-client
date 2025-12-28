@@ -49,7 +49,7 @@ const plugin: Plugin = {
       if (Number.isNaN(cfg.gridFunds) || cfg.gridFunds <= 0) return '单格资金必须大于0';
       return null;
     };
-    startBtn && (startBtn.onclick = () => {
+    void (startBtn && (startBtn.onclick = () => {
       const cfg = {
         symbol: $("#symbol").value.trim(),
         gridCount: Number($("#gridCount").value||0),
@@ -61,11 +61,11 @@ const plugin: Plugin = {
         return;
       }
       log().textContent = `[${new Date().toLocaleTimeString()}] 启动做T网格（占位）\n` + (log().textContent || '');
-    });
-    stopBtn && (stopBtn.onclick = () => {
+    }));
+    void (stopBtn && (stopBtn.onclick = () => {
       log().textContent = `[${new Date().toLocaleTimeString()}] 停止做T网格（占位）\n` + (log().textContent || '');
-    });
-    saveBtn && (saveBtn.onclick = async () => {
+    }));
+    void (saveBtn && (saveBtn.onclick = async () => {
       const cfg = {
         symbol: $("#symbol").value,
         gridCount: Number($("#gridCount").value || 0),
@@ -73,18 +73,18 @@ const plugin: Plugin = {
       };
       await PluginSaveConfig('u-grid-t', cfg as any);
       log().textContent = `[${new Date().toLocaleTimeString()}] 已保存配置\n` + (log().textContent || '');
-    });
+    }));
     const applyCfg = (cfg: any) => {
       if (!cfg) return;
       if (cfg.symbol) $("#symbol").value = String(cfg.symbol);
       if (cfg.gridCount != null) $("#gridCount").value = String(cfg.gridCount);
       if (cfg.gridFunds != null) $("#gridFunds").value = String(cfg.gridFunds);
     };
-    loadBtn && (loadBtn.onclick = async () => {
+    void (loadBtn && (loadBtn.onclick = async () => {
       const res: any = await PluginGetConfig('u-grid-t');
       if (res && res.status === 'success') applyCfg(res.data);
       log().textContent = `[${new Date().toLocaleTimeString()}] 已读取配置\n` + (log().textContent || '');
-    });
+    }));
     // 初次挂载：若无配置则写入默认值后应用
     const defaults = { symbol: 'BTCUSDT', gridCount: 10, gridFunds: 100 };
     PluginGetConfig('u-grid-t').then(async (res: any) => {

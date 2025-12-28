@@ -30,66 +30,66 @@ const list = catchAsync(async (req, res) => {
 const create = catchAsync(async (req, res) => {
   const { apiKey, apiSecret } = req.apiCredentials;
   const {
-    tradingPair,
-    positionSide,
-    gridPriceDifference,
-    gridTradeQuantity,
+    trading_pair,
+    position_side,
+    grid_price_difference,
+    grid_trade_quantity,
     // 分离的开仓/平仓数量
-    gridLongOpenQuantity,
-    gridLongCloseQuantity,
-    gridShortOpenQuantity,
-    gridShortCloseQuantity,
-    maxOpenPositionQuantity,
-    minOpenPositionQuantity,
-    fallPreventionCoefficient,
-    pollingInterval,
-    pricePrecision,
-    quantityPrecision,
+    grid_long_open_quantity,
+    grid_long_close_quantity,
+    grid_short_open_quantity,
+    grid_short_close_quantity,
+    max_open_position_quantity,
+    min_open_position_quantity,
+    fall_prevention_coefficient,
+    polling_interval,
+    price_precision,
+    quantity_precision,
     name,
     leverage,
-    marginType,
-    stopLossPrice,
-    takeProfitPrice,
+    margin_type,
+    stop_loss_price,
+    take_profit_price,
     // 价格限制参数
-    gtLimitationPrice,
-    ltLimitationPrice,
+    gt_limitation_price,
+    lt_limitation_price,
     // 暂停条件参数
-    isAboveOpenPrice,
-    isBelowOpenPrice,
+    is_above_open_price,
+    is_below_open_price,
     // 顺势仅减仓策略
-    priorityCloseOnTrend,
+    priority_close_on_trend,
     // 交易所类型
-    exchangeType,
+    exchange_type,
   } = req.body;
 
   // 参数验证
-  if (!tradingPair) {
-    return sendError(res, "tradingPair 是必填项", httpStatus.BAD_REQUEST);
+  if (!trading_pair) {
+    return sendError(res, "trading_pair 是必填项", httpStatus.BAD_REQUEST);
   }
 
   // 数值参数边界检查
-  if (gridPriceDifference && (isNaN(gridPriceDifference) || Number(gridPriceDifference) <= 0)) {
-    return sendError(res, "gridPriceDifference 必须是大于0的数字", httpStatus.BAD_REQUEST);
+  if (grid_price_difference && (isNaN(grid_price_difference) || Number(grid_price_difference) <= 0)) {
+    return sendError(res, "grid_price_difference 必须是大于0的数字", httpStatus.BAD_REQUEST);
   }
 
-  if (gridTradeQuantity && (isNaN(gridTradeQuantity) || Number(gridTradeQuantity) <= 0)) {
-    return sendError(res, "gridTradeQuantity 必须是大于0的数字", httpStatus.BAD_REQUEST);
+  if (grid_trade_quantity && (isNaN(grid_trade_quantity) || Number(grid_trade_quantity) <= 0)) {
+    return sendError(res, "grid_trade_quantity 必须是大于0的数字", httpStatus.BAD_REQUEST);
   }
 
-  if (maxOpenPositionQuantity && (isNaN(maxOpenPositionQuantity) || Number(maxOpenPositionQuantity) <= 0)) {
-    return sendError(res, "maxOpenPositionQuantity 必须是大于0的数字", httpStatus.BAD_REQUEST);
+  if (max_open_position_quantity && (isNaN(max_open_position_quantity) || Number(max_open_position_quantity) <= 0)) {
+    return sendError(res, "max_open_position_quantity 必须是大于0的数字", httpStatus.BAD_REQUEST);
   }
 
-  if (minOpenPositionQuantity && (isNaN(minOpenPositionQuantity) || Number(minOpenPositionQuantity) <= 0)) {
-    return sendError(res, "minOpenPositionQuantity 必须是大于0的数字", httpStatus.BAD_REQUEST);
+  if (min_open_position_quantity && (isNaN(min_open_position_quantity) || Number(min_open_position_quantity) <= 0)) {
+    return sendError(res, "min_open_position_quantity 必须是大于0的数字", httpStatus.BAD_REQUEST);
   }
 
-  if (pricePrecision && (isNaN(pricePrecision) || Number(pricePrecision) < 0)) {
-    return sendError(res, "pricePrecision 必须是非负整数", httpStatus.BAD_REQUEST);
+  if (price_precision && (isNaN(price_precision) || Number(price_precision) < 0)) {
+    return sendError(res, "price_precision 必须是非负整数", httpStatus.BAD_REQUEST);
   }
 
-  if (quantityPrecision && (isNaN(quantityPrecision) || Number(quantityPrecision) < 0)) {
-    return sendError(res, "quantityPrecision 必须是非负整数", httpStatus.BAD_REQUEST);
+  if (quantity_precision && (isNaN(quantity_precision) || Number(quantity_precision) < 0)) {
+    return sendError(res, "quantity_precision 必须是非负整数", httpStatus.BAD_REQUEST);
   }
 
   if (leverage && (isNaN(leverage) || Number(leverage) <= 0)) {
@@ -99,36 +99,36 @@ const create = catchAsync(async (req, res) => {
   const strategyData = {
     api_key: apiKey,
     api_secret: apiSecret,
-    trading_pair: tradingPair,
-    position_side: positionSide,
-    grid_price_difference: gridPriceDifference,
-    grid_trade_quantity: gridTradeQuantity,
+    trading_pair,
+    position_side,
+    grid_price_difference,
+    grid_trade_quantity,
     // 分离的开仓/平仓数量
-    grid_long_open_quantity: gridLongOpenQuantity,
-    grid_long_close_quantity: gridLongCloseQuantity,
-    grid_short_open_quantity: gridShortOpenQuantity,
-    grid_short_close_quantity: gridShortCloseQuantity,
-    max_open_position_quantity: maxOpenPositionQuantity,
-    min_open_position_quantity: minOpenPositionQuantity,
-    fall_prevention_coefficient: fallPreventionCoefficient,
-    polling_interval: pollingInterval,
-    price_precision: pricePrecision,
-    quantity_precision: quantityPrecision,
-    name: name,
-    leverage: leverage,
-    margin_type: marginType,
-    stop_loss_price: stopLossPrice,
-    take_profit_price: takeProfitPrice,
+    grid_long_open_quantity,
+    grid_long_close_quantity,
+    grid_short_open_quantity,
+    grid_short_close_quantity,
+    max_open_position_quantity,
+    min_open_position_quantity,
+    fall_prevention_coefficient,
+    polling_interval,
+    price_precision,
+    quantity_precision,
+    name,
+    leverage,
+    margin_type,
+    stop_loss_price,
+    take_profit_price,
     // 价格限制参数
-    gt_limitation_price: gtLimitationPrice,
-    lt_limitation_price: ltLimitationPrice,
+    gt_limitation_price,
+    lt_limitation_price,
     // 暂停条件参数
-    is_above_open_price: isAboveOpenPrice,
-    is_below_open_price: isBelowOpenPrice,
+    is_above_open_price,
+    is_below_open_price,
     // 顺势仅减仓策略
-    priority_close_on_trend: priorityCloseOnTrend,
+    priority_close_on_trend,
     // 交易所类型
-    exchange_type: exchangeType,
+    exchange_type,
   };
 
   // 过滤掉 undefined 或 null 的参数
@@ -143,7 +143,7 @@ const create = catchAsync(async (req, res) => {
 
     // 检查创建结果
     if (!created) {
-      return sendError(res, `已存在该交易对 ${tradingPair} 的网格策略`, httpStatus.CONFLICT);
+      return sendError(res, `已存在该交易对 ${trading_pair} 的网格策略`, httpStatus.CONFLICT);
     }
 
     return sendSuccess(res, row, "网格策略创建成功");
@@ -182,25 +182,25 @@ const update = catchAsync(async (req, res) => {
   const { apiKey, apiSecret } = req.apiCredentials;
   const {
     id,
-    gridPriceDifference,
-    gridTradeQuantity,
-    gridLongOpenQuantity,
-    gridLongCloseQuantity,
-    gridShortOpenQuantity,
-    gridShortCloseQuantity,
-    maxOpenPositionQuantity,
-    minOpenPositionQuantity,
-    fallPreventionCoefficient,
-    pollingInterval,
+    grid_price_difference,
+    grid_trade_quantity,
+    grid_long_open_quantity,
+    grid_long_close_quantity,
+    grid_short_open_quantity,
+    grid_short_close_quantity,
+    max_open_position_quantity,
+    min_open_position_quantity,
+    fall_prevention_coefficient,
+    polling_interval,
     leverage,
-    marginType,
-    stopLossPrice,
-    takeProfitPrice,
-    gtLimitationPrice,
-    ltLimitationPrice,
-    isAboveOpenPrice,
-    isBelowOpenPrice,
-    priorityCloseOnTrend,
+    margin_type,
+    stop_loss_price,
+    take_profit_price,
+    gt_limitation_price,
+    lt_limitation_price,
+    is_above_open_price,
+    is_below_open_price,
+    priority_close_on_trend,
   } = req.body;
 
   if (!id) {
@@ -211,25 +211,25 @@ const update = catchAsync(async (req, res) => {
     id: Number(id),
     api_key: apiKey,
     api_secret: apiSecret,
-    grid_price_difference: gridPriceDifference,
-    grid_trade_quantity: gridTradeQuantity,
-    grid_long_open_quantity: gridLongOpenQuantity,
-    grid_long_close_quantity: gridLongCloseQuantity,
-    grid_short_open_quantity: gridShortOpenQuantity,
-    grid_short_close_quantity: gridShortCloseQuantity,
-    max_open_position_quantity: maxOpenPositionQuantity,
-    min_open_position_quantity: minOpenPositionQuantity,
-    fall_prevention_coefficient: fallPreventionCoefficient,
-    polling_interval: pollingInterval,
-    leverage: leverage,
-    margin_type: marginType,
-    stop_loss_price: stopLossPrice,
-    take_profit_price: takeProfitPrice,
-    gt_limitation_price: gtLimitationPrice,
-    lt_limitation_price: ltLimitationPrice,
-    is_above_open_price: isAboveOpenPrice,
-    is_below_open_price: isBelowOpenPrice,
-    priority_close_on_trend: priorityCloseOnTrend,
+    grid_price_difference,
+    grid_trade_quantity,
+    grid_long_open_quantity,
+    grid_long_close_quantity,
+    grid_short_open_quantity,
+    grid_short_close_quantity,
+    max_open_position_quantity,
+    min_open_position_quantity,
+    fall_prevention_coefficient,
+    polling_interval,
+    leverage,
+    margin_type,
+    stop_loss_price,
+    take_profit_price,
+    gt_limitation_price,
+    lt_limitation_price,
+    is_above_open_price,
+    is_below_open_price,
+    priority_close_on_trend,
   };
 
   // 过滤掉 undefined 的参数
@@ -296,10 +296,10 @@ const optimizeParams = catchAsync(async (req, res) => {
   const {
     symbol,
     interval,
-    totalCapital,
-    optimizeTarget,
-    minTradeValue,
-    maxTradeValue
+    total_capital,
+    optimize_target,
+    min_trade_value,
+    max_trade_value
   } = req.body;
 
   // 验证必填参数
@@ -307,7 +307,7 @@ const optimizeParams = catchAsync(async (req, res) => {
     return sendError(res, "缺少交易对参数 symbol", httpStatus.BAD_REQUEST);
   }
 
-  if (!totalCapital || isNaN(totalCapital) || Number(totalCapital) <= 0) {
+  if (!total_capital || isNaN(total_capital) || Number(total_capital) <= 0) {
     return sendError(res, "总资金必须为大于0的数字", httpStatus.BAD_REQUEST);
   }
 
@@ -315,13 +315,13 @@ const optimizeParams = catchAsync(async (req, res) => {
     const result = await gridOptimizerService.optimizeGridParams({
       symbol,
       interval: interval || '4h',
-      totalCapital: Number(totalCapital),
-      optimizeTarget: optimizeTarget || 'profit',
-      enableBoundaryDefense: false,
-      minTradeValue: minTradeValue ? Number(minTradeValue) : 20,
-      maxTradeValue: maxTradeValue ? Number(maxTradeValue) : 100,
-      apiKey,
-      apiSecret
+      total_capital: Number(total_capital),
+      optimize_target: optimize_target || 'profit',
+      enable_boundary_defense: false,
+      min_trade_value: min_trade_value ? Number(min_trade_value) : 20,
+      max_trade_value: max_trade_value ? Number(max_trade_value) : 100,
+      api_key: apiKey,
+      api_secret: apiSecret
     });
 
     return sendSuccess(res, result, "获取优化参数成功");

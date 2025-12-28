@@ -186,8 +186,8 @@ function killProcessOnPort(port) {
       const lines = result.trim().split('\n');
       lines.forEach(line => {
         const parts = line.trim().split(/\s+/);
-        const pid = parts[parts.length - 1];
-        if (pid && !isNaN(pid) && !pids.includes(pid)) {
+        const pid = String(parts[parts.length - 1]);
+        if (pid && !isNaN(Number(pid)) && !pids.includes(pid)) {
           pids.push(pid);
         }
       });

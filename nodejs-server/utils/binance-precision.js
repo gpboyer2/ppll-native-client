@@ -17,7 +17,7 @@ const UtilRecord = require("./record-log.js");
  */
 function adjustQuantityByFilters(symbol, quantity, symbolFilters, silent = false) {
   if (!symbolFilters || !symbolFilters.length) {
-    if (!silent) console.warn(`⚠️  [精度处理] ${symbol} 缺少过滤器信息，使用默认精度`);
+    if (!silent) UtilRecord.warn(`⚠️  [精度处理] ${symbol} 缺少过滤器信息，使用默认精度`);
     return new bigNumber(quantity).toFixed(8);
   }
 
@@ -25,7 +25,7 @@ function adjustQuantityByFilters(symbol, quantity, symbolFilters, silent = false
   const lotSizeFilter = symbolFilters.find(filter => filter.filterType === 'LOT_SIZE');
 
   if (!lotSizeFilter) {
-    if (!silent) console.warn(`⚠️  [精度处理] ${symbol} 缺少LOT_SIZE过滤器，使用默认精度`);
+    if (!silent) UtilRecord.warn(`⚠️  [精度处理] ${symbol} 缺少LOT_SIZE过滤器，使用默认精度`);
     return new bigNumber(quantity).toFixed(8);
   }
 
@@ -106,13 +106,13 @@ function getDecimalPlaces(numberStr) {
  */
 function getSymbolFilters(exchangeInfo, symbol) {
   if (!exchangeInfo || !exchangeInfo.symbols) {
-    console.warn('交易所信息无效');
+    UtilRecord.warn('交易所信息无效');
     return [];
   }
 
   const symbolInfo = exchangeInfo.symbols.find(s => s.symbol === symbol);
   if (!symbolInfo) {
-    console.warn(`未找到交易对 ${symbol} 的信息`);
+    UtilRecord.warn(`未找到交易对 ${symbol} 的信息`);
     return [];
   }
 
@@ -127,13 +127,13 @@ function getSymbolFilters(exchangeInfo, symbol) {
  */
 function getQuantityPrecision(exchangeInfo, symbol) {
   if (!exchangeInfo || !exchangeInfo.symbols) {
-    console.warn('交易所信息无效，使用默认精度 8');
+    UtilRecord.warn('交易所信息无效，使用默认精度 8');
     return 8;
   }
 
   const symbolInfo = exchangeInfo.symbols.find(s => s.symbol === symbol);
   if (!symbolInfo) {
-    console.warn(`未找到交易对 ${symbol} 的信息，使用默认精度 8`);
+    UtilRecord.warn(`未找到交易对 ${symbol} 的信息，使用默认精度 8`);
     return 8;
   }
 
@@ -179,7 +179,7 @@ function smartAdjustQuantity(exchangeInfo, symbol, quantity, options = {}) {
     if (originalQuantity === adjustedQuantity) {
       UtilRecord.log(`[精度无需调整${opType}] ${symbol} 数量符合规范 - 最终数量: ${adjustedQuantity}, 精度要求: ${precision}位小数, 状态: 原始数量已符合交易所规范，无需调整`);
     } else {
-      const adjustmentRatio = ((parseFloat(adjustedQuantity) / parseFloat(originalQuantity) - 1) * 100).toFixed(4);
+      const adjustmentRatio = ((parseFloat(String(adjustedQuantity)) / parseFloat(String(originalQuantity)) - 1) * 100).toFixed(4);
       UtilRecord.log(`[精度调整完成${opType}] ${symbol} 调整总结 - 输入: ${originalQuantity}, 输出: ${adjustedQuantity}, 调整幅度: ${adjustmentRatio}%, 精度要求: ${precision}位小数, 处理结果: 已根据交易所规则成功调整`);
     }
   }

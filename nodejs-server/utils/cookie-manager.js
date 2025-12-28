@@ -40,6 +40,7 @@ async function fetchCookiesWithPuppeteer() {
       });
 
       // 添加window.chrome对象
+      // @ts-ignore - 模拟浏览器环境
       window.chrome = {
         runtime: {},
         app: { isInstalled: false },
@@ -82,6 +83,7 @@ async function fetchCookiesWithPuppeteer() {
     // 模拟真实用户行为：随机等待
     const randomDelay = Math.floor(Math.random() * 3000) + 2000; // 2-5秒随机延迟
     console.log(`模拟用户浏览，等待 ${randomDelay}ms...`);
+    // @ts-ignore - waitForTimeout 可能在某些版本中不可用
     await page.waitForTimeout(randomDelay);
 
     // 模拟鼠标移动和滚动
@@ -92,6 +94,7 @@ async function fetchCookiesWithPuppeteer() {
     });
 
     // 再次随机等待
+    // @ts-ignore - waitForTimeout 可能在某些版本中不可用
     await page.waitForTimeout(Math.floor(Math.random() * 1000) + 500);
 
     // 获取所有 cookies
@@ -172,7 +175,7 @@ async function fetchCookiesWithPlaywright() {
  * 轻量级方案：模拟浏览器请求获取基础 cookies
  */
 async function fetchCookiesWithAxios() {
-  /** @type {import('axios').default} */
+  /** @type {import('axios')} */
   const axios = require('axios');
   const { applyProxyToAxiosConfig } = require('./proxy');
 

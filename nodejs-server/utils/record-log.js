@@ -12,6 +12,7 @@ const CONFIG = {
   LOG_DIR: path.join(__dirname, '../logs/record-log'),
   DEBUG_DIR: path.join(__dirname, '../logs/record-debug'),
   ERROR_DIR: path.join(__dirname, '../logs/record-error'),
+  WARN_DIR: path.join(__dirname, '../logs/record-warn'),
   TEST_DIR: path.join(__dirname, '../logs/record-test'),
   TRACE_DIR: path.join(__dirname, '../logs/record-trace'),
 
@@ -45,6 +46,9 @@ const CONFIG = {
   if (!fs.existsSync(CONFIG.ERROR_DIR)) {
     fs.mkdirSync(CONFIG.ERROR_DIR, { recursive: true });
   }
+  if (!fs.existsSync(CONFIG.WARN_DIR)) {
+    fs.mkdirSync(CONFIG.WARN_DIR, { recursive: true });
+  }
   if (!fs.existsSync(CONFIG.TEST_DIR)) {
     fs.mkdirSync(CONFIG.TEST_DIR, { recursive: true });
   }
@@ -74,6 +78,9 @@ function getLogFilePath(logType = 'log') {
       break;
     case 'error':
       logDir = CONFIG.ERROR_DIR;
+      break;
+    case 'warn':
+      logDir = CONFIG.WARN_DIR;
       break;
     case 'test':
       logDir = CONFIG.TEST_DIR;
@@ -294,6 +301,32 @@ async function error(...messages) {
 }
 
 /**
+ * 工具函数 - 以特定格式输出警告日志
+ * 
+ * @example
+ *  const UtilRecord = require('./utils/record-log.js');
+ *  UtilRecord.warn('警告信息', details);
+ * @param {...any} messages - 要记录的消息
+ */
+async function warn(...messages) {
+  const { logInfo } = generateBaseLogInfo();
+  const formattedMessages = formatMessages(messages);
+
+  if (formattedMessages) {
+    // 对齐输出：时间戳和调用者信息 + 消息内容
+    const paddedLogInfo = logInfo.padEnd(CONFIG.LOG_ALIGNMENT_WIDTH, ' ');
+    const finalLogMessage = `[WARN] ${paddedLogInfo}${formattedMessages}`;
+    console.warn(finalLogMessage);
+    await writeLogToFile(finalLogMessage, 'warn');
+  } else {
+    // 仅输出时间戳和调用者信息
+    const finalLogMessage = `[WARN] ${logInfo}`;
+    console.warn(finalLogMessage);
+    await writeLogToFile(finalLogMessage, 'warn');
+  }
+}
+
+/**
  * 工具函数 - 以特定格式输出测试日志
  * 
  * @example
@@ -356,6 +389,7 @@ module.exports = {
   debug,
   log,
   error,
+  warn,
   test,
   trace
 };
