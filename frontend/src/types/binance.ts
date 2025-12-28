@@ -1,9 +1,9 @@
 // 币安合约交易相关类型定义
 
-// API 凭证
+// API 凭证（使用下划线命名，与后端保持一致）
 export interface BinanceCredentials {
-  apiKey: string
-  apiSecret: string
+  api_key: string
+  secret_key: string
 }
 
 // 统一API响应结构
@@ -30,67 +30,67 @@ export interface AccountInfoRequest extends BinanceCredentials {}
 // 账户详情响应数据（具体结构根据币安API返回调整）
 export interface AccountInfo {
   // 账户余额信息
-  totalWalletBalance?: string
-  totalUnrealizedProfit?: string
-  totalMarginBalance?: string
-  totalPositionInitialMargin?: string
-  totalOpenOrderInitialMargin?: string
-  totalCrossWalletBalance?: string
-  totalCrossUnPnl?: string
-  availableBalance?: string
-  maxWithdrawAmount?: string
-  
+  total_wallet_balance?: string
+  total_unrealized_profit?: string
+  total_margin_balance?: string
+  total_position_initial_margin?: string
+  total_open_order_initial_margin?: string
+  total_cross_wallet_balance?: string
+  total_cross_un_pnl?: string
+  available_balance?: string
+  max_withdraw_amount?: string
+
   // 资产列表
   assets?: AccountAsset[]
-  
+
   // 持仓列表
   positions?: AccountPosition[]
-  
+
   // 其他账户信息
-  canTrade?: boolean
-  canDeposit?: boolean
-  canWithdraw?: boolean
-  feeTier?: number
-  updateTime?: number
+  can_trade?: boolean
+  can_deposit?: boolean
+  can_withdraw?: boolean
+  fee_tier?: number
+  update_time?: number
 }
 
 // 账户资产
 export interface AccountAsset {
   asset: string
-  walletBalance: string
-  unrealizedProfit: string
-  marginBalance: string
-  maintMargin: string
-  initialMargin: string
-  positionInitialMargin: string
-  openOrderInitialMargin: string
-  crossWalletBalance: string
-  crossUnPnl: string
-  availableBalance: string
-  maxWithdrawAmount: string
-  marginAvailable: boolean
-  updateTime: number
+  wallet_balance: string
+  unrealized_profit: string
+  margin_balance: string
+  maint_margin: string
+  initial_margin: string
+  position_initial_margin: string
+  open_order_initial_margin: string
+  cross_wallet_balance: string
+  cross_un_pnl: string
+  available_balance: string
+  max_withdraw_amount: string
+  margin_available: boolean
+  update_time: number
 }
 
 // 账户持仓
 export interface AccountPosition {
   symbol: string
-  initialMargin: string
-  maintMargin: string
-  unrealizedProfit: string
-  positionInitialMargin: string
-  openOrderInitialMargin: string
+  initial_margin: string
+  maint_margin: string
+  unrealized_profit: string
+  position_initial_margin: string
+  open_order_initial_margin: string
   leverage: string
   isolated: boolean
-  entryPrice: string
-  maxNotional: string
-  positionSide: 'BOTH' | 'LONG' | 'SHORT'
-  positionAmt: string
+  entry_price: string
+  max_notional: string
+  position_side: 'BOTH' | 'LONG' | 'SHORT'
+  position_amt: string
   notional: string
-  isolatedWallet: string
-  updateTime: number
-  bidNotional: string
-  askNotional: string
+  isolated_wallet: string
+  update_time: number
+  bid_notional: string
+  ask_notional: string
 }
 
 // ==================== 建仓相关 ====================
@@ -98,8 +98,8 @@ export interface AccountPosition {
 // 建仓位置配置
 export interface PositionConfig {
   symbol: string
-  longAmount: number
-  shortAmount: number
+  long_amount: number
+  short_amount: number
 }
 
 // 自定义建仓请求
@@ -110,8 +110,8 @@ export interface CustomBuildPositionRequest extends BinanceCredentials {
 // 操作结果
 export interface OperationResult {
   success: boolean
-  processedCount: number
-  totalPositions: number
+  processed_count: number
+  total_positions: number
   results: string[]
 }
 
@@ -136,7 +136,7 @@ export type TradingPair = string
 export type OrderSide = 'BUY' | 'SELL'
 
 // 持仓方向
-export type PositionSide = 'BOTH' | 'LONG' | 'SHORT'
+export type PositionSideBinance = 'BOTH' | 'LONG' | 'SHORT'
 
 // 订单类型
 export type OrderType = 'LIMIT' | 'MARKET' | 'STOP' | 'TAKE_PROFIT' | 'STOP_MARKET' | 'TAKE_PROFIT_MARKET'

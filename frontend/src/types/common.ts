@@ -2,14 +2,14 @@
 
 // 分页请求参数
 export interface PageRequest {
-  currentPage: number
-  pageSize: number
+  current_page: number
+  page_size: number
 }
 
 // 分页信息
 export interface Pagination {
-  currentPage: number
-  pageSize: number
+  current_page: number
+  page_size: number
   total: number
 }
 

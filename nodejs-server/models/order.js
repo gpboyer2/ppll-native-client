@@ -25,14 +25,14 @@ module.exports = (sequelize, DataTypes) => {
     //   autoIncrement: true,
     //   comment: '主键ID'
     // },
-    apiKey: {
+    api_key: {
       type: DataTypes.STRING(255),
-      field: 'apiKey',
+      field: 'api_key',
       comment: 'API密钥'
     },
-    apiSecret: {
+    api_secret: {
       type: DataTypes.STRING(255),
-      field: 'apiSecret',
+      field: 'api_secret',
       comment: 'API密钥Secret'
     },
     order_id: {
@@ -114,11 +114,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(20, 8),
       defaultValue: 0,
       comment: '已实现盈亏'
-    },
-    api_key: {
-      type: DataTypes.STRING(128),
-      allowNull: false,
-      comment: 'API密钥'
     },
     grid_id: {
       type: DataTypes.STRING(64),

@@ -5,7 +5,7 @@ export type Response<T> = {
   data?: T
 }
 
-export const ok = <T>(data?: T): Response<T> => ({ status: 'success', message: '操作成功', data })
+export const ok = <T>(data?: T): Response<T> => ({ status: 'success', message: '操作成功', data });
 
-export const err = <T>(message: string): Response<T> => ({ status: 'error', message, data: undefined })
+export const err = <T>(message: string): Response<T> => ({ status: 'error', message, data: undefined });
 

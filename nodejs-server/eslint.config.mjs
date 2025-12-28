@@ -54,8 +54,8 @@ export default [
     },
     rules: {
       // Node.js 相关规则
-      'n/no-missing-require': 'off', // require 的文件必须存在（暂时关闭）
-      'n/no-exports-assign': 'error', // 禁止重新赋值 exports
+      'n/no-missing-require': 'error', // require 的文件必须存在（暂时关闭）
+      'n/no-exports-assign': 'off', // 运行重新赋值 exports
 
       // 基础规则
       'indent': ['warn', 2, { 'SwitchCase': 1 }],

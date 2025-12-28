@@ -11,20 +11,20 @@ const BinanceApiKey = db.binance_api_keys;
  * 创建新的 Binance ApiKey
  * @param {Object} params - 创建 ApiKey 所需的参数对象
  * @param {string} params.name - API Key 名称
- * @param {string} params.apiKey - Binance API Key
- * @param {string} params.secretKey - Binance Secret Key
+ * @param {string} params.api_key - Binance API Key
+ * @param {string} params.secret_key - Binance Secret Key
  * @param {number} [params.status=2] - 状态(1:未知,2:启用,3:禁用)
  * @param {string} [params.remark] - 备注信息
- * @param {Date|string} [params.vipExpireAt] - VIP过期时间
+ * @param {Date|string} [params.vip_expire_at] - VIP过期时间
  * @returns {Promise<Object>} 创建成功的 ApiKey 信息对象
  */
 const createApiKey = async (params) => {
-  const { name, apiKey, secretKey, status = 2, remark, vipExpireAt } = params;
+  const { name, api_key, secret_key, status = 2, remark, vip_expire_at } = params;
 
   // 检查 API Key 是否已存在
   const existingKey = await BinanceApiKey.findOne({
     where: {
-      api_key: apiKey,
+      api_key: api_key,
       deleted: 0
     }
   });
@@ -47,12 +47,12 @@ const createApiKey = async (params) => {
 
   const keyData = {
     name,
-    api_key: apiKey,
-    secret_key: secretKey,
+    api_key,
+    secret_key,
     status: status || 2,
     deleted: 0,
     remark,
-    vip_expire_at: vipExpireAt || null
+    vip_expire_at: vip_expire_at || null
   };
 
   const createdKey = await BinanceApiKey.create(keyData, {

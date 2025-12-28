@@ -13,15 +13,15 @@ import { PPLLMantineProvider } from '../../core/MantineProvider';
 
 // 通用样式配置
 const inputStyles = {
-    input: {
-        backgroundColor: 'var(--color-surface)',
-        borderColor: 'var(--color-border)',
-        color: 'var(--color-text)',
-        minHeight: '36px',
-        '&:focus': {
-            borderColor: 'var(--color-primary)',
-        }
+  input: {
+    backgroundColor: 'var(--color-surface)',
+    borderColor: 'var(--color-border)',
+    color: 'var(--color-text)',
+    minHeight: '36px',
+    '&:focus': {
+      borderColor: 'var(--color-primary)',
     }
+  }
 };
 
 /**
@@ -32,21 +32,21 @@ export interface TextInputProps extends Omit<MantineTextInputProps, 'onChange'> 
 }
 
 export function TextInput(props: TextInputProps) {
-    const { onChange, ...rest } = props;
-    // 适配器：将值处理函数转换为事件处理器
-    const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange?.(event.target.value);
-    }, [onChange]);
+  const { onChange, ...rest } = props;
+  // 适配器：将值处理函数转换为事件处理器
+  const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    onChange?.(event.target.value);
+  }, [onChange]);
 
-    return (
-        <PPLLMantineProvider>
-            <MantineTextInput
-                {...rest}
-                onChange={handleChange}
-                styles={inputStyles}
-            />
-        </PPLLMantineProvider>
-    );
+  return (
+    <PPLLMantineProvider>
+      <MantineTextInput
+        {...rest}
+        onChange={handleChange}
+        styles={inputStyles}
+      />
+    </PPLLMantineProvider>
+  );
 }
 
 /**
@@ -57,17 +57,17 @@ export interface NumberInputProps extends Omit<MantineNumberInputProps, 'onChang
 }
 
 export function NumberInput(props: NumberInputProps) {
-    const { onChange, ...rest } = props;
-    // NumberInput 的 onChange 已经直接返回值,不需要适配
-    return (
-        <PPLLMantineProvider>
-            <MantineNumberInput
-                {...rest}
-                onChange={onChange}
-                styles={inputStyles}
-            />
-        </PPLLMantineProvider>
-    );
+  const { onChange, ...rest } = props;
+  // NumberInput 的 onChange 已经直接返回值,不需要适配
+  return (
+    <PPLLMantineProvider>
+      <MantineNumberInput
+        {...rest}
+        onChange={onChange}
+        styles={inputStyles}
+      />
+    </PPLLMantineProvider>
+  );
 }
 
 /**
@@ -78,21 +78,21 @@ export interface PasswordInputProps extends Omit<MantinePasswordInputProps, 'onC
 }
 
 export function PasswordInput(props: PasswordInputProps) {
-    const { onChange, ...rest } = props;
-    // 适配器：将值处理函数转换为事件处理器
-    const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange?.(event.target.value);
-    }, [onChange]);
+  const { onChange, ...rest } = props;
+  // 适配器：将值处理函数转换为事件处理器
+  const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    onChange?.(event.target.value);
+  }, [onChange]);
 
-    return (
-        <PPLLMantineProvider>
-            <MantinePasswordInput
-                {...rest}
-                onChange={handleChange}
-                styles={inputStyles}
-            />
-        </PPLLMantineProvider>
-    );
+  return (
+    <PPLLMantineProvider>
+      <MantinePasswordInput
+        {...rest}
+        onChange={handleChange}
+        styles={inputStyles}
+      />
+    </PPLLMantineProvider>
+  );
 }
 
 /**
@@ -100,22 +100,22 @@ export function PasswordInput(props: PasswordInputProps) {
  * 需要在外层已有 PPLLMantineProvider 的情况下使用
  */
 export function RawTextInput(props: TextInputProps) {
-    const { onChange, ...rest } = props;
-    const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange?.(event.target.value);
-    }, [onChange]);
-    return <MantineTextInput {...rest} onChange={handleChange} styles={inputStyles} />;
+  const { onChange, ...rest } = props;
+  const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    onChange?.(event.target.value);
+  }, [onChange]);
+  return <MantineTextInput {...rest} onChange={handleChange} styles={inputStyles} />;
 }
 
 export function RawNumberInput(props: NumberInputProps) {
-    const { onChange, ...rest } = props;
-    return <MantineNumberInput {...rest} onChange={onChange} styles={inputStyles} />;
+  const { onChange, ...rest } = props;
+  return <MantineNumberInput {...rest} onChange={onChange} styles={inputStyles} />;
 }
 
 export function RawPasswordInput(props: PasswordInputProps) {
-    const { onChange, ...rest } = props;
-    const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        onChange?.(event.target.value);
-    }, [onChange]);
-    return <MantinePasswordInput {...rest} onChange={handleChange} styles={inputStyles} />;
+  const { onChange, ...rest } = props;
+  const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    onChange?.(event.target.value);
+  }, [onChange]);
+  return <MantinePasswordInput {...rest} onChange={handleChange} styles={inputStyles} />;
 }

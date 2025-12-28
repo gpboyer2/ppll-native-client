@@ -22,7 +22,7 @@ export function ok<T>(data: T): Response<T> {
     status: 'success',
     message: '操作成功',
     data
-  }
+  };
 }
 
 /**
@@ -35,5 +35,5 @@ export function error(message: string): Response<null> {
     status: 'error',
     message,
     data: null
-  }
+  };
 }

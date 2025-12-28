@@ -21,13 +21,13 @@ export function SmartConfigModal({
   opened,
   onClose,
   onApply,
-  defaultParams
+  default_params
 }: SmartConfigModalProps) {
   // ==================== 输入参数状态 ====================
   const [budget, setBudget] = useState<number>(1000);
-  const [optimizeTarget, setOptimizeTarget] = useState<OptimizeTarget>('profit');
-  const [minTradeValue, setMinTradeValue] = useState<number>(20);
-  const [maxTradeValue, setMaxTradeValue] = useState<number>(100);
+  const [optimize_target, setOptimizeTarget] = useState<OptimizeTarget>('profit');
+  const [min_trade_value, setMinTradeValue] = useState<number>(20);
+  const [max_trade_value, setMaxTradeValue] = useState<number>(100);
   const [interval, setInterval] = useState<string>('4h');
 
   // ==================== UI状态 ====================
@@ -58,15 +58,15 @@ export function SmartConfigModal({
       showWarning('请输入有效的预算投入资金');
       return;
     }
-    if (minTradeValue >= maxTradeValue) {
+    if (min_trade_value >= max_trade_value) {
       showWarning('最小值必须小于最大值');
       return;
     }
-    if (!defaultParams?.tradingPair) {
+    if (!default_params?.trading_pair) {
       showWarning('请先选择交易对');
       return;
     }
-    if (!defaultParams?.apiKey || !defaultParams?.apiSecret) {
+    if (!default_params?.api_key || !default_params?.secret_key) {
       showWarning('请先选择币安API Key');
       return;
     }
@@ -76,14 +76,14 @@ export function SmartConfigModal({
     try {
       // 调用优化接口
       const response = await GridStrategyApi.optimize({
-        symbol: defaultParams.tradingPair,
-        totalCapital: budget,
-        optimizeTarget,
-        minTradeValue,
-        maxTradeValue,
+        symbol: default_params.trading_pair,
+        total_capital: budget,
+        optimize_target: optimize_target,
+        min_trade_value: min_trade_value,
+        max_trade_value: max_trade_value,
         interval,
-        apiKey: defaultParams.apiKey,
-        apiSecret: defaultParams.apiSecret
+        api_key: default_params.api_key,
+        secret_key: default_params.secret_key
       });
 
       if (response.status === 'error') {
@@ -107,7 +107,7 @@ export function SmartConfigModal({
   function handleApplyConfig() {
     if (!optimizationResult) return;
 
-    const selectedConfig = optimizationResult.recommended.analysis?.topList?.[selectedConfigIndex];
+    const selectedConfig = optimizationResult.recommended.analysis?.top_list?.[selectedConfigIndex];
     if (!selectedConfig) {
       showWarning('请选择配置方案');
       return;
@@ -115,17 +115,17 @@ export function SmartConfigModal({
 
     // 转换数据格式，回填到表单
     const config: OptimizedConfig = {
-      gridPriceDifference: parseFloat(selectedConfig.gridSpacing),
-      gridTradeQuantity: parseFloat(selectedConfig.tradeQuantity),
-      gtLimitationPrice: parseFloat(optimizationResult.market.resistance),
-      ltLimitationPrice: parseFloat(optimizationResult.market.support)
+      grid_price_difference: parseFloat(selectedConfig.grid_spacing),
+      grid_trade_quantity: parseFloat(selectedConfig.trade_quantity),
+      gt_limitation_price: parseFloat(optimizationResult.market.resistance),
+      lt_limitation_price: parseFloat(optimizationResult.market.support)
     };
 
     // 准备返佣计算所需数据
     const commissionData = {
-      expectedDailyFrequency: parseFloat(selectedConfig.expectedDailyFrequency),
-      expectedDailyProfit: parseFloat(selectedConfig.expectedDailyProfit),
-      tradeValue: parseFloat(selectedConfig.tradeValue)
+      expected_daily_frequency: parseFloat(selectedConfig.expected_daily_frequency),
+      expected_daily_profit: parseFloat(selectedConfig.expected_daily_profit),
+      trade_value: parseFloat(selectedConfig.trade_value)
     };
 
     // 调用父组件回调，更新表单并传递返佣数据
@@ -163,305 +163,305 @@ export function SmartConfigModal({
                 </div>
               )}
 
-      {step === 'input' && (
-        <div className="smart-config-form">
-          {/* 预算投入资金 */}
-          <div className="smart-config-form-field">
-            <label className="smart-config-form-label">
+              {step === 'input' && (
+                <div className="smart-config-form">
+                  {/* 预算投入资金 */}
+                  <div className="smart-config-form-field">
+                    <label className="smart-config-form-label">
               预算投入资金 (USDT)
-              <span className="grid-strategy-form-required">*</span>
-            </label>
-            <NumberInput
-              value={budget}
-              onChange={(value) => setBudget(typeof value === 'number' ? value : parseFloat(value || '0'))}
-              min={10}
-              max={100000}
-              step={100}
-              placeholder="例如：1000"
-            />
-            <div className="smart-config-form-help">总投入资金，建议 100~10000 USDT</div>
-          </div>
+                      <span className="grid-strategy-form-required">*</span>
+                    </label>
+                    <NumberInput
+                      value={budget}
+                      onChange={(value) => setBudget(typeof value === 'number' ? value : parseFloat(value || '0'))}
+                      min={10}
+                      max={100000}
+                      step={100}
+                      placeholder="例如：1000"
+                    />
+                    <div className="smart-config-form-help">总投入资金，建议 100~10000 USDT</div>
+                  </div>
 
-          {/* 优化目标 */}
-          <div className="smart-config-form-field">
-            <label className="smart-config-form-label">
+                  {/* 优化目标 */}
+                  <div className="smart-config-form-field">
+                    <label className="smart-config-form-label">
               优化目标
-              <span className="grid-strategy-form-required">*</span>
-            </label>
-            <div className="radio-group">
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="optimizeTarget"
-                  value="profit"
-                  checked={optimizeTarget === 'profit'}
-                  onChange={() => setOptimizeTarget('profit')}
-                />
-                <span>收益最大化</span>
-              </label>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="optimizeTarget"
-                  value="cost"
-                  checked={optimizeTarget === 'cost'}
-                  onChange={() => setOptimizeTarget('cost')}
-                />
-                <span>成本摊薄高频</span>
-              </label>
-            </div>
-            <div className="smart-config-form-help">
-              {optimizeTarget === 'profit'
-                ? '追求最大收益，适合波动较大的市场'
-                : '降低持仓成本，适合震荡行情'}
-            </div>
-          </div>
+                      <span className="grid-strategy-form-required">*</span>
+                    </label>
+                    <div className="radio-group">
+                      <label className="radio-label">
+                        <input
+                          type="radio"
+                          name="optimizeTarget"
+                          value="profit"
+                          checked={optimize_target === 'profit'}
+                          onChange={() => setOptimizeTarget('profit')}
+                        />
+                        <span>收益最大化</span>
+                      </label>
+                      <label className="radio-label">
+                        <input
+                          type="radio"
+                          name="optimizeTarget"
+                          value="cost"
+                          checked={optimize_target === 'cost'}
+                          onChange={() => setOptimizeTarget('cost')}
+                        />
+                        <span>成本摊薄高频</span>
+                      </label>
+                    </div>
+                    <div className="smart-config-form-help">
+                      {optimize_target === 'profit'
+                        ? '追求最大收益，适合波动较大的市场'
+                        : '降低持仓成本，适合震荡行情'}
+                    </div>
+                  </div>
 
-          {/* 每笔交易金额范围 */}
-          <div className="smart-config-form-field">
-            <label className="smart-config-form-label">
+                  {/* 每笔交易金额范围 */}
+                  <div className="smart-config-form-field">
+                    <label className="smart-config-form-label">
               每笔交易金额范围 (USDT)
-              <span className="grid-strategy-form-required">*</span>
-            </label>
-            <div className="smart-config-input-group">
-              <NumberInput
-                value={minTradeValue}
-                onChange={(value) => setMinTradeValue(typeof value === 'number' ? value : parseFloat(value || '20'))}
-                min={10}
-                max={1000}
-                step={5}
-                placeholder="最小值"
-              />
-              <span className="smart-config-input-separator">~</span>
-              <NumberInput
-                value={maxTradeValue}
-                onChange={(value) => setMaxTradeValue(typeof value === 'number' ? value : parseFloat(value || '100'))}
-                min={10}
-                max={1000}
-                step={5}
-                placeholder="最大值"
-              />
-            </div>
-            <div className="smart-config-form-help">单笔交易的资金范围，建议 20~50 USDT</div>
-          </div>
+                      <span className="grid-strategy-form-required">*</span>
+                    </label>
+                    <div className="smart-config-input-group">
+                      <NumberInput
+                        value={min_trade_value}
+                        onChange={(value) => setMinTradeValue(typeof value === 'number' ? value : parseFloat(value || '20'))}
+                        min={10}
+                        max={1000}
+                        step={5}
+                        placeholder="最小值"
+                      />
+                      <span className="smart-config-input-separator">~</span>
+                      <NumberInput
+                        value={max_trade_value}
+                        onChange={(value) => setMaxTradeValue(typeof value === 'number' ? value : parseFloat(value || '100'))}
+                        min={10}
+                        max={1000}
+                        step={5}
+                        placeholder="最大值"
+                      />
+                    </div>
+                    <div className="smart-config-form-help">单笔交易的资金范围，建议 20~50 USDT</div>
+                  </div>
 
-          {/* 市场分析周期 */}
-          <div className="smart-config-form-field">
-            <label className="smart-config-form-label">
+                  {/* 市场分析周期 */}
+                  <div className="smart-config-form-field">
+                    <label className="smart-config-form-label">
               市场分析周期
-              <span className="grid-strategy-form-required">*</span>
-            </label>
-            <div className="radio-group">
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="interval"
-                  value="1h"
-                  checked={interval === '1h'}
-                  onChange={() => setInterval('1h')}
-                />
-                <span>1小时</span>
-              </label>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="interval"
-                  value="4h"
-                  checked={interval === '4h'}
-                  onChange={() => setInterval('4h')}
-                />
-                <span>4小时（推荐）</span>
-              </label>
-              <label className="radio-label">
-                <input
-                  type="radio"
-                  name="interval"
-                  value="1d"
-                  checked={interval === '1d'}
-                  onChange={() => setInterval('1d')}
-                />
-                <span>1天</span>
-              </label>
-            </div>
-            <div className="smart-config-form-help">K线分析周期，4小时平衡准确度和响应速度</div>
-          </div>
-
-          {/* 开始计算按钮 */}
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={handleOptimize}
-            style={{ width: '100%', marginTop: '24px' }}
-          >
-            开始计算
-          </button>
-        </div>
-      )}
-
-      {step === 'result' && optimizationResult && (
-        <div className="smart-config-result">
-          {/* 市场分析 */}
-          <div className="smart-config-section">
-            <h3 className="smart-config-section-title">
-              <span>📊</span>
-              市场分析（{optimizationResult.intervalLabel}）
-            </h3>
-            <div className="smart-config-market-analysis">
-              <div className="smart-config-analysis-item">
-                <span className="label">支撑位</span>
-                <span className="value">{NumberFormat.truncateDecimal(optimizationResult.market.support)} USDT</span>
-              </div>
-              <div className="smart-config-analysis-item">
-                <span className="label">阻力位</span>
-                <span className="value">{NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT</span>
-              </div>
-              <div className="smart-config-analysis-item">
-                <span className="label">当前价格波动率</span>
-                <span className="value">{optimizationResult.market.volatility}</span>
-              </div>
-              <div className="smart-config-analysis-item">
-                <span className="label">风险等级</span>
-                <span className="value">{optimizationResult.risk.level}</span>
-              </div>
-              <div className="smart-config-analysis-item full-width">
-                <span className="icon">✓</span>
-                <span className="advice">{optimizationResult.market.volatilityAdvice}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* 推荐交易区间 */}
-          <div className="smart-config-section">
-            <h3 className="smart-config-section-title">
-              <span>🎯</span>
-              推荐交易区间
-            </h3>
-            <div className="smart-config-trading-range">
-              {/* 当前价格 */}
-              <div className="smart-config-current-price">
-                <span className="label">当前价格</span>
-                <span className="value">{NumberFormat.truncateDecimal(optimizationResult.market.currentPrice)} USDT</span>
-              </div>
-              {defaultParams?.positionSide === 'LONG' ? (
-                <>
-                  <div className="smart-config-range-rule">
-                    价格高于 {NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT，继续网格，持续更高收益
+                      <span className="grid-strategy-form-required">*</span>
+                    </label>
+                    <div className="radio-group">
+                      <label className="radio-label">
+                        <input
+                          type="radio"
+                          name="interval"
+                          value="1h"
+                          checked={interval === '1h'}
+                          onChange={() => setInterval('1h')}
+                        />
+                        <span>1小时</span>
+                      </label>
+                      <label className="radio-label">
+                        <input
+                          type="radio"
+                          name="interval"
+                          value="4h"
+                          checked={interval === '4h'}
+                          onChange={() => setInterval('4h')}
+                        />
+                        <span>4小时（推荐）</span>
+                      </label>
+                      <label className="radio-label">
+                        <input
+                          type="radio"
+                          name="interval"
+                          value="1d"
+                          checked={interval === '1d'}
+                          onChange={() => setInterval('1d')}
+                        />
+                        <span>1天</span>
+                      </label>
+                    </div>
+                    <div className="smart-config-form-help">K线分析周期，4小时平衡准确度和响应速度</div>
                   </div>
-                  <div className="smart-config-range-rule">
-                    价格低于 {NumberFormat.truncateDecimal(optimizationResult.market.support)} USDT，暂停开仓，规避下跌风险
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="smart-config-range-rule">
-                    价格高于 {NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT，暂停开仓，规避上涨风险
-                  </div>
-                  <div className="smart-config-range-rule">
-                    价格低于 {NumberFormat.truncateDecimal(optimizationResult.market.support)} USDT，继续网格，持续更高收益
-                  </div>
-                </>
-              )}
-              <div className="smart-config-range-tip">
-                基于近期K线数据分析，在此区间内网格交易效率最高
-              </div>
-            </div>
-          </div>
 
-          {/* 配置对比 */}
-          <div className="smart-config-section">
-            <h3 className="smart-config-section-title">
-              <span>⚖️</span>
-              配置对比 - {optimizationResult.optimizeTargetLabel}
-            </h3>
-            <table className="smart-config-table">
-              <thead>
-                <tr>
-                  <th>间距</th>
-                  <th>每笔金额 (USDT)</th>
-                  <th>预期日频 (次)</th>
-                  <th>预期日收益 (USDT)</th>
-                  <th>日收益率</th>
-                </tr>
-              </thead>
-              <tbody>
-                {optimizationResult.recommended.analysis?.topList?.map((config: GridConfigOption, index: number) => (
-                  <tr
-                    key={index}
-                    className={selectedConfigIndex === index ? 'selected' : ''}
-                    onClick={() => setSelectedConfigIndex(index)}
+                  {/* 开始计算按钮 */}
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleOptimize}
+                    style={{ width: '100%', marginTop: '24px' }}
                   >
-                    <td>{config.gridSpacingPercent}</td>
-                    <td>{NumberFormat.truncateDecimal(config.tradeValue)}</td>
-                    <td>{NumberFormat.truncateDecimal(config.expectedDailyFrequency)}</td>
-                    <td>{NumberFormat.truncateDecimal(config.expectedDailyProfit)}</td>
-                    <td>{config.expectedDailyROI}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+            开始计算
+                  </button>
+                </div>
+              )}
 
-          {/* 当前选中配置 */}
-          {optimizationResult.recommended.analysis?.topList?.[selectedConfigIndex] && (
-            <div className="smart-config-section">
-              <h3 className="smart-config-section-title">
-                <span>✅</span>
+              {step === 'result' && optimizationResult && (
+                <div className="smart-config-result">
+                  {/* 市场分析 */}
+                  <div className="smart-config-section">
+                    <h3 className="smart-config-section-title">
+                      <span>📊</span>
+              市场分析（{optimizationResult.interval_label}）
+                    </h3>
+                    <div className="smart-config-market-analysis">
+                      <div className="smart-config-analysis-item">
+                        <span className="label">支撑位</span>
+                        <span className="value">{NumberFormat.truncateDecimal(optimizationResult.market.support)} USDT</span>
+                      </div>
+                      <div className="smart-config-analysis-item">
+                        <span className="label">阻力位</span>
+                        <span className="value">{NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT</span>
+                      </div>
+                      <div className="smart-config-analysis-item">
+                        <span className="label">当前价格波动率</span>
+                        <span className="value">{optimizationResult.market.volatility}</span>
+                      </div>
+                      <div className="smart-config-analysis-item">
+                        <span className="label">风险等级</span>
+                        <span className="value">{optimizationResult.risk.level}</span>
+                      </div>
+                      <div className="smart-config-analysis-item full-width">
+                        <span className="icon">✓</span>
+                        <span className="advice">{optimizationResult.market.volatility_advice}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 推荐交易区间 */}
+                  <div className="smart-config-section">
+                    <h3 className="smart-config-section-title">
+                      <span>🎯</span>
+              推荐交易区间
+                    </h3>
+                    <div className="smart-config-trading-range">
+                      {/* 当前价格 */}
+                      <div className="smart-config-current-price">
+                        <span className="label">当前价格</span>
+                        <span className="value">{NumberFormat.truncateDecimal(optimizationResult.market.current_price)} USDT</span>
+                      </div>
+                      {default_params?.position_side === 'LONG' ? (
+                        <>
+                          <div className="smart-config-range-rule">
+                    价格高于 {NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT，继续网格，持续更高收益
+                          </div>
+                          <div className="smart-config-range-rule">
+                    价格低于 {NumberFormat.truncateDecimal(optimizationResult.market.support)} USDT，暂停开仓，规避下跌风险
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="smart-config-range-rule">
+                    价格高于 {NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT，暂停开仓，规避上涨风险
+                          </div>
+                          <div className="smart-config-range-rule">
+                    价格低于 {NumberFormat.truncateDecimal(optimizationResult.market.support)} USDT，继续网格，持续更高收益
+                          </div>
+                        </>
+                      )}
+                      <div className="smart-config-range-tip">
+                基于近期K线数据分析，在此区间内网格交易效率最高
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 配置对比 */}
+                  <div className="smart-config-section">
+                    <h3 className="smart-config-section-title">
+                      <span>⚖️</span>
+              配置对比 - {optimizationResult.optimize_target_label}
+                    </h3>
+                    <table className="smart-config-table">
+                      <thead>
+                        <tr>
+                          <th>间距</th>
+                          <th>每笔金额 (USDT)</th>
+                          <th>预期日频 (次)</th>
+                          <th>预期日收益 (USDT)</th>
+                          <th>日收益率</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {optimizationResult.recommended.analysis?.top_list?.map((config: GridConfigOption, index: number) => (
+                          <tr
+                            key={index}
+                            className={selectedConfigIndex === index ? 'selected' : ''}
+                            onClick={() => setSelectedConfigIndex(index)}
+                          >
+                            <td>{config.grid_spacing_percent}</td>
+                            <td>{NumberFormat.truncateDecimal(config.trade_value)}</td>
+                            <td>{NumberFormat.truncateDecimal(config.expected_daily_frequency)}</td>
+                            <td>{NumberFormat.truncateDecimal(config.expected_daily_profit)}</td>
+                            <td>{config.expected_daily_roi}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* 当前选中配置 */}
+                  {optimizationResult.recommended.analysis?.top_list?.[selectedConfigIndex] && (
+                    <div className="smart-config-section">
+                      <h3 className="smart-config-section-title">
+                        <span>✅</span>
                 当前选中配置
-              </h3>
-              <div className="smart-config-selected">
-                <div className="smart-config-selected-item">
-                  <span className="label">网格区间</span>
-                  <span className="value">
-                    {NumberFormat.truncateDecimal(optimizationResult.market.support)} ~ {NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT
-                  </span>
-                </div>
-                <div className="smart-config-selected-item">
-                  <span className="label">每笔交易数量</span>
-                  <span className="value">
-                    {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.topList[selectedConfigIndex].tradeQuantity)} {defaultParams?.tradingPair?.replace('USDT', '') || 'BTC'}
-                  </span>
-                </div>
-                <div className="smart-config-selected-item">
-                  <span className="label">每笔交易金额</span>
-                  <span className="value">
-                    {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.topList[selectedConfigIndex].tradeValue)} USDT
-                  </span>
-                </div>
-                <div className="smart-config-selected-item">
-                  <span className="label">预期日频</span>
-                  <span className="value">
-                    {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyFrequency)} 次/天
-                  </span>
-                </div>
-                <div className="smart-config-selected-item">
-                  <span className="label">预期日收益</span>
-                  <span className="value">
-                    {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.topList[selectedConfigIndex].expectedDailyProfit)} USDT
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
+                      </h3>
+                      <div className="smart-config-selected">
+                        <div className="smart-config-selected-item">
+                          <span className="label">网格区间</span>
+                          <span className="value">
+                            {NumberFormat.truncateDecimal(optimizationResult.market.support)} ~ {NumberFormat.truncateDecimal(optimizationResult.market.resistance)} USDT
+                          </span>
+                        </div>
+                        <div className="smart-config-selected-item">
+                          <span className="label">每笔交易数量</span>
+                          <span className="value">
+                            {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.top_list[selectedConfigIndex].trade_quantity)} {default_params?.trading_pair?.replace('USDT', '') || 'BTC'}
+                          </span>
+                        </div>
+                        <div className="smart-config-selected-item">
+                          <span className="label">每笔交易金额</span>
+                          <span className="value">
+                            {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.top_list[selectedConfigIndex].trade_value)} USDT
+                          </span>
+                        </div>
+                        <div className="smart-config-selected-item">
+                          <span className="label">预期日频</span>
+                          <span className="value">
+                            {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.top_list[selectedConfigIndex].expected_daily_frequency)} 次/天
+                          </span>
+                        </div>
+                        <div className="smart-config-selected-item">
+                          <span className="label">预期日收益</span>
+                          <span className="value">
+                            {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.top_list[selectedConfigIndex].expected_daily_profit)} USDT
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-          {/* 操作按钮 */}
-          <div className="smart-config-actions">
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={handleRecalculate}
-            >
+                  {/* 操作按钮 */}
+                  <div className="smart-config-actions">
+                    <button
+                      type="button"
+                      className="btn btn-outline"
+                      onClick={handleRecalculate}
+                    >
               重新计算
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              onClick={handleApplyConfig}
-            >
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-primary"
+                      onClick={handleApplyConfig}
+                    >
               应用配置
-            </button>
-          </div>
-        </div>
-      )}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="modal-footer">

@@ -1,10 +1,10 @@
-import type { Plugin } from '../types'
-import { PluginSaveConfig, PluginGetConfig } from '../../../wailsjs/go/main/App'
+import type { Plugin } from '../types';
+import { PluginSaveConfig, PluginGetConfig } from '../../../wailsjs/go/main/App';
 
 // U本位合约做T网格 插件页面骨架
 // 说明：此处仅展示必需参数占位，不含实盘逻辑
 
-let container: HTMLElement | null = null
+let container: HTMLElement | null = null;
 
 const html = `
   <div>
@@ -27,77 +27,77 @@ const html = `
       <div id="log" style="min-height:120px; border:1px dashed #666; padding:8px; border-radius:4px; white-space:pre-wrap"></div>
     </div>
   </div>
-`
+`;
 
 const plugin: Plugin = {
   id: 'u-grid-t',
   name: 'U本位合约做T网格',
   async init() {},
   mount(el: HTMLElement) {
-    container = el
-    container.innerHTML = html
-    const log = () => container!.querySelector<HTMLDivElement>('#log')!
-    const startBtn = container.querySelector<HTMLButtonElement>('#btn-start')
-    const stopBtn = container.querySelector<HTMLButtonElement>('#btn-stop')
-    const saveBtn = container.querySelector<HTMLButtonElement>('#btn-save')
-    const loadBtn = container.querySelector<HTMLButtonElement>('#btn-load')
-    const $ = (id: string) => container!.querySelector<HTMLInputElement>(id)!
+    container = el;
+    container.innerHTML = html;
+    const log = () => container!.querySelector<HTMLDivElement>('#log')!;
+    const startBtn = container.querySelector<HTMLButtonElement>('#btn-start');
+    const stopBtn = container.querySelector<HTMLButtonElement>('#btn-stop');
+    const saveBtn = container.querySelector<HTMLButtonElement>('#btn-save');
+    const loadBtn = container.querySelector<HTMLButtonElement>('#btn-load');
+    const $ = (id: string) => container!.querySelector<HTMLInputElement>(id)!;
     const validate = (cfg: any): string | null => {
-      const sym = String(cfg.symbol||'').trim()
-      if (!sym || sym.length < 4) return '交易对无效'
-      if (Number.isNaN(cfg.gridCount) || cfg.gridCount <= 0) return '网格数量必须大于0'
-      if (Number.isNaN(cfg.gridFunds) || cfg.gridFunds <= 0) return '单格资金必须大于0'
-      return null
-    }
+      const sym = String(cfg.symbol||'').trim();
+      if (!sym || sym.length < 4) return '交易对无效';
+      if (Number.isNaN(cfg.gridCount) || cfg.gridCount <= 0) return '网格数量必须大于0';
+      if (Number.isNaN(cfg.gridFunds) || cfg.gridFunds <= 0) return '单格资金必须大于0';
+      return null;
+    };
     startBtn && (startBtn.onclick = () => {
       const cfg = {
         symbol: $("#symbol").value.trim(),
         gridCount: Number($("#gridCount").value||0),
         gridFunds: Number($("#gridFunds").value||0)
-      }
-      const err = validate(cfg)
+      };
+      const err = validate(cfg);
       if (err) {
-        log().textContent = `[${new Date().toLocaleTimeString()}] [错误] ${err}\n` + (log().textContent || '')
-        return
+        log().textContent = `[${new Date().toLocaleTimeString()}] [错误] ${err}\n` + (log().textContent || '');
+        return;
       }
-      log().textContent = `[${new Date().toLocaleTimeString()}] 启动做T网格（占位）\n` + (log().textContent || '')
-    })
+      log().textContent = `[${new Date().toLocaleTimeString()}] 启动做T网格（占位）\n` + (log().textContent || '');
+    });
     stopBtn && (stopBtn.onclick = () => {
-      log().textContent = `[${new Date().toLocaleTimeString()}] 停止做T网格（占位）\n` + (log().textContent || '')
-    })
+      log().textContent = `[${new Date().toLocaleTimeString()}] 停止做T网格（占位）\n` + (log().textContent || '');
+    });
     saveBtn && (saveBtn.onclick = async () => {
       const cfg = {
         symbol: $("#symbol").value,
         gridCount: Number($("#gridCount").value || 0),
         gridFunds: Number($("#gridFunds").value || 0)
-      }
-      await PluginSaveConfig('u-grid-t', cfg as any)
-      log().textContent = `[${new Date().toLocaleTimeString()}] 已保存配置\n` + (log().textContent || '')
-    })
+      };
+      await PluginSaveConfig('u-grid-t', cfg as any);
+      log().textContent = `[${new Date().toLocaleTimeString()}] 已保存配置\n` + (log().textContent || '');
+    });
     const applyCfg = (cfg: any) => {
-      if (!cfg) return
-      if (cfg.symbol) $("#symbol").value = String(cfg.symbol)
-      if (cfg.gridCount != null) $("#gridCount").value = String(cfg.gridCount)
-      if (cfg.gridFunds != null) $("#gridFunds").value = String(cfg.gridFunds)
-    }
+      if (!cfg) return;
+      if (cfg.symbol) $("#symbol").value = String(cfg.symbol);
+      if (cfg.gridCount != null) $("#gridCount").value = String(cfg.gridCount);
+      if (cfg.gridFunds != null) $("#gridFunds").value = String(cfg.gridFunds);
+    };
     loadBtn && (loadBtn.onclick = async () => {
-      const res: any = await PluginGetConfig('u-grid-t')
-      if (res && res.status === 'success') applyCfg(res.data)
-      log().textContent = `[${new Date().toLocaleTimeString()}] 已读取配置\n` + (log().textContent || '')
-    })
+      const res: any = await PluginGetConfig('u-grid-t');
+      if (res && res.status === 'success') applyCfg(res.data);
+      log().textContent = `[${new Date().toLocaleTimeString()}] 已读取配置\n` + (log().textContent || '');
+    });
     // 初次挂载：若无配置则写入默认值后应用
-    const defaults = { symbol: 'BTCUSDT', gridCount: 10, gridFunds: 100 }
+    const defaults = { symbol: 'BTCUSDT', gridCount: 10, gridFunds: 100 };
     PluginGetConfig('u-grid-t').then(async (res: any) => {
-      let cfg = (res && res.status === 'success' && res.data) ? res.data : null
+      let cfg = (res && res.status === 'success' && res.data) ? res.data : null;
       if (!cfg || cfg.symbol == null) {
-        await PluginSaveConfig('u-grid-t', defaults as any)
-        cfg = defaults
+        await PluginSaveConfig('u-grid-t', defaults as any);
+        cfg = defaults;
       }
-      applyCfg(cfg)
-    })
+      applyCfg(cfg);
+    });
   },
-  unmount() { if (container) container.innerHTML = '' },
-  dispose() { container = null }
-}
+  unmount() { if (container) container.innerHTML = ''; },
+  dispose() { container = null; }
+};
 
-export default plugin
+export default plugin;

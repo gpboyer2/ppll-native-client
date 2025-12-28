@@ -1,5 +1,5 @@
-import { RequestWrapper } from './request'
-import { Response } from '../core/response'
+import { RequestWrapper } from './request';
+import { Response } from '../core/response';
 import {
   BinanceApiResponse,
   AccountInfoRequest,
@@ -8,7 +8,7 @@ import {
   OperationResult,
   BatchClosePositionRequest,
   ClosePositionResponse
-} from '../types/binance'
+} from '../types/binance';
 
 /**
  * 币安合约交易API接口
@@ -16,7 +16,7 @@ import {
  */
 export class BinanceApi {
   // 服务器基础URL
-  private static readonly BASE_URL = 'http://156.245.200.31:7002'
+  private static readonly BASE_URL = 'http://156.245.200.31:7002';
 
   // ==================== 账户相关 ====================
 
@@ -29,7 +29,7 @@ export class BinanceApi {
     return RequestWrapper.post<BinanceApiResponse<AccountInfo>>(
       `${this.BASE_URL}/api/v1/dashboard/account`,
       request
-    )
+    );
   }
 
   // ==================== 订单相关 ====================
@@ -46,7 +46,7 @@ export class BinanceApi {
     return RequestWrapper.post<BinanceApiResponse<OperationResult>>(
       `${this.BASE_URL}/api/v1/orders/custom-build-position`,
       request
-    )
+    );
   }
 
   /**
@@ -61,32 +61,32 @@ export class BinanceApi {
     return RequestWrapper.post<BinanceApiResponse<ClosePositionResponse>>(
       `${this.BASE_URL}/api/v1/orders/batch-close-position`,
       request
-    )
+    );
   }
 
   // ==================== 工具方法 ====================
 
   /**
    * 验证API凭证格式
-   * @param apiKey API密钥
-   * @param apiSecret API密钥Secret
+   * @param api_key API密钥
+   * @param secret_key API密钥Secret
    * @returns 是否有效
    */
-  static validateCredentials(apiKey: string, apiSecret: string): boolean {
-    return !!(apiKey && apiKey.trim() && apiSecret && apiSecret.trim())
+  static validateCredentials(api_key: string, secret_key: string): boolean {
+    return !!(api_key && api_key.trim() && secret_key && secret_key.trim());
   }
 
   /**
    * 构建API凭证对象
-   * @param apiKey API密钥
-   * @param apiSecret API密钥Secret
+   * @param api_key API密钥
+   * @param secret_key API密钥Secret
    * @returns API凭证对象
    */
-  static buildCredentials(apiKey: string, apiSecret: string) {
+  static buildCredentials(api_key: string, secret_key: string) {
     return {
-      apiKey: apiKey.trim(),
-      apiSecret: apiSecret.trim()
-    }
+      api_key: api_key.trim(),
+      secret_key: secret_key.trim()
+    };
   }
 
   /**
@@ -99,7 +99,7 @@ export class BinanceApi {
     return symbols
       .filter(symbol => symbol && symbol.trim())
       .map(symbol => symbol.trim().toUpperCase())
-      .filter(symbol => symbol.endsWith('USDT')) // 只保留USDT交易对
+      .filter(symbol => symbol.endsWith('USDT')); // 只保留USDT交易对
   }
 
   /**
@@ -107,18 +107,18 @@ export class BinanceApi {
    * @param positions 建仓配置列表
    * @returns 是否有效
    */
-  static validatePositionConfigs(positions: Array<{ symbol: string; longAmount: number; shortAmount: number }>): boolean {
+  static validatePositionConfigs(positions: Array<{ symbol: string; long_amount: number; short_amount: number }>): boolean {
     if (!positions || positions.length === 0) {
-      return false
+      return false;
     }
 
     return positions.every(pos =>
       pos.symbol &&
       pos.symbol.trim() &&
-      typeof pos.longAmount === 'number' &&
-      pos.longAmount > 0 &&
-      typeof pos.shortAmount === 'number' &&
-      pos.shortAmount > 0
-    )
+      typeof pos.long_amount === 'number' &&
+      pos.long_amount > 0 &&
+      typeof pos.short_amount === 'number' &&
+      pos.short_amount > 0
+    );
   }
 }

@@ -13,23 +13,23 @@ import { PPLLMantineProvider } from '../../core/MantineProvider';
 
 // 下拉框样式配置
 const selectStyles = {
-    input: {
-        backgroundColor: 'var(--color-surface)',
-        borderColor: 'var(--color-border)',
-        color: 'var(--color-text)',
-        minHeight: '36px'
-    },
-    dropdown: {
-        backgroundColor: 'var(--color-surface)',
-        borderColor: 'var(--color-border)'
-    },
-    option: {
-        backgroundColor: 'var(--color-surface)',
-        color: 'var(--color-text)',
-        '&:hover': {
-            backgroundColor: 'var(--color-bg-muted)'
-        }
+  input: {
+    backgroundColor: 'var(--color-surface)',
+    borderColor: 'var(--color-border)',
+    color: 'var(--color-text)',
+    minHeight: '36px'
+  },
+  dropdown: {
+    backgroundColor: 'var(--color-surface)',
+    borderColor: 'var(--color-border)'
+  },
+  option: {
+    backgroundColor: 'var(--color-surface)',
+    color: 'var(--color-text)',
+    '&:hover': {
+      backgroundColor: 'var(--color-bg-muted)'
     }
+  }
 };
 
 /**
@@ -40,17 +40,17 @@ export interface SelectProps extends Omit<MantineSelectProps, 'onChange'> {
 }
 
 export function Select(props: SelectProps) {
-    const { onChange, ...rest } = props;
-    // Select 的 onChange 已经直接返回值,不需要适配
-    return (
-        <PPLLMantineProvider>
-            <MantineSelect
-                {...rest}
-                onChange={onChange}
-                styles={selectStyles}
-            />
-        </PPLLMantineProvider>
-    );
+  const { onChange, ...rest } = props;
+  // Select 的 onChange 已经直接返回值,不需要适配
+  return (
+    <PPLLMantineProvider>
+      <MantineSelect
+        {...rest}
+        onChange={onChange}
+        styles={selectStyles}
+      />
+    </PPLLMantineProvider>
+  );
 }
 
 /**
@@ -58,6 +58,6 @@ export function Select(props: SelectProps) {
  * 需要在外层已有 PPLLMantineProvider 的情况下使用
  */
 export function RawSelect(props: SelectProps) {
-    const { onChange, ...rest } = props;
-    return <MantineSelect {...rest} onChange={onChange} styles={selectStyles} />;
+  const { onChange, ...rest } = props;
+  return <MantineSelect {...rest} onChange={onChange} styles={selectStyles} />;
 }

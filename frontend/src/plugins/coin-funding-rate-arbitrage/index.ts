@@ -1,10 +1,10 @@
-import type { Plugin } from '../types'
-import { PluginSaveConfig, PluginGetConfig } from '../../../wailsjs/go/main/App'
+import type { Plugin } from '../types';
+import { PluginSaveConfig, PluginGetConfig } from '../../../wailsjs/go/main/App';
 
 // 币本位合约资金费率套利 插件页面骨架
 // 说明：此处仅展示必需参数占位，不含实盘逻辑
 
-let container: HTMLElement | null = null
+let container: HTMLElement | null = null;
 
 const html = `
   <div>
@@ -35,31 +35,31 @@ const html = `
       <div id="log" style="min-height:120px; border:1px dashed #666; padding:8px; border-radius:4px; white-space:pre-wrap"></div>
     </div>
   </div>
-`
+`;
 
 const plugin: Plugin = {
   id: 'coin-funding-rate-arbitrage',
   name: '币本位合约资金费率套利',
   async init() {},
   mount(el: HTMLElement) {
-    container = el
-    container.innerHTML = html
-    const log = () => container!.querySelector<HTMLDivElement>('#log')!
-    const startBtn = container.querySelector<HTMLButtonElement>('#btn-start')
-    const stopBtn = container.querySelector<HTMLButtonElement>('#btn-stop')
-    const saveBtn = container.querySelector<HTMLButtonElement>('#btn-save')
-    const loadBtn = container.querySelector<HTMLButtonElement>('#btn-load')
-    const $ = (id: string) => container!.querySelector<HTMLInputElement | HTMLSelectElement>(id)!
+    container = el;
+    container.innerHTML = html;
+    const log = () => container!.querySelector<HTMLDivElement>('#log')!;
+    const startBtn = container.querySelector<HTMLButtonElement>('#btn-start');
+    const stopBtn = container.querySelector<HTMLButtonElement>('#btn-stop');
+    const saveBtn = container.querySelector<HTMLButtonElement>('#btn-save');
+    const loadBtn = container.querySelector<HTMLButtonElement>('#btn-load');
+    const $ = (id: string) => container!.querySelector<HTMLInputElement | HTMLSelectElement>(id)!;
     const validate = (cfg: any): string | null => {
-      const sym = String(cfg.symbol||'').trim()
-      if (!sym || sym.length < 5) return '交易对无效（格式如 BTCUSD）'
-      if (Number.isNaN(cfg.minFundingRate) || cfg.minFundingRate <= 0) return '最小开仓费率必须大于0'
-      if (Number.isNaN(cfg.closeFundingRate) || cfg.closeFundingRate <= 0) return '平仓费率阈值必须大于0'
-      if (Number.isNaN(cfg.investAmount) || cfg.investAmount <= 0) return '投资金额必须大于0'
-      const lev = Number(cfg.leverage)
-      if (Number.isNaN(lev) || lev < 1 || lev > 125) return '杠杆倍数必须在1-125之间'
-      return null
-    }
+      const sym = String(cfg.symbol||'').trim();
+      if (!sym || sym.length < 5) return '交易对无效（格式如 BTCUSD）';
+      if (Number.isNaN(cfg.minFundingRate) || cfg.minFundingRate <= 0) return '最小开仓费率必须大于0';
+      if (Number.isNaN(cfg.closeFundingRate) || cfg.closeFundingRate <= 0) return '平仓费率阈值必须大于0';
+      if (Number.isNaN(cfg.investAmount) || cfg.investAmount <= 0) return '投资金额必须大于0';
+      const lev = Number(cfg.leverage);
+      if (Number.isNaN(lev) || lev < 1 || lev > 125) return '杠杆倍数必须在1-125之间';
+      return null;
+    };
     startBtn && (startBtn.onclick = () => {
       const cfg = {
         symbol: $("#symbol").value.trim(),
@@ -68,18 +68,18 @@ const plugin: Plugin = {
         investAmount: Number($("#investAmount").value||0),
         leverage: Number($("#leverage").value||0),
         strategyType: $("#strategyType").value
-      }
-      const err = validate(cfg)
+      };
+      const err = validate(cfg);
       if (err) {
-        log().textContent = `[${new Date().toLocaleTimeString()}] [错误] ${err}\n` + (log().textContent || '')
-        return
+        log().textContent = `[${new Date().toLocaleTimeString()}] [错误] ${err}\n` + (log().textContent || '');
+        return;
       }
-      const typeText = cfg.strategyType === 'positive' ? '正向套利' : '双向自动'
-      log().textContent = `[${new Date().toLocaleTimeString()}] 启动币本位资金费率套利（占位）\n交易对: ${cfg.symbol}, 策略: ${typeText}, 杠杆: ${cfg.leverage}x\n` + (log().textContent || '')
-    })
+      const typeText = cfg.strategyType === 'positive' ? '正向套利' : '双向自动';
+      log().textContent = `[${new Date().toLocaleTimeString()}] 启动币本位资金费率套利（占位）\n交易对: ${cfg.symbol}, 策略: ${typeText}, 杠杆: ${cfg.leverage}x\n` + (log().textContent || '');
+    });
     stopBtn && (stopBtn.onclick = () => {
-      log().textContent = `[${new Date().toLocaleTimeString()}] 停止币本位资金费率套利（占位）\n` + (log().textContent || '')
-    })
+      log().textContent = `[${new Date().toLocaleTimeString()}] 停止币本位资金费率套利（占位）\n` + (log().textContent || '');
+    });
     saveBtn && (saveBtn.onclick = async () => {
       const cfg = {
         symbol: $("#symbol").value,
@@ -88,24 +88,24 @@ const plugin: Plugin = {
         investAmount: Number($("#investAmount").value || 0),
         leverage: Number($("#leverage").value || 0),
         strategyType: $("#strategyType").value
-      }
-      await PluginSaveConfig('coin-funding-rate-arbitrage', cfg as any)
-      log().textContent = `[${new Date().toLocaleTimeString()}] 已保存配置\n` + (log().textContent || '')
-    })
+      };
+      await PluginSaveConfig('coin-funding-rate-arbitrage', cfg as any);
+      log().textContent = `[${new Date().toLocaleTimeString()}] 已保存配置\n` + (log().textContent || '');
+    });
     const applyCfg = (cfg: any) => {
-      if (!cfg) return
-      if (cfg.symbol) $("#symbol").value = String(cfg.symbol)
-      if (cfg.minFundingRate != null) $("#minFundingRate").value = String(cfg.minFundingRate)
-      if (cfg.closeFundingRate != null) $("#closeFundingRate").value = String(cfg.closeFundingRate)
-      if (cfg.investAmount != null) $("#investAmount").value = String(cfg.investAmount)
-      if (cfg.leverage != null) $("#leverage").value = String(cfg.leverage)
-      if (cfg.strategyType) $("#strategyType").value = String(cfg.strategyType)
-    }
+      if (!cfg) return;
+      if (cfg.symbol) $("#symbol").value = String(cfg.symbol);
+      if (cfg.minFundingRate != null) $("#minFundingRate").value = String(cfg.minFundingRate);
+      if (cfg.closeFundingRate != null) $("#closeFundingRate").value = String(cfg.closeFundingRate);
+      if (cfg.investAmount != null) $("#investAmount").value = String(cfg.investAmount);
+      if (cfg.leverage != null) $("#leverage").value = String(cfg.leverage);
+      if (cfg.strategyType) $("#strategyType").value = String(cfg.strategyType);
+    };
     loadBtn && (loadBtn.onclick = async () => {
-      const res: any = await PluginGetConfig('coin-funding-rate-arbitrage')
-      if (res && res.status === 'success') applyCfg(res.data)
-      log().textContent = `[${new Date().toLocaleTimeString()}] 已读取配置\n` + (log().textContent || '')
-    })
+      const res: any = await PluginGetConfig('coin-funding-rate-arbitrage');
+      if (res && res.status === 'success') applyCfg(res.data);
+      log().textContent = `[${new Date().toLocaleTimeString()}] 已读取配置\n` + (log().textContent || '');
+    });
     // 初次挂载：若无配置则写入默认值后应用
     const defaults = {
       symbol: 'BTCUSD',
@@ -114,18 +114,18 @@ const plugin: Plugin = {
       investAmount: 0.1,
       leverage: 3,
       strategyType: 'positive'
-    }
+    };
     PluginGetConfig('coin-funding-rate-arbitrage').then(async (res: any) => {
-      let cfg = (res && res.status === 'success' && res.data) ? res.data : null
+      let cfg = (res && res.status === 'success' && res.data) ? res.data : null;
       if (!cfg || cfg.symbol == null) {
-        await PluginSaveConfig('coin-funding-rate-arbitrage', defaults as any)
-        cfg = defaults
+        await PluginSaveConfig('coin-funding-rate-arbitrage', defaults as any);
+        cfg = defaults;
       }
-      applyCfg(cfg)
-    })
+      applyCfg(cfg);
+    });
   },
-  unmount() { if (container) container.innerHTML = '' },
-  dispose() { container = null }
-}
+  unmount() { if (container) container.innerHTML = ''; },
+  dispose() { container = null; }
+};
 
-export default plugin
+export default plugin;

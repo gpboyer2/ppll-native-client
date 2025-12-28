@@ -1,59 +1,59 @@
-import { ApiConfig, RequestConfig, RequestMethod, ApiResponse, ApiError } from '../types'
-import { useBinanceStore } from '../stores/binance-store'
+import { ApiConfig, RequestConfig, RequestMethod, ApiResponse, ApiError } from '../types';
+import { useBinanceStore } from '../stores/binance-store';
 
 /**
  * API客户端类
  */
 export class ApiClient {
-  private config: ApiConfig
-  private requestInterceptors: Array<(config: RequestConfig) => RequestConfig | Promise<RequestConfig>> = []
-  private responseInterceptors: Array<(response: ApiResponse) => ApiResponse | Promise<ApiResponse>> = []
+  private config: ApiConfig;
+  private requestInterceptors: Array<(config: RequestConfig) => RequestConfig | Promise<RequestConfig>> = [];
+  private responseInterceptors: Array<(response: ApiResponse) => ApiResponse | Promise<ApiResponse>> = [];
 
   constructor(config: Partial<ApiConfig> = {}) {
     this.config = {
-      baseURL: '',
+      base_url: '',
       timeout: 10000,
-      retryCount: 3,
-      retryDelay: 1000,
+      retry_count: 3,
+      retry_delay: 1000,
       ...config
-    }
+    };
   }
 
   /**
    * 配置API客户端
    */
   configure(config: Partial<ApiConfig>): void {
-    this.config = { ...this.config, ...config }
+    this.config = { ...this.config, ...config };
   }
 
   /**
    * 添加请求拦截器
    */
   addRequestInterceptor(interceptor: (config: RequestConfig) => RequestConfig | Promise<RequestConfig>): number {
-    this.requestInterceptors.push(interceptor)
-    return this.requestInterceptors.length - 1
+    this.requestInterceptors.push(interceptor);
+    return this.requestInterceptors.length - 1;
   }
 
   /**
    * 移除请求拦截器
    */
   removeRequestInterceptor(index: number): void {
-    this.requestInterceptors.splice(index, 1)
+    this.requestInterceptors.splice(index, 1);
   }
 
   /**
    * 添加响应拦截器
    */
   addResponseInterceptor(interceptor: (response: ApiResponse) => ApiResponse | Promise<ApiResponse>): number {
-    this.responseInterceptors.push(interceptor)
-    return this.responseInterceptors.length - 1
+    this.responseInterceptors.push(interceptor);
+    return this.responseInterceptors.length - 1;
   }
 
   /**
    * 移除响应拦截器
    */
   removeResponseInterceptor(index: number): void {
-    this.responseInterceptors.splice(index, 1)
+    this.responseInterceptors.splice(index, 1);
   }
 
   /**
@@ -61,31 +61,31 @@ export class ApiClient {
    */
   private buildUrl(url: string): string {
     if (url.startsWith('http')) {
-      return url
+      return url;
     }
-    return `${this.config.baseURL}${url}`
+    return `${this.config.base_url}${url}`;
   }
 
   /**
    * 执行请求拦截器
    */
   private async executeRequestInterceptors(config: RequestConfig): Promise<RequestConfig> {
-    let processedConfig = config
+    let processedConfig = config;
     for (const interceptor of this.requestInterceptors) {
-      processedConfig = await interceptor(processedConfig)
+      processedConfig = await interceptor(processedConfig);
     }
-    return processedConfig
+    return processedConfig;
   }
 
   /**
    * 执行响应拦截器
    */
   private async executeResponseInterceptors(response: ApiResponse): Promise<ApiResponse> {
-    let processedResponse = response
+    let processedResponse = response;
     for (const interceptor of this.responseInterceptors) {
-      processedResponse = await interceptor(processedResponse)
+      processedResponse = await interceptor(processedResponse);
     }
-    return processedResponse
+    return processedResponse;
   }
 
   /**
@@ -94,7 +94,7 @@ export class ApiClient {
   private async request<T = any>(config: RequestConfig): Promise<ApiResponse<T>> {
     try {
       // 执行请求拦截器
-      const processedConfig = await this.executeRequestInterceptors(config)
+      const processedConfig = await this.executeRequestInterceptors(config);
 
       // 构建请求选项
       const options: RequestInit = {
@@ -103,46 +103,46 @@ export class ApiClient {
           'Content-Type': 'application/json',
           ...processedConfig.headers
         },
-        credentials: processedConfig.withCredentials ? 'include' : 'same-origin'
-      }
+        credentials: processedConfig.with_credentials ? 'include' : 'same-origin'
+      };
 
       // 处理请求体
       if (processedConfig.data && processedConfig.method !== RequestMethod.GET) {
-        options.body = JSON.stringify(processedConfig.data)
+        options.body = JSON.stringify(processedConfig.data);
       }
 
       // 构建URL（包含查询参数）
-      let url = this.buildUrl(processedConfig.url)
+      let url = this.buildUrl(processedConfig.url);
       if (processedConfig.params) {
-        const searchParams = new URLSearchParams()
+        const searchParams = new URLSearchParams();
         Object.entries(processedConfig.params).forEach(([key, value]) => {
           if (value !== undefined && value !== null) {
-            searchParams.append(key, String(value))
+            searchParams.append(key, String(value));
           }
-        })
-        const queryString = searchParams.toString()
+        });
+        const queryString = searchParams.toString();
         if (queryString) {
-          url += (url.includes('?') ? '&' : '?') + queryString
+          url += (url.includes('?') ? '&' : '?') + queryString;
         }
       }
 
       // 设置超时
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), processedConfig.timeout || this.config.timeout)
-      options.signal = controller.signal
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), processedConfig.timeout || this.config.timeout);
+      options.signal = controller.signal;
 
       // 发起请求
-      const response = await fetch(url, options)
-      clearTimeout(timeoutId)
+      const response = await fetch(url, options);
+      clearTimeout(timeoutId);
 
       // 解析响应
-      let responseData: any
-      const contentType = response.headers.get('content-type')
+      let responseData: any;
+      const contentType = response.headers.get('content-type');
 
       if (contentType && contentType.includes('application/json')) {
-        responseData = await response.json()
+        responseData = await response.json();
       } else {
-        responseData = await response.text()
+        responseData = await response.text();
       }
 
       // 构建响应对象
@@ -151,29 +151,29 @@ export class ApiClient {
         data: responseData,
         code: response.status,
         message: response.statusText
-      }
+      };
 
       // 执行响应拦截器
-      return await this.executeResponseInterceptors(apiResponse)
+      return await this.executeResponseInterceptors(apiResponse);
 
     } catch (error: any) {
       // 处理错误
       const apiError: ApiError = {
         code: error.name === 'AbortError' ? 408 : 500,
         message: error.message || '请求失败'
-      }
+      };
 
       // 如果启用重试且错误允许重试
-      const retryCount = (config as any).__retryCount || 0
-      if (retryCount < (this.config.retryCount || 0) && this.shouldRetry(error)) {
+      const retryCount = (config as any).__retryCount || 0;
+      if (retryCount < (this.config.retry_count || 0) && this.shouldRetry(error)) {
         // 延迟后重试
-        await this.delay((config as any).__retryDelay || this.config.retryDelay || 1000)
+        await this.delay((config as any).__retryDelay || this.config.retry_delay || 1000);
         const retryConfig = {
           ...config,
           __retryCount: retryCount + 1,
-          __retryDelay: (config as any).__retryDelay || this.config.retryDelay || 1000
-        }
-        return this.request<T>(retryConfig)
+          __retryDelay: (config as any).__retryDelay || this.config.retry_delay || 1000
+        };
+        return this.request<T>(retryConfig);
       }
 
       return {
@@ -181,7 +181,7 @@ export class ApiClient {
         data: null as any,
         code: apiError.code,
         message: apiError.message
-      }
+      };
     }
   }
 
@@ -190,14 +190,14 @@ export class ApiClient {
    */
   private shouldRetry(error: any): boolean {
     // 网络错误或超时错误可以重试
-    return error.name === 'TypeError' || error.name === 'AbortError'
+    return error.name === 'TypeError' || error.name === 'AbortError';
   }
 
   /**
    * 延迟函数
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**
@@ -209,7 +209,7 @@ export class ApiClient {
       method: RequestMethod.GET,
       params,
       ...config
-    })
+    });
   }
 
   /**
@@ -221,7 +221,7 @@ export class ApiClient {
       method: RequestMethod.POST,
       data,
       ...config
-    })
+    });
   }
 
   /**
@@ -233,7 +233,7 @@ export class ApiClient {
       method: RequestMethod.PUT,
       data,
       ...config
-    })
+    });
   }
 
   /**
@@ -244,7 +244,7 @@ export class ApiClient {
       url,
       method: RequestMethod.DELETE,
       ...config
-    })
+    });
   }
 
   /**
@@ -256,15 +256,15 @@ export class ApiClient {
       method: RequestMethod.PATCH,
       data,
       ...config
-    })
+    });
   }
 
   /**
    * 文件上传
    */
   async upload<T = any>(url: string, file: File, config?: Partial<RequestConfig>): Promise<ApiResponse<T>> {
-    const formData = new FormData()
-    formData.append('file', file)
+    const formData = new FormData();
+    formData.append('file', file);
 
     return this.request<T>({
       url,
@@ -274,17 +274,17 @@ export class ApiClient {
         // 不设置Content-Type，让浏览器自动设置（包含boundary）
       },
       ...config
-    })
+    });
   }
 
   /**
    * 批量上传文件
    */
   async uploadMultiple<T = any>(url: string, files: File[], config?: Partial<RequestConfig>): Promise<ApiResponse<T>> {
-    const formData = new FormData()
+    const formData = new FormData();
     files.forEach((file, index) => {
-      formData.append(`files[${index}]`, file)
-    })
+      formData.append(`files[${index}]`, file);
+    });
 
     return this.request<T>({
       url,
@@ -292,28 +292,25 @@ export class ApiClient {
       data: formData,
       headers: {},
       ...config
-    })
+    });
   }
 }
 
 // 创建默认API客户端实例
-export const apiClient = new ApiClient()
+export const apiClient = new ApiClient();
 
-// 添加请求拦截器，自动注入当前激活的 API Key
+// 添加日志拦截器（在所有其他拦截器之后执行，记录最终发送的数据）
 apiClient.addRequestInterceptor((config: RequestConfig) => {
-  // 只对 /api/v1/ 开头的接口注入 API Key
+  // 打印最终请求信息（包含所有拦截器修改后的数据）
   if (config.url.startsWith('/api/v1/')) {
-    const activeApiKey = useBinanceStore.getState().getActiveApiKey()
-
-    if (activeApiKey) {
-      // 自动注入 apiKey 和 apiSecret，不覆盖已存在的值
-      config.data = {
-        ...config.data,
-        apiKey: activeApiKey.apiKey,
-        apiSecret: activeApiKey.secretKey,
-      }
+    const requestId = (apiClient as any).__requestId;
+    if (requestId) {
+      console.log(
+        `%c[请求 #${requestId}] 最终数据:`,
+        'color: #0066cc; font-weight: bold',
+        JSON.stringify(config.data, null, 2)
+      );
     }
   }
-
-  return config
-})
+  return config;
+});

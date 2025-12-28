@@ -9,32 +9,32 @@ export class NumberFormat {
    * 格式化数字，添加千分位分隔符
    */
   static thousands(num: number | string): string {
-    const n = typeof num === 'string' ? parseFloat(num) : num
-    return n.toLocaleString('zh-CN')
+    const n = typeof num === 'string' ? parseFloat(num) : num;
+    return n.toLocaleString('zh-CN');
   }
 
   /**
    * 格式化价格，保留指定小数位
    */
   static price(price: number, decimals: number = 2): string {
-    return price.toFixed(decimals)
+    return price.toFixed(decimals);
   }
 
   /**
    * 格式化百分比
    */
   static percent(value: number, decimals: number = 2): string {
-    return `${(value * 100).toFixed(decimals)}%`
+    return `${(value * 100).toFixed(decimals)}%`;
   }
 
   /**
    * 格式化大数字（K, M, B）
    */
   static large(num: number): string {
-    if (num < 1000) return num.toString()
-    if (num < 1000000) return `${(num / 1000).toFixed(1)}K`
-    if (num < 1000000000) return `${(num / 1000000).toFixed(1)}M`
-    return `${(num / 1000000000).toFixed(1)}B`
+    if (num < 1000) return num.toString();
+    if (num < 1000000) return `${(num / 1000).toFixed(1)}K`;
+    if (num < 1000000000) return `${(num / 1000000).toFixed(1)}M`;
+    return `${(num / 1000000000).toFixed(1)}B`;
   }
 
   /**
@@ -74,41 +74,41 @@ export class StringFormat {
    * 首字母大写
    */
   static capitalize(str: string): string {
-    return str.charAt(0).toUpperCase() + str.slice(1)
+    return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
   /**
    * 驼峰转下划线
    */
   static camelToSnake(str: string): string {
-    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
   }
 
   /**
    * 下划线转驼峰
    */
   static snakeToCamel(str: string): string {
-    return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase())
+    return str.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
   }
 
   /**
    * 截断字符串
    */
   static truncate(str: string, length: number, suffix: string = '...'): string {
-    if (str.length <= length) return str
-    return str.slice(0, length) + suffix
+    if (str.length <= length) return str;
+    return str.slice(0, length) + suffix;
   }
 
   /**
    * 生成随机字符串
    */
   static random(length: number = 8): string {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    let result = ''
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
     for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length))
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return result
+    return result;
   }
 }
 
@@ -120,21 +120,21 @@ export class FileFormat {
    * 格式化文件大小
    */
   static size(bytes: number): string {
-    const units = ['B', 'KB', 'MB', 'GB', 'TB']
-    let size = bytes
-    let unitIndex = 0
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let size = bytes;
+    let unitIndex = 0;
 
     while (size >= 1024 && unitIndex < units.length - 1) {
-      size /= 1024
-      unitIndex++
+      size /= 1024;
+      unitIndex++;
     }
 
-    return `${size.toFixed(2)} ${units[unitIndex]}`
+    return `${size.toFixed(2)} ${units[unitIndex]}`;
   }
 }
 
 // 导入通用类型
-import type { KeyValue } from '../types'
+import type { KeyValue } from '../types';
 
 /**
  * 数据格式化
@@ -144,64 +144,64 @@ export class DataFormat {
    * 深度克隆对象
    */
   static deepClone<T>(obj: T): T {
-    if (obj === null || typeof obj !== 'object') return obj
-    if (obj instanceof Date) return new Date(obj.getTime()) as any
-    if (obj instanceof Array) return obj.map(item => DataFormat.deepClone(item)) as any
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (obj instanceof Date) return new Date(obj.getTime()) as any;
+    if (obj instanceof Array) return obj.map(item => DataFormat.deepClone(item)) as any;
     if (typeof obj === 'object') {
-      const cloned = {} as any
+      const cloned = {} as any;
       for (const key in obj) {
         if (obj.hasOwnProperty(key)) {
-          cloned[key] = DataFormat.deepClone(obj[key])
+          cloned[key] = DataFormat.deepClone(obj[key]);
         }
       }
-      return cloned
+      return cloned;
     }
-    return obj
+    return obj;
   }
 
   /**
    * 扁平化对象
    */
   static flatten(obj: any, prefix: string = ''): KeyValue {
-    const flattened: KeyValue = {}
+    const flattened: KeyValue = {};
 
     for (const key in obj) {
       if (obj.hasOwnProperty(key)) {
-        const newKey = prefix ? `${prefix}.${key}` : key
+        const newKey = prefix ? `${prefix}.${key}` : key;
 
         if (typeof obj[key] === 'object' && obj[key] !== null && !Array.isArray(obj[key])) {
-          Object.assign(flattened, DataFormat.flatten(obj[key], newKey))
+          Object.assign(flattened, DataFormat.flatten(obj[key], newKey));
         } else {
-          flattened[newKey] = obj[key]
+          flattened[newKey] = obj[key];
         }
       }
     }
 
-    return flattened
+    return flattened;
   }
 
   /**
    * 反扁平化对象
    */
   static unflatten(obj: KeyValue): any {
-    const result: any = {}
+    const result: any = {};
 
     for (const key in obj) {
       if (obj.hasOwnProperty(key)) {
-        const keys = key.split('.')
-        let current = result
+        const keys = key.split('.');
+        let current = result;
 
         for (let i = 0; i < keys.length - 1; i++) {
           if (!(keys[i] in current)) {
-            current[keys[i]] = {}
+            current[keys[i]] = {};
           }
-          current = current[keys[i]]
+          current = current[keys[i]];
         }
 
-        current[keys[keys.length - 1]] = obj[key]
+        current[keys[keys.length - 1]] = obj[key];
       }
     }
 
-    return result
+    return result;
   }
 }

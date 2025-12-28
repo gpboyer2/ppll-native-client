@@ -1,7 +1,7 @@
 // 通知系统类型定义
 
 // 导入通用类型
-import type { UUID, Timestamp, KeyValue } from './common'
+import type { UUID, Timestamp, KeyValue } from './common';
 
 // 通知类型
 export enum NotificationType {

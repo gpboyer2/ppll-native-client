@@ -1,5 +1,5 @@
-import { notifications } from '@mantine/notifications'
-import type { Response } from '../core/response'
+import { notifications } from '@mantine/notifications';
+import type { Response } from '../core/response';
 
 /**
  * API 错误类
@@ -9,8 +9,8 @@ export class ApiError extends Error {
     public status: 'error',
     message: string
   ) {
-    super(message)
-    this.name = 'ApiError'
+    super(message);
+    this.name = 'ApiError';
   }
 }
 
@@ -32,7 +32,7 @@ export function showSuccess(message: string, options?: NotifyOptions) {
     title: options?.title || '操作成功',
     message: options?.description || message,
     withBorder: true
-  })
+  });
 }
 
 /**
@@ -44,7 +44,7 @@ export function showError(message: string, options?: NotifyOptions) {
     title: options?.title || '操作失败',
     message: options?.description || message,
     withBorder: true
-  })
+  });
 }
 
 /**
@@ -56,7 +56,7 @@ export function showWarning(message: string, options?: NotifyOptions) {
     title: options?.title || '警告',
     message: options?.description || message,
     withBorder: true
-  })
+  });
 }
 
 /**
@@ -67,11 +67,11 @@ export function showWarning(message: string, options?: NotifyOptions) {
 export function handleResponse<T>(response: Response<T>, options?: NotifyOptions): T {
   if (response.status === 'error') {
     if (options?.show !== false) {
-      showError(response.message, options)
+      showError(response.message, options);
     }
-    throw new ApiError(response.status, response.message)
+    throw new ApiError(response.status, response.message);
   }
-  return response.data as T
+  return response.data as T;
 }
 
 /**
@@ -81,9 +81,9 @@ export function handleResponse<T>(response: Response<T>, options?: NotifyOptions
  */
 export function handleResponseSilent<T>(response: Response<T>): T {
   if (response.status === 'error') {
-    throw new ApiError(response.status, response.message)
+    throw new ApiError(response.status, response.message);
   }
-  return response.data as T
+  return response.data as T;
 }
 
 /**
@@ -91,21 +91,21 @@ export function handleResponseSilent<T>(response: Response<T>): T {
  */
 export function catchError(error: unknown, options?: NotifyOptions): void {
   if (error instanceof ApiError) {
-    showError(error.message, options)
+    showError(error.message, options);
   } else if (error instanceof Error) {
     notifications.show({
       color: 'red',
       title: options?.title || '操作失败',
       message: error.message,
       withBorder: true
-    })
+    });
   } else {
     notifications.show({
       color: 'red',
       title: options?.title || '操作失败',
       message: '未知错误',
       withBorder: true
-    })
+    });
   }
 }
 
@@ -117,11 +117,11 @@ export async function withErrorHandling<T>(
   options?: NotifyOptions
 ): Promise<T | undefined> {
   try {
-    return handleResponse(await fn(), options)
+    return handleResponse(await fn(), options);
   } catch (error) {
     if (options?.show !== false) {
-      catchError(error, options)
+      catchError(error, options);
     }
-    return undefined
+    return undefined;
   }
 }

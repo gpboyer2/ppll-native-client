@@ -2,10 +2,10 @@
 
 // API 基础配置
 export interface ApiConfig {
-  baseURL: string
+  base_url: string
   timeout: number
-  retryCount?: number
-  retryDelay?: number
+  retry_count?: number
+  retry_delay?: number
 }
 
 // 请求方法
@@ -35,7 +35,7 @@ export interface RequestConfig {
   params?: Record<string, any>
   headers?: Record<string, string>
   timeout?: number
-  withCredentials?: boolean
+  with_credentials?: boolean
 }
 
 // API 响应包装
@@ -57,8 +57,8 @@ export interface ApiError {
 export interface WebSocketConfig {
   url: string
   protocols?: string[]
-  reconnectInterval?: number
-  maxReconnectAttempts?: number
+  reconnect_interval?: number
+  max_reconnect_attempts?: number
 }
 
 // WebSocket 消息
