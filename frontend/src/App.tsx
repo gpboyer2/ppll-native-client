@@ -21,6 +21,7 @@ import { useBinanceStore } from './stores/binance-store';
 import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
+import dayjs from 'dayjs'
 
 // 路由日志监听组件（就像 Vue Router 的 beforeEach）
 function RouteLogger() {
@@ -30,11 +31,12 @@ function RouteLogger() {
 
     useEffect(() => {
         const prevPath = prevPathRef.current;
+        const timestamp = dayjs().format('HH:mm:ss.SSS')
 
         // 记录路由跳转
         const routeId = ++routeIdRef.current;
         console.log(
-            `%c[路由 #${routeId}] ${prevPath} → ${location.pathname}`,
+            `%c[${timestamp}] [路由 #${routeId}] ${prevPath} → ${location.pathname}`,
             'color: #9900cc; font-weight: bold'
         );
 
