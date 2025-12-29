@@ -287,7 +287,6 @@ function GridStrategyEditPage() {
 
     // 触发验证（仅对需要验证的字段）
     const fields_to_validate = [
-      'grid_trade_quantity',
       'grid_long_open_quantity',
       'grid_long_close_quantity',
       'grid_short_open_quantity',
@@ -347,7 +346,6 @@ function GridStrategyEditPage() {
       leverage: 20,
       initial_fill_price: undefined,
       grid_price_difference: Number((Math.random() * 50 + 10).toFixed(2)),
-      grid_trade_quantity: Number((Math.random() * 0.5 + 0.01).toFixed(3)),
       grid_long_open_quantity: Number((Math.random() * 0.5 + 0.01).toFixed(3)),
       grid_long_close_quantity: Number((Math.random() * 0.5 + 0.01).toFixed(3)),
       grid_short_open_quantity: Number((Math.random() * 0.5 + 0.01).toFixed(3)),
@@ -398,7 +396,11 @@ function GridStrategyEditPage() {
       return {
         ...prev,
         grid_price_difference: config.grid_price_difference,
-        grid_trade_quantity: config.grid_trade_quantity,
+        // 使用智能配置的值设置到分离数量字段
+        grid_long_open_quantity: config.grid_trade_quantity,
+        grid_long_close_quantity: config.grid_trade_quantity,
+        grid_short_open_quantity: config.grid_trade_quantity,
+        grid_short_close_quantity: config.grid_trade_quantity,
         gt_limitation_price: config.gt_limitation_price,
         lt_limitation_price: config.lt_limitation_price,
         is_above_open_price: !is_long,  // 做多不暂停，做空暂停
@@ -638,21 +640,6 @@ function GridStrategyEditPage() {
               />
               <div className="help">每个网格之间的价格间隔，如10表示每个网格间隔10 USDT</div>
               {renderValidationHint('grid_price_difference')}
-            </div>
-
-            {/* 网格交易数量（通用） */}
-            <div className="grid-strategy-form-field">
-              <label className="grid-strategy-form-label">网格交易数量（通用）</label>
-              <NumberInput
-                value={formData.grid_trade_quantity}
-                onChange={(value) => updateFormField('grid_trade_quantity', (typeof value === 'number' ? value : parseFloat(value || '0')))}
-                decimalScale={3}
-                min={0.001}
-                step={0.001}
-                placeholder="例如：0.1"
-              />
-              <div className="help">每个网格的交易数量，如果没有设置分离数量则使用此值</div>
-              {renderValidationHint('grid_trade_quantity')}
             </div>
 
             {/* 做多开仓数量 */}
@@ -954,9 +941,10 @@ function GridStrategyEditPage() {
           trading_pair: formData.trading_pair,
           position_side: formData.position_side,
           grid_price_difference: formData.grid_price_difference || 0,
-          grid_trade_quantity: formData.grid_trade_quantity,
           grid_long_open_quantity: formData.grid_long_open_quantity,
+          grid_long_close_quantity: formData.grid_long_close_quantity,
           grid_short_open_quantity: formData.grid_short_open_quantity,
+          grid_short_close_quantity: formData.grid_short_close_quantity,
           // 传递智能配置计算的准确数据
           expected_daily_frequency: commissionData?.expected_daily_frequency,
           expected_daily_profit: commissionData?.expected_daily_profit,

@@ -34,11 +34,7 @@ const validateStrategyParams = async (req, res, next) => {
     if (grid_trade_quantity) {
       const quantityResult = strategyValidator.validateQuantity(grid_trade_quantity, symbolInfo);
       if (!quantityResult.valid) {
-        return sendError(res, {
-          message: quantityResult.message,
-          field: quantityResult.field,
-          suggestion: quantityResult.suggestion
-        }, httpStatus.BAD_REQUEST);
+        return sendError(res, `${quantityResult.message}${quantityResult.suggestion ? `，建议值: ${quantityResult.suggestion}` : ''}`, httpStatus.BAD_REQUEST);
       }
     }
 
@@ -46,11 +42,7 @@ const validateStrategyParams = async (req, res, next) => {
     if (grid_price_difference) {
       const priceResult = strategyValidator.validatePriceDifference(grid_price_difference, symbolInfo);
       if (!priceResult.valid) {
-        return sendError(res, {
-          message: priceResult.message,
-          field: priceResult.field,
-          suggestion: priceResult.suggestion
-        }, httpStatus.BAD_REQUEST);
+        return sendError(res, `${priceResult.message}${priceResult.suggestion ? `，建议值: ${priceResult.suggestion}` : ''}`, httpStatus.BAD_REQUEST);
       }
     }
 
