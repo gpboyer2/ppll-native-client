@@ -1,7 +1,7 @@
 /**
  * 网格参数优化器服务
  * 根据交易对的历史K线数据，计算最优网格参数
- * 
+ *
  * 架构说明：
  * - utils/kline-cache.js: K线缓存和币安客户端
  * - utils/technical-indicator.js: 技术指标计算
@@ -10,6 +10,8 @@
  */
 
 const BigNumber = require('bignumber.js');
+const binanceExchangeInfoService = require('../binance-exchange-info.service');
+const strategyValidator = require('../utils/strategy-validator');
 
 // K线缓存和币安客户端
 const {
@@ -695,6 +697,58 @@ const optimizeGridParams = async (options) => {
   // 计算风险等级（默认杠杆 20 倍，前端可根据用户选择重新计算）
   const riskResult = calculateRiskLevel(volatility_level, 20, grid_spacing_percent, volatility_percent);
 
+  // 获取交易所信息并验证/调整推荐参数
+  const exchangeInfo = await binanceExchangeInfoService.getLatestExchangeInfo();
+  let validated_recommended = recommended;
+
+  if (exchangeInfo && exchangeInfo.symbols) {
+    const symbolInfo = exchangeInfo.symbols.find(s => s.symbol === symbol);
+    if (symbolInfo) {
+      // 验证并调整交易数量
+      const quantityResult = strategyValidator.validateQuantity(recommended.trade_quantity, symbolInfo);
+      if (!quantityResult.valid) {
+        console.log(`[优化参数验证] trade_quantity 不符合规则，从 ${recommended.trade_quantity} 调整为 ${quantityResult.suggestion}`);
+        validated_recommended = {
+          ...validated_recommended,
+          trade_quantity: quantityResult.suggestion
+        };
+      }
+
+      // 验证并调整价格差价 (grid_spacing)
+      const priceResult = strategyValidator.validatePriceDifference(recommended.grid_spacing, symbolInfo);
+      if (!priceResult.valid) {
+        console.log(`[优化参数验证] grid_spacing 不符合规则，从 ${recommended.grid_spacing} 调整为 ${priceResult.suggestion}`);
+        validated_recommended = {
+          ...validated_recommended,
+          grid_spacing: priceResult.suggestion
+        };
+      }
+
+      // 如果有 boundary_defense，也需要验证
+      if (boundary_defense) {
+        let validated_boundary = boundary_defense;
+        const bdQuantityResult = strategyValidator.validateQuantity(boundary_defense.trade_quantity, symbolInfo);
+        if (!bdQuantityResult.valid) {
+          console.log(`[优化参数验证] boundary_defense trade_quantity 不符合规则，从 ${boundary_defense.trade_quantity} 调整为 ${bdQuantityResult.suggestion}`);
+          validated_boundary = {
+            ...validated_boundary,
+            trade_quantity: bdQuantityResult.suggestion
+          };
+        }
+
+        const bdPriceResult = strategyValidator.validatePriceDifference(boundary_defense.grid_spacing, symbolInfo);
+        if (!bdPriceResult.valid) {
+          console.log(`[优化参数验证] boundary_defense grid_spacing 不符合规则，从 ${boundary_defense.grid_spacing} 调整为 ${bdPriceResult.suggestion}`);
+          validated_boundary = {
+            ...validated_boundary,
+            grid_spacing: bdPriceResult.suggestion
+          };
+        }
+        boundary_defense = validated_boundary;
+      }
+    }
+  }
+
   // 返回结果
   return {
     symbol,
@@ -743,8 +797,8 @@ const optimizeGridParams = async (options) => {
       score: riskResult.score
     },
 
-    // 推荐网格参数（正常状态使用）
-    recommended,
+    // 推荐网格参数（正常状态使用，已验证）
+    recommended: validated_recommended,
 
     // 防守边界参数（突破边界后使用，仅当 enableBoundaryDefense=true 时返回）
     boundary_defense
