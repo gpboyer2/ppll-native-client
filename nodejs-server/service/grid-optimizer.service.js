@@ -197,6 +197,12 @@ const optimizeForProfit = (params) => {
   const { support, resistance, avg_price, price_range } = market;
   const atr = calculateATR(kline_list);
 
+  // 检查精度规则
+  if (!precision_rules) {
+    console.error('[optimizeForProfit] 缺少精度规则，无法进行优化');
+    return null;
+  }
+
   // 每笔交易金额范围：用户指定 或 默认 20~100 USDT
   const min_trade_value = userMinTradeValue || 20;
   const max_trade_value = userMaxTradeValue || 100;
@@ -206,9 +212,28 @@ const optimizeForProfit = (params) => {
 
   // 精度规则辅助函数：调整数值到符合规则的精度
   const adjustToPrecision = (value, isPrice = false) => {
+    // 防御性检查
+    if (!precision_rules || !value || isNaN(value)) {
+      return value;
+    }
+
     const step = isPrice ? precision_rules.tickSize : precision_rules.stepSize;
+    const minVal = isPrice ? precision_rules.minPrice : precision_rules.minQty;
+
+    // 防御性检查
+    if (!step || step <= 0 || isNaN(step)) {
+      console.warn(`[adjustToPrecision] Invalid step: ${step}, returning original value: ${value}`);
+      return value;
+    }
+
     const adjusted = Math.floor(value / step) * step;
-    return Math.max(adjusted, isPrice ? precision_rules.minPrice : precision_rules.minQty);
+
+    // 如果调整后的值小于最小值，返回最小值
+    if (!isNaN(adjusted) && adjusted >= minVal) {
+      return adjusted;
+    }
+
+    return Math.max(adjusted || 0, minVal);
   };
 
   let best_config = null;
@@ -354,6 +379,12 @@ const optimizeForCostReduction = (params) => {
   const { support, resistance, avg_price, price_range } = market;
   const atr = calculateATR(kline_list);
 
+  // 检查精度规则
+  if (!precision_rules) {
+    console.error('[optimizeForCostReduction] 缺少精度规则，无法进行优化');
+    return null;
+  }
+
   let best_config = null;
   let max_efficiency = -Infinity; // 换手效率
 
@@ -366,9 +397,28 @@ const optimizeForCostReduction = (params) => {
 
   // 精度规则辅助函数：调整数值到符合规则的精度
   const adjustToPrecision = (value, isPrice = false) => {
+    // 防御性检查
+    if (!precision_rules || !value || isNaN(value)) {
+      return value;
+    }
+
     const step = isPrice ? precision_rules.tickSize : precision_rules.stepSize;
+    const minVal = isPrice ? precision_rules.minPrice : precision_rules.minQty;
+
+    // 防御性检查
+    if (!step || step <= 0 || isNaN(step)) {
+      console.warn(`[adjustToPrecision] Invalid step: ${step}, returning original value: ${value}`);
+      return value;
+    }
+
     const adjusted = Math.floor(value / step) * step;
-    return Math.max(adjusted, isPrice ? precision_rules.minPrice : precision_rules.minQty);
+
+    // 如果调整后的值小于最小值，返回最小值
+    if (!isNaN(adjusted) && adjusted >= minVal) {
+      return adjusted;
+    }
+
+    return Math.max(adjusted || 0, minVal);
   };
 
   // 收集所有有效配置
@@ -513,6 +563,12 @@ const optimizeForBoundary = (params) => {
   const { support, resistance, avg_price, price_range } = market;
   const atr = calculateATR(kline_list);
 
+  // 检查精度规则
+  if (!precision_rules) {
+    console.error('[optimizeForBoundary] 缺少精度规则，无法进行优化');
+    return null;
+  }
+
   // 每笔交易金额：固定为最小值
   const trade_value = userMinTradeValue || 20;
 
@@ -521,9 +577,28 @@ const optimizeForBoundary = (params) => {
 
   // 精度规则辅助函数：调整数值到符合规则的精度
   const adjustToPrecision = (value, isPrice = false) => {
+    // 防御性检查
+    if (!precision_rules || !value || isNaN(value)) {
+      return value;
+    }
+
     const step = isPrice ? precision_rules.tickSize : precision_rules.stepSize;
+    const minVal = isPrice ? precision_rules.minPrice : precision_rules.minQty;
+
+    // 防御性检查
+    if (!step || step <= 0 || isNaN(step)) {
+      console.warn(`[adjustToPrecision] Invalid step: ${step}, returning original value: ${value}`);
+      return value;
+    }
+
     const adjusted = Math.floor(value / step) * step;
-    return Math.max(adjusted, isPrice ? precision_rules.minPrice : precision_rules.minQty);
+
+    // 如果调整后的值小于最小值，返回最小值
+    if (!isNaN(adjusted) && adjusted >= minVal) {
+      return adjusted;
+    }
+
+    return Math.max(adjusted || 0, minVal);
   };
 
   // 收集所有有效配置
@@ -696,6 +771,11 @@ const optimizeGridParams = async (options) => {
   const priceFilter = symbolInfo.filters?.find(f => f.filterType === 'PRICE_FILTER');
 
   if (!lotSizeFilter || !priceFilter) {
+    console.error(`[优化参数] 交易对 ${symbol} 过滤器不完整`, {
+      filters: symbolInfo.filters,
+      lotSizeFilter,
+      priceFilter
+    });
     throw new Error(`交易对 ${symbol} 交易规则不完整`);
   }
 
@@ -706,7 +786,18 @@ const optimizeGridParams = async (options) => {
   const tickSize = Number(priceFilter.tickSize);
   const minPrice = Number(priceFilter.minPrice);
 
-  console.log(`[优化参数] 交易对 ${symbol} 规则: minQty=${minQty}, stepSize=${stepSize}, tickSize=${tickSize}`);
+  console.log(`[优化参数] 交易对 ${symbol} 规则:`, {
+    minQty,
+    maxQty,
+    stepSize,
+    tickSize,
+    minPrice
+  });
+
+  // 验证提取的精度参数是否有效
+  if (isNaN(minQty) || isNaN(maxQty) || isNaN(stepSize) || isNaN(tickSize) || isNaN(minPrice)) {
+    throw new Error(`交易对 ${symbol} 精度参数无效，请稍后重试`);
+  }
 
   // 3. 调整用户输入的 min_trade_value 和 max_trade_value 到符合规则的范围
   const adjusted_min_trade_value = Math.max(min_trade_value, minQty * symbolInfo.filters?.find(f => f.filterType === 'MIN_NOTIONAL')?.notional || 10);
