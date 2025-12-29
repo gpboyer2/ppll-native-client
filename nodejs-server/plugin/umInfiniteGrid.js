@@ -41,7 +41,7 @@ const binanceAccountService = require('../service/binance-account.service.js');
  * @param {boolean} [options.is_below_open_price=false] - 是否开启"当价格低于等于开仓价格时则暂停网格"
  * @param {number} [options.polling_interval=10000] - 获得最新价格的轮询间隔时间，单位：毫秒
  * @param {boolean} [options.enable_log=true] - 是否启用日志输出，默认为true
- * @param {boolean} [options.priority_close_on_trend=false] - 允许'顺势仅减仓策略'：当仓位记录为空但实际持有仓位时，在价格趋势中优先执行平仓而不创建新开仓仓位
+ * @param {boolean} [options.priority_close_on_trend=false] - 允许'顺势仅减仓策略'：当网格仓位记录为空但实际持有仓位时，在价格趋势中优先执行平仓而不创建新开仓仓位
  */
 function InfiniteGrid(options) {
 
@@ -127,7 +127,7 @@ function InfiniteGrid(options) {
     /** 是否启用日志输出，默认为 true */
     enable_log: true,
 
-    /** 允许'顺势仅减仓策略'：当仓位记录为空但实际持有仓位时，在价格趋势中优先执行平仓而不创建新开仓仓位 */
+    /** 允许'顺势仅减仓策略'：当网格仓位记录为空但实际持有仓位时，在价格趋势中优先执行平仓而不创建新开仓仓位 */
     priority_close_on_trend: true,
 
     /** 计算平均成本价的默认天数 */

@@ -35,7 +35,7 @@ const { normalizeDatatypes } = require('../utils/data-types.ts');
  * @param {boolean} [options.isBelowOpenPrice=false] - 是否开启"当价格低于等于开仓价格时则暂停网格"
  * @param {number} [options.pollingInterval=10000] - 获得最新价格的轮询间隔时间，单位：毫秒
  * @param {boolean} [options.enableLog=true] - 是否启用日志输出，默认为true
- * @param {boolean} [options.priorityCloseOnTrend=false] - 允许'顺势仅减仓策略'：当仓位记录为空但实际持有仓位时，在上涨趋势中优先执行卖出而不创建新买入仓位
+ * @param {boolean} [options.priorityCloseOnTrend=false] - 允许'顺势仅减仓策略'：当网格仓位记录为空但实际持有仓位时，在上涨趋势中优先执行卖出而不创建新买入仓位
  */
 function InfiniteGridSpot(options) {
 
@@ -110,7 +110,7 @@ function InfiniteGridSpot(options) {
     /** 是否启用日志输出，默认为 true */
     enableLog: true,
 
-    /** 允许'顺势仅减仓策略'：当仓位记录为空但实际持有仓位时，在上涨趋势中优先执行卖出而不创建新买入仓位 */
+    /** 允许'顺势仅减仓策略'：当网格仓位记录为空但实际持有仓位时，在上涨趋势中优先执行卖出而不创建新买入仓位 */
     priorityCloseOnTrend: true,
 
     /** 计算平均成本价的默认天数 */

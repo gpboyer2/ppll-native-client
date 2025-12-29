@@ -870,7 +870,7 @@ function GridStrategyEditPage() {
             <div className="grid-strategy-form-toggle">
               <div className="grid-strategy-form-toggle-info">
                 <label className="grid-strategy-form-label">顺势仅减仓策略</label>
-                <div className="help">当仓位记录为空但实际持有仓位时，在价格趋势中优先执行平仓</div>
+                <div className="help">当网格仓位记录为空但实际持有仓位时，在价格趋势中优先执行平仓</div>
               </div>
               <label className="grid-strategy-toggle-switch">
                 <input
