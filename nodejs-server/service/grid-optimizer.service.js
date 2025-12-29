@@ -10,7 +10,7 @@
  */
 
 const BigNumber = require('bignumber.js');
-const binanceExchangeInfoService = require('../binance-exchange-info.service');
+const binanceExchangeInfoService = require('./binance-exchange-info.service');
 const strategyValidator = require('../utils/strategy-validator');
 
 // K线缓存和币安客户端
