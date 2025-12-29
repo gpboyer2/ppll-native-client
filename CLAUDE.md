@@ -46,7 +46,7 @@ const IconNetwork = () => (
     - 除非必要,不要使用get/set,因为多此一举;
     - 除非必要,不要新增文件或者变量;
     - 返回值一定要明确返回undefined和空字符串对用户和运行时的含义,除非必要不要返回空字符串;
-    - 变量名（含局部变量）使用 snake_case，例如 `grid_strategy` 而不是 `gridStrategy`;
+    - 变量名（含局部变量）使用 snake_case（全局变量和常量除外），例如 `grid_strategy` 而不是 `gridStrategy`（全局变量和常量除外）;
     - 集合变量使用 `list` 后缀，例如 `account_list` 而不是 `accounts`;
 - 确认需求与上下文：明确功能点、设计目标、性能和安全要求，梳理实现思路，聚合生成AI提示词，等待用户确认。  
 - 在MVC架构的 services 中, 如果捕获到异常, 或者需要返回错误信息, 请确保与返回正确信息的格式一致, 即: 都必须使用相同的响应数据结构。
