@@ -22,7 +22,7 @@ function GridStrategyEditPage() {
   const is_editing = Boolean(id);
 
   // 使用币安 store
-  const { api_key_list, usdt_pairs, init, loading, refreshTradingPairs } = useBinanceStore();
+  const { api_key_list, usdt_pairs, init, loading, refreshTradingPairs, initialized } = useBinanceStore();
 
   // 表单数据状态
   const [formData, setFormData] = useState<GridStrategyForm>(defaultGridStrategy);
@@ -83,10 +83,15 @@ function GridStrategyEditPage() {
 
   // 加载现有策略数据
   useEffect(() => {
+    // 等待 binance-store 初始化完成后再加载策略
+    if (!initialized) {
+      return;
+    }
+
     if (is_editing && id) {
       loadStrategy(id);
     }
-  }, [is_editing, id]);
+  }, [is_editing, id, initialized]);
 
   // 当交易对列表加载完成后，设置默认交易对为 BTCUSDT
   useEffect(() => {

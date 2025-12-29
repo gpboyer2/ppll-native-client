@@ -5,6 +5,7 @@ import { ROUTES } from '../../router';
 import { NumberFormat } from '../../utils';
 import { GridStrategyApi } from '../../api';
 import { showSuccess, showError } from '../../utils/api-error';
+import { useBinanceStore } from '../../stores/binance-store';
 import type { GridStrategy, StrategyFilter, StrategyStatus, PositionSide } from '../../types/grid-strategy';
 
 /**
@@ -19,6 +20,9 @@ function GridStrategyListPage() {
   // 防止 StrictMode 双重渲染导致重复请求
   const has_loaded_ref = useRef(false);
 
+  // 获取 binance-store 初始化状态
+  const { initialized: binance_initialized } = useBinanceStore();
+
   // 筛选状态
   const [filter, setFilter] = useState<StrategyFilter>({
     keyword: '',
@@ -32,9 +36,15 @@ function GridStrategyListPage() {
     if (has_loaded_ref.current) {
       return;
     }
+
+    // 等待 binance-store 初始化完成后再加载策略列表
+    if (!binance_initialized) {
+      return;
+    }
+
     has_loaded_ref.current = true;
     loadStrategyList();
-  }, []);
+  }, [binance_initialized]);
 
   // 从后端 API 加载策略列表
   async function loadStrategyList() {
