@@ -18,30 +18,30 @@ const binanceAccountService = require('../service/binance-account.service.js');
 
 /**
  * 无限网格策略 - 支持做多和做空持仓方向
- * 
+ *
  * @param {Object} options - 策略配置参数
- * @param {string} options.positionSide - 持仓方向，'LONG'（做多）或'SHORT'（做空）
- * @param {string} options.tradingPair - 交易对，例如`ORDIUSDT`
- * @param {string} options.apiKey - 币安API Key
- * @param {string} options.apiSecret - 币安API Secret
- * @param {number} [options.initialFillPrice=0] - 初始建仓的数量
+ * @param {string} options.position_side - 持仓方向，'LONG'（做多）或'SHORT'（做空）
+ * @param {string} options.trading_pair - 交易对，例如`ORDIUSDT`
+ * @param {string} options.api_key - 币安API Key
+ * @param {string} options.secret_key - 币安API Secret
+ * @param {number} [options.initial_fill_price=0] - 初始建仓的数量
  * @param {number} [options.leverage=20] - 杠杆倍数，默认为20
- * @param {number} [options.maxOpenPositionQuantity] - 限制的最大持仓数量
- * @param {number} [options.minOpenPositionQuantity] - 限制的最少的持仓数量
- * @param {number} options.gridPriceDifference - 网格之间的价格差价
- * @param {number} [options.gridTradeQuantity] - 网格每次交易的数量（向后兼容，当没有设置分离数量时使用）
- * @param {number} [options.gridLongOpenQuantity] - 做多方向：每次增加多单持仓的数量
- * @param {number} [options.gridLongCloseQuantity] - 做多方向：每次减少多单持仓的数量
- * @param {number} [options.gridShortOpenQuantity] - 做空方向：每次增加空单持仓的数量（开空单）
- * @param {number} [options.gridShortCloseQuantity] - 做空方向：每次减少空单持仓的数量（平空单）
- * @param {number} [options.fallPreventionCoefficient=0] - 防跌/防涨系数
- * @param {number} [options.gtLimitationPrice] - 大于等于某价格时暂停网格
- * @param {number} [options.ltLimitationPrice] - 小于等于某价格时暂停网格
- * @param {boolean} [options.isAboveOpenPrice=false] - 是否开启"当价格大于等于开仓价格时则暂停网格"
- * @param {boolean} [options.isBelowOpenPrice=false] - 是否开启"当价格低于等于开仓价格时则暂停网格"
- * @param {number} [options.pollingInterval=10000] - 获得最新价格的轮询间隔时间，单位：毫秒
- * @param {boolean} [options.enableLog=true] - 是否启用日志输出，默认为true
- * @param {boolean} [options.priorityCloseOnTrend=false] - 允许'顺势仅减仓策略'：当仓位记录为空但实际持有仓位时，在价格趋势中优先执行平仓而不创建新开仓仓位
+ * @param {number} [options.max_open_position_quantity] - 限制的最大持仓数量
+ * @param {number} [options.min_open_position_quantity] - 限制的最少的持仓数量
+ * @param {number} options.grid_price_difference - 网格之间的价格差价
+ * @param {number} [options.grid_trade_quantity] - 网格每次交易的数量（向后兼容，当没有设置分离数量时使用）
+ * @param {number} [options.grid_long_open_quantity] - 做多方向：每次增加多单持仓的数量
+ * @param {number} [options.grid_long_close_quantity] - 做多方向：每次减少多单持仓的数量
+ * @param {number} [options.grid_short_open_quantity] - 做空方向：每次增加空单持仓的数量（开空单）
+ * @param {number} [options.grid_short_close_quantity] - 做空方向：每次减少空单持仓的数量（平空单）
+ * @param {number} [options.fall_prevention_coefficient=0] - 防跌/防涨系数
+ * @param {number} [options.gt_limitation_price] - 大于等于某价格时暂停网格
+ * @param {number} [options.lt_limitation_price] - 小于等于某价格时暂停网格
+ * @param {boolean} [options.is_above_open_price=false] - 是否开启"当价格大于等于开仓价格时则暂停网格"
+ * @param {boolean} [options.is_below_open_price=false] - 是否开启"当价格低于等于开仓价格时则暂停网格"
+ * @param {number} [options.polling_interval=10000] - 获得最新价格的轮询间隔时间，单位：毫秒
+ * @param {boolean} [options.enable_log=true] - 是否启用日志输出，默认为true
+ * @param {boolean} [options.priority_close_on_trend=false] - 允许'顺势仅减仓策略'：当仓位记录为空但实际持有仓位时，在价格趋势中优先执行平仓而不创建新开仓仓位
  */
 function InfiniteGrid(options) {
 
@@ -406,7 +406,7 @@ function InfiniteGrid(options) {
   this.adjustQuantity = async (quantity) => {
     try {
       const exchangeInfo = await this.getExchangeInfo();
-      return binancePrecision.smartAdjustQuantity(exchangeInfo, this.config.tradingPair, quantity.toString());
+      return binancePrecision.smartAdjustQuantity(exchangeInfo, this.config.trading_pair, quantity.toString());
     } catch (error) {
       this.logger.error('调整数量精度失败:', error);
       // 回退到默认的精度处理
