@@ -883,7 +883,7 @@ const optimizeGridParams = async (options) => {
   const volatility_percent = market.volatility * 100;
 
   // 解析网格间距百分比（从 recommended 中获取）
-  const grid_spacing_percent = recommended?.analysis?.topList?.[0]?.gridSpacingPercent || 0;
+  const grid_spacing_percent = recommended?.analysis?.top_list?.[0]?.grid_spacing_percent || 0;
 
   // 计算风险等级（默认杠杆 20 倍，前端可根据用户选择重新计算）
   const riskResult = calculateRiskLevel(volatility_level, 20, grid_spacing_percent, volatility_percent);

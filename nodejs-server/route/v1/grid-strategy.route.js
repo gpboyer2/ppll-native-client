@@ -17,11 +17,11 @@ router.get('/', vipMiddleware.validateVipAccess, gridStrategyController.list);
 router.get('/query', vipMiddleware.validateVipAccess, gridStrategyController.query);
 
 // 创建策略
-// POST /api/v1/grid-strategy/create  body: { symbol: string, upper_price: number, lower_price: number, grid_number: number, ... }
+// POST /api/v1/grid-strategy/create  body: { trading_pair: string, grid_price_difference: number, grid_trade_quantity: number, ... }
 router.post('/create', vipMiddleware.validateVipAccess, validateStrategyParams, gridStrategyController.create);
 
 // 创建做多策略（兼容旧接口）
-// POST /api/v1/grid-strategy/create-long  body: { symbol: string, upper_price: number, lower_price: number, grid_number: number, ... }
+// POST /api/v1/grid-strategy/create-long  body: { trading_pair: string, grid_price_difference: number, grid_trade_quantity: number, ... }
 router.post('/create-long', vipMiddleware.validateVipAccess, validateStrategyParams, gridStrategyController.create);
 
 // 更新策略
@@ -152,12 +152,12 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - symbol
+ *               - trading_pair
  *               - upper_price
  *               - lower_price
  *               - grid_number
  *             properties:
- *               symbol:
+ *               trading_pair:
  *                 type: string
  *                 example: BTCUSDT
  *                 description: 交易对
@@ -217,7 +217,7 @@ module.exports = router;
  *                 type: integer
  *                 example: 1
  *                 description: 策略ID
- *               symbol:
+ *               trading_pair:
  *                 type: string
  *                 example: BTCUSDT
  *                 description: 交易对
@@ -437,7 +437,7 @@ module.exports = router;
  *         id:
  *           type: integer
  *           description: 策略ID
- *         symbol:
+ *         trading_pair:
  *           type: string
  *           description: 交易对
  *         upper_price:
