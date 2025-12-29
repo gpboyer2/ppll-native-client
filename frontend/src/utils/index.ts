@@ -3,6 +3,7 @@ export * from './format';
 export * from './date';
 export * from './storage';
 export * from './validation';
+export * from './strategy-validation';
 export * from './performance';
 export * from './logger';
 export * from './dom';

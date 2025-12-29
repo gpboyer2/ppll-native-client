@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Select, NumberInput } from '../../components/mantine';
 import { SmartConfigModal } from '../../components/grid-strategy/SmartConfigModal';
@@ -6,9 +6,12 @@ import { ReferralCommissionDialog } from '../../components/referral-commission-i
 import { ROUTES } from '../../router';
 import { useBinanceStore } from '../../stores/binance-store';
 import { GridStrategyApi } from '../../api';
+import { BinanceExchangeInfoApi } from '../../api';
 import type { GridStrategy, GridStrategyForm, PositionSide, OptimizedConfig } from '../../types/grid-strategy';
+import type { BinanceSymbol, StrategyValidationResult } from '../../types/binance';
 import { defaultGridStrategy } from '../../types/grid-strategy';
 import { showWarning, showSuccess, showError } from '../../utils/api-error';
+import { validateStrategyField } from '../../utils/strategy-validation';
 
 /**
  * 网格策略表单页面
@@ -26,6 +29,13 @@ function GridStrategyEditPage() {
 
   // 表单数据状态
   const [formData, setFormData] = useState<GridStrategyForm>(defaultGridStrategy);
+
+  // 交易所信息状态
+  const [exchangeInfo, setExchangeInfo] = useState<{ symbols: BinanceSymbol[] } | null>(null);
+  const [currentSymbolInfo, setCurrentSymbolInfo] = useState<BinanceSymbol | null>(null);
+
+  // 验证提示状态
+  const [validationHints, setValidationHints] = useState<Record<string, StrategyValidationResult>>({});
 
   // 保存状态
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
@@ -104,6 +114,55 @@ function GridStrategyEditPage() {
       }
     }
   }, [usdt_pairs, is_editing, formData.trading_pair]);
+
+  // 加载交易所信息（包含过滤器信息）
+  const loadExchangeInfo = useCallback(async () => {
+    const { api_key, secret_key } = formData;
+    if (!api_key || !secret_key) {
+      return;
+    }
+
+    try {
+      const response = await BinanceExchangeInfoApi.getExchangeInfo({ api_key, secret_key });
+      if (response.status === 'success' && response.data?.symbols) {
+        setExchangeInfo({ symbols: response.data.symbols });
+      }
+    } catch (error) {
+      console.error('加载交易所信息失败:', error);
+    }
+  }, [formData.api_key, formData.secret_key]);
+
+  // 当交易对改变时更新当前符号信息
+  useEffect(() => {
+    if (exchangeInfo && formData.trading_pair) {
+      const symbol = exchangeInfo.symbols.find(s => s.symbol === formData.trading_pair);
+      setCurrentSymbolInfo(symbol || null);
+      // 清空验证提示
+      setValidationHints({});
+    } else {
+      setCurrentSymbolInfo(null);
+    }
+  }, [exchangeInfo, formData.trading_pair]);
+
+  // 当 API Key 设置完成后加载交易所信息
+  useEffect(() => {
+    if (formData.api_key && formData.secret_key) {
+      loadExchangeInfo();
+    }
+  }, [formData.api_key, formData.secret_key, loadExchangeInfo]);
+
+  // 验证字段并更新提示
+  const validateField = useCallback((field_name: string, value: string | number) => {
+    if (!currentSymbolInfo) {
+      return;
+    }
+
+    const result = validateStrategyField(field_name, value, currentSymbolInfo);
+    setValidationHints(prev => ({
+      ...prev,
+      [field_name]: result
+    }));
+  }, [currentSymbolInfo]);
 
   // 当 API Key 列表加载完成后，自动选择第一个作为默认值
   useEffect(() => {
@@ -225,6 +284,21 @@ function GridStrategyEditPage() {
   // 更新表单字段
   function updateFormField<K extends keyof GridStrategyForm>(key: K, value: GridStrategyForm[K]) {
     setFormData(prev => ({ ...prev, [key]: value }));
+
+    // 触发验证（仅对需要验证的字段）
+    const fields_to_validate = [
+      'grid_trade_quantity',
+      'grid_long_open_quantity',
+      'grid_long_close_quantity',
+      'grid_short_open_quantity',
+      'grid_short_close_quantity',
+      'grid_price_difference',
+      'leverage'
+    ];
+
+    if (fields_to_validate.includes(key as string) && value !== undefined && value !== null && value !== '') {
+      validateField(key as string, value as string | number);
+    }
   }
 
   // 获取持仓方向相关字段的可见性
@@ -350,6 +424,25 @@ function GridStrategyEditPage() {
       return '保存中...';
     }
     return is_editing ? '保存并重启' : '保存并启动';
+  }
+
+  // 渲染验证提示
+  function renderValidationHint(field_name: string) {
+    const hint = validationHints[field_name];
+    if (!hint || !hint.message) {
+      return null;
+    }
+
+    const status_class = hint.isValid ? 'success' : 'error';
+    const icon = hint.isValid ? '✓' : '⚠';
+    const suggestion_text = hint.suggestion ? `，建议值: ${hint.suggestion}` : '';
+
+    return (
+      <div className={`validation-hint ${status_class}`}>
+        <span>{icon}</span>
+        <span>{hint.message}{suggestion_text}</span>
+      </div>
+    );
   }
 
   // API Key 下拉选项
@@ -502,6 +595,7 @@ function GridStrategyEditPage() {
                 max={125}
               />
               <div className="help">设置杠杆倍数，默认20倍（不足20的设为最大倍数）</div>
+              {renderValidationHint('leverage')}
             </div>
 
             {/* 初始建仓价格 */}
@@ -543,6 +637,7 @@ function GridStrategyEditPage() {
                 required
               />
               <div className="help">每个网格之间的价格间隔，如10表示每个网格间隔10 USDT</div>
+              {renderValidationHint('grid_price_difference')}
             </div>
 
             {/* 网格交易数量（通用） */}
@@ -557,6 +652,7 @@ function GridStrategyEditPage() {
                 placeholder="例如：0.1"
               />
               <div className="help">每个网格的交易数量，如果没有设置分离数量则使用此值</div>
+              {renderValidationHint('grid_trade_quantity')}
             </div>
 
             {/* 做多开仓数量 */}
@@ -571,6 +667,7 @@ function GridStrategyEditPage() {
                 placeholder="例如：0.1"
               />
               <div className="help">做多方向：每次增加多单持仓的数量</div>
+              {renderValidationHint('grid_long_open_quantity')}
             </div>
 
             {/* 做多平仓数量 */}
@@ -585,6 +682,7 @@ function GridStrategyEditPage() {
                 placeholder="例如：0.1"
               />
               <div className="help">做多方向：每次减少多单持仓的数量</div>
+              {renderValidationHint('grid_long_close_quantity')}
             </div>
 
             {/* 做空开仓数量 */}
@@ -599,6 +697,7 @@ function GridStrategyEditPage() {
                 placeholder="例如：0.1"
               />
               <div className="help">做空方向：每次增加空单持仓的数量（开空单）</div>
+              {renderValidationHint('grid_short_open_quantity')}
             </div>
 
             {/* 做空平仓数量 */}
@@ -613,6 +712,7 @@ function GridStrategyEditPage() {
                 placeholder="例如：0.1"
               />
               <div className="help">做空方向：每次减少空单持仓的数量（平空单）</div>
+              {renderValidationHint('grid_short_close_quantity')}
             </div>
           </div>
         </div>

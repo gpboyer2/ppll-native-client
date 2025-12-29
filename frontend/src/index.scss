@@ -377,6 +377,27 @@ a:hover {
   color: var(--color-text-muted);
 }
 
+/* 验证提示 */
+.validation-hint {
+  font-size: var(--text-xs);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.validation-hint.success {
+  color: rgb(16, 185, 129);
+}
+
+.validation-hint.error {
+  color: rgb(239, 68, 68);
+}
+
+.validation-hint.warning {
+  color: rgb(251, 191, 36);
+}
+
 /* 标签 Tag */
 .tag {
   display: inline-flex;

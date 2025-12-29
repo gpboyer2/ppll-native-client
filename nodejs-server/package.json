@@ -20,7 +20,9 @@
     "pm2:prod": "cross-env NODE_ENV=production pm2 start app.js",
     "node:dev": "cross-env NODE_ENV=development node app.js",
     "node:test": "cross-env NODE_ENV=test node app.js",
-    "node:prod": "cross-env NODE_ENV=production node app.js"
+    "node:prod": "cross-env NODE_ENV=production node app.js",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "bin": {
     "create-nodejs-express-sequelize-mysql-api-boilerplate": "./bin/cli.js"
@@ -97,5 +99,19 @@
     "pm2": "^5.2.2",
     "sequelize-cli": "^6.5.2",
     "typescript": "^5.9.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/test/**/*.test.js"
+    ],
+    "collectCoverageFrom": [
+      "utils/**/*.js",
+      "controller/**/*.js",
+      "service/**/*.js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
   }
 }

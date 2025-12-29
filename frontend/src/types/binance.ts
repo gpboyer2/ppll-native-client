@@ -143,3 +143,65 @@ export type OrderType = 'LIMIT' | 'MARKET' | 'STOP' | 'TAKE_PROFIT' | 'STOP_MARK
 
 // 订单状态
 export type OrderStatus = 'NEW' | 'PARTIALLY_FILLED' | 'FILLED' | 'CANCELED' | 'REJECTED' | 'EXPIRED'
+
+// ==================== 交易所信息 ====================
+
+// 交易所过滤器类型
+export type FilterType = 'PRICE_FILTER' | 'LOT_SIZE' | 'MIN_NOTIONAL' | 'MAX_NUM_ORDERS' | 'MAX_NUM_ALGO_ORDERS' | 'PERCENT_PRICE' | 'MARKET_LOT_SIZE'
+
+// 基础过滤器接口
+export interface BinanceFilter {
+  filterType: FilterType
+}
+
+// 价格过滤器
+export interface PriceFilter extends BinanceFilter {
+  filterType: 'PRICE_FILTER'
+  minPrice: string
+  maxPrice: string
+  tickSize: string
+}
+
+// 数量过滤器
+export interface LotSizeFilter extends BinanceFilter {
+  filterType: 'LOT_SIZE'
+  minQty: string
+  maxQty: string
+  stepSize: string
+}
+
+// 最小名义价值过滤器
+export interface MinNotionalFilter extends BinanceFilter {
+  filterType: 'MIN_NOTIONAL'
+  notional: string
+}
+
+// 联合过滤器类型
+export type ExchangeFilter = PriceFilter | LotSizeFilter | MinNotionalFilter
+
+// 交易对符号信息
+export interface BinanceSymbol {
+  symbol: string
+  baseAsset: string
+  quoteAsset: string
+  status: string
+  contractType?: string
+  deliveryDate?: number
+  onboardDate?: number
+  filters: ExchangeFilter[]
+}
+
+// 交易所信息
+export interface ExchangeInfo {
+  timezone: string
+  serverTime: number
+  symbols: BinanceSymbol[]
+}
+
+// 策略参数验证结果
+export interface StrategyValidationResult {
+  isValid: boolean
+  message?: string
+  field?: string
+  suggestion?: string
+}

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { apiKeyIdentity } = require('../../middleware/api-key-identity');
 const gridStrategyController = require('../../controller/grid-strategy.controller.js');
+const { validateStrategyParams } = gridStrategyController;
 const vipMiddleware = require('../../middleware/vip.js');
 
 // 应用 API Key 标识中间件到所有路由
@@ -17,15 +18,15 @@ router.get('/query', vipMiddleware.validateVipAccess, gridStrategyController.que
 
 // 创建策略
 // POST /api/v1/grid-strategy/create  body: { symbol: string, upper_price: number, lower_price: number, grid_number: number, ... }
-router.post('/create', vipMiddleware.validateVipAccess, gridStrategyController.create);
+router.post('/create', vipMiddleware.validateVipAccess, validateStrategyParams, gridStrategyController.create);
 
 // 创建做多策略（兼容旧接口）
 // POST /api/v1/grid-strategy/create-long  body: { symbol: string, upper_price: number, lower_price: number, grid_number: number, ... }
-router.post('/create-long', vipMiddleware.validateVipAccess, gridStrategyController.create);
+router.post('/create-long', vipMiddleware.validateVipAccess, validateStrategyParams, gridStrategyController.create);
 
 // 更新策略
 // POST /api/v1/grid-strategy/update  body: { id: number, ... }
-router.post('/update', vipMiddleware.validateVipAccess, gridStrategyController.update);
+router.post('/update', vipMiddleware.validateVipAccess, validateStrategyParams, gridStrategyController.update);
 
 // 暂停策略
 // POST /api/v1/grid-strategy/paused  body: { id: number }

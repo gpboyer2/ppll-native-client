@@ -4,6 +4,7 @@
  */
 const gridStrategyService = require("../service/grid-strategy.service");
 const gridOptimizerService = require("../service/grid-optimizer.service");
+const { validateStrategyParams } = require("../middleware/strategy-validator");
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catch-async");
 const { sendSuccess, sendError } = require("../utils/api-response");
@@ -340,4 +341,5 @@ module.exports = {
   action,
   query,
   optimize_params,
+  validateStrategyParams,
 };
