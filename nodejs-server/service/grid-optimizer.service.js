@@ -11,7 +11,6 @@
 
 const BigNumber = require('bignumber.js');
 const binanceExchangeInfoService = require('./binance-exchange-info.service');
-const strategyValidator = require('../utils/strategy-validator');
 
 // K线缓存和币安客户端
 const {
@@ -194,7 +193,7 @@ const estimateTradeFrequency = (kline_list, grid_spacing, support, resistance) =
  * @returns {Object} 最优配置
  */
 const optimizeForProfit = (params) => {
-  const { kline_list, market, total_capital, interval_config, min_trade_value: userMinTradeValue, max_trade_value: userMaxTradeValue } = params;
+  const { kline_list, market, total_capital, interval_config, min_trade_value: userMinTradeValue, max_trade_value: userMaxTradeValue, precision_rules } = params;
   const { support, resistance, avg_price, price_range } = market;
   const atr = calculateATR(kline_list);
 
@@ -205,6 +204,13 @@ const optimizeForProfit = (params) => {
   // 本金约束：日换手率上限（默认500%）
   const max_turnover_ratio = 5;
 
+  // 精度规则辅助函数：调整数值到符合规则的精度
+  const adjustToPrecision = (value, isPrice = false) => {
+    const step = isPrice ? precision_rules.tickSize : precision_rules.stepSize;
+    const adjusted = Math.floor(value / step) * step;
+    return Math.max(adjusted, isPrice ? precision_rules.minPrice : precision_rules.minQty);
+  };
+
   let best_config = null;
   let max_daily_profit = -Infinity;
 
@@ -213,12 +219,16 @@ const optimizeForProfit = (params) => {
 
   // 二维遍历：间距 × 交易金额
   for (let atrMultiple = 0.3; atrMultiple <= 5; atrMultiple += 0.1) {
-    const grid_spacing = atr * atrMultiple;
+    // 原始网格间距
+    let grid_spacing = atr * atrMultiple;
+
+    // 调整到符合 tickSize 精度
+    grid_spacing = adjustToPrecision(grid_spacing, true);
 
     // 跳过间距超出价格区间的配置
     if (grid_spacing > price_range * 0.5) continue;
-    // 跳过间距过小的配置（小于价格的0.1%）
-    if (grid_spacing < avg_price * 0.001) continue;
+    // 跳过间距过小的配置（小于最小价格）
+    if (grid_spacing < precision_rules.minPrice) continue;
 
     // 估算交易频率（与trade_value无关）
     const freq_per_kline = estimateTradeFrequency(kline_list, grid_spacing, support, resistance);
@@ -229,8 +239,14 @@ const optimizeForProfit = (params) => {
 
     // 遍历不同的每笔交易金额
     for (let trade_value = min_trade_value; trade_value <= max_trade_value; trade_value += 2) {
-      // 每笔交易数量
-      const trade_quantity = trade_value / avg_price;
+      // 每笔交易数量（原始值）
+      let trade_quantity = trade_value / avg_price;
+
+      // 调整到符合 stepSize 精度
+      trade_quantity = adjustToPrecision(trade_quantity, false);
+
+      // 跳过超出最大数量的配置
+      if (trade_quantity > precision_rules.maxQty) continue;
 
       // 单笔毛利润 = 网格间距 × 交易数量
       const gross_profit = grid_spacing * trade_quantity;
@@ -334,7 +350,7 @@ const optimizeForProfit = (params) => {
  * @returns {Object} 最优配置
  */
 const optimizeForCostReduction = (params) => {
-  const { kline_list, market, total_capital, interval_config, min_trade_value: userMinTradeValue, max_trade_value: userMaxTradeValue } = params;
+  const { kline_list, market, total_capital, interval_config, min_trade_value: userMinTradeValue, max_trade_value: userMaxTradeValue, precision_rules } = params;
   const { support, resistance, avg_price, price_range } = market;
   const atr = calculateATR(kline_list);
 
@@ -348,15 +364,26 @@ const optimizeForCostReduction = (params) => {
   // 本金约束：日换手率上限（默认500%，即每天最多交易本金的5倍）
   const max_turnover_ratio = 5;
 
+  // 精度规则辅助函数：调整数值到符合规则的精度
+  const adjustToPrecision = (value, isPrice = false) => {
+    const step = isPrice ? precision_rules.tickSize : precision_rules.stepSize;
+    const adjusted = Math.floor(value / step) * step;
+    return Math.max(adjusted, isPrice ? precision_rules.minPrice : precision_rules.minQty);
+  };
+
   // 收集所有有效配置
   const config_list = [];
 
   // 遍历不同的网格间距（基于ATR的倍数，从0.1倍到2倍，步长更细）
   for (let atrMultiple = 0.1; atrMultiple <= 2; atrMultiple += 0.05) {
-    const grid_spacing = atr * atrMultiple;
+    // 原始网格间距
+    let grid_spacing = atr * atrMultiple;
 
-    // 跳过间距过小的配置（小于价格的0.05%）
-    if (grid_spacing < avg_price * 0.0005) continue;
+    // 调整到符合 tickSize 精度
+    grid_spacing = adjustToPrecision(grid_spacing, true);
+
+    // 跳过间距过小的配置（小于最小价格）
+    if (grid_spacing < precision_rules.minPrice) continue;
     // 跳过间距超出价格区间的配置
     if (grid_spacing > price_range * 0.3) continue;
 
@@ -366,8 +393,14 @@ const optimizeForCostReduction = (params) => {
 
     // 遍历不同的每笔交易金额（步长更细，1U）
     for (let trade_value = min_trade_value; trade_value <= max_trade_value; trade_value += 2) {
-      // 每笔交易数量
-      const trade_quantity = trade_value / avg_price;
+      // 每笔交易数量（原始值）
+      let trade_quantity = trade_value / avg_price;
+
+      // 调整到符合 stepSize 精度
+      trade_quantity = adjustToPrecision(trade_quantity, false);
+
+      // 跳过超出最大数量的配置
+      if (trade_quantity > precision_rules.maxQty) continue;
 
       // 手续费
       const fee = trade_value * FEE_RATE * 2;
@@ -476,7 +509,7 @@ const optimizeForCostReduction = (params) => {
  * @returns {Object} 最优配置
  */
 const optimizeForBoundary = (params) => {
-  const { kline_list, market, total_capital, interval_config, min_trade_value: userMinTradeValue } = params;
+  const { kline_list, market, total_capital, interval_config, min_trade_value: userMinTradeValue, precision_rules } = params;
   const { support, resistance, avg_price, price_range } = market;
   const atr = calculateATR(kline_list);
 
@@ -486,21 +519,40 @@ const optimizeForBoundary = (params) => {
   let best_config = null;
   let min_daily_frequency = Infinity; // 目标：日频率最低
 
+  // 精度规则辅助函数：调整数值到符合规则的精度
+  const adjustToPrecision = (value, isPrice = false) => {
+    const step = isPrice ? precision_rules.tickSize : precision_rules.stepSize;
+    const adjusted = Math.floor(value / step) * step;
+    return Math.max(adjusted, isPrice ? precision_rules.minPrice : precision_rules.minQty);
+  };
+
   // 收集所有有效配置
   const config_list = [];
 
   // 遍历不同的网格间距（从大到小，优先找大间距）
   // ATR倍数范围更大，从0.5倍到10倍
   for (let atrMultiple = 10; atrMultiple >= 0.5; atrMultiple -= 0.2) {
-    const grid_spacing = atr * atrMultiple;
+    // 原始网格间距
+    let grid_spacing = atr * atrMultiple;
+
+    // 调整到符合 tickSize 精度
+    grid_spacing = adjustToPrecision(grid_spacing, true);
 
     // 跳过间距超出价格区间的配置
     if (grid_spacing > price_range * 0.8) continue;
+    // 跳过间距过小的配置（小于最小价格）
+    if (grid_spacing < precision_rules.minPrice) continue;
     // 跳过间距过小的配置（小于价格的0.1%）
     if (grid_spacing < avg_price * 0.001) continue;
 
-    // 每笔交易数量
-    const trade_quantity = trade_value / avg_price;
+    // 每笔交易数量（原始值）
+    let trade_quantity = trade_value / avg_price;
+
+    // 调整到符合 stepSize 精度
+    trade_quantity = adjustToPrecision(trade_quantity, false);
+
+    // 跳过超出最大数量的配置
+    if (trade_quantity > precision_rules.maxQty) continue;
 
     // 单笔毛利润 = 网格间距 × 交易数量
     const gross_profit = grid_spacing * trade_quantity;
@@ -618,7 +670,7 @@ const optimizeGridParams = async (options) => {
     api_secret
   } = options;
 
-  // 参数校验
+  // 1. 参数校验
   if (!symbol) throw new Error('缺少交易对参数 symbol');
   if (!total_capital || total_capital <= 0) throw new Error('总资金必须大于0');
   if (!api_key || !api_secret) throw new Error('缺少API凭证');
@@ -628,7 +680,39 @@ const optimizeGridParams = async (options) => {
     throw new Error(`不支持的K线周期: ${interval}，支持: ${Object.keys(INTERVAL_MAP).join(', ')}`);
   }
 
-  // 创建客户端
+  // 2. 获取交易所信息并验证精度规则
+  const exchangeInfo = await binanceExchangeInfoService.getLatestExchangeInfo();
+  if (!exchangeInfo) {
+    throw new Error('交易所信息未初始化，请稍后重试');
+  }
+
+  const symbolInfo = exchangeInfo.symbols?.find(s => s.symbol === symbol);
+  if (!symbolInfo) {
+    throw new Error(`交易对 ${symbol} 不存在或不可用`);
+  }
+
+  // 获取交易规则
+  const lotSizeFilter = symbolInfo.filters?.find(f => f.filterType === 'LOT_SIZE');
+  const priceFilter = symbolInfo.filters?.find(f => f.filterType === 'PRICE_FILTER');
+
+  if (!lotSizeFilter || !priceFilter) {
+    throw new Error(`交易对 ${symbol} 交易规则不完整`);
+  }
+
+  // 提取精度参数
+  const minQty = Number(lotSizeFilter.minQty);
+  const maxQty = Number(lotSizeFilter.maxQty);
+  const stepSize = Number(lotSizeFilter.stepSize);
+  const tickSize = Number(priceFilter.tickSize);
+  const minPrice = Number(priceFilter.minPrice);
+
+  console.log(`[优化参数] 交易对 ${symbol} 规则: minQty=${minQty}, stepSize=${stepSize}, tickSize=${tickSize}`);
+
+  // 3. 调整用户输入的 min_trade_value 和 max_trade_value 到符合规则的范围
+  const adjusted_min_trade_value = Math.max(min_trade_value, minQty * symbolInfo.filters?.find(f => f.filterType === 'MIN_NOTIONAL')?.notional || 10);
+  const adjusted_max_trade_value = Math.max(max_trade_value, adjusted_min_trade_value);
+
+  // 4. 创建客户端
   const client = createClient(api_key, api_secret);
 
   // 获取100根周期K线数据
@@ -662,8 +746,24 @@ const optimizeGridParams = async (options) => {
   const market = calculateSupportResistance(kline_list, dailyKlineList, symbol, atr);
   market.currentPrice = current_price; // 添加实时价格
 
-  // 根据优化目标选择算法
-  const optimize_params = { kline_list, market, total_capital, interval_config, min_trade_value, max_trade_value };
+  // 5. 根据优化目标选择算法（传入精度规则）
+  const optimize_params = {
+    kline_list,
+    market,
+    total_capital,
+    interval_config,
+    min_trade_value: adjusted_min_trade_value,
+    max_trade_value: adjusted_max_trade_value,
+    // 精度规则
+    precision_rules: {
+      minQty,
+      maxQty,
+      stepSize,
+      tickSize,
+      minPrice
+    }
+  };
+
   let recommended;
 
   if (optimize_target === 'cost') {
@@ -697,59 +797,7 @@ const optimizeGridParams = async (options) => {
   // 计算风险等级（默认杠杆 20 倍，前端可根据用户选择重新计算）
   const riskResult = calculateRiskLevel(volatility_level, 20, grid_spacing_percent, volatility_percent);
 
-  // 获取交易所信息并验证/调整推荐参数
-  const exchangeInfo = await binanceExchangeInfoService.getLatestExchangeInfo();
-  let validated_recommended = recommended;
-
-  if (exchangeInfo && exchangeInfo.symbols) {
-    const symbolInfo = exchangeInfo.symbols.find(s => s.symbol === symbol);
-    if (symbolInfo) {
-      // 验证并调整交易数量
-      const quantityResult = strategyValidator.validateQuantity(recommended.trade_quantity, symbolInfo);
-      if (!quantityResult.valid) {
-        console.log(`[优化参数验证] trade_quantity 不符合规则，从 ${recommended.trade_quantity} 调整为 ${quantityResult.suggestion}`);
-        validated_recommended = {
-          ...validated_recommended,
-          trade_quantity: quantityResult.suggestion
-        };
-      }
-
-      // 验证并调整价格差价 (grid_spacing)
-      const priceResult = strategyValidator.validatePriceDifference(recommended.grid_spacing, symbolInfo);
-      if (!priceResult.valid) {
-        console.log(`[优化参数验证] grid_spacing 不符合规则，从 ${recommended.grid_spacing} 调整为 ${priceResult.suggestion}`);
-        validated_recommended = {
-          ...validated_recommended,
-          grid_spacing: priceResult.suggestion
-        };
-      }
-
-      // 如果有 boundary_defense，也需要验证
-      if (boundary_defense) {
-        let validated_boundary = boundary_defense;
-        const bdQuantityResult = strategyValidator.validateQuantity(boundary_defense.trade_quantity, symbolInfo);
-        if (!bdQuantityResult.valid) {
-          console.log(`[优化参数验证] boundary_defense trade_quantity 不符合规则，从 ${boundary_defense.trade_quantity} 调整为 ${bdQuantityResult.suggestion}`);
-          validated_boundary = {
-            ...validated_boundary,
-            trade_quantity: bdQuantityResult.suggestion
-          };
-        }
-
-        const bdPriceResult = strategyValidator.validatePriceDifference(boundary_defense.grid_spacing, symbolInfo);
-        if (!bdPriceResult.valid) {
-          console.log(`[优化参数验证] boundary_defense grid_spacing 不符合规则，从 ${boundary_defense.grid_spacing} 调整为 ${bdPriceResult.suggestion}`);
-          validated_boundary = {
-            ...validated_boundary,
-            grid_spacing: bdPriceResult.suggestion
-          };
-        }
-        boundary_defense = validated_boundary;
-      }
-    }
-  }
-
-  // 返回结果
+  // 6. 返回结果（参数已在计算时符合交易所规则）
   return {
     symbol,
     interval,
@@ -797,8 +845,8 @@ const optimizeGridParams = async (options) => {
       score: riskResult.score
     },
 
-    // 推荐网格参数（正常状态使用，已验证）
-    recommended: validated_recommended,
+    // 推荐网格参数（正常状态使用，已符合交易所规则）
+    recommended,
 
     // 防守边界参数（突破边界后使用，仅当 enableBoundaryDefense=true 时返回）
     boundary_defense
