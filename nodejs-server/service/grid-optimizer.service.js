@@ -334,11 +334,11 @@ const optimizeForProfit = (params) => {
   let analysis = null;
   if (config_list.length > 0) {
     const top_list = config_list
-      .sort((a, b) => b.dailyProfit - a.dailyProfit)
+      .sort((a, b) => b.daily_profit - a.daily_profit)
       .slice(0, 5)
       .map(config => ({
         grid_spacing: new BigNumber(config.grid_spacing).toFixed(6),
-        grid_spacing_percent: new BigNumber(config.grid_spacingPercent).toFixed(4) + '%',
+        grid_spacing_percent: new BigNumber(config.grid_spacing_percent).toFixed(4) + '%',
         trade_quantity: new BigNumber(config.trade_quantity).toFixed(6),
         trade_value: new BigNumber(config.trade_value).toFixed(2),
         expected_daily_frequency: new BigNumber(config.daily_frequency).toFixed(2),
@@ -691,11 +691,11 @@ const optimizeForBoundary = (params) => {
   let analysis = null;
   if (config_list.length > 0) {
     const top_list = config_list
-      .sort((a, b) => a.dailyFrequency - b.dailyFrequency) // 按频率从低到高排序
+      .sort((a, b) => a.daily_frequency - b.daily_frequency) // 按频率从低到高排序
       .slice(0, 3)
       .map(config => ({
         grid_spacing: new BigNumber(config.grid_spacing).toFixed(6),
-        grid_spacing_percent: new BigNumber(config.grid_spacingPercent).toFixed(4) + '%',
+        grid_spacing_percent: new BigNumber(config.grid_spacing_percent).toFixed(4) + '%',
         trade_quantity: new BigNumber(config.trade_quantity).toFixed(6),
         trade_value: new BigNumber(config.trade_value).toFixed(2),
         expected_daily_frequency: new BigNumber(config.daily_frequency).toFixed(2),
