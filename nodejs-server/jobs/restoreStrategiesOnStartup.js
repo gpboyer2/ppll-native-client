@@ -1,5 +1,6 @@
 const UtilRecord = require("../utils/record-log.js");
 const gridService = require("../service/grid-strategy.service");
+const { Op } = require("sequelize");
 
 /**
  * 服务启动或重启时恢复策略
@@ -39,17 +40,24 @@ async function getRunningStrategies() {
     UtilRecord.log("🔍 正在查询需要恢复的运行中网格策略...");
 
     // 查询状态为 RUNNING 且未被用户手动暂停的策略，按ID升序排列（效率优先）
+    // 注意：paused 字段可能为 null 或 false，都需要匹配
     const result = await gridService.getAllGridStrategys(
-      { status: "RUNNING", paused: false },
+      {
+        status: "RUNNING",
+        [Op.or]: [
+          { paused: false },
+          { paused: null }
+        ]
+      },
       { page: 1, limit: 1000 } // 设置较大的limit以获取所有运行中策略
     );
 
-    if (!result || !result.rows || result.rows.length === 0) {
+    if (!result || !result.list || result.list.length === 0) {
       UtilRecord.log("📋 未找到需要恢复的运行中策略");
       return [];
     }
 
-    const strategies = result.rows;
+    const strategies = result.list;
 
     UtilRecord.log(`📊 找到 ${strategies.length} 个需要恢复的运行中策略`);
     return strategies;
