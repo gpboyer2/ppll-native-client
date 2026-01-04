@@ -86,6 +86,8 @@ const IconNetwork = () => (
 - 你假设而不是确认：你假设白色会更好，而没有询问或确认用户想要什么颜色。
 - 你未经允许启动开发服务器：在需要验证修改时，你应建议用户手动启动服务进行测试，而不是擅自启动。
 - 用户未必说的对，你一定要有自己的判断，不能盲目听从用户，可以将你的分析与用户进行沟通。
+- 你违背了"入参默认为数组，天然支持批量操作"的规范，创建了 `batchDelete`、`batchDeleteNodes` 等带有 batch 前缀的方法。正确做法是直接使用 `delete` 方法，入参为数组即可同时支持单个和批量操作。
+- 工作日报过度包装：用户要求输出工作日报给领导看时，你要抓住核心：做了什么、解决了什么问题、带来了什么价值。禁止使用"架构统一性""最后一公里""元数据驱动"等过度包装的技术术语，自问自答地拔高工作意义。直接说清楚问题和解决方案即可。
 
 **AI八荣八耻**：
 以瞎猜接口为耻，以认真查询为荣；
@@ -131,7 +133,71 @@ Vue Router 使用 hash 模式，URL 格式必须为：
 与币安等第三方交互时，保持第三方原有的命名风格（如币安的 `symbol`, `positionSide` 等），只在代码内部进行映射转换。
 
 
-### 3. API 接口设计规范
+### 3. API 响应处理规范（重要）
+
+统一响应格式：
+- HTTP 状态码统一使用 200
+- 通过响应体中的 status 字段区分成功/失败
+- 前端通过 response.status 判断，不再使用 try-catch 处理业务错误
+- 业务数据字段使用 datum（避免与 Axios 的 data 字段混淆）
+
+响应格式定义：
+```typescript
+// 后端响应格式
+{
+  status: 'success' | 'error',
+  message: string,
+  datum: any  // 成功时为业务数据，失败时可根据业务返回 null/undefined/{}/[]
+}
+```
+
+场景处理规范：
+
+| 场景 | HTTP状态码 | status 字段 | datum 值 | 前端处理 |
+|------|------------|-------------|---------|----------|
+| 操作成功 | 200 | success | 业务数据 | if (res.status === 'success') |
+| 单个资源不存在 | 200 | error | null | if (res.status === 'error') |
+| 列表查询为空 | 200 | success | [] | if (res.status === 'success') |
+| 参数错误 | 200 | error | null | if (res.status === 'error') |
+| 服务器异常 | 200 | error | null | if (res.status === 'error') |
+
+后端 Controller 编写规范：
+```javascript
+// 成功响应
+res.apiSuccess(datum, message)  // message 默认为 "操作成功"
+
+// 错误响应（参数顺序与 apiSuccess 保持一致）
+res.apiError(datum, message)  // datum 默认为 null，message 默认为 "操作失败"
+
+// 资源不存在时返回业务错误
+if (!node) {
+  return res.apiError(null, '资源不存在');
+}
+
+// 校验错误时可返回额外数据
+if (error.validationErrorList) {
+  return res.apiError({ errorList: error.validationErrorList }, error.message);
+}
+```
+
+前端 API 调用规范：
+```typescript
+// 正确：使用 response.status 判断
+const response = await api.getNodeById(id);
+if (response.status === 'success') {
+  // 处理成功，使用 response.datum
+} else {
+  // 处理失败，使用 response.message
+}
+
+// 错误：不再使用 try-catch 处理业务错误
+try {
+  const response = await api.getNodeById(id);
+  // ...
+} catch (error) {
+  // 只处理网络错误等真正的异常
+}
+```
 
 入参规范：
 - 所有接口通过 data（请求体）或 params（查询参数）传参
@@ -139,12 +205,12 @@ Vue Router 使用 hash 模式，URL 格式必须为：
 - 入参默认为数组，天然支持批量操作
 - 例如：`POST /api/users/delete` + `{ data: [1, 2, 3] }`
 
-出参规范1（成功响应）：
+出参规范（列表查询）：
 ```json
 {
     "status": "success",
     "message": "操作成功",
-    "data": {
+    "datum": {
         "list": [],
         "pagination": {
             "current_page": 1,
@@ -154,26 +220,6 @@ Vue Router 使用 hash 模式，URL 格式必须为：
     }
 }
 ```
-
-出参规范2（错误响应）：
-```json
-{
-    "status": "error",
-    "message": "xxxx",
-    "data": null
-}
-```
-
-响应工具函数使用规范：
-- 所有 Controller 必须使用 `utils/api-response.js` 中的工具函数
-- 成功响应：`sendSuccess(res, data, message)`
-  - data: 返回的业务数据
-  - message: 成功消息，默认为"操作成功"
-- 错误响应：`sendError(res, message, status_code)`
-  - message: 错误消息
-  - status_code: HTTP 状态码，默认为 400
-- 禁止直接使用 `res.status().send()` 构造响应对象
-- 导入方式：`const { sendSuccess, sendError } = require('../utils/api-response')`
 
 分页字段说明：
 - current_page: 当前页码（从1开始）
@@ -185,6 +231,14 @@ Vue Router 使用 hash 模式，URL 格式必须为：
 - 基础接口只需要增删改查四个
 - 除非必要不新增其他接口
 - 批量操作通过数组入参自然支持
+
+批量操作命名规范（重要）：
+- 入参默认为数组，天然支持批量操作
+- 禁止使用 batch 前缀的方法名，如 batchDelete、batchCreate
+- 删除接口直接命名为 delete，入参是数组即可同时支持单个和批量删除
+- 正确示例：`delete(idList)` - 传入 `[id]` 删除单个，传入 `[id1, id2, ...]` 批量删除
+- 错误示例：`batchDelete(idList)` - 不要用 batch 前缀
+- 删除接口不要使用路径参数 `/:id`，统一用 `DELETE /api/xxx` + `{ data: [id1, id2, ...] }`
 
 
 ### 4. 前后端数据交互规范
