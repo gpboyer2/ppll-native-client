@@ -29,28 +29,6 @@ class RequestLogger {
   private static readonly ENABLED = true; // 可通过环境变量控制
 
   /**
-   * 过滤敏感字段
-   */
-  private static filterSensitive(data: any): any {
-    if (!data || typeof data !== 'object') {
-      return data;
-    }
-
-    const sensitiveFields = ['password', 'pwd', 'token', 'secret', 'api_key', 'secret_key', 'authorization'];
-    const filtered = { ...data };
-
-    for (const key of Object.keys(filtered)) {
-      if (sensitiveFields.some(field => key.toLowerCase().includes(field.toLowerCase()))) {
-        filtered[key] = '***FILTERED***';
-      } else if (typeof filtered[key] === 'object' && filtered[key] !== null) {
-        filtered[key] = this.filterSensitive(filtered[key]);
-      }
-    }
-
-    return filtered;
-  }
-
-  /**
    * 记录请求开始
    */
   static logStart(method: string, url: string, params?: any, data?: any): number {
@@ -98,7 +76,7 @@ class RequestLogger {
         logData.message = response.message;
       }
       if (response.datum !== undefined) {
-        logData.datum = this.filterSensitive(response.datum);
+        logData.datum = response.datum;
       }
 
       console.log(`#${requestId} API 响应:`, this.truncateLog(logData));
