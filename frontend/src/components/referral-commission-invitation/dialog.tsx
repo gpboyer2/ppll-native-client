@@ -10,7 +10,9 @@ export interface GridStrategyParams {
     grid_price_difference: number;
     grid_trade_quantity?: number;
     grid_long_open_quantity?: number;
+    grid_long_close_quantity?: number;
     grid_short_open_quantity?: number;
+    grid_short_close_quantity?: number;
     // 预计算的返佣数据（优先使用）
     expected_daily_frequency?: number;
     expected_daily_profit?: number;

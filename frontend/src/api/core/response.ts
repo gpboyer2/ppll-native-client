@@ -9,7 +9,7 @@
 export interface Response<T = any> {
   status: 'success' | 'error'
   message: string
-  data: T
+  datum: T
 }
 
 /**
@@ -21,7 +21,7 @@ export function ok<T>(data: T): Response<T> {
   return {
     status: 'success',
     message: '操作成功',
-    data
+    datum: data
   };
 }
 
@@ -34,6 +34,6 @@ export function error(message: string): Response<null> {
   return {
     status: 'error',
     message,
-    data: null
+    datum: null
   };
 }

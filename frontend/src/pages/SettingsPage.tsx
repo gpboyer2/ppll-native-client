@@ -77,7 +77,7 @@ function SettingsPage() {
     setSaveStatus('saving');
     try {
       const cfg = { feedURL, channel: 'stable', autoCheck, checkIntervalMinute, autoDownload, silentInstall, hashAlgo: 'md5' };
-      const res = await UpdateSaveConfig(cfg as any);
+      const res = await UpdateSaveConfig(cfg as any) as any;
       if (res.status === 'success') {
         setSaveStatus('success');
         setTimeout(() => setSaveStatus('idle'), 500);
@@ -99,7 +99,7 @@ function SettingsPage() {
     }
 
     try {
-      const res = await UpdateCheckNow();
+      const res = await UpdateCheckNow() as any;
       if (res.status === 'success') {
         setUpdateInfo(res.datum);
       }
