@@ -1,7 +1,6 @@
 // API Key 用户标识中间件
 // 从请求中提取 api_key 和 secret_key，作为用户标识用于数据隔离
 // 这两个字段由前端拦截器自动注入
-const { sendError } = require('../utils/api-response');
 
 const apiKeyIdentity = (req, res, next) => {
   // 从 query、params 或 body 中提取 api_key 和 secret_key
@@ -10,7 +9,7 @@ const apiKeyIdentity = (req, res, next) => {
 
   // 验证是否存在
   if (!api_key || !secret_key) {
-    return sendError(res, '缺少必要参数: api_key 和 secret_key', 400);
+    return res.apiError('缺少必要参数: api_key 和 secret_key', 400);
   }
 
   // 将 API Key 标识附加到 request 对象，供后续使用

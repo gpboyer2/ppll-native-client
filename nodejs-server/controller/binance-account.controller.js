@@ -7,7 +7,6 @@ const catchAsync = require("../utils/catch-async");
 const binanceAccountService = require("../service/binance-account.service");
 const { extractApiCredentials } = require("../utils");
 const { convertToBoolean } = require("../utils/binance-account");
-const { sendSuccess, sendError } = require('../utils/api-response');
 const UtilRecord = require('../utils/record-log.js');
 
 /**
@@ -18,7 +17,7 @@ const UtilRecord = require('../utils/record-log.js');
  */
 const handleError = (error, res, operation) => {
   console.error(`${operation}出错:`, error);
-  return sendError(res, error.message || `${operation}失败`, httpStatus.INTERNAL_SERVER_ERROR);
+  return res.apiError(error.message || `${operation}失败`);
 };
 
 
@@ -55,7 +54,7 @@ const getUSDMFuturesAccount = catchAsync(async (req, res) => {
 
   // 验证必需参数
   if (!api_key || !secret_key) {
-    return sendError(res, "缺少必要的API凭证参数", httpStatus.BAD_REQUEST);
+    return res.apiError("缺少必要的API凭证参数");
   }
 
   try {
@@ -69,7 +68,7 @@ const getUSDMFuturesAccount = catchAsync(async (req, res) => {
       ? "获取U本位合约账户信息成功"
       : "获取U本位合约账户信息成功（不包含持仓数据）";
 
-    return sendSuccess(res, account_info, message);
+    return res.apiSuccess(account_info, message);
   } catch (error) {
     return handleError(error, res, "获取U本位合约账户信息");
   }
@@ -98,7 +97,7 @@ const getSpotAccount = catchAsync(async (req, res) => {
 
   // 验证必需参数
   if (!api_key || !secret_key) {
-    return sendError(res, "缺少必要的API凭证参数", httpStatus.BAD_REQUEST);
+    return res.apiError("缺少必要的API凭证参数");
   }
 
   try {
@@ -112,7 +111,7 @@ const getSpotAccount = catchAsync(async (req, res) => {
       ? "获取现货账户信息成功"
       : "获取现货账户信息成功（已过滤空余额币种）";
 
-    return sendSuccess(res, account_info, message);
+    return res.apiSuccess(account_info, message);
   } catch (error) {
     return handleError(error, res, "获取现货账户信息");
   }
@@ -148,7 +147,7 @@ const getCoinMFuturesAccount = catchAsync(async (req, res) => {
 
   // 验证必需参数
   if (!api_key || !secret_key) {
-    return sendError(res, "缺少必要的API凭证参数", httpStatus.BAD_REQUEST);
+    return res.apiError("缺少必要的API凭证参数");
   }
 
   try {
@@ -162,7 +161,7 @@ const getCoinMFuturesAccount = catchAsync(async (req, res) => {
       ? "获取币本位合约账户信息成功"
       : "获取币本位合约账户信息成功（不包含持仓数据）";
 
-    return sendSuccess(res, account_info, message);
+    return res.apiSuccess(account_info, message);
   } catch (error) {
     return handleError(error, res, "获取币本位合约账户信息");
   }
@@ -177,29 +176,29 @@ const setLeverage = catchAsync(async (req, res) => {
 
   // 验证必需参数
   if (!api_key || !secret_key) {
-    return sendError(res, "缺少API凭证", httpStatus.BAD_REQUEST);
+    return res.apiError("缺少API凭证");
   }
 
   if (!leverageList || !Array.isArray(leverageList)) {
-    return sendError(res, "leverageList 必须是一个数组，格式为 [{symbol: 'BTCUSDT', leverage: 20}, {symbol: 'ETHUSDT', leverage: 10}]", httpStatus.BAD_REQUEST);
+    return res.apiError("leverageList 必须是一个数组，格式为 [{symbol: 'BTCUSDT', leverage: 20}, {symbol: 'ETHUSDT', leverage: 10}]");
   }
 
   if (leverageList.length === 0) {
-    return sendError(res, "leverageList 不能为空数组", httpStatus.BAD_REQUEST);
+    return res.apiError("leverageList 不能为空数组");
   }
 
   // 验证每个交易对的杠杆倍数
   for (const item of leverageList) {
     if (!item || typeof item !== 'object') {
-      return sendError(res, "数组中的每个元素必须是包含 symbol 和 leverage 属性的对象", httpStatus.BAD_REQUEST);
+      return res.apiError("数组中的每个元素必须是包含 symbol 和 leverage 属性的对象");
     }
 
     if (!item.symbol || typeof item.symbol !== 'string') {
-      return sendError(res, "交易对符号必须是非空字符串", httpStatus.BAD_REQUEST);
+      return res.apiError("交易对符号必须是非空字符串");
     }
 
     if (!Number.isInteger(item.leverage) || item.leverage < 1 || item.leverage > 125) {
-      return sendError(res, `${item.symbol} 的杠杆倍数必须是 1-125 之间的整数`, httpStatus.BAD_REQUEST);
+      return res.apiError(`${item.symbol} 的杠杆倍数必须是 1-125 之间的整数`);
     }
   }
 
@@ -219,7 +218,7 @@ const setLeverage = catchAsync(async (req, res) => {
         console.error("批量设置杠杆异步执行失败:", error);
       });
 
-      return sendSuccess(res, {
+      return res.apiSuccess({
         results: [],
         summary: {
           total: leverageList.length,
@@ -234,7 +233,7 @@ const setLeverage = catchAsync(async (req, res) => {
     const success_count = results.filter(r => r.success).length;
     const failed_count = results.filter(r => !r.success).length;
 
-    return sendSuccess(res, {
+    return res.apiSuccess({
       results,
       summary: {
         total: results.length,
@@ -256,13 +255,13 @@ const generateListenKey = catchAsync(async (req, res) => {
   const { api_key } = extractApiCredentials(req);
 
   if (!api_key) {
-    return sendError(res, "缺少 API Key", httpStatus.BAD_REQUEST);
+    return res.apiError("缺少 API Key");
   }
 
   try {
     const listen_key = await binanceAccountService.generateListenKey(api_key);
 
-    return sendSuccess(res, { listen_key }, "ListenKey 生成成功");
+    return res.apiSuccess({ listen_key }, "ListenKey 生成成功");
   } catch (error) {
     return handleError(error, res, "生成 ListenKey");
   }
@@ -275,13 +274,13 @@ const keepAliveListenKey = catchAsync(async (req, res) => {
   const { api_key } = extractApiCredentials(req);
 
   if (!api_key) {
-    return sendError(res, "缺少 API Key", httpStatus.BAD_REQUEST);
+    return res.apiError("缺少 API Key");
   }
 
   try {
     await binanceAccountService.keepAliveListenKey(api_key);
 
-    return sendSuccess(res, {}, "ListenKey 延期成功");
+    return res.apiSuccess({}, "ListenKey 延期成功");
   } catch (error) {
     return handleError(error, res, "延长 ListenKey");
   }

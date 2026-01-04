@@ -3,7 +3,6 @@
  * 单用户系统：直接验证 binance_api_key 表中的 API Key
  */
 const db = require('../models');
-const { sendError } = require('../utils/api-response');
 const BinanceApiKey = db.binance_api_keys;
 
 /**
@@ -40,12 +39,12 @@ const validateVipAccess = async (req, res, next) => {
         });
 
         if (!keyRecord) {
-          return sendError(res, 'API Key 或 Secret 无效', 403);
+          return res.apiError('API Key 或 Secret 无效', 403);
         }
 
         // 验证状态
         if (keyRecord.status !== 2) {
-          return sendError(res, 'API Key 已被禁用', 403);
+          return res.apiError('API Key 已被禁用', 403);
         }
 
         // 检查 VIP 是否过期
@@ -53,10 +52,10 @@ const validateVipAccess = async (req, res, next) => {
           const now = new Date();
           const expireTime = new Date(keyRecord.vip_expire_at);
           if (expireTime < now) {
-            return sendError(res, 'VIP 已过期', 403);
+            return res.apiError('VIP 已过期', 403);
           }
         } else {
-          return sendError(res, '您不是 VIP 用户，无法使用该功能', 403);
+          return res.apiError('您不是 VIP 用户，无法使用该功能', 403);
         }
 
         req.vipUser = {
@@ -67,17 +66,17 @@ const validateVipAccess = async (req, res, next) => {
         };
       } catch (error) {
         console.error('VIP验证过程中发生错误:', error);
-        return sendError(res, '验证失败', 403);
+        return res.apiError('验证失败', 403);
       }
     } else {
-      return sendError(res, '缺失参数 api_key 或 secret_key', 403);
+      return res.apiError('缺失参数 api_key 或 secret_key', 403);
     }
 
     // 验证通过，继续处理请求
     next();
   } catch (error) {
     console.error('VIP中间件执行错误:', error);
-    return sendError(res, '验证失败', 403);
+    return res.apiError('验证失败', 403);
   }
 };
 

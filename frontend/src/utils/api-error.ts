@@ -71,7 +71,7 @@ export function handleResponse<T>(response: Response<T>, options?: NotifyOptions
     }
     throw new ApiError(response.status, response.message);
   }
-  return response.data as T;
+  return response.datum as T;
 }
 
 /**
@@ -83,7 +83,7 @@ export function handleResponseSilent<T>(response: Response<T>): T {
   if (response.status === 'error') {
     throw new ApiError(response.status, response.message);
   }
-  return response.data as T;
+  return response.datum as T;
 }
 
 /**

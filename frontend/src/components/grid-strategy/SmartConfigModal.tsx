@@ -91,7 +91,7 @@ export function SmartConfigModal({
       }
 
       // 保存结果，切换到结果展示
-      setOptimizationResult(response.data);
+      setOptimizationResult(response.datum);
       setSelectedConfigIndex(0);  // 默认选中第一个
       setStep('result');
 

@@ -1,4 +1,6 @@
 
+claude --dangerously-skip-permissions
+
 
 PengdeMacBook-Pro:ppll-native-client
 的深色/浅色主题切换功能没有实现，你查阅 git id 6a2a254ccbab0cc759f8467165412ca1b64287fd，为我检查原因!

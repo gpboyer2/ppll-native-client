@@ -70,6 +70,10 @@ const corsOptions = {
 
 app.use(xss());
 
+// 统一响应格式中间件（在所有路由之前注册）
+const responseFormatMiddleware = require('./utils/api-response');
+app.use(responseFormatMiddleware);
+
 app.use(express.json({ limit: "1mb" }));
 
 app.use(bodyParser.json());

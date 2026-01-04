@@ -54,8 +54,8 @@ async function getAuthToken(): Promise<string> {
 
     const token_res = await GetConfig('auth_token') as any;
     if (token_res && typeof token_res === 'object') {
-      if (token_res.status === 'success' && token_res.data) {
-        return String(token_res.data);
+      if (token_res.status === 'success' && token_res.datum) {
+        return String(token_res.datum);
       }
     } else if (typeof token_res === 'string') {
       return token_res;
@@ -142,8 +142,8 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
       const response = await BinanceApiKeyApi.query();
 
       // 后端返回字段名直接使用，不做任何转换
-      if (response.status === 'success' && response.data?.list) {
-        set({ api_key_list: response.data.list });
+      if (response.status === 'success' && response.datum?.list) {
+        set({ api_key_list: response.datum.list });
       }
     } catch (error) {
       console.error('[binance-store] 查询 API Key 失败:', error);
@@ -183,9 +183,9 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
       // 传递 api_key 和 secret_key 参数
       const response = await BinanceExchangeInfoApi.getExchangeInfo(params);
 
-      // 后端响应直接透传，数据在 response.data.symbols
-      if (response.status === 'success' && response.data?.symbols) {
-        const symbols = response.data.symbols;
+      // 后端响应直接透传，数据在 response.datum.symbols
+      if (response.status === 'success' && response.datum?.symbols) {
+        const symbols = response.datum.symbols;
         const trading_symbols = symbols.filter((s: any) => s.status === 'TRADING');
         const all_pairs = trading_symbols.map((s: any) => s.symbol);
         const usdt_pairs = trading_symbols

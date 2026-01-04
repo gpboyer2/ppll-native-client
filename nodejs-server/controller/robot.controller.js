@@ -5,7 +5,6 @@
 const robotService = require("../service/robot.service");
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catch-async");
-const { sendSuccess, sendError } = require("../utils/api-response");
 
 const robot = catchAsync(async (req, res) => {
   const { api_key, secret_key } = req.query;
@@ -16,7 +15,7 @@ const robot = catchAsync(async (req, res) => {
   //  2 websocket监听会将最新的币种价格数据给到本地内存
   //  3 启用一个定时器读取本地内存数据并执行网格策略
 
-  return sendSuccess(res, '', '机器人运行成功');
+  return res.apiSuccess('', '机器人运行成功');
 });
 
 
@@ -38,7 +37,7 @@ const createRobot = catchAsync(async (req, res) => {
   // 应该是先ws后入库？
   const tradeGrid = result && await robotService.createSymbolWebsocket(req.body).catch(err => { throw err; });
 
-  return sendSuccess(res, result, '创建机器人成功');
+  return res.apiSuccess(result, '创建机器人成功');
 });
 
 
@@ -49,7 +48,7 @@ const deleteRobot = catchAsync(async (req, res) => {
     robots = await robotService.deleteRobotById(Number(id));
   }
 
-  return sendSuccess(res, robots, '删除机器人成功');
+  return res.apiSuccess(robots, '删除机器人成功');
 });
 
 
@@ -70,7 +69,7 @@ const queryRobot = catchAsync(async (req, res) => {
     robots = await robotService.getAllRobots();
   }
 
-  return sendSuccess(res, robots, '获取机器人列表成功');
+  return res.apiSuccess(robots, '获取机器人列表成功');
 });
 
 

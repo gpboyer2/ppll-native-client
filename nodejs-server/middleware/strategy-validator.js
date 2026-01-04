@@ -5,7 +5,6 @@
 
 const strategyValidator = require('../utils/strategy-validator');
 const binanceExchangeInfoService = require('../service/binance-exchange-info.service');
-const { sendError } = require('../utils/api-response');
 const httpStatus = require('http-status');
 
 /**
@@ -20,21 +19,21 @@ const validateStrategyParams = async (req, res, next) => {
     const exchangeInfo = await binanceExchangeInfoService.getLatestExchangeInfo();
 
     if (!exchangeInfo) {
-      return sendError(res, '交易所信息未初始化，请稍后重试', httpStatus.SERVICE_UNAVAILABLE);
+      return res.apiError('交易所信息未初始化，请稍后重试', httpStatus.SERVICE_UNAVAILABLE);
     }
 
     // 2. 查找交易对信息
     const symbolInfo = exchangeInfo.symbols?.find(s => s.symbol === trading_pair);
 
     if (!symbolInfo) {
-      return sendError(res, `交易对 ${trading_pair} 不存在或不可用`, httpStatus.BAD_REQUEST);
+      return res.apiError(`交易对 ${trading_pair} 不存在或不可用`, httpStatus.BAD_REQUEST);
     }
 
     // 3. 验证交易数量
     if (grid_trade_quantity) {
       const quantityResult = strategyValidator.validateQuantity(grid_trade_quantity, symbolInfo);
       if (!quantityResult.valid) {
-        return sendError(res, `${quantityResult.message}${quantityResult.suggestion ? `，建议值: ${quantityResult.suggestion}` : ''}`, httpStatus.BAD_REQUEST);
+        return res.apiError(`${quantityResult.message}${quantityResult.suggestion ? `，建议值: ${quantityResult.suggestion}` : ''}`, httpStatus.BAD_REQUEST);
       }
     }
 
@@ -42,7 +41,7 @@ const validateStrategyParams = async (req, res, next) => {
     if (grid_price_difference) {
       const priceResult = strategyValidator.validatePriceDifference(grid_price_difference, symbolInfo);
       if (!priceResult.valid) {
-        return sendError(res, `${priceResult.message}${priceResult.suggestion ? `，建议值: ${priceResult.suggestion}` : ''}`, httpStatus.BAD_REQUEST);
+        return res.apiError(`${priceResult.message}${priceResult.suggestion ? `，建议值: ${priceResult.suggestion}` : ''}`, httpStatus.BAD_REQUEST);
       }
     }
 
@@ -50,7 +49,7 @@ const validateStrategyParams = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('策略参数验证失败:', error);
-    return sendError(res, '策略参数验证失败，请稍后重试', httpStatus.INTERNAL_SERVER_ERROR);
+    return res.apiError('策略参数验证失败，请稍后重试', httpStatus.INTERNAL_SERVER_ERROR);
   }
 };
 

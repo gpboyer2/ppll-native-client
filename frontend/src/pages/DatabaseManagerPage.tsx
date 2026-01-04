@@ -99,7 +99,7 @@ function DatabaseManagerPage() {
   const fetch_database_info = useCallback(async () => {
     const response = await ApiEndpoints.getDatabaseInfo();
     if (response.status === 'success') {
-      setDbInfo(response.data);
+      setDbInfo(response.datum);
     }
   }, []);
 
@@ -112,7 +112,7 @@ function DatabaseManagerPage() {
       keyword
     });
     if (response.status === 'success') {
-      setTableList(response.data.list);
+      setTableList(response.datum.list);
     }
     setLoading(false);
   }, [keyword]);
@@ -122,7 +122,7 @@ function DatabaseManagerPage() {
     setLoading(true);
     const response = await ApiEndpoints.getTableDetail(tableName);
     if (response.status === 'success') {
-      setTableDetail(response.data);
+      setTableDetail(response.datum);
     }
     setLoading(false);
   }, []);
@@ -139,7 +139,7 @@ function DatabaseManagerPage() {
       sortOrder
     });
     if (response.status === 'success') {
-      setTableData(response.data);
+      setTableData(response.datum);
     }
     setLoading(false);
   }, [selectedTable, currentPage, pageSize, sortBy, sortOrder]);
@@ -150,10 +150,10 @@ function DatabaseManagerPage() {
     setLoading(true);
     const response = await ApiEndpoints.executeQuery(sqlQuery);
     if (response.status === 'success') {
-      setQueryResult(response.data);
+      setQueryResult(response.datum);
       notifications.show({
         title: '查询成功',
-        message: `返回 ${response.data.rowCount} 行记录`,
+        message: `返回 ${response.datum.rowCount} 行记录`,
         color: 'teal'
       });
     } else {

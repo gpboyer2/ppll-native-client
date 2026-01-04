@@ -2,7 +2,6 @@ const httpStatus = require('http-status');
 const catchAsync = require('../utils/catch-async');
 const { banned_ips: BannedIP } = require('../models');
 const ApiError = require('../utils/api-error');
-const { sendSuccess, sendError } = require('../utils/api-response');
 const {
   getIPStats,
   getMemoryStats,
@@ -38,7 +37,7 @@ const getBannedIps = catchAsync(async (req, res) => {
   const memoryStats = getIPStats();
   const systemMemoryStats = getMemoryStats();
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     bannedIPs: rows,
     pagination: {
       currentPage: parseInt(currentPage),
@@ -70,7 +69,7 @@ const unbanIp = catchAsync(async (req, res) => {
     throw new ApiError(httpStatus.NOT_FOUND, '该IP未被封禁或记录不存在');
   }
 
-  return sendSuccess(res, null, '解封成功');
+  return res.apiSuccess(null, '解封成功');
 });
 
 /**
@@ -82,13 +81,13 @@ const banIP = catchAsync(async (req, res) => {
   const { ip, reason, remark, duration = 24 } = req.body;
 
   if (!ip || !reason) {
-    return sendError(res, 'IP地址和封禁原因不能为空', 400);
+    return res.apiError('IP地址和封禁原因不能为空');
   }
 
   // 验证IP格式
   const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
   if (!ipRegex.test(ip)) {
-    return sendError(res, 'IP地址格式不正确', 400);
+    return res.apiError('IP地址格式不正确');
   }
 
   const bannedRecord = await BannedIP.banIP(
@@ -98,7 +97,7 @@ const banIP = catchAsync(async (req, res) => {
     remark || ''
   );
 
-  return sendSuccess(res, bannedRecord, `IP ${ip} 已被永久封禁`);
+  return res.apiSuccess(bannedRecord, `IP ${ip} 已被永久封禁`);
 });
 
 /**
@@ -110,7 +109,7 @@ const batchUnbanIP = catchAsync(async (req, res) => {
   const { ips } = req.body;
 
   if (!Array.isArray(ips) || ips.length === 0) {
-    return sendError(res, 'IP地址列表不能为空', 400);
+    return res.apiError('IP地址列表不能为空');
   }
 
   const results = [];
@@ -125,7 +124,7 @@ const batchUnbanIP = catchAsync(async (req, res) => {
 
   const success_count = results.filter(r => r.success).length;
 
-  return sendSuccess(res, { results }, `成功解封 ${success_count}/${ips.length} 个IP的封禁`);
+  return res.apiSuccess({ results }, `成功解封 ${success_count}/${ips.length} 个IP的封禁`);
 });
 
 /**
@@ -136,7 +135,7 @@ const batchUnbanIP = catchAsync(async (req, res) => {
 const cleanupExpiredBans = catchAsync(async (req, res) => {
   const cleanedCount = await BannedIP.cleanupExpiredRecords();
 
-  return sendSuccess(res, { cleanedCount }, `清理了 ${cleanedCount} 条过期封禁记录`);
+  return res.apiSuccess({ cleanedCount }, `清理了 ${cleanedCount} 条过期封禁记录`);
 });
 
 /**
@@ -148,16 +147,16 @@ const getIPBanDetail = catchAsync(async (req, res) => {
   const { ip } = req.params;
 
   if (!ip) {
-    return sendError(res, 'IP地址不能为空', 400);
+    return res.apiError('IP地址不能为空');
   }
 
   const bannedRecord = await BannedIP.findByIp(ip);
 
   if (!bannedRecord) {
-    return sendError(res, '未找到该IP的封禁记录', 404);
+    return res.apiError('未找到该IP的封禁记录');
   }
 
-  return sendSuccess(res, bannedRecord, '获取IP封禁详情成功');
+  return res.apiSuccess(bannedRecord, '获取IP封禁详情成功');
 });
 
 /**
@@ -170,7 +169,7 @@ const executeEmergencyCleanup = catchAsync(async (req, res) => {
   emergencyCleanup();
   const afterCount = getMemoryStats().ipCount;
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     beforeCount,
     afterCount,
     cleanedCount: beforeCount - afterCount
@@ -186,18 +185,18 @@ const addTrustedIPAddress = catchAsync(async (req, res) => {
   const { ip } = req.body;
 
   if (!ip) {
-    return sendError(res, 'IP地址不能为空', 400);
+    return res.apiError('IP地址不能为空');
   }
 
   // 验证IP格式
   const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
   if (!ipRegex.test(ip)) {
-    return sendError(res, 'IP地址格式不正确', 400);
+    return res.apiError('IP地址格式不正确');
   }
 
   addTrustedIP(ip);
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     ip,
     trustedIPs: Array.from(TRUSTED_IPS)
   }, `IP ${ip} 已添加到可信列表`);
@@ -212,16 +211,16 @@ const removeTrustedIPAddress = catchAsync(async (req, res) => {
   const { ip } = req.params;
 
   if (!ip) {
-    return sendError(res, 'IP地址不能为空', 400);
+    return res.apiError('IP地址不能为空');
   }
 
   const removed = removeTrustedIP(ip);
 
   if (!removed) {
-    return sendError(res, '该IP不在可信列表中', 404);
+    return res.apiError('该IP不在可信列表中');
   }
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     ip,
     trustedIPs: Array.from(TRUSTED_IPS)
   }, `IP ${ip} 已从可信列表移除`);
@@ -233,7 +232,7 @@ const removeTrustedIPAddress = catchAsync(async (req, res) => {
  * @access Admin
  */
 const getTrustedIPs = catchAsync(async (req, res) => {
-  return sendSuccess(res, {
+  return res.apiSuccess({
     trustedIPs: Array.from(TRUSTED_IPS),
     count: TRUSTED_IPS.size
   }, '获取可信IP列表成功');

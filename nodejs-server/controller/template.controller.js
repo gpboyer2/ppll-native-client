@@ -5,7 +5,6 @@
 const orderService = require("../service/template.service");
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catch-async");
-const { sendSuccess, sendError } = require("../utils/api-response");
 
 const createOrder = catchAsync(async (req, res) => {
   /** @type {{msg?: string} | null} */
@@ -22,10 +21,10 @@ const createOrder = catchAsync(async (req, res) => {
   });
 
   if (error_msg) {
-    return sendError(res, error_msg.msg, 400);
+    return res.apiError(error_msg.msg);
   }
 
-  return sendSuccess(res, result, '创建订单成功');
+  return res.apiSuccess(result, '创建订单成功');
 });
 
 const updateOrder = catchAsync(async (req, res) => {
@@ -33,29 +32,29 @@ const updateOrder = catchAsync(async (req, res) => {
 
   // 检查必需参数
   if (!id) {
-    return sendError(res, '订单ID不能为空', 400);
+    return res.apiError('订单ID不能为空');
   }
 
   // 检查订单是否存在
   const existingOrder = await orderService.getOrderById(id);
   if (!existingOrder) {
-    return sendError(res, '订单不存在', 404);
+    return res.apiError('订单不存在');
   }
 
   try {
     const result = await orderService.updateOrderById(id, updateBody);
-    return sendSuccess(res, { affectedRows: result[0] }, '订单更新成功');
+    return res.apiSuccess({ affectedRows: result[0] }, '订单更新成功');
   } catch (err) {
-    return sendError(res, err.message || '服务器内部错误', 500);
+    return res.apiError(err.message || '服务器内部错误');
   }
 });
 
 const deleteOrder = catchAsync(async (req, res) => {
   const deleted = await orderService.deleteOrderById(req.body.id);
   if (!deleted) {
-    return sendError(res, '订单不存在', 404);
+    return res.apiError('订单不存在');
   }
-  return sendSuccess(res, null, '删除订单成功');
+  return res.apiSuccess(null, '删除订单成功');
 });
 
 // 列表查询（分页 + 过滤）
@@ -71,7 +70,7 @@ const queryOrders = catchAsync(async (req, res) => {
   const options = { page: parseInt(currentPage, 10) || 1, pageSize: parseInt(pageSize, 10) || 10 };
 
   const data = await orderService.queryOrders(filter, options);
-  return sendSuccess(res, data, '获取订单列表成功');
+  return res.apiSuccess(data, '获取订单列表成功');
 });
 
 

@@ -101,7 +101,7 @@ function SettingsPage() {
     try {
       const res = await UpdateCheckNow();
       if (res.status === 'success') {
-        setUpdateInfo(res.data);
+        setUpdateInfo(res.datum);
       }
     } catch (error) {
       console.error('检查更新失败:', error);

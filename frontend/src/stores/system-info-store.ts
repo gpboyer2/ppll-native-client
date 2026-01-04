@@ -174,9 +174,9 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
           // 尝试获取健康检查数据
           try {
             const response = await SystemApi.healthCheck();
-            if (response.status === 'success' && response.data) {
+            if (response.status === 'success' && response.datum) {
               set({
-                dynamicInfo: { health: response.data },
+                dynamicInfo: { health: response.datum },
                 initialized: true
               });
               return;
@@ -221,27 +221,27 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
               ]);
 
               if (ipResponse.status === 'fulfilled' && ipResponse.value) {
-                if (ipResponse.value.status === 'success' && Array.isArray(ipResponse.value.data)) {
-                  ipv4List = ipResponse.value.data;
+                if (ipResponse.value.status === 'success' && Array.isArray(ipResponse.value.datum)) {
+                  ipv4List = ipResponse.value.datum;
                 }
               }
 
               if (gitResponse.status === 'fulfilled' && gitResponse.value) {
-                if (gitResponse.value.status === 'success' && gitResponse.value.data) {
-                  gitInfo = gitResponse.value.data;
+                if (gitResponse.value.status === 'success' && gitResponse.value.datum) {
+                  gitInfo = gitResponse.value.datum;
                   app_version = gitInfo?.tag || app_version;
                 }
               }
 
               if (healthResponse.status === 'fulfilled' && healthResponse.value) {
-                if (healthResponse.value.status === 'success' && healthResponse.value.data) {
-                  healthData = healthResponse.value.data;
+                if (healthResponse.value.status === 'success' && healthResponse.value.datum) {
+                  healthData = healthResponse.value.datum;
                 }
               }
 
               if (dbPathResponse.status === 'fulfilled' && dbPathResponse.value) {
-                if (dbPathResponse.value.status === 'success' && typeof dbPathResponse.value.data === 'string') {
-                  databasePath = dbPathResponse.value.data;
+                if (dbPathResponse.value.status === 'success' && typeof dbPathResponse.value.datum === 'string') {
+                  databasePath = dbPathResponse.value.datum;
                 }
               }
 
@@ -279,8 +279,8 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
 
           try {
             const response = await SystemApi.healthCheck();
-            if (response.status === 'success' && response.data) {
-              set({ dynamicInfo: { health: response.data } });
+            if (response.status === 'success' && response.datum) {
+              set({ dynamicInfo: { health: response.datum } });
             }
           } catch {
             // 忽略定期健康检查的错误
@@ -309,8 +309,8 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
 
     try {
       const response = await SystemApi.healthCheck();
-      if (response.status === 'success' && response.data) {
-        set({ dynamicInfo: { health: response.data } });
+      if (response.status === 'success' && response.datum) {
+        set({ dynamicInfo: { health: response.datum } });
       }
     } catch (error) {
       console.error('刷新动态信息失败:', error);

@@ -4,7 +4,6 @@
  */
 const dashboardService = require('../service/dashboard.service.js');
 const catchAsync = require('../utils/catch-async');
-const { sendSuccess } = require('../utils/api-response');
 
 
 /**
@@ -12,7 +11,7 @@ const { sendSuccess } = require('../utils/api-response');
  */
 const dashboard = catchAsync(async (req, res) => {
   const data = dashboardService.getDashboard();
-  return sendSuccess(res, data, '获取仪表盘数据成功');
+  return res.apiSuccess(data, '获取仪表盘数据成功');
 });
 
 
@@ -22,7 +21,7 @@ const dashboard = catchAsync(async (req, res) => {
 const account = catchAsync(async (req, res) => {
   const { api_key, secret_key } = req.body;
   const result = await dashboardService.getAccount(api_key, secret_key);
-  return sendSuccess(res, result, '获取账户信息成功');
+  return res.apiSuccess(result, '获取账户信息成功');
 });
 
 

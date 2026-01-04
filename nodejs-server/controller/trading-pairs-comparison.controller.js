@@ -1,6 +1,5 @@
 const catchAsync = require('../utils/catch-async');
 const tradingPairsComparisonService = require('../service/trading-pairs-comparison.service.js');
-const { sendSuccess, sendError } = require('../utils/api-response');
 
 /**
  * 获取有合约但没有现货的交易对
@@ -8,7 +7,7 @@ const { sendSuccess, sendError } = require('../utils/api-response');
 const getFuturesOnlyPairs = catchAsync(async (req, res) => {
   const { suffix } = req.query;
   const result = await tradingPairsComparisonService.getFuturesOnlyPairs(suffix);
-  return sendSuccess(res, result, '成功获取有合约但没有现货的交易对');
+  return res.apiSuccess(result, '成功获取有合约但没有现货的交易对');
 });
 
 /**
@@ -17,7 +16,7 @@ const getFuturesOnlyPairs = catchAsync(async (req, res) => {
 const getSpotOnlyPairs = catchAsync(async (req, res) => {
   const { suffix } = req.query;
   const result = await tradingPairsComparisonService.getSpotOnlyPairs(suffix);
-  return sendSuccess(res, result, '成功获取有现货但没有合约的交易对');
+  return res.apiSuccess(result, '成功获取有现货但没有合约的交易对');
 });
 
 /**
@@ -27,7 +26,7 @@ const getSpotOnlyPairs = catchAsync(async (req, res) => {
 const getComprehensiveReport = catchAsync(async (req, res) => {
   const { suffix } = req.query;
   const result = await tradingPairsComparisonService.getComprehensiveReport(suffix);
-  return sendSuccess(res, result, '成功获取综合分析报告');
+  return res.apiSuccess(result, '成功获取综合分析报告');
 });
 
 /**
@@ -37,11 +36,11 @@ const analyzeTradingPairAvailability = catchAsync(async (req, res) => {
   const { symbol } = req.query;
 
   if (!symbol) {
-    return sendError(res, '请提供交易对符号', 400);
+    return res.apiError('请提供交易对符号');
   }
 
   const result = await tradingPairsComparisonService.analyzeTradingPairAvailability(symbol.toUpperCase());
-  return sendSuccess(res, result, `成功分析交易对 ${symbol} 的可用性`);
+  return res.apiSuccess(result, `成功分析交易对 ${symbol} 的可用性`);
 });
 
 /**
@@ -50,7 +49,7 @@ const analyzeTradingPairAvailability = catchAsync(async (req, res) => {
 const getSpotTradingPairs = catchAsync(async (req, res) => {
   const { suffix } = req.query;
   const pairs = await tradingPairsComparisonService.fetchSpotTradingPairs(suffix);
-  return sendSuccess(res, {
+  return res.apiSuccess({
     count: pairs.length,
     pairs: pairs.sort(),
     description: suffix ? `以${suffix}结尾的现货交易对` : '所有现货交易对'
@@ -63,7 +62,7 @@ const getSpotTradingPairs = catchAsync(async (req, res) => {
 const getFuturesTradingPairs = catchAsync(async (req, res) => {
   const { suffix } = req.query;
   const pairs = await tradingPairsComparisonService.fetchFuturesTradingPairs(suffix);
-  return sendSuccess(res, {
+  return res.apiSuccess({
     count: pairs.length,
     pairs: pairs.sort(),
     description: suffix ? `以${suffix}结尾的合约交易对（永续合约）` : '所有合约交易对（永续合约）'
@@ -75,7 +74,7 @@ const getFuturesTradingPairs = catchAsync(async (req, res) => {
  */
 const getCoinMFuturesTradingPairs = catchAsync(async (req, res) => {
   const pairs = await tradingPairsComparisonService.fetchCoinMFuturesTradingPairs();
-  return sendSuccess(res, {
+  return res.apiSuccess({
     count: pairs.length,
     pairs: pairs.sort(),
     description: '所有币本位合约交易对（永续合约）'

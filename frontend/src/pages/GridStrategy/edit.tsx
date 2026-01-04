@@ -68,8 +68,8 @@ function GridStrategyEditPage() {
         page_size: 1000
       });
 
-      if (response.status === 'success' && response.data) {
-        const list = response.data.list || [];
+      if (response.status === 'success' && response.datum) {
+        const list = response.datum.list || [];
         const strategy = list.find(s => String(s.id) === strategyId);
         if (strategy) {
           // 直接使用后端返回的字段名，不做任何转换
@@ -124,8 +124,8 @@ function GridStrategyEditPage() {
 
     try {
       const response = await BinanceExchangeInfoApi.getExchangeInfo({ api_key, secret_key });
-      if (response.status === 'success' && response.data?.symbols) {
-        setExchangeInfo({ symbols: response.data.symbols });
+      if (response.status === 'success' && response.datum?.symbols) {
+        setExchangeInfo({ symbols: response.datum.symbols });
       }
     } catch (error) {
       console.error('加载交易所信息失败:', error);
@@ -206,7 +206,7 @@ function GridStrategyEditPage() {
       }
 
       if (response.status === 'success') {
-        return { success: true, data: response.data };
+        return { success: true, data: response.datum };
       } else {
         return { success: false, error: response.message };
       }

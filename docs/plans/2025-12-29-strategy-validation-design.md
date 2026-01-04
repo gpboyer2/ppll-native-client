@@ -108,13 +108,13 @@ const validateStrategyParams = catchAsync(async (req, res, next) => {
   const symbolInfo = exchangeInfo.symbols.find(s => s.symbol === trading_pair);
 
   if (!symbolInfo) {
-    return sendError(res, `交易对 ${trading_pair} 不存在或不可用`, 400);
+    return res.apiError(res, `交易对 ${trading_pair} 不存在或不可用`, 400);
   }
 
   // 2. 验证交易数量
   const lotSizeFilter = symbolInfo.filters.find(f => f.filterType === 'LOT_SIZE');
   if (grid_trade_quantity && grid_trade_quantity < Number(lotSizeFilter.minQty)) {
-    return sendError(res, {
+    return res.apiError(res, {
       message: `交易数量不能小于最小值 ${lotSizeFilter.minQty}`,
       field: 'grid_trade_quantity',
       suggestion: lotSizeFilter.minQty

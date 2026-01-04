@@ -55,8 +55,8 @@ function GridStrategyListPage() {
         page_size: 100
       });
 
-      if (response.status === 'success' && response.data) {
-        const list = response.data.list || [];
+      if (response.status === 'success' && response.datum) {
+        const list = response.datum.list || [];
         const transformed_list = list.map((item: any): GridStrategy => ({
           ...item,
           status: (item.paused ? 'paused' : (item.remark === 'error' ? 'stopped' : 'running')) as StrategyStatus,

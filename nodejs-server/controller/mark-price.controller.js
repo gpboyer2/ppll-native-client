@@ -6,7 +6,6 @@ const httpStatus = require('http-status');
 const { pick } = require('../utils/pick');
 const ApiError = require('../utils/api-error');
 const catchAsync = require('../utils/catch-async');
-const { sendSuccess } = require('../utils/api-response');
 const markPriceService = require("../service/mark-price.service.js");
 
 
@@ -15,7 +14,7 @@ const markPriceService = require("../service/mark-price.service.js");
  */
 const createMarkPrice = catchAsync(async (req, res) => {
   const markPrice = await markPriceService.createMarkPrice(req.body);
-  return sendSuccess(res, markPrice, '创建成功');
+  return res.apiSuccess(markPrice, '创建成功');
 });
 
 /**
@@ -25,7 +24,7 @@ const getMarkPrices = catchAsync(async (req, res) => {
   const filter = pick(req.query, ['symbol']);
   const options = pick(req.query, ['sortBy', 'limit', 'currentPage']);
   const result = await markPriceService.queryMarkPrices(filter, options);
-  return sendSuccess(res, result, '查询成功');
+  return res.apiSuccess(result, '查询成功');
 });
 
 /**
@@ -33,7 +32,7 @@ const getMarkPrices = catchAsync(async (req, res) => {
  */
 const updateMarkPrice = catchAsync(async (req, res) => {
   const markPrice = await markPriceService.updateMarkPriceById(req.body.id, req.body);
-  return sendSuccess(res, markPrice, '更新成功');
+  return res.apiSuccess(markPrice, '更新成功');
 });
 
 /**
@@ -41,7 +40,7 @@ const updateMarkPrice = catchAsync(async (req, res) => {
  */
 const deleteMarkPrice = catchAsync(async (req, res) => {
   await markPriceService.deleteMarkPriceById(req.body.id);
-  return sendSuccess(res, null, '删除成功');
+  return res.apiSuccess(null, '删除成功');
 });
 
 module.exports = {

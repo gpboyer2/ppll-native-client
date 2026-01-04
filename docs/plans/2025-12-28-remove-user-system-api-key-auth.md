@@ -26,7 +26,7 @@
 
 ```javascript
 // nodejs-server/middleware/api-auth.js
-const { sendError } = require('../utils/api-response');
+const { res.apiError } = require('../utils/api-response');
 
 /**
  * API 认证中间件
@@ -40,7 +40,7 @@ const apiAuth = (req, res, next) => {
 
   // 验证是否存在
   if (!apiKey || !apiSecret) {
-    return sendError(res, '缺少必要参数: apiKey 和 apiSecret', 400);
+    return res.apiError(res, '缺少必要参数: apiKey 和 apiSecret', 400);
   }
 
   // 将凭证附加到 request 对象，供后续使用

@@ -4,7 +4,6 @@
  */
 
 const catchAsync = require('../utils/catch-async');
-const { sendSuccess } = require('../utils/api-response');
 
 
 /**
@@ -14,7 +13,7 @@ const getGainers = catchAsync(async (req, res) => {
   const { currentPage = 1, pageSize = 20 } = req.query;
 
   if (!global.GATE_COIN_CACHE || !global.GATE_COIN_CACHE.gainers) {
-    return sendSuccess(res, {
+    return res.apiSuccess({
       list: [],
       pagination: {
         currentPage: parseInt(currentPage),
@@ -29,7 +28,7 @@ const getGainers = catchAsync(async (req, res) => {
   const end_index = start_index + parseInt(pageSize);
   const paginated_data = global.GATE_COIN_CACHE.gainers.slice(start_index, end_index);
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     list: paginated_data,
     pagination: {
       currentPage: parseInt(currentPage),
@@ -47,7 +46,7 @@ const getLosers = catchAsync(async (req, res) => {
   const { currentPage = 1, pageSize = 20 } = req.query;
 
   if (!global.GATE_COIN_CACHE || !global.GATE_COIN_CACHE.losers) {
-    return sendSuccess(res, {
+    return res.apiSuccess({
       list: [],
       pagination: {
         currentPage: parseInt(currentPage),
@@ -62,7 +61,7 @@ const getLosers = catchAsync(async (req, res) => {
   const end_index = start_index + parseInt(pageSize);
   const paginated_data = global.GATE_COIN_CACHE.losers.slice(start_index, end_index);
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     list: paginated_data,
     pagination: {
       currentPage: parseInt(currentPage),
@@ -80,7 +79,7 @@ const getAllSorted = catchAsync(async (req, res) => {
   const { currentPage = 1, pageSize = 20, sort = 'desc' } = req.query;
 
   if (!global.GATE_COIN_CACHE || !global.GATE_COIN_CACHE.all) {
-    return sendSuccess(res, {
+    return res.apiSuccess({
       list: [],
       pagination: {
         currentPage: parseInt(currentPage),
@@ -103,7 +102,7 @@ const getAllSorted = catchAsync(async (req, res) => {
   const end_index = start_index + parseInt(pageSize);
   const paginated_data = sorted_data.slice(start_index, end_index);
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     list: paginated_data,
     pagination: {
       currentPage: parseInt(currentPage),
@@ -121,7 +120,7 @@ const getAllSorted = catchAsync(async (req, res) => {
 const getCacheStatus = catchAsync(async (req, res) => {
   const has_cache = global.GATE_COIN_CACHE && global.GATE_COIN_CACHE.lastUpdate;
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     isReady: has_cache,
     lastUpdate: global.GATE_COIN_CACHE?.lastUpdate || null,
     gainersCount: global.GATE_COIN_CACHE?.gainers?.length || 0,

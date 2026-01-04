@@ -3,7 +3,6 @@ const catchAsync = require("../utils/catch-async");
 const ordersService = require("../service/orders.service.js");
 const bigNumber = require('bignumber.js');
 const UtilRecord = require("../utils/record-log.js");
-const { sendSuccess, sendError } = require("../utils/api-response");
 const binanceAccount = require("../binance/account");
 
 /**
@@ -22,7 +21,7 @@ const validateParams = (requiredParams) => {
     });
 
     if (missingParams.length > 0) {
-      return sendError(res, `${missingParams.join(', ')} is not defined`, 400);
+      return res.apiError(`${missingParams.join(', ')} is not defined`);
     }
 
     next();
@@ -33,7 +32,7 @@ const validateParams = (requiredParams) => {
  * 模板接口
  */
 const template = catchAsync(async (req, res) => {
-  return sendSuccess(res, { message: 'You are here now...' }, '订单服务正常');
+  return res.apiSuccess({ message: 'You are here now...' }, '订单服务正常');
 });
 
 /**
@@ -42,7 +41,7 @@ const template = catchAsync(async (req, res) => {
 const batchBuildPosition = catchAsync(async (req, res) => {
   const { api_key, secret_key, longAmount, shortAmount, positions } = req.body;
   const result = await ordersService.batchBuildPosition(api_key, secret_key, longAmount, shortAmount, positions);
-  return sendSuccess(res, result, `序列总长 ${result.totalPairs}，建仓完成`);
+  return res.apiSuccess(result, `序列总长 ${result.totalPairs}，建仓完成`);
 });
 
 /**
@@ -51,7 +50,7 @@ const batchBuildPosition = catchAsync(async (req, res) => {
 const customBuildPosition = catchAsync(async (req, res) => {
   const { api_key, secret_key, positions } = req.body;
   const result = await ordersService.customBuildPosition(api_key, secret_key, positions);
-  return sendSuccess(res, result, `请等待约 ${positions.length * 1.5} 秒后，在APP查看建仓结果`);
+  return res.apiSuccess(result, `请等待约 ${positions.length * 1.5} 秒后，在APP查看建仓结果`);
 });
 
 /**
@@ -67,7 +66,7 @@ const customCloseMultiplePosition = catchAsync(async (req, res) => {
     processedCount: result.processedCount
   });
 
-  return sendSuccess(res, result, `请等待约 ${result.totalPositions * 10} 秒后，在APP查看平仓结果`);
+  return res.apiSuccess(result, `请等待约 ${result.totalPositions * 10} 秒后，在APP查看平仓结果`);
 });
 
 /**
@@ -82,7 +81,7 @@ const batchClosePosition = catchAsync(async (req, res) => {
     processedCount: result.processedCount
   });
 
-  return sendSuccess(res, result, `请等待约 ${result.totalPositions * 1.5} 秒后，在APP查看平仓结果`);
+  return res.apiSuccess(result, `请等待约 ${result.totalPositions * 1.5} 秒后，在APP查看平仓结果`);
 });
 
 /**
@@ -104,7 +103,7 @@ const customClosePosition = catchAsync(async (req, res) => {
     `[自定义平仓] 接口响应 - 总仓位: ${result.totalPositions}, 有效: ${result.validPositions}, 跳过: ${result.skippedPositions}`
   );
 
-  return sendSuccess(res, result, `请等待约 ${result.totalPositions * 1.5} 秒后，在APP查看平仓结果`);
+  return res.apiSuccess(result, `请等待约 ${result.totalPositions * 1.5} 秒后，在APP查看平仓结果`);
 });
 
 /**
@@ -113,7 +112,7 @@ const customClosePosition = catchAsync(async (req, res) => {
 const appointClosePosition = catchAsync(async (req, res) => {
   const { api_key, secret_key, positions } = req.body;
   const result = await ordersService.appointClosePosition(api_key, secret_key, positions);
-  return sendSuccess(res, result, result.error || `请等待约 ${positions.length * 1.5} 秒后，在APP查看平仓结果`);
+  return res.apiSuccess(result, result.error || `请等待约 ${positions.length * 1.5} 秒后，在APP查看平仓结果`);
 });
 
 
@@ -150,9 +149,9 @@ const batchInspect = catchAsync(async (req, res) => {
   });
 
   if (Object.keys(missingPositions).length) {
-    return sendSuccess(res, missingPositions, 'ok');
+    return res.apiSuccess(missingPositions, 'ok');
   } else {
-    return sendSuccess(res, null, '没有发现仅有单边持仓的交易对！');
+    return res.apiSuccess(null, '没有发现仅有单边持仓的交易对！');
   }
 });
 
@@ -163,7 +162,7 @@ const simpleBatchBuildPosition = catchAsync(async (req, res) => {
   const { api_key, secret_key, longAmount, shortAmount, positions } = req.body;
   const result = await ordersService.batchBuildPosition(api_key, secret_key, longAmount, shortAmount, positions);
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     ...result,
     performance: {
       method: '简化按价值下单',
@@ -184,7 +183,7 @@ const simpleCustomBuildPosition = catchAsync(async (req, res) => {
   const { api_key, secret_key, positions } = req.body;
   const result = await ordersService.customBuildPosition(api_key, secret_key, positions);
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     ...result,
     performance: {
       method: '简化按价值下单',
@@ -204,7 +203,7 @@ const simpleCustomBuildPosition = catchAsync(async (req, res) => {
 const setShortTakeProfit = catchAsync(async (req, res) => {
   const { api_key, secret_key, positions } = req.body;
   const result = await ordersService.setShortTakeProfit(api_key, secret_key, positions);
-  return sendSuccess(res, result, `请等待约 ${positions.length * 0.5} 秒后，在APP查看止盈设置结果`);
+  return res.apiSuccess(result, `请等待约 ${positions.length * 0.5} 秒后，在APP查看止盈设置结果`);
 });
 
 module.exports = {

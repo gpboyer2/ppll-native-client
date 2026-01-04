@@ -97,8 +97,8 @@ class RequestLogger {
       if (response.message) {
         logData.message = response.message;
       }
-      if (response.data !== undefined) {
-        logData.data = this.filterSensitive(response.data);
+      if (response.datum !== undefined) {
+        logData.datum = this.filterSensitive(response.datum);
       }
 
       console.log(`#${requestId} API 响应:`, this.truncateLog(logData));

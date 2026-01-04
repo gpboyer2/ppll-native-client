@@ -7,7 +7,6 @@ const axios = require('axios');
 const httpStatus = require('http-status');
 const Mock = require('mockjs');
 const catchAsync = require('../utils/catch-async.js');
-const { sendSuccess, sendError } = require('../utils/api-response');
 const fundFlowsService = require('../service/fund-flows.service.js');
 const ApiError = require('../utils/api-error.js');
 const cheerio = require('cheerio');
@@ -34,7 +33,7 @@ const getContractFundFlows = catchAsync(async (req, res) => {
 
   const result = await fundFlowsService.getContractFundFlows(asset, timeframe);
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     largeOrder: {
       netInflow: result.large_net_inflow,
       inflow: result.large_inflow,
@@ -61,7 +60,7 @@ const getContractFundFlows = catchAsync(async (req, res) => {
 const getTrendPrediction = catchAsync(async (req, res) => {
   const prediction = await fundFlowsService.getTrendPrediction();
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     sentiment: prediction.sentiment,
     score: prediction.score,
     levels: [
@@ -81,7 +80,7 @@ const getTrendPrediction = catchAsync(async (req, res) => {
 const getFundFlowDistribution = catchAsync(async (req, res) => {
   const distribution = await fundFlowsService.getFundFlowDistribution();
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     mainForce: {
       inflow: distribution.main_inflow,
       netInflow: distribution.main_net_inflow,
@@ -170,7 +169,7 @@ const getFundFlowAnalysis = catchAsync(async (req, res) => {
     time_type
   });
 
-  return sendSuccess(res, data, '获取资金流分析数据成功');
+  return res.apiSuccess(data, '获取资金流分析数据成功');
 });
 
 /**
@@ -238,7 +237,7 @@ const getFundFlowPercentage = catchAsync(async (req, res) => {
     time_type
   });
 
-  return sendSuccess(res, data, '获取资金流百分比数据成功');
+  return res.apiSuccess(data, '获取资金流百分比数据成功');
 });
 
 // CoinAnk API配置
@@ -322,7 +321,7 @@ const coinank_getOpenInterestHistory = catchAsync(async (req, res) => {
     type
   });
 
-  return sendSuccess(res, data, '获取合约持仓量历史数据成功');
+  return res.apiSuccess(data, '获取合约持仓量历史数据成功');
 });
 
 /**
@@ -394,7 +393,7 @@ const getOpenInterestHistory = catchAsync(async (req, res) => {
   // 调用服务层
   const data = await fetchGateIOOpenInterestHistory(coin_type, ex, ts, cy);
 
-  return sendSuccess(res, data, '获取合约持仓量历史数据成功');
+  return res.apiSuccess(data, '获取合约持仓量历史数据成功');
 });
 
 /**
@@ -464,7 +463,7 @@ const getOpenInterestByExchange = catchAsync(async (req, res) => {
 
   const data = await fetchOpenInterestFromPage(coin_type.toLowerCase()); // 小写
 
-  return sendSuccess(res, data, `获取全网交易所持仓量数据成功`+`https://www.gate.com/zh/crypto-market-data/funds/futures-open-interest/${coin_type}`);
+  return res.apiSuccess(data, `获取全网交易所持仓量数据成功`+`https://www.gate.com/zh/crypto-market-data/funds/futures-open-interest/${coin_type}`);
 });
 
 

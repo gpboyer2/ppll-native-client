@@ -1,40 +1,38 @@
-/**
- * 统一API响应工具函数
- * 确保所有API接口返回格式完全一致
- * 格式：{status: string, message: string, data: any}
- */
+const { getCurrentDateTime } = require('./time')
 
-/**
- * 成功响应
- * @param {Object} res - Express响应对象
- * @param {*} data - 返回的数据
- * @param {String} message - 成功消息，默认为"操作成功"
- * @returns {Object} Express响应对象
- */
-const sendSuccess = (res, data, message = '操作成功') => {
-  return res.status(200).send({
-    status: 'success',
-    message,
-    data
+// 统一返回格式封装中间件
+const responseFormatMiddleware = (req, res, next) => {
+  const start = process.hrtime();
+
+  // 监听响应完成事件，记录请求日志
+  res.on('finish', () => {
+    const elapsed = process.hrtime(start);
+    const elapsedTimeInMs = parseFloat((elapsed[0] * 1000 + elapsed[1] / 1000000).toFixed(2));
+    const ip = (req.ip || '').replace(/^::ffff:/, '');
+    console.log(`[${getCurrentDateTime()}] ${ip} [${req.method}] ${req.originalUrl} - ${res.statusCode} - ${elapsedTimeInMs}ms`);
   });
+
+  // 格式化成功返回
+  // 参数顺序：datum, message
+  res.apiSuccess = (datum = null, message = '操作成功') => {
+    res.status(200).json({
+      status: 'success',
+      message,
+      datum
+    });
+  };
+
+  // 格式化错误返回（参数顺序与 apiSuccess 保持一致）
+  // 参数顺序：datum, message
+  res.apiError = (datum = null, message = '操作失败') => {
+    res.status(200).json({
+      status: 'error',
+      message,
+      datum
+    });
+  };
+
+  next();
 };
 
-/**
- * 错误响应
- * @param {Object} res - Express响应对象
- * @param {String} message - 错误消息
- * @param {Number} statusCode - HTTP状态码，默认为400
- * @returns {Object} Express响应对象
- */
-const sendError = (res, message, statusCode = 400) => {
-  return res.status(statusCode).send({
-    status: 'error',
-    message,
-    data: null
-  });
-};
-
-module.exports = {
-  sendSuccess,
-  sendError
-};
+module.exports = responseFormatMiddleware;

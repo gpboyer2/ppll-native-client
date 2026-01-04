@@ -4,7 +4,6 @@
  */
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catch-async");
-const { sendSuccess, sendError } = require("../utils/api-response");
 const binanceExchangeInfoService = require("../service/binance-exchange-info.service");
 const { extractApiCredentials } = require("../utils");
 const { filterUsdtPerpetualContracts } = require("../utils/trading-pairs");
@@ -29,7 +28,7 @@ const getExchangeInfo = catchAsync(async (req, res) => {
     const latestInfo = await binanceExchangeInfoService.getLatestExchangeInfo();
 
     if (!latestInfo) {
-      return sendError(res, "未找到交易所信息", 404);
+      return res.apiError("未找到交易所信息");
     }
 
     // 过滤交易对：只保留USDT永续合约
@@ -37,10 +36,10 @@ const getExchangeInfo = catchAsync(async (req, res) => {
       latestInfo.symbols = filterUsdtPerpetualContracts(latestInfo.symbols);
     }
 
-    return sendSuccess(res, latestInfo, '获取交易所信息成功');
+    return res.apiSuccess(latestInfo, '获取交易所信息成功');
   } catch (err) {
     console.error("获取交易所信息出错:", err);
-    return sendError(res, err.message || "获取交易所信息失败", 500);
+    return res.apiError(err.message || "获取交易所信息失败");
   }
 });
 
@@ -62,10 +61,10 @@ const forceUpdate = catchAsync(async (req, res) => {
       exchangeInfo.symbols = filterUsdtPerpetualContracts(exchangeInfo.symbols);
     }
 
-    return sendSuccess(res, exchangeInfo, "交易所信息已强制更新");
+    return res.apiSuccess(exchangeInfo, "交易所信息已强制更新");
   } catch (err) {
     console.error("强制更新交易所信息出错:", err);
-    return sendError(res, err.message || "强制更新交易所信息失败", 500);
+    return res.apiError(err.message || "强制更新交易所信息失败");
   }
 });
 
@@ -75,10 +74,10 @@ const forceUpdate = catchAsync(async (req, res) => {
 const getStatus = catchAsync(async (req, res) => {
   try {
     const status = await binanceExchangeInfoService.getExchangeInfoStatus();
-    return sendSuccess(res, status, '获取交易所信息状态成功');
+    return res.apiSuccess(status, '获取交易所信息状态成功');
   } catch (err) {
     console.error("获取交易所信息状态出错:", err);
-    return sendError(res, err.message || "获取交易所信息状态失败", 500);
+    return res.apiError(err.message || "获取交易所信息状态失败");
   }
 });
 
@@ -94,10 +93,10 @@ const getPremiumIndex = catchAsync(async (req, res) => {
       secret_key
     );
 
-    return sendSuccess(res, premiumIndex, '获取标记价格和资金费率成功');
+    return res.apiSuccess(premiumIndex, '获取标记价格和资金费率成功');
   } catch (err) {
     console.error("获取标记价格和资金费率出错:", err);
-    return sendError(res, err.message || "获取标记价格和资金费率失败", 500);
+    return res.apiError(err.message || "获取标记价格和资金费率失败");
   }
 });
 
@@ -118,7 +117,7 @@ const getDelistingPerpetualContracts = catchAsync(async (req, res) => {
     // 按下架时间排序，最近下架的在前
     delistingContracts.sort((a, b) => a.deliveryDate - b.deliveryDate);
 
-    return sendSuccess(res, {
+    return res.apiSuccess({
       contracts: delistingContracts,
       totalCount: delistingContracts.length,
       daysAhead: daysAhead,
@@ -126,7 +125,7 @@ const getDelistingPerpetualContracts = catchAsync(async (req, res) => {
     }, delistingContracts.length > 0 ? `发现${delistingContracts.length}个即将下架的永续合约` : "当前没有即将下架的永续合约");
   } catch (err) {
     console.error("获取即将下架的永续合约出错:", err);
-    return sendError(res, err.message || "获取即将下架的永续合约失败", 500);
+    return res.apiError(err.message || "获取即将下架的永续合约失败");
   }
 });
 
@@ -142,14 +141,14 @@ const getDelistScheduleTest = catchAsync(async (req, res) => {
       secret_key
     );
 
-    return sendSuccess(res, {
+    return res.apiSuccess({
       delistSchedule,
       totalCount: delistSchedule.length,
       checkTime: new Date().toISOString()
     }, `获取到${delistSchedule.length}条下架计划数据`);
   } catch (err) {
     console.error("获取下架计划数据出错:", err);
-    return sendError(res, err.message || "获取下架计划数据失败", 500);
+    return res.apiError(err.message || "获取下架计划数据失败");
   }
 });
 

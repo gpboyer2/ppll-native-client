@@ -175,8 +175,8 @@ const saveCredentials = async () => {
 const loadCredentials = async () => {
   try {
     const res: any = await PluginGetConfig('u-contract-market');
-    if (res && res.status === 'success' && res.data) {
-      const { api_key, secret_key } = res.data;
+    if (res && res.status === 'success' && res.datum) {
+      const { api_key, secret_key } = res.datum;
       if (api_key && secret_key) {
         const inputs = getCredentialsInputs();
         if (inputs) {
@@ -212,13 +212,13 @@ const testCredentials = async () => {
   try {
     const response = await BinanceApi.getUmAccountInfo({ api_key, secret_key });
 
-    if (response.status === 'success' && response.data?.status === 'success') {
+    if (response.status === 'success' && response.datum?.status === 'success') {
       currentCredentials = { api_key, secret_key };
-      accountData = response.data.data || null;
+      accountData = response.datum.data || null;
       showStatus('API连接测试成功', 'success');
       await refreshAccountInfo();
     } else {
-      showStatus(`连接测试失败: ${response.data?.message || response.message}`, 'error');
+      showStatus(`连接测试失败: ${response.datum?.message || response.message}`, 'error');
     }
   } catch (error) {
     showStatus('连接测试异常', 'error');
@@ -238,13 +238,13 @@ const refreshAccountInfo = async () => {
   
   try {
     const response = await BinanceApi.getUmAccountInfo(currentCredentials);
-    
-    if (response.status === 'success' && response.data?.status === 'success') {
-      accountData = response.data.data || null;
+
+    if (response.status === 'success' && response.datum?.status === 'success') {
+      accountData = response.datum.data || null;
       displayAccountInfo();
       showStatus('账户信息刷新成功', 'success');
     } else {
-      showStatus(`获取账户信息失败: ${response.data?.message || response.message}`, 'error');
+      showStatus(`获取账户信息失败: ${response.datum?.message || response.message}`, 'error');
     }
   } catch (error) {
     showStatus('获取账户信息异常', 'error');
@@ -392,16 +392,16 @@ const buildPositions = async () => {
       ...currentCredentials,
       positions
     });
-    
-    if (response.status === 'success' && response.data?.status === 'success') {
-      const result = response.data.data;
+
+    if (response.status === 'success' && response.datum?.status === 'success') {
+      const result = response.datum.data;
       showStatus(`建仓操作成功！处理了 ${result?.processed_count}/${result?.total_positions} 个交易对`, 'success');
       // 3秒后刷新账户信息
       setTimeout(() => {
         refreshAccountInfo();
       }, 3000);
     } else {
-      showStatus(`建仓操作失败: ${response.data?.message || response.message}`, 'error');
+      showStatus(`建仓操作失败: ${response.datum?.message || response.message}`, 'error');
     }
   } catch (error) {
     showStatus('建仓操作异常', 'error');
@@ -439,15 +439,15 @@ const closePositions = async () => {
       ...currentCredentials,
       positions: formattedPositions
     });
-    
-    if (response.status === 'success' && response.data?.status === 'success') {
-      showStatus(`平仓操作已开始！${response.data.data?.message || '请等待约15秒后查看结果'}`, 'success');
+
+    if (response.status === 'success' && response.datum?.status === 'success') {
+      showStatus(`平仓操作已开始！${response.datum.data?.message || '请等待约15秒后查看结果'}`, 'success');
       // 15秒后刷新账户信息
       setTimeout(() => {
         refreshAccountInfo();
       }, 15000);
     } else {
-      showStatus(`平仓操作失败: ${response.data?.message || response.message}`, 'error');
+      showStatus(`平仓操作失败: ${response.datum?.message || response.message}`, 'error');
     }
   } catch (error) {
     showStatus('平仓操作异常', 'error');

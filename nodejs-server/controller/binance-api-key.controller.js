@@ -5,7 +5,6 @@
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catch-async");
 const binanceApiKeyService = require("../service/binance-api-key.service");
-const { sendSuccess, sendError } = require("../utils/api-response");
 
 /**
  * 创建 ApiKey
@@ -23,7 +22,7 @@ const createApiKey = catchAsync(async (req, res) => {
     vip_expire_at
   });
 
-  return sendSuccess(res, result, '创建 ApiKey 成功');
+  return res.apiSuccess(result, '创建 ApiKey 成功');
 });
 
 /**
@@ -34,7 +33,7 @@ const deleteApiKey = catchAsync(async (req, res) => {
   const { id } = req.body;
 
   const deleted = await binanceApiKeyService.deleteApiKeyById(id);
-  return sendSuccess(res, deleted, '删除 ApiKey 成功');
+  return res.apiSuccess(deleted, '删除 ApiKey 成功');
 });
 
 /**
@@ -46,7 +45,7 @@ const updateApiKey = catchAsync(async (req, res) => {
 
   const result = await binanceApiKeyService.updateApiKeyById(id, req.body);
 
-  return sendSuccess(res, result, '更新 ApiKey 成功');
+  return res.apiSuccess(result, '更新 ApiKey 成功');
 });
 
 /**
@@ -114,7 +113,7 @@ const queryApiKey = catchAsync(async (req, res) => {
     total = await binanceApiKeyService.countApiKeys(filter);
   }
 
-  return sendSuccess(res, {
+  return res.apiSuccess({
     list: api_key_list,
     pagination: {
       currentPage: idList.length > 0 ? 1 : Number(currentPage),

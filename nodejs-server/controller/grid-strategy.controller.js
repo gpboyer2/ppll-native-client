@@ -7,7 +7,6 @@ const gridOptimizerService = require("../service/grid-optimizer.service");
 const { validateStrategyParams } = require("../middleware/strategy-validator");
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catch-async");
-const { sendSuccess, sendError } = require("../utils/api-response");
 
 const list = catchAsync(async (req, res) => {
   let { api_key, secret_key } = req.apiCredentials;
@@ -18,7 +17,7 @@ const list = catchAsync(async (req, res) => {
     { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 }
   );
 
-  return sendSuccess(res, grid, '获取网格策略列表成功');
+  return res.apiSuccess(grid, '获取网格策略列表成功');
 });
 
 
@@ -65,36 +64,36 @@ const create = catchAsync(async (req, res) => {
 
   // 参数验证
   if (!trading_pair) {
-    return sendError(res, "trading_pair 是必填项", httpStatus.BAD_REQUEST);
+    return res.apiError("trading_pair 是必填项");
   }
 
   // 数值参数边界检查
   if (grid_price_difference && (isNaN(grid_price_difference) || Number(grid_price_difference) <= 0)) {
-    return sendError(res, "grid_price_difference 必须是大于0的数字", httpStatus.BAD_REQUEST);
+    return res.apiError("grid_price_difference 必须是大于0的数字");
   }
 
   if (grid_trade_quantity && (isNaN(grid_trade_quantity) || Number(grid_trade_quantity) <= 0)) {
-    return sendError(res, "grid_trade_quantity 必须是大于0的数字", httpStatus.BAD_REQUEST);
+    return res.apiError("grid_trade_quantity 必须是大于0的数字");
   }
 
   if (max_open_position_quantity && (isNaN(max_open_position_quantity) || Number(max_open_position_quantity) <= 0)) {
-    return sendError(res, "max_open_position_quantity 必须是大于0的数字", httpStatus.BAD_REQUEST);
+    return res.apiError("max_open_position_quantity 必须是大于0的数字");
   }
 
   if (min_open_position_quantity && (isNaN(min_open_position_quantity) || Number(min_open_position_quantity) <= 0)) {
-    return sendError(res, "min_open_position_quantity 必须是大于0的数字", httpStatus.BAD_REQUEST);
+    return res.apiError("min_open_position_quantity 必须是大于0的数字");
   }
 
   if (price_precision && (isNaN(price_precision) || Number(price_precision) < 0)) {
-    return sendError(res, "price_precision 必须是非负整数", httpStatus.BAD_REQUEST);
+    return res.apiError("price_precision 必须是非负整数");
   }
 
   if (quantity_precision && (isNaN(quantity_precision) || Number(quantity_precision) < 0)) {
-    return sendError(res, "quantity_precision 必须是非负整数", httpStatus.BAD_REQUEST);
+    return res.apiError("quantity_precision 必须是非负整数");
   }
 
   if (leverage && (isNaN(leverage) || Number(leverage) <= 0)) {
-    return sendError(res, "leverage 必须是大于0的整数", httpStatus.BAD_REQUEST);
+    return res.apiError("leverage 必须是大于0的整数");
   }
 
   const strategyData = {
@@ -144,13 +143,13 @@ const create = catchAsync(async (req, res) => {
 
     // 检查创建结果
     if (!created) {
-      return sendError(res, `已存在该交易对 ${trading_pair} 的网格策略`, httpStatus.CONFLICT);
+      return res.apiError(`已存在该交易对 ${trading_pair} 的网格策略`);
     }
 
-    return sendSuccess(res, row, "网格策略创建成功");
+    return res.apiSuccess(row, "网格策略创建成功");
   } catch (err) {
     console.error("创建网格策略时出错:", err);
-    return sendError(res, err.message || "创建网格策略失败", httpStatus.INTERNAL_SERVER_ERROR);
+    return res.apiError(err.message || "创建网格策略失败");
   }
 });
 
@@ -162,7 +161,7 @@ const deletes = catchAsync(async (req, res) => {
   let result = null;
 
   if (!id) {
-    return sendError(res, '缺少参数: id', 400);
+    return res.apiError('缺少参数: id');
   }
 
   result = await gridStrategyService.deleteGridStrategyById({
@@ -172,9 +171,9 @@ const deletes = catchAsync(async (req, res) => {
   });
 
   if (result?.status) {
-    return sendSuccess(res, {}, '网格策略删除成功');
+    return res.apiSuccess({}, '网格策略删除成功');
   } else {
-    return sendError(res, '网格策略删除失败', 400);
+    return res.apiError('网格策略删除失败');
   }
 });
 
@@ -205,7 +204,7 @@ const update = catchAsync(async (req, res) => {
   } = req.body;
 
   if (!id) {
-    return sendError(res, "缺少参数: id", httpStatus.BAD_REQUEST);
+    return res.apiError("缺少参数: id");
   }
 
   const updateData = {
@@ -243,9 +242,9 @@ const update = catchAsync(async (req, res) => {
   const result = await gridStrategyService.updateGridStrategyById(updateData);
 
   if (result.affectedCount > 0) {
-    return sendSuccess(res, result.data, "网格策略更新成功");
+    return res.apiSuccess(result.data, "网格策略更新成功");
   } else {
-    return sendError(res, "网格策略更新失败", httpStatus.BAD_REQUEST);
+    return res.apiError("网格策略更新失败");
   }
 });
 
@@ -256,7 +255,7 @@ const action = catchAsync(async (req, res) => {
   let { id, paused } = req.body;
 
   if (!id) {
-    return sendError(res, '缺少策略ID', 400);
+    return res.apiError('缺少策略ID');
   }
 
   const result = await gridStrategyService.updateGridStrategyById({
@@ -268,9 +267,9 @@ const action = catchAsync(async (req, res) => {
 
   // result.affectedCount > 0 表示更新成功
   if (result.affectedCount > 0) {
-    return sendSuccess(res, result.data, '更新策略状态成功');
+    return res.apiSuccess(result.data, '更新策略状态成功');
   } else {
-    return sendError(res, '更新策略失败', 400);
+    return res.apiError('更新策略失败');
   }
 });
 
@@ -284,7 +283,7 @@ const query = catchAsync(async (req, res) => {
     { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 }
   );
 
-  return sendSuccess(res, grid, '查询网格策略成功');
+  return res.apiSuccess(grid, '查询网格策略成功');
 });
 
 
@@ -305,11 +304,11 @@ const optimize_params = catchAsync(async (req, res) => {
 
   // 验证必填参数
   if (!symbol) {
-    return sendError(res, "缺少交易对参数 symbol", httpStatus.BAD_REQUEST);
+    return res.apiError("缺少交易对参数 symbol");
   }
 
   if (!total_capital || isNaN(total_capital) || Number(total_capital) <= 0) {
-    return sendError(res, "总资金必须为大于0的数字", httpStatus.BAD_REQUEST);
+    return res.apiError("总资金必须为大于0的数字");
   }
 
   try {
@@ -325,10 +324,10 @@ const optimize_params = catchAsync(async (req, res) => {
       api_secret: secret_key
     });
 
-    return sendSuccess(res, result, "获取优化参数成功");
+    return res.apiSuccess(result, "获取优化参数成功");
   } catch (err) {
     console.error("网格参数优化失败:", err);
-    return sendError(res, err.message || "获取优化参数失败", httpStatus.INTERNAL_SERVER_ERROR);
+    return res.apiError(err.message || "获取优化参数失败");
   }
 });
 
