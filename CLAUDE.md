@@ -449,7 +449,39 @@ Swagger 文档组织：
 - 每个 Swagger 块之间 2 行空行
 
 
-### 4. 文档格式风格
+### 4. Git Commit 风格
+
+使用 Conventional Commits 格式，标题行 + 列表正文：
+
+```
+type(scope): 简洁描述
+
+  - 具体变更点1
+  - 具体变更点2
+  - 具体变更点3
+```
+
+类型（type）：
+- feat: 新功能
+- fix: 修复问题
+- refactor: 重构
+- chore: 构建/工具/脚本等
+- perf: 性能优化
+- style: 代码格式，UI样式
+- docs: 文档
+- test: 测试
+
+示例：
+```
+chore(.sh): 增加国内镜像源支持提高镜像拉取成功率
+
+  - 使用 docker images 替代 inspect 避免权限问题
+  - 增加国内镜像源支持（华为云、DaoCloud、1Panel）
+  - 优化失败提示信息
+```
+
+
+### 5. 文档格式风格
 
 标题和强调格式：
 - 不使用 emoji 图标
