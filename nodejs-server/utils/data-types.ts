@@ -16,7 +16,7 @@ function normalizeDatatypes(data, schema) {
         maxOpenPositionQuantity: 'number',
         minOpenPositionQuantity: 'number',
         leverage: 'number',
-        gridPriceDifference: 'number',
+        gridPriceDiff: 'number',
         gridTradeQuantity: 'number',
         initialFillPrice: 'number',
         initialFillQuantity: 'number',

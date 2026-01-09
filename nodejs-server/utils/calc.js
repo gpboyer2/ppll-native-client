@@ -15,13 +15,13 @@ const bigNumber = require('bignumber.js');
  * @param {number} latestPrice - 最新价格。
  * @param {Object} params - 包含网格交易数量和网格价格差的参数对象。
  * @param {number} params.gridTradeQuantity - 网格交易的数量。
- * @param {number} params.gridPriceDifference - 网格价格差。
+ * @param {number} params.gridPriceDiff - 网格价格差。
  * 
  * @returns {number} 每个网格匹配成功的实际利润
  */
-const calculateExpectedProfit = (latestPrice, { gridTradeQuantity, gridPriceDifference }) => {
+const calculateExpectedProfit = (latestPrice, { gridTradeQuantity, gridPriceDiff }) => {
   let currentTradeValue = bigNumber(latestPrice).times(gridTradeQuantity);
-  let expectedRiseTradeValue = bigNumber(latestPrice).plus(gridPriceDifference).times(gridTradeQuantity);
+  let expectedRiseTradeValue = bigNumber(latestPrice).plus(gridPriceDiff).times(gridTradeQuantity);
   let expectedRiseTradeValueAfterFee = expectedRiseTradeValue.times(0.001);
   let actualProfit = expectedRiseTradeValue.minus(currentTradeValue).minus(expectedRiseTradeValueAfterFee);
   return actualProfit.toNumber();

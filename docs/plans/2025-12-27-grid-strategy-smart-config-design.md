@@ -130,7 +130,7 @@ export interface OptimizationResult {
 
 // 应用配置时的数据结构
 export interface OptimizedConfig {
-  gridPriceDifference: number;      // 网格价格差价
+  gridPriceDiff: number;      // 网格价格差价
   gridTradeQuantity: number;        // 网格交易数量
   gtLimitationPrice?: number;       // 价格上限（阻力位）
   ltLimitationPrice?: number;       // 价格下限（支撑位）

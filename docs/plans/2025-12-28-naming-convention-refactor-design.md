@@ -85,7 +85,7 @@ module.exports = {
     await queryInterface.renameColumn('grid_strategies', 'apiSecret', 'secret_key');
     await queryInterface.renameColumn('grid_strategies', 'tradingPair', 'trading_pair');
     await queryInterface.renameColumn('grid_strategies', 'positionSide', 'position_side');
-    await queryInterface.renameColumn('grid_strategies', 'gridPriceDifference', 'grid_price_difference');
+    await queryInterface.renameColumn('grid_strategies', 'gridPriceDiff', 'grid_price_difference');
     await queryInterface.renameColumn('grid_strategies', 'gridTradeQuantity', 'grid_trade_quantity');
     await queryInterface.renameColumn('grid_strategies', 'initialFillPrice', 'initial_fill_price');
     await queryInterface.renameColumn('grid_strategies', 'initialFillQuantity', 'initial_fill_quantity');

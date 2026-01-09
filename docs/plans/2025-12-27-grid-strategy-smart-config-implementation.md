@@ -171,7 +171,7 @@ export interface OptimizationResult {
  * 应用到表单的配置数据
  */
 export interface OptimizedConfig {
-  gridPriceDifference: number;
+  gridPriceDiff: number;
   gridTradeQuantity: number;
   gtLimitationPrice?: number;
   ltLimitationPrice?: number;
@@ -345,7 +345,7 @@ export function SmartConfigModal({
 
     // 转换数据格式，回填到表单
     const config: OptimizedConfig = {
-      gridPriceDifference: parseFloat(selectedConfig.gridSpacing),
+      gridPriceDiff: parseFloat(selectedConfig.gridSpacing),
       gridTradeQuantity: parseFloat(selectedConfig.tradeQuantity),
       gtLimitationPrice: parseFloat(optimizationResult.market.resistance),
       ltLimitationPrice: parseFloat(optimizationResult.market.support)
@@ -1059,7 +1059,7 @@ function handleOpenSmartConfig() {
 function handleApplySmartConfig(config: OptimizedConfig) {
     setFormData(prev => ({
         ...prev,
-        gridPriceDifference: config.gridPriceDifference,
+        gridPriceDiff: config.gridPriceDiff,
         gridTradeQuantity: config.gridTradeQuantity,
         gtLimitationPrice: config.gtLimitationPrice,
         ltLimitationPrice: config.ltLimitationPrice

@@ -24,7 +24,7 @@ const { normalizeDatatypes } = require('../utils/data-types.ts');
  * @param {number} [options.quoteAssetBalance=0] - 计价资产初始余额（如USDT）
  * @param {number} [options.maxBaseAssetQuantity] - 限制的最大基础资产持有数量
  * @param {number} [options.minBaseAssetQuantity] - 限制的最少基础资产持有数量
- * @param {number} options.gridPriceDifference - 网格之间的价格差价
+ * @param {number} options.gridPriceDiff - 网格之间的价格差价
  * @param {number} [options.gridTradeQuantity] - 网格每次交易的数量（向后兼容，当没有设置分离数量时使用）
  * @param {number} [options.gridLongBuyQuantity] - 现货开仓数量：每次买入基础资产的数量
  * @param {number} [options.gridLongSellQuantity] - 现货平仓数量：每次卖出基础资产的数量
@@ -74,7 +74,7 @@ function InfiniteGridSpot(options) {
     minBaseAssetQuantity: undefined,
 
     /** 必填，网格之间的价格差价 */
-    gridPriceDifference: undefined,
+    gridPriceDiff: undefined,
 
     /** 网格每次交易的数量（向后兼容，当没有设置分离数量时使用） */
     gridTradeQuantity: undefined,
@@ -117,8 +117,8 @@ function InfiniteGridSpot(options) {
     avgCostPriceDays: 30
   };
 
-  if (!options.gridPriceDifference) {
-    UtilRecord.log(`❗️ 必填项'gridPriceDifference'不能为空`);
+  if (!options.gridPriceDiff) {
+    UtilRecord.log(`❗️ 必填项'gridPriceDiff'不能为空`);
     return;
   }
 
@@ -308,21 +308,21 @@ function InfiniteGridSpot(options) {
    * @param {Number|String} executionPrice 成交价格 
    */
   this.resetTargetPrice = (executionPrice) => {
-    if (!executionPrice || !this.config.gridPriceDifference) {
-      this.logger.warn(`重置期望价格失败，executionPrice: ${executionPrice}, gridPriceDifference: ${this.config.gridPriceDifference}`);
+    if (!executionPrice || !this.config.gridPriceDiff) {
+      this.logger.warn(`重置期望价格失败，executionPrice: ${executionPrice}, gridPriceDiff: ${this.config.gridPriceDiff}`);
       return;
     }
 
     // 现货网格：低买高卖策略
-    this.nextExpectedRisePrice = bigNumber(executionPrice).plus(this.config.gridPriceDifference).toNumber();
+    this.nextExpectedRisePrice = bigNumber(executionPrice).plus(this.config.gridPriceDiff).toNumber();
 
     // 应用防跌系数
-    let coefficient = bigNumber(this.config.gridPriceDifference)
+    let coefficient = bigNumber(this.config.gridPriceDiff)
       .times(bigNumber(this.currentBaseAssetQuantity).div(this.config.maxBaseAssetQuantity || this.currentBaseAssetQuantity + 1))
       .times(this.config.fallPreventionCoefficient);
     coefficient = coefficient.isNaN() ? 0 : coefficient;
 
-    this.nextExpectedFallPrice = bigNumber(executionPrice).minus(this.config.gridPriceDifference).minus(coefficient).toNumber();
+    this.nextExpectedFallPrice = bigNumber(executionPrice).minus(this.config.gridPriceDiff).minus(coefficient).toNumber();
   };
 
   /**
@@ -562,7 +562,7 @@ function InfiniteGridSpot(options) {
   this.getGridProfit = (latestPrice) => {
     let buyQuantity = this.getSpotBuyQuantity();   // 买入基础资产数量
     let sellQuantity = this.getSpotSellQuantity(); // 卖出基础资产数量
-    let buyValue = bigNumber(latestPrice).minus(this.config.gridPriceDifference).times(buyQuantity);
+    let buyValue = bigNumber(latestPrice).minus(this.config.gridPriceDiff).times(buyQuantity);
     let sellValue = bigNumber(latestPrice).times(sellQuantity);
     let buyFee = buyValue.times(0.001);
     let sellFee = sellValue.times(0.001);
@@ -747,7 +747,7 @@ function InfiniteGridSpot(options) {
     UtilRecord.log(`当前价格: ${latestPrice}`);
     UtilRecord.log(`近${this.config.avgCostPriceDays}天平均持仓成本: ${this.totalOpenPositionEntryPrice}`);
 
-    UtilRecord.log(`每次买入数量: ${buyQuantity}/${this.config.tradingPair}, 每次卖出数量: ${sellQuantity}/${this.config.tradingPair}, 网格价差: ${this.config.gridPriceDifference} ${this.config.quoteAsset}, 下次网格匹配利润预计为(扣除0.1%手续费): ${this.getGridProfit(latestPrice)} ${this.config.quoteAsset}`);
+    UtilRecord.log(`每次买入数量: ${buyQuantity}/${this.config.tradingPair}, 每次卖出数量: ${sellQuantity}/${this.config.tradingPair}, 网格价差: ${this.config.gridPriceDiff} ${this.config.quoteAsset}, 下次网格匹配利润预计为(扣除0.1%手续费): ${this.getGridProfit(latestPrice)} ${this.config.quoteAsset}`);
 
     UtilRecord.log(`是否允许'顺势仅减仓策略': ${this.config.priorityCloseOnTrend}`);
     UtilRecord.log(`期望下次涨至: ${this.nextExpectedRisePrice}, 期望下次跌至: ${this.nextExpectedFallPrice}`);

@@ -11,7 +11,7 @@ module.exports = {
     await queryInterface.renameColumn('grid_strategies', 'apiSecret', 'secret_key');
     await queryInterface.renameColumn('grid_strategies', 'tradingPair', 'trading_pair');
     await queryInterface.renameColumn('grid_strategies', 'positionSide', 'position_side');
-    await queryInterface.renameColumn('grid_strategies', 'gridPriceDifference', 'grid_price_difference');
+    await queryInterface.renameColumn('grid_strategies', 'gridPriceDiff', 'grid_price_difference');
     await queryInterface.renameColumn('grid_strategies', 'gridTradeQuantity', 'grid_trade_quantity');
     await queryInterface.renameColumn('grid_strategies', 'gridLongOpenQuantity', 'grid_long_open_quantity');
     await queryInterface.renameColumn('grid_strategies', 'gridLongCloseQuantity', 'grid_long_close_quantity');
@@ -35,7 +35,7 @@ module.exports = {
     await queryInterface.renameColumn('robots', 'maxPrice', 'max_price');
     await queryInterface.renameColumn('robots', 'maxOpenPositionQuantity', 'max_open_position_quantity');
     await queryInterface.renameColumn('robots', 'minOpenPositionQuantity', 'min_open_position_quantity');
-    await queryInterface.renameColumn('robots', 'gridPriceDifference', 'grid_price_difference');
+    await queryInterface.renameColumn('robots', 'gridPriceDiff', 'grid_price_difference');
     await queryInterface.renameColumn('robots', 'gridTradeQuantity', 'grid_trade_quantity');
     await queryInterface.renameColumn('robots', 'initialFillPrice', 'initial_fill_price');
     await queryInterface.renameColumn('robots', 'initialFillQuantity', 'initial_fill_quantity');
@@ -65,7 +65,7 @@ module.exports = {
     await queryInterface.renameColumn('grid_strategies', 'secret_key', 'apiSecret');
     await queryInterface.renameColumn('grid_strategies', 'trading_pair', 'tradingPair');
     await queryInterface.renameColumn('grid_strategies', 'position_side', 'positionSide');
-    await queryInterface.renameColumn('grid_strategies', 'grid_price_difference', 'gridPriceDifference');
+    await queryInterface.renameColumn('grid_strategies', 'grid_price_difference', 'gridPriceDiff');
     await queryInterface.renameColumn('grid_strategies', 'grid_trade_quantity', 'gridTradeQuantity');
     await queryInterface.renameColumn('grid_strategies', 'grid_long_open_quantity', 'gridLongOpenQuantity');
     await queryInterface.renameColumn('grid_strategies', 'grid_long_close_quantity', 'gridLongCloseQuantity');
@@ -89,7 +89,7 @@ module.exports = {
     await queryInterface.renameColumn('robots', 'max_price', 'maxPrice');
     await queryInterface.renameColumn('robots', 'max_open_position_quantity', 'maxOpenPositionQuantity');
     await queryInterface.renameColumn('robots', 'min_open_position_quantity', 'minOpenPositionQuantity');
-    await queryInterface.renameColumn('robots', 'grid_price_difference', 'gridPriceDifference');
+    await queryInterface.renameColumn('robots', 'grid_price_difference', 'gridPriceDiff');
     await queryInterface.renameColumn('robots', 'grid_trade_quantity', 'gridTradeQuantity');
     await queryInterface.renameColumn('robots', 'initial_fill_price', 'initialFillPrice');
     await queryInterface.renameColumn('robots', 'initial_fill_quantity', 'initialFillQuantity');
