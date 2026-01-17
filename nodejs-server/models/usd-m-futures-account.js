@@ -20,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'API密钥（主键，用于数据隔离）'
     },
     account_json: {
-      type: DataTypes.TEXT('long'),
+      type: DataTypes.TEXT,
       allowNull: false,
       comment: '账户数据JSON'
     },

@@ -75,7 +75,7 @@ module.exports = (sequelize, DataTypes) => {
         comment: "交易所名称: binance(币安), okx(欧易), gateio(芝麻开门)",
       },
       exchange_info: {
-        type: DataTypes.TEXT("long"),
+        type: DataTypes.TEXT,
         allowNull: true,
         comment: "交易所信息(JSON格式)",
       },

@@ -8,6 +8,7 @@ import { ROUTES } from '../../router';
 import { useBinanceStore } from '../../stores/binance-store';
 import { GridStrategyApi, InformationApi } from '../../api';
 import { BinanceExchangeInfoApi } from '../../api';
+import type { TickerPrice } from '../../stores/binance-store';
 import type { GridStrategy, GridStrategyForm, PositionSide, OptimizedConfig } from '../../types/grid-strategy';
 import type { BinanceSymbol, StrategyValidationResult } from '../../types/binance';
 import { defaultGridStrategy } from '../../types/grid-strategy';
@@ -26,7 +27,7 @@ function GridStrategyEditPage() {
   const is_editing = Boolean(id);
 
   // 使用币安 store
-  const { api_key_list, usdt_pairs, init, loading, refreshTradingPairs, initialized } = useBinanceStore();
+  const { api_key_list, usdt_pairs, init, loading, refreshTradingPairs, initialized, connectSocket, subscribeTicker, unsubscribeTicker, ticker_prices } = useBinanceStore();
 
   // 表单数据状态
   const [formData, setFormData] = useState<GridStrategyForm>(defaultGridStrategy);
@@ -185,7 +186,7 @@ function GridStrategyEditPage() {
     }
   }, [api_key_list, is_editing, formData._api_key_id]);
 
-  // 实时获取标记价格
+  // WebSocket 实时获取标记价格
   useEffect(() => {
     // 如果没有选择交易对或没有 API Key，不获取价格
     if (!formData.trading_pair || !formData.api_key || !formData.secret_key) {
@@ -193,46 +194,24 @@ function GridStrategyEditPage() {
       return;
     }
 
-    let is_mounted = true;
-    let timer_id: NodeJS.Timeout | null = null;
+    // 连接 WebSocket
+    connectSocket();
 
-    // 获取标记价格的函数
-    const fetch_mark_price = async () => {
-      try {
-        const response = await InformationApi.getPremiumIndex({
-          api_key: formData.api_key,
-          secret_key: formData.secret_key,
-          symbol: formData.trading_pair
-        });
+    // 订阅 ticker
+    subscribeTicker(formData.trading_pair, 'usdm');
 
-        if (is_mounted && response.status === 'success' && response.datum?.markPrice) {
-          const price = parseFloat(response.datum.markPrice);
-          if (!isNaN(price)) {
-            setCurrentMarkPrice(price);
-          }
-        }
-      } catch (error) {
-        // 静默失败，不影响用户体验
-        console.warn('获取标记价格失败:', error);
-      }
-    };
-
-    // 立即获取一次
-    fetch_mark_price();
-
-    // 每秒更新一次
-    timer_id = setInterval(() => {
-      fetch_mark_price();
-    }, 1000);
-
-    // 清理函数
+    // 清理函数：取消订阅
     return () => {
-      is_mounted = false;
-      if (timer_id) {
-        clearInterval(timer_id);
-      }
+      unsubscribeTicker(formData.trading_pair, 'usdm');
     };
-  }, [formData.trading_pair, formData.api_key, formData.secret_key]);
+  }, [formData.trading_pair, formData.api_key, formData.secret_key, connectSocket, subscribeTicker, unsubscribeTicker]);
+
+  // 从 ticker_prices 中获取当前价格
+  useEffect(() => {
+    if (formData.trading_pair && ticker_prices[formData.trading_pair]) {
+      setCurrentMarkPrice(ticker_prices[formData.trading_pair].price);
+    }
+  }, [formData.trading_pair, ticker_prices]);
 
   // 保存策略数据
   async function saveStrategy(data: GridStrategyForm) {

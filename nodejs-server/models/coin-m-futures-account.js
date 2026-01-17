@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
 
   CoinMFuturesAccount.init({
     account_json: {
-      type: DataTypes.TEXT('long'),
+      type: DataTypes.TEXT,
       allowNull: false,
       comment: '账户数据JSON'
     },

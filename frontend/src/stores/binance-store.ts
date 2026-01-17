@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { GetNodejsServiceURL, GetConfig } from '../../wailsjs/go/main/App';
 import { BinanceApiKeyApi, BinanceExchangeInfoApi } from '../api';
+import { io, Socket } from 'socket.io-client';
 
 // API Key 信息 - 字段名与后端完全一致
 export interface BinanceApiKey {
@@ -24,6 +25,14 @@ export interface TradingPair {
     contractType?: string;
 }
 
+// Ticker 价格信息
+export interface TickerPrice {
+    symbol: string;
+    price: number;
+    market: string;
+    timestamp: number;
+}
+
 interface BinanceStore {
     // 状态
     api_key_list: BinanceApiKey[];
@@ -34,6 +43,11 @@ interface BinanceStore {
     is_initializing: boolean; // 标识是否正在初始化
     active_api_key_id: string | null; // 当前激活的 API Key ID
 
+    // WebSocket ticker 相关
+    socket: Socket | null;
+    ticker_prices: Record<string, TickerPrice>; // symbol -> price
+    subscribed_tickers: Set<string>; // 已订阅的 ticker
+
     // Actions
     init: () => Promise<void>;
     refreshApiKeys: () => Promise<void>;
@@ -42,6 +56,14 @@ interface BinanceStore {
     set_active_api_key: (id: string) => void; // 设置当前激活的 API Key
     get_active_api_key: () => BinanceApiKey | null; // 获取当前激活的 API Key
     getCurrentApiKey: () => { api_key: string; secret_key: string } | null; // 获取当前 API Key 信息
+
+    // Ticker 订阅相关
+    connectSocket: () => Promise<void>;
+    disconnectSocket: () => void;
+    subscribeTicker: (symbol: string, market?: string) => void;
+    unsubscribeTicker: (symbol: string, market?: string) => void;
+    switchTicker: (oldSymbol: string | null, newSymbol: string, market?: string) => void;
+    getTickerPrice: (symbol: string) => number | null;
 }
 
 // 获取 auth token
@@ -92,6 +114,11 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
   loading: false,
   is_initializing: false,
   active_api_key_id: null,
+
+  // WebSocket 初始状态
+  socket: null,
+  ticker_prices: {},
+  subscribed_tickers: new Set(),
 
   // 初始化：先获取 API Key 列表，成功且有数据时才获取交易对
   init: async () => {
@@ -228,5 +255,127 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
       api_key: active_key.api_key,
       secret_key: active_key.secret_key
     };
+  },
+
+  // 连接 WebSocket
+  connectSocket: async () => {
+    const { socket } = get();
+    if (socket?.connected) {
+      return;
+    }
+
+    try {
+      const nodejs_url = await getNodejsUrl();
+      const socket_url = nodejs_url.replace('http://', 'ws://').replace('https://', 'wss://');
+
+      const new_socket = io(socket_url, {
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 3000,
+      });
+
+      new_socket.on('connect', () => {
+        console.log('[binance-store] WebSocket 已连接');
+      });
+
+      new_socket.on('disconnect', () => {
+        console.log('[binance-store] WebSocket 已断开');
+      });
+
+      new_socket.on('connect_error', (error) => {
+        console.error('[binance-store] WebSocket 连接失败:', error.message);
+      });
+
+      // 监听 ticker 更新
+      new_socket.on('ticker_update', (data: any) => {
+        const { symbol, price, market } = data;
+        if (symbol && price) {
+          set({
+            ticker_prices: {
+              ...get().ticker_prices,
+              [symbol]: {
+                symbol,
+                price: parseFloat(price),
+                market: market || 'usdm',
+                timestamp: Date.now()
+              }
+            }
+          });
+        }
+      });
+
+      set({ socket: new_socket });
+    } catch (error) {
+      console.error('[binance-store] WebSocket 连接失败:', error);
+    }
+  },
+
+  // 断开 WebSocket
+  disconnectSocket: () => {
+    const { socket } = get();
+    if (socket) {
+      socket.disconnect();
+      set({ socket: null, ticker_prices: {}, subscribed_tickers: new Set() });
+    }
+  },
+
+  // 订阅 ticker
+  subscribeTicker: (symbol: string, market = 'usdm') => {
+    const { socket, subscribed_tickers } = get();
+    if (!socket?.connected) {
+      console.warn('[binance-store] WebSocket 未连接，无法订阅 ticker');
+      return;
+    }
+
+    const subKey = `${market}:${symbol}`;
+    if (subscribed_tickers.has(subKey)) {
+      return;
+    }
+
+    socket.emit('subscribe_ticker', { symbol, market });
+    set({
+      subscribed_tickers: new Set([...subscribed_tickers, subKey])
+    });
+  },
+
+  // 取消订阅 ticker
+  unsubscribeTicker: (symbol: string, market = 'usdm') => {
+    const { socket, subscribed_tickers } = get();
+    if (!socket?.connected) {
+      return;
+    }
+
+    const subKey = `${market}:${symbol}`;
+    if (!subscribed_tickers.has(subKey)) {
+      return;
+    }
+
+    socket.emit('unsubscribe_ticker', { symbol, market });
+
+    const new_tickers = new Set(subscribed_tickers);
+    new_tickers.delete(subKey);
+
+    const new_prices = { ...get().ticker_prices };
+    delete new_prices[symbol];
+
+    set({
+      subscribed_tickers: new_tickers,
+      ticker_prices: new_prices
+    });
+  },
+
+  // 切换 ticker 订阅
+  switchTicker: (oldSymbol: string | null, newSymbol: string, market = 'usdm') => {
+    if (oldSymbol && oldSymbol !== newSymbol) {
+      get().unsubscribeTicker(oldSymbol, market);
+    }
+    get().subscribeTicker(newSymbol, market);
+  },
+
+  // 获取 ticker 价格
+  getTickerPrice: (symbol: string) => {
+    const ticker = get().ticker_prices[symbol];
+    return ticker ? ticker.price : null;
   }
 }));
