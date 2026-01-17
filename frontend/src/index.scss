@@ -2307,6 +2307,26 @@ nav.surface {
   color: var(--color-text-muted);
 }
 
+.pagination-jump {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 16px;
+}
+
+.pagination-jump input {
+  width: 60px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.pagination-size {
+  margin-left: 8px;
+}
+
 /* 结构信息 */
 .structure-info {
   display: flex;

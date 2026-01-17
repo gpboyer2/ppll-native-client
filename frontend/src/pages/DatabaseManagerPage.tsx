@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { notifications } from '@mantine/notifications';
 import { ApiEndpoints } from '../api/endpoints';
-import { TextInput } from '../components/mantine';
+import { TextInput, Select } from '../components/mantine';
 import {
   IconDatabase,
   IconTable,
@@ -70,7 +70,8 @@ function DatabaseManagerPage() {
   const [activeTab, setActiveTab] = useState<TabType>('browse');
   const [keyword, setKeyword] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(20);
+  const [pageSize, setPageSize] = useState(20);
+  const [jumpPageInput, setJumpPageInput] = useState('');
   const [sortBy, setSortBy] = useState('');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [loading, setLoading] = useState(false);
@@ -423,7 +424,7 @@ function DatabaseManagerPage() {
     if (selectedTable && activeTab === 'browse') {
       fetch_table_data();
     }
-  }, [selectedTable, currentPage, sortBy, sortOrder, activeTab]);
+  }, [selectedTable, currentPage, pageSize, sortBy, sortOrder, activeTab]);
 
   return (
     <div className="container database-manager-page">
@@ -686,6 +687,63 @@ function DatabaseManagerPage() {
                         >
                                                     下一页
                         </button>
+
+                        {/* 页码跳转 */}
+                        <div className="pagination-jump">
+                          <TextInput
+                            placeholder="页码"
+                            value={jumpPageInput}
+                            onChange={setJumpPageInput}
+                            styles={{
+                              root: { width: '70px' },
+                              input: { textAlign: 'center' }
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                const page = parseInt(jumpPageInput);
+                                const max_page = Math.ceil(tableData.pagination.total / pageSize);
+                                if (page >= 1 && page <= max_page) {
+                                  setCurrentPage(page);
+                                  setJumpPageInput('');
+                                }
+                              }
+                            }}
+                          />
+                          <button
+                            className="btn btn-sm btn-outline"
+                            onClick={() => {
+                              const page = parseInt(jumpPageInput);
+                              const max_page = Math.ceil(tableData.pagination.total / pageSize);
+                              if (page >= 1 && page <= max_page) {
+                                setCurrentPage(page);
+                                setJumpPageInput('');
+                              }
+                            }}
+                          >
+                            跳转
+                          </button>
+                        </div>
+
+                        {/* 每页显示数量 */}
+                        <div className="pagination-size">
+                          <Select
+                            value={String(pageSize)}
+                            onChange={(value) => {
+                              if (value) {
+                                setPageSize(Number(value));
+                                setCurrentPage(1);
+                              }
+                            }}
+                            data={[
+                              { value: '20', label: '20条/页' },
+                              { value: '50', label: '50条/页' },
+                              { value: '100', label: '100条/页' }
+                            ]}
+                            styles={{
+                              root: { width: '110px' }
+                            }}
+                          />
+                        </div>
                       </div>
                     )}
                   </div>
