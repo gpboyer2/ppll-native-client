@@ -27,8 +27,8 @@ export interface GridStrategy {
   /** 必填，币安API Secret */
   secret_key: string;
 
-  /** 初始建仓的价格 */
-  initial_fill_price: number;
+  /** 初始建仓的价格，不填值时自动按当前价格建仓 */
+  initial_fill_price: number | undefined;
 
   /** 杠杆倍数, 默认20(不足20的设为最大倍数) */
   leverage: number;
@@ -134,7 +134,7 @@ export const defaultGridStrategy: GridStrategyForm = {
   trading_pair: '',
   api_key: '',
   secret_key: '',
-  initial_fill_price: 0,
+  initial_fill_price: undefined,
   leverage: 20,
   max_open_position_quantity: undefined,
   min_open_position_quantity: undefined,

@@ -117,7 +117,8 @@ function GridStrategyEditPage() {
 
   // 加载交易所信息（包含过滤器信息）
   const loadExchangeInfo = useCallback(async () => {
-    const { api_key, secret_key } = formData;
+    const api_key = formData.api_key;
+    const secret_key = formData.secret_key;
     if (!api_key || !secret_key) {
       return;
     }
@@ -604,13 +605,23 @@ function GridStrategyEditPage() {
             <div className="grid-strategy-form-field">
               <label className="grid-strategy-form-label">初始建仓价格</label>
               <NumberInput
-                value={formData.initial_fill_price}
-                onChange={(value) => updateFormField('initial_fill_price', (typeof value === 'number' ? value : parseFloat(value || '0')))}
+                value={formData.initial_fill_price ?? ''}
+                onChange={(value) => {
+                  // 当 value 是空字符串或 undefined 时，设置为 undefined
+                  if (value === '' || value === undefined || value === null) {
+                    updateFormField('initial_fill_price', undefined as any);
+                  } else {
+                    const num_value = typeof value === 'number' ? value : parseFloat(value);
+                    // 验证：如果填写了值，必须大于等于 0
+                    if (!isNaN(num_value) && num_value >= 0) {
+                      updateFormField('initial_fill_price', num_value);
+                    }
+                  }
+                }}
                 decimalScale={2}
-                min={0}
-                placeholder="0"
+                placeholder="不填值时自动按当前价格建仓"
               />
-              <div className="help">初始建仓的价格，为0时自动按当前价格建仓</div>
+              <div className="help">不填值时自动按当前价格建仓</div>
             </div>
           </div>
         </div>
