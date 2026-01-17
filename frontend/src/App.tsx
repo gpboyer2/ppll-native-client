@@ -11,7 +11,7 @@ import SystemInfoPage from './pages/system-info';
 import DatabaseManagerPage from './pages/database-manager';
 import PluginsPage from './pages/plugins';
 import GridStrategyListPage from './pages/grid-strategy';
-import GridStrategyEditPage from './pages/grid-strategy/edit';
+import GridStrategyEditPage from './pages/grid-strategy/components/edit';
 import { navItems, ROUTES } from './router';
 import { ThemeToggle } from './components/theme-toggle';
 import { useThemeStore } from './stores/theme-store';

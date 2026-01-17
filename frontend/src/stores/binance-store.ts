@@ -281,13 +281,13 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
           reconnectionDelay: 3000,
         });
 
-        new_socket.on('connect', (_event) => {
+        new_socket.on('connect', () => {
           clearTimeout(timeout);
           console.log('[binance-store] WebSocket 已连接');
           resolve();
         });
 
-        new_socket.on('disconnect', (_event) => {
+        new_socket.on('disconnect', () => {
           console.log('[binance-store] WebSocket 已断开');
         });
 

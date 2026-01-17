@@ -17,7 +17,7 @@ import {
   IconClean,
   IconKey,
   IconX
-} from '../components/icons';
+} from '../../components/icons';
 
 type TabType = 'browse' | 'structure' | 'sql';
 

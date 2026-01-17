@@ -1,0 +1,106 @@
+/* ========== 网格策略列表页面样式 ========== */
+
+/* 策略统计卡片 */
+.grid-strategy-statistics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.grid-strategy-stat-item {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  text-align: center;
+}
+
+.grid-strategy-stat-value {
+  font-size: var(--text-2xl);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* 筛选按钮 */
+.grid-strategy-filter-button {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.grid-strategy-filter-button:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.grid-strategy-filter-button.active {
+  background: var(--color-primary);
+  color: #000;
+  border-color: var(--color-primary);
+}
+
+/* 策略卡片列表 */
+.grid-strategy-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.grid-strategy-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.grid-strategy-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* 持仓方向标签 */
+.grid-strategy-position-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.grid-strategy-position-badge.long {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: rgb(16, 185, 129);
+}
+
+.grid-strategy-position-badge.short {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: rgb(239, 68, 68);
+}
+
+/* 状态标签 */
+.grid-strategy-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.grid-strategy-status-badge.running {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: rgb(16, 185, 129);
+}
+
+.grid-strategy-status-badge.paused {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: rgb(245, 158, 11);
+}
+
+.grid-strategy-status-badge.stopped {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: rgb(107, 114, 128);
+}

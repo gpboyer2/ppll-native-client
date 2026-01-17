@@ -1,5 +1,5 @@
 import type { Plugin } from '../types';
-import { PluginSaveConfig, PluginGetConfig } from '../../../wailsjs/go/main/App';
+import { PluginSaveConfig, PluginGetConfig } from '/wailsjs/go/main/App';
 import { BinanceApi } from '../../api/binance';
 import type { BinanceCredentials, AccountInfo, PositionConfig } from '../../types/binance';
 
@@ -9,6 +9,7 @@ import type { BinanceCredentials, AccountInfo, PositionConfig } from '../../type
 let container: HTMLElement | null = null;
 let currentCredentials: BinanceCredentials | null = null;
 let accountData: AccountInfo | null = null;
+let isLoading: boolean = false;
 
 const html = `
   <div class="u-contract-container">

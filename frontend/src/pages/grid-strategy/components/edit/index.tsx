@@ -1,18 +1,18 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { Select, NumberInput } from '../../components/mantine';
-import { SmartConfigModal, AccountValidationCard } from '../../components/grid-strategy';
-import { ReferralCommissionDialog } from '../../components/referral-commission-invitation';
-import { GridParametersCards } from './components/grid-parameters-cards';
-import { ROUTES } from '../../router';
-import { useBinanceStore } from '../../stores/binance-store';
-import { GridStrategyApi, BinanceAccountApi } from '../../api';
-import { BinanceExchangeInfoApi } from '../../api';
-import type { GridStrategyForm, PositionSide, OptimizedConfig } from '../../types/grid-strategy';
-import type { BinanceSymbol, StrategyValidationResult } from '../../types/binance';
-import { defaultGridStrategy } from '../../types/grid-strategy';
-import { showWarning, showSuccess, showError } from '../../utils/api-error';
-import { validateStrategyField } from '../../utils/strategy-validation';
+import { Select, NumberInput } from '../../../../components/mantine';
+import { SmartConfigModal, AccountValidationCard } from '../../../../components/grid-strategy';
+import { ReferralCommissionDialog } from '../../../../components/referral-commission-invitation';
+import { GridParametersCards } from '../grid-parameters-cards';
+import { ROUTES } from '../../../../router';
+import { useBinanceStore } from '../../../../stores/binance-store';
+import { GridStrategyApi, BinanceAccountApi } from '../../../../api';
+import { BinanceExchangeInfoApi } from '../../../../api';
+import type { GridStrategyForm, PositionSide, OptimizedConfig } from '../../../../types/grid-strategy';
+import type { BinanceSymbol, StrategyValidationResult } from '../../../../types/binance';
+import { defaultGridStrategy } from '../../../../types/grid-strategy';
+import { showWarning, showSuccess, showError } from '../../../../utils/api-error';
+import { validateStrategyField } from '../../../../utils/strategy-validation';
 
 /**
  * 网格策略表单页面
@@ -153,7 +153,7 @@ function GridStrategyEditPage() {
 
       if (response.status === 'success' && response.datum) {
         const list = response.datum.list || [];
-        const strategy = list.find(s => String(s.id) === strategyId);
+        const strategy = list.find((s: any) => String(s.id) === strategyId);
         if (strategy) {
           // 直接使用后端返回的字段名，不做任何转换
           const formData: GridStrategyForm = {
@@ -197,7 +197,7 @@ function GridStrategyEditPage() {
     if (!is_editing && usdt_pairs.length > 0 && !formData.trading_pair) {
       // 精确匹配 BTCUSDT
       if (usdt_pairs.includes('BTCUSDT')) {
-        setFormData(prev => ({ ...prev, trading_pair: 'BTCUSDT' }));
+        setFormData((prev: GridStrategyForm) => ({ ...prev, trading_pair: 'BTCUSDT' }));
         console.log('已设置默认交易对: BTCUSDT');
       }
     }
@@ -247,7 +247,7 @@ function GridStrategyEditPage() {
     }
 
     const result = validateStrategyField(field_name, value, currentSymbolInfo);
-    setValidationHints(prev => ({
+    setValidationHints((prev: Record<string, StrategyValidationResult>) => ({
       ...prev,
       [field_name]: result
     }));
@@ -259,7 +259,7 @@ function GridStrategyEditPage() {
     if (!is_editing && api_key_list.length > 0 && !formData._api_key_id) {
       const first_api_key = api_key_list[0];
       // 直接设置 API Key 和 Secret
-      setFormData(prev => ({
+      setFormData((prev: GridStrategyForm) => ({
         ...prev,
         api_key: first_api_key.api_key,
         secret_key: first_api_key.secret_key,
@@ -414,7 +414,7 @@ function GridStrategyEditPage() {
 
   // 更新表单字段
   function updateFormField<K extends keyof GridStrategyForm>(key: K, value: GridStrategyForm[K]) {
-    setFormData(prev => ({ ...prev, [key]: value }));
+    setFormData((prev: GridStrategyForm) => ({ ...prev, [key]: value }));
 
     // 触发验证（仅对需要验证的字段）
     const fields_to_validate = [
@@ -444,14 +444,14 @@ function GridStrategyEditPage() {
   // 选择 API Key 后自动填充 Secret
   function handleApiKeyChange(value: string | null) {
     if (!value) {
-      setFormData(prev => ({ ...prev, api_key: '', secret_key: '', _api_key_id: undefined }));
+      setFormData((prev: GridStrategyForm) => ({ ...prev, api_key: '', secret_key: '', _api_key_id: undefined }));
       setAccountValidation({ status: 'idle' });
       return;
     }
     const api_key_id = parseInt(value);
-    const selected_key = api_key_list.find(k => k.id === api_key_id);
+    const selected_key = api_key_list.find((k: any) => k.id === api_key_id);
     if (selected_key) {
-      setFormData(prev => ({
+      setFormData((prev: GridStrategyForm) => ({
         ...prev,
         api_key: selected_key.api_key,
         secret_key: selected_key.secret_key,
@@ -462,7 +462,7 @@ function GridStrategyEditPage() {
       // 验证账户信息
       validateAccountInfo(selected_key.api_key, selected_key.secret_key);
     } else {
-      setFormData(prev => ({
+      setFormData((prev: GridStrategyForm) => ({
         ...prev,
         api_key: '',
         secret_key: '',
@@ -498,7 +498,7 @@ function GridStrategyEditPage() {
       enable_log: Math.random() > 0.5,
       priority_close_on_trend: Math.random() > 0.7
     };
-    setFormData(prev => ({ ...prev, ...mockData }));
+    setFormData((prev: GridStrategyForm) => ({ ...prev, ...mockData }));
   }
 
   // 打开智能配置弹窗
@@ -525,7 +525,7 @@ function GridStrategyEditPage() {
         expected_daily_profit: number;
         trade_value: number;
     }) {
-    setFormData(prev => {
+    setFormData((prev: GridStrategyForm) => {
       // 做多：价格高继续，价格低暂停
       // 做空：价格高暂停，价格低继续
       const is_long = prev.position_side === 'LONG';
@@ -584,14 +584,14 @@ function GridStrategyEditPage() {
   }
 
   // API Key 下拉选项
-  const api_key_options = api_key_list.map(k => ({
+  const api_key_options = api_key_list.map((k: any) => ({
     value: String(k.id),
     label: `${k.name} (${k.api_key.substring(0, 8)}...)`
   }));
 
   // 当前选中的 API Key
   const current_api_key_value = formData._api_key_id ? String(formData._api_key_id) :
-    api_key_list.find(k => k.api_key === formData.api_key)?.id.toString() || '';
+    api_key_list.find((k: any) => k.api_key === formData.api_key)?.id.toString() || '';
 
   return (
     <div className="container">
@@ -694,7 +694,7 @@ function GridStrategyEditPage() {
                   { value: 'SHORT', label: '做空 (SHORT)' }
                 ]}
                 value={formData.position_side}
-                onChange={(value) => value && updateFormField('position_side', value as PositionSide)}
+                onChange={(value: string | null) => value && updateFormField('position_side', value as PositionSide)}
               />
               <div className="help">选择网格交易的持仓方向，做多或做空</div>
             </div>
@@ -711,7 +711,7 @@ function GridStrategyEditPage() {
                 clearable
                 data={usdt_pairs}
                 value={formData.trading_pair}
-                onChange={(value) => updateFormField('trading_pair', value || '')}
+                onChange={(value: string | null) => updateFormField('trading_pair', value || '')}
               />
               <div className="help">选择要交易的USDT币对，如ETHUSDT表示ETH兑换USDT</div>
             </div>
@@ -737,7 +737,7 @@ function GridStrategyEditPage() {
               <label className="grid-strategy-form-label">杠杆倍数</label>
               <NumberInput
                 value={formData.leverage}
-                onChange={(value) => updateFormField('leverage', (typeof value === 'number' ? value : parseFloat(value || '20')))}
+                onChange={(value: string | number) => updateFormField('leverage', (typeof value === 'number' ? value : parseFloat(value as string || '20')))}
                 min={1}
                 max={125}
               />
@@ -750,12 +750,12 @@ function GridStrategyEditPage() {
               <label className="grid-strategy-form-label">初始建仓价格</label>
               <NumberInput
                 value={formData.initial_fill_price ?? ''}
-                onChange={(value) => {
+                onChange={(value: string | number) => {
                   // 当 value 是空字符串或 undefined 时，设置为 undefined
                   if (value === '' || value === undefined || value === null) {
                     updateFormField('initial_fill_price', undefined as any);
                   } else {
-                    const num_value = typeof value === 'number' ? value : parseFloat(value);
+                    const num_value = typeof value === 'number' ? value : parseFloat(value as string);
                     // 验证：如果填写了值，必须大于等于 0
                     if (!isNaN(num_value) && num_value >= 0) {
                       updateFormField('initial_fill_price', num_value);
