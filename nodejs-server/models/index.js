@@ -75,8 +75,8 @@ if (config.dialect === 'sqlite') {
     logging: sequelizeOptions.logging,
     pool: sequelizeOptions.pool,
     define: sequelizeOptions.define,
-    // 使用 @vscode/sqlite3（预编译，无需编译原生模块）
-    dialectModule: require('@vscode/sqlite3'),
+    // 使用 sqlite3 包
+    dialectModule: require('sqlite3'),
   });
 } else {
   // MySQL 等其他数据库的兼容配置（保留以防回退）
