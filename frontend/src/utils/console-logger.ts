@@ -1,8 +1,7 @@
 /**
  * 前端日志拦截和上报模块
- * 优先使用 WebSocket（Socket.IO）批量发送日志，降级到 HTTP
+ * 通过 WebSocket（Socket.IO）批量发送日志
  */
-import { RequestWrapper } from '../api/request';
 
 // 日志级别定义
 type LogLevel = 'log' | 'error' | 'warn' | 'info' | 'table' | 'debug';
@@ -23,7 +22,6 @@ const FLUSH_INTERVAL = 3000; // 3秒
 
 // Socket.IO 客户端（延迟加载）
 let socketio_logger: any = null;
-let use_websocket = true;
 
 /**
  * 动态导入 Socket.IO 客户端
@@ -42,8 +40,6 @@ async function loadSocketIOLogger(): Promise<boolean> {
     await new Promise(resolve => setTimeout(resolve, 500));
     return socketio_logger.isConnected();
   } catch (error) {
-    // Socket.IO 不可用，降级到 HTTP
-    use_websocket = false;
     return false;
   }
 }
@@ -82,17 +78,6 @@ function formatMessage(args: any[]): string {
 }
 
 /**
- * 通过 HTTP 发送单条日志（降级方案）
- */
-async function sendLogViaHTTP(log_data: LogData): Promise<void> {
-  try {
-    await RequestWrapper.post('/api/v1/frontend-logs/create', log_data);
-  } catch (error) {
-    // 静默失败
-  }
-}
-
-/**
  * 批量发送日志
  */
 async function flushLogs(): Promise<void> {
@@ -102,26 +87,15 @@ async function flushLogs(): Promise<void> {
 
   const logs_to_send = log_queue.splice(0, MAX_QUEUE_SIZE);
 
-  // 优先尝试使用 WebSocket
-  if (use_websocket) {
-    try {
-      const connected = await loadSocketIOLogger();
-      if (connected) {
-        for (const log of logs_to_send) {
-          socketio_logger.addLog(log);
-        }
-        return;
+  try {
+    const connected = await loadSocketIOLogger();
+    if (connected) {
+      for (const log of logs_to_send) {
+        socketio_logger.addLog(log);
       }
-    } catch (error) {
-      // WebSocket 失败，降级到 HTTP
-      use_websocket = false;
     }
-  }
-
-  // 降级到 HTTP
-  for (const log_data of logs_to_send) {
-    // 不等待完成，避免阻塞
-    sendLogViaHTTP(log_data);
+  } catch (error) {
+    // WebSocket 连接失败，日志将被丢弃
   }
 }
 
