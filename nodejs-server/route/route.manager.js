@@ -7,7 +7,6 @@
  * 示例：GET /api/v1/grid-strategy/list
  */
 const chatRoute = require("./v1/chat.route");
-const robotRoute = require("./v1/robot.route");
 const helloRoute = require("./v1/hello.route");
 const ordersRoute = require("./v1/orders.route");
 const dashboardRoute = require("./v1/dashboard.route");
@@ -36,7 +35,6 @@ const frontendLogRoute = require("./v1/frontend-log.route");
 const routeManager = (app) => {
   // API V1 Routes - 统一使用 /api/v1 前缀
   app.use("/api/v1/chat", chatRoute);
-  app.use("/api/v1/robot", robotRoute);
   app.use("/api/v1/hello", helloRoute);
   app.use("/api/v1/orders", ordersRoute);
   app.use("/api/v1/dashboard", dashboardRoute);

@@ -51,9 +51,6 @@ export { TemplateApi } from './modules/template';
 // 权限管理
 export { PermissionApi } from './modules/permission';
 
-// 机器人
-export { RobotApi } from './modules/robot';
-
 // 资金流向
 export { FundFlowsApi } from './modules/fund-flows';
 export { SmartMoneyFlowApi } from './modules/smart-money-flow';

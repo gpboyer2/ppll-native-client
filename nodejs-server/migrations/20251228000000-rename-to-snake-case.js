@@ -27,22 +27,6 @@ module.exports = {
     await queryInterface.renameColumn('grid_strategies', 'maxPrice', 'max_price');
     await queryInterface.renameColumn('grid_strategies', 'robotname', 'robot_name');
 
-    // 机器人表字段重命名
-    await queryInterface.renameColumn('robots', 'apiKey', 'api_key');
-    await queryInterface.renameColumn('robots', 'apiSecret', 'secret_key');
-    await queryInterface.renameColumn('robots', 'symbol', 'trading_pair');
-    await queryInterface.renameColumn('robots', 'minPrice', 'min_price');
-    await queryInterface.renameColumn('robots', 'maxPrice', 'max_price');
-    await queryInterface.renameColumn('robots', 'maxOpenPositionQuantity', 'max_open_position_quantity');
-    await queryInterface.renameColumn('robots', 'minOpenPositionQuantity', 'min_open_position_quantity');
-    await queryInterface.renameColumn('robots', 'gridPriceDiff', 'grid_price_difference');
-    await queryInterface.renameColumn('robots', 'gridTradeQuantity', 'grid_trade_quantity');
-    await queryInterface.renameColumn('robots', 'initialFillPrice', 'initial_fill_price');
-    await queryInterface.renameColumn('robots', 'initialFillQuantity', 'initial_fill_quantity');
-    await queryInterface.renameColumn('robots', 'pollingInterval', 'polling_interval');
-    await queryInterface.renameColumn('robots', 'fallPreventionCoefficient', 'fall_prevention_coefficient');
-    await queryInterface.renameColumn('robots', 'robotname', 'robot_name');
-
     // 聊天表字段重命名
     await queryInterface.renameColumn('chats', 'apiKey', 'api_key');
 
@@ -80,22 +64,6 @@ module.exports = {
     await queryInterface.renameColumn('grid_strategies', 'min_price', 'minPrice');
     await queryInterface.renameColumn('grid_strategies', 'max_price', 'maxPrice');
     await queryInterface.renameColumn('grid_strategies', 'robot_name', 'robotname');
-
-    // 机器人表回滚
-    await queryInterface.renameColumn('robots', 'api_key', 'apiKey');
-    await queryInterface.renameColumn('robots', 'secret_key', 'apiSecret');
-    await queryInterface.renameColumn('robots', 'trading_pair', 'symbol');
-    await queryInterface.renameColumn('robots', 'min_price', 'minPrice');
-    await queryInterface.renameColumn('robots', 'max_price', 'maxPrice');
-    await queryInterface.renameColumn('robots', 'max_open_position_quantity', 'maxOpenPositionQuantity');
-    await queryInterface.renameColumn('robots', 'min_open_position_quantity', 'minOpenPositionQuantity');
-    await queryInterface.renameColumn('robots', 'grid_price_difference', 'gridPriceDiff');
-    await queryInterface.renameColumn('robots', 'grid_trade_quantity', 'gridTradeQuantity');
-    await queryInterface.renameColumn('robots', 'initial_fill_price', 'initialFillPrice');
-    await queryInterface.renameColumn('robots', 'initial_fill_quantity', 'initialFillQuantity');
-    await queryInterface.renameColumn('robots', 'polling_interval', 'pollingInterval');
-    await queryInterface.renameColumn('robots', 'fall_prevention_coefficient', 'fallPreventionCoefficient');
-    await queryInterface.renameColumn('robots', 'robot_name', 'robotname');
 
     // 聊天表回滚
     await queryInterface.renameColumn('chats', 'api_key', 'apiKey');

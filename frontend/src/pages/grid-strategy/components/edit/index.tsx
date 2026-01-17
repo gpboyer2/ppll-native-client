@@ -460,8 +460,23 @@ function GridStrategyEditPage() {
   // 选择 API Key 后自动填充 Secret
   function handleApiKeyChange(value: string | null) {
     if (!value) {
-      setFormData((prev: GridStrategyForm) => ({ ...prev, api_key: '', secret_key: '', _api_key_id: undefined }));
+      // 清空 API Key 时，重置所有关联状态
+      setFormData((prev: GridStrategyForm) => ({
+        ...prev,
+        api_key: '',
+        secret_key: '',
+        _api_key_id: undefined,
+        // 清空交易对，因为不同的 API Key 可能支持的交易对不同
+        trading_pair: ''
+      }));
       setAccountValidation({ status: 'idle' });
+      // 清空交易所信息
+      setExchangeInfo(null);
+      setCurrentSymbolInfo(null);
+      // 清空验证提示
+      setValidationHints({});
+      // 清空实时标记价格
+      setCurrentMarkPrice(null);
       return;
     }
     const api_key_id = parseInt(value);
@@ -471,8 +486,18 @@ function GridStrategyEditPage() {
         ...prev,
         api_key: selected_key.api_key,
         secret_key: selected_key.secret_key,
-        _api_key_id: selected_key.id
+        _api_key_id: selected_key.id,
+        // 清空交易对，因为不同的 API Key 可能支持的交易对不同
+        trading_pair: ''
       }));
+      // 清空交易所信息，触发重新获取（loadExchangeInfo 会在 api_key/secret_key 改变时自动调用）
+      setExchangeInfo(null);
+      // 清空当前符号信息
+      setCurrentSymbolInfo(null);
+      // 清空验证提示
+      setValidationHints({});
+      // 清空实时标记价格
+      setCurrentMarkPrice(null);
       // 选择API Key后自动刷新交易对列表
       refreshTradingPairs();
       // 验证账户信息
@@ -482,9 +507,14 @@ function GridStrategyEditPage() {
         ...prev,
         api_key: '',
         secret_key: '',
-        _api_key_id: undefined
+        _api_key_id: undefined,
+        trading_pair: ''
       }));
       setAccountValidation({ status: 'idle' });
+      setExchangeInfo(null);
+      setCurrentSymbolInfo(null);
+      setValidationHints({});
+      setCurrentMarkPrice(null);
     }
   }
 
