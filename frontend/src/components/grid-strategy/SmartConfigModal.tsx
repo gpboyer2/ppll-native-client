@@ -26,8 +26,8 @@ export function SmartConfigModal({
   // ==================== 输入参数状态 ====================
   const [budget, setBudget] = useState<number>(1000);
   const [optimize_target, setOptimizeTarget] = useState<OptimizeTarget>('profit');
-  const [min_trade_value, setMinTradeValue] = useState<number>(20);
-  const [max_trade_value, setMaxTradeValue] = useState<number>(100);
+  const [min_trade_value, setMinTradeValue] = useState<number>(50);
+  const [max_trade_value, setMaxTradeValue] = useState<number>(50);
   const [interval, setInterval] = useState<string>('4h');
 
   // ==================== UI状态 ====================
@@ -43,8 +43,8 @@ export function SmartConfigModal({
       setStep('input');
       setBudget(1000);
       setOptimizeTarget('profit');
-      setMinTradeValue(20);
-      setMaxTradeValue(100);
+      setMinTradeValue(50);
+      setMaxTradeValue(50);
       setInterval('4h');
       setOptimizationResult(null);
       setSelectedConfigIndex(0);
@@ -69,8 +69,8 @@ export function SmartConfigModal({
       showWarning('请输入有效的预算投入资金');
       return;
     }
-    if (min_trade_value >= max_trade_value) {
-      showWarning('最小值必须小于最大值');
+    if (min_trade_value > max_trade_value) {
+      showWarning('最小值不能大于最大值');
       return;
     }
     if (!default_params?.trading_pair) {
@@ -237,7 +237,7 @@ export function SmartConfigModal({
                     <div className="smart-config-input-group">
                       <NumberInput
                         value={min_trade_value}
-                        onChange={(value) => setMinTradeValue(typeof value === 'number' ? value : parseFloat(value || '20'))}
+                        onChange={(value) => setMinTradeValue(typeof value === 'number' ? value : parseFloat(value || '50'))}
                         min={10}
                         max={1000}
                         step={5}
@@ -246,14 +246,14 @@ export function SmartConfigModal({
                       <span className="smart-config-input-separator">~</span>
                       <NumberInput
                         value={max_trade_value}
-                        onChange={(value) => setMaxTradeValue(typeof value === 'number' ? value : parseFloat(value || '100'))}
+                        onChange={(value) => setMaxTradeValue(typeof value === 'number' ? value : parseFloat(value || '50'))}
                         min={10}
                         max={1000}
                         step={5}
                         placeholder="最大值"
                       />
                     </div>
-                    <div className="smart-config-form-help">单笔交易的资金范围，建议 20~50 USDT</div>
+                    <div className="smart-config-form-help">单笔交易的资金范围，建议 50 USDT</div>
                   </div>
 
                   {/* 市场分析周期 */}
