@@ -6,7 +6,6 @@ const { parseUa } = require('../utils/ua-parser');
 
 // 从 models 中引用模型（注意模型名为 operation_logs）
 const OperationLogModel = db.operation_logs;
-const PageViewLog = db.page_view_log;
 
 /**
  * 服务层 - 提供埋点日志相关功能
@@ -96,38 +95,6 @@ async function logUserAction(action, description, page, ipAddress, userAgent, ex
 }
 
 /**
- * 记录页面访问日志（单用户系统）
- *
- * @example
- *  const AnalyticsService = require('../service/analytics.service.js');
- *  await AnalyticsService.logPageView('/dashboard', '/home', '192.168.1.1', 'Mozilla/5.0', 30);
- *
- * @param {string} page - 页面路径
- * @param {string} referrer - 来源页面(可选)
- * @param {string} ipAddress - IP地址(可选)
- * @param {string} userAgent - 设备/浏览器信息(可选)
- * @param {number} duration - 停留时长(秒, 可选)
- * @param {object} extraData - 扩展信息(可选)
- * @returns {Promise<void>}
- */
-async function logPageView(page, referrer, ipAddress, userAgent, duration, extraData) {
-  try {
-    await PageViewLog.create({
-      page,
-      referrer: referrer || null,
-      ip_address: ipAddress || null,
-      user_agent: userAgent || null,
-      duration: duration || null,
-      extra_data: extraData || null,
-      created_at: new Date()
-    });
-  } catch (err) {
-    console.error('Failed to log page view:', err);
-    throw new ApiError(httpStatus.SERVICE_UNAVAILABLE, 'Failed to log page view');
-  }
-}
-
-/**
  * 批量记录用户操作日志（单用户系统）
  *
  * @param {Array<object>} logs - 日志对象数组
@@ -198,7 +165,6 @@ async function getUserActionStats(options = {}) {
 module.exports = {
   logUserEvent,
   logUserAction,
-  logPageView,
   batchLogUserActions,
   getUserActionStats
 };
