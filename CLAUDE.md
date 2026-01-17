@@ -45,6 +45,15 @@
 - 测试文件(test文件）必须保存在目录 test 下，能复用的就不要再创建新的文件。
 
 
+## 调试工具
+
+**前端日志查看 API**：
+- URL: `http://localhost:54321/api/v1/frontend-logs/list?page_size=1000`
+- 说明：用于查看前端 console 日志，包括 log、error、warn、info、table、debug 等所有输出
+- 使用场景：当遇到前端问题时，优先通过此接口查看日志，不需要打开浏览器控制台
+- 数据格式：log_data 为 JSON 数组，包含 console 的所有参数
+- 注意：日志自动清理，仅保留最近 3 分钟的数据
+
 
 
 ## React前端代码中的图标使用规范
