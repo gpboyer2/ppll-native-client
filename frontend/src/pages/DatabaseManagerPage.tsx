@@ -151,7 +151,7 @@ function DatabaseManagerPage() {
   }, [selectedTable, currentPage, pageSize, sortBy, sortOrder]);
 
   // 执行 SQL 查询
-  const execute_query = async () => {
+  const executeQuery = async () => {
     if (!sqlQuery.trim()) return;
     setLoading(true);
     const response = await ApiEndpoints.executeQuery(sqlQuery);
@@ -906,7 +906,7 @@ function DatabaseManagerPage() {
                       />
                       <button
                         className="btn btn-primary"
-                        onClick={execute_query}
+                        onClick={executeQuery}
                         disabled={loading}
                       >
                         <IconCode />

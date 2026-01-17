@@ -304,7 +304,7 @@ const deleteData = async (params) => {
 
 
 // 执行 SQL 查询
-const execute_query = async (params) => {
+const executeQuery = async (params) => {
   try {
     const { sql, queryParams = [] } = params;
     const trimSql = sql.trim().toUpperCase();
@@ -710,7 +710,7 @@ module.exports = {
   createData,
   updateData,
   deleteData,
-  execute_query,
+  executeQuery,
   createTable,
   deleteTable,
   createColumn,

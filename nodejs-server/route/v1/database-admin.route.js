@@ -60,7 +60,7 @@ router.delete('/data-delete', databaseAdminController.deleteData);
  * 执行 SQL 查询
  * POST /v1/database-admin/query  body: { sql, queryParams: [] }
  */
-router.post('/query', databaseAdminController.execute_query);
+router.post('/query', databaseAdminController.executeQuery);
 
 
 /**
