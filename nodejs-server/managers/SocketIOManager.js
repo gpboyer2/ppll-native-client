@@ -1,8 +1,7 @@
 const socketIo = require('socket.io');
 const UtilRecord = require('../utils/record-log.js');
 const db = require('../models');
-
-const FrontendLog = db.frontend_log;
+const { add_frontend_log } = require('../service/frontend-logs.service');
 
 // 生产环境标识
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -187,21 +186,8 @@ const init = (server, wsManagerInstance) => {
           return;
         }
 
-        // 批量创建日志记录
-        const log_promises = logs.map(log =>
-          FrontendLog.create({
-            log_level: log.log_level,
-            log_message: log.log_message,
-            log_data: log.log_data,
-            page_url: log.page_url,
-            user_agent: log.user_agent,
-          }).catch(err => {
-            // 静默失败，避免日志系统本身产生大量错误
-            UtilRecord.trace(`[SocketIO] 保存前端日志失败: ${err.message}`);
-          })
-        );
-
-        await Promise.all(log_promises);
+        // 使用公共函数批量添加日志（自动清理旧数据）
+        await add_frontend_log(logs);
 
         // 确认收到（仅开发环境）
         if (!IS_PRODUCTION) {

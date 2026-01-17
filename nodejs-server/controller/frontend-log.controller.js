@@ -1,5 +1,6 @@
 const catchAsync = require('../utils/catch-async');
 const db = require('../models');
+const { add_frontend_log } = require('../service/frontend-logs.service');
 
 const FrontendLog = db.frontend_log;
 
@@ -10,15 +11,16 @@ const FrontendLog = db.frontend_log;
 const create = catchAsync(async (req, res) => {
   const { log_level, log_message, log_data, page_url, user_agent } = req.body;
 
-  const log = await FrontendLog.create({
+  // 使用公共函数添加日志（自动清理旧数据）
+  const logs = await add_frontend_log([{
     log_level,
     log_message,
     log_data,
     page_url,
     user_agent,
-  });
+  }]);
 
-  return res.apiSuccess(log, '日志记录成功');
+  return res.apiSuccess(logs, '日志记录成功');
 });
 
 /**

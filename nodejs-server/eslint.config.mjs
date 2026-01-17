@@ -69,5 +69,20 @@ export default [
       'no-unreachable': 'error',
       'no-useless-escape': 'off'
     }
+  },
+  {
+    files: ['test/**/*.js', '**/*.test.js', '**/*.spec.js'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        it: 'readonly'
+      }
+    }
   }
 ];

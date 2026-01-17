@@ -1,4 +1,4 @@
-const { getCurrentDateTime } = require('./time')
+const { getCurrentDateTime } = require('./time');
 
 // 统一返回格式封装中间件
 const responseFormatMiddleware = (req, res, next) => {
