@@ -146,6 +146,9 @@ const create = catchAsync(async (req, res) => {
       return res.apiError(`已存在该交易对 ${trading_pair} 的网格策略`);
     }
 
+    // 创建成功，返回数据
+    // 注意：此时策略已经完成初始化（API Key 验证、账户信息获取、订单创建等）
+    // 如果初始化失败，会直接抛出错误不会到这里
     return res.apiSuccess(row, "网格策略创建成功");
   } catch (err) {
     console.error("创建网格策略时出错:", err);

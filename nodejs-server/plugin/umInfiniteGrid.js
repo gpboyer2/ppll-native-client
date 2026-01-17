@@ -1199,11 +1199,13 @@ function InfiniteGrid(options) {
     // 添加延迟,避免API限流
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    let isOk = true;
-    await this.initAccountInfo().catch(() => { isOk = false; });
-    if (isOk === false) {
-      setTimeout(this.initOrders, 1000);
-      return;
+    // 获取账户信息，失败则抛出错误
+    try {
+      await this.initAccountInfo();
+    } catch (error) {
+      const errorMsg = '初始化账户信息失败，请检查 API Key 配置（可能存在 IP 白名单限制）';
+      this.logger.error(errorMsg, error);
+      throw new Error(errorMsg);
     }
 
     let { min_open_position_quantity, max_open_position_quantity } = this.config;

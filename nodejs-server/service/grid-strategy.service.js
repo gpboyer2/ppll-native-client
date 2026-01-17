@@ -16,7 +16,8 @@ const UtilRecord = require('../utils/record-log.js');
 const ApiError = require("../utils/api-error");
 
 
-const gridMap = {}; // 存储所有网格实例：id -> grid 实例
+global.gridMap = global.gridMap || {}; // 存储所有网格实例：id -> grid 实例
+const gridMap = global.gridMap;
 // 维护 symbol 订阅者集合：symbol -> Set<{ id, grid }>
 const gridStrategyRegistry = new Map();
 // 标记全局 tick 事件监听器是否已绑定
@@ -54,6 +55,13 @@ const cleanupSubscriber = async (symbol, id, remark) => {
 
 /**
  * 创建网格交易策略
+ *
+ * 流程：
+ * 1. 先检查是否已存在相同的策略
+ * 2. 如果不存在，先创建 InfiniteGrid 实例并初始化（验证 API Key、创建订单等）
+ * 3. 只有初始化成功后才写入数据库
+ * 4. 如果初始化失败，直接抛出错误，不写数据库
+ *
  * 单用户系统：API Key 即为用户标识，通过 api_key + api_secret 实现数据隔离
  * @async
  * @function createGridStrategy
@@ -68,6 +76,42 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
   // 单用户系统：直接使用 API Key/Secret，无需查询用户表
   let valid_params = sanitizeParams(params, GridStrategy);
 
+  // 步骤 1: 先检查是否已存在相同的策略
+  const existing = await GridStrategy.findOne({
+    where: {
+      api_key: params.api_key,
+      api_secret: params.api_secret,
+      trading_pair: params.trading_pair,
+      position_side: params.position_side,
+    },
+  });
+
+  if (existing) {
+    // 已存在，直接返回
+    return { row: existing, created: false };
+  }
+
+  // 步骤 2: 创建临时 ID（用于初始化）
+  const tempId = `temp_${Date.now()}`;
+
+  // 步骤 3: 创建 InfiniteGrid 实例并初始化（验证 API Key、创建订单等）
+  let infinite_grid_params = { ...valid_params };
+  infinite_grid_params.id = tempId;
+  infinite_grid_params.api_key = params.api_key;
+  infinite_grid_params.secret_key = params.api_secret;
+
+  const wealthySoon = new InfiniteGrid(infinite_grid_params);
+
+  // 步骤 4: 等待初始化完成（这里会验证 API Key 并创建订单）
+  // 如果失败，会抛出错误，直接返回给前端
+  try {
+    await wealthySoon.initOrders();
+  } catch (error) {
+    // 初始化失败，不写数据库，直接抛出错误
+    throw new Error(`网格策略初始化失败：${error.message}`);
+  }
+
+  // 步骤 5: 初始化成功后，写入数据库
   const [row, created] = await GridStrategy.findOrCreate({
     where: {
       api_key: params.api_key,
@@ -78,23 +122,21 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
     defaults: valid_params,
   });
 
-  // 假设新创建的网格策略或者网格策略不存在时，初始化网格实例
-  if (created || !gridMap[row.id]) {
-    setTimeout(() => {
-      let infinite_grid_params = valid_params;
-      infinite_grid_params.id = row.id;
-      infinite_grid_params.api_key = params.api_key; // 使用 API Key 作为用户标识
-      infinite_grid_params.secret_key = params.api_secret; // 映射 secret_key 字段
-      const wealthySoon = new InfiniteGrid(infinite_grid_params);
-      wealthySoon.initOrders();
-      gridMap[row.id] = wealthySoon; // 存储网格实例
+  if (!created) {
+    // 理论上不会到这里，因为前面已经检查过了
+    return { row, created: false };
+  }
 
-      const symbol = valid_params.trading_pair;
+  // 步骤 6: 更新实例的真实 ID
+  wealthySoon.config.id = row.id;
+  gridMap[row.id] = wealthySoon;
 
-      // 初始化订阅
-      if (!gridStrategyRegistry.has(symbol)) {
-        gridStrategyRegistry.set(symbol, new Set());
-        const logMessage = `
+  const symbol = valid_params.trading_pair;
+
+  // 步骤 7: 初始化订阅
+  if (!gridStrategyRegistry.has(symbol)) {
+    gridStrategyRegistry.set(symbol, new Set());
+    const logMessage = `
 ╔══════════════════════════════════════════════════╗
                  🎉 新增一个网格订阅
 ╠══════════════════════════════════════════════════╣
@@ -106,20 +148,20 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
  产品类型: ${params.exchange_type || 'u本位合约'}
 ╚══════════════════════════════════════════════════╝
 `;
-        console.log(logMessage);
-        UtilRecord.log('[grid-strategy] 新增网格订阅', {
-          symbol,
-          strategyId: row.id,
-          api_key: params.api_key?.substring(0, 8),
-          positionSide: params.position_side,
-          productType: params.exchange_type || 'u本位合约',
-          action: 'subscribe',
-          isReused: false
-        });
-        global.wsManager.subscribeMarkPrice(symbol);
-      } else {
-        const currentCount = gridStrategyRegistry.get(symbol).size;
-        const logMessage = `
+    console.log(logMessage);
+    UtilRecord.log('[grid-strategy] 新增网格订阅', {
+      symbol,
+      strategyId: row.id,
+      api_key: params.api_key?.substring(0, 8),
+      positionSide: params.position_side,
+      productType: params.exchange_type || 'u本位合约',
+      action: 'subscribe',
+      isReused: false
+    });
+    global.wsManager.subscribeMarkPrice(symbol);
+  } else {
+    const currentCount = gridStrategyRegistry.get(symbol).size;
+    const logMessage = `
 ╔══════════════════════════════════════════════════╗
                  🔄 复用现有网格订阅
 ╠══════════════════════════════════════════════════╣
@@ -132,177 +174,195 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
  当前订阅数: ${currentCount + 1}
 ╚══════════════════════════════════════════════════╝
 `;
-        console.log(logMessage);
-        UtilRecord.log('[grid-strategy] 复用现有网格订阅', {
-          symbol,
-          strategyId: row.id,
-          api_key: params.api_key?.substring(0, 8),
-          positionSide: params.position_side,
-          productType: params.exchange_type || 'u本位合约',
-          action: 'subscribe',
-          isReused: true,
-          currentSubscribers: currentCount
-        });
-      }
-
-      // 添加策略实例
-      gridStrategyRegistry.get(symbol).add({ id: row.id, grid: wealthySoon });
-
-      // 绑定全局 WS 分发器（仅绑定一次，避免重复监听）
-      if (!tickListenerBound) {
-        tickListenerBound = true;
-        UtilRecord.log('[grid-strategy] 绑定全局 tick 事件监听器');
-        global.wsManager.on("tick", ({ symbol, latestPrice }) => {
-          const subs = gridStrategyRegistry.get(symbol);
-          if (!subs || subs.size === 0) return;
-          UtilRecord.debug(`[grid-strategy] tick 事件分发: ${symbol} @ ${latestPrice}, 订阅者数量: ${subs.size}`);
-          subs.forEach(({ grid }) => {
-            try {
-              grid.gridWebsocket({ latestPrice });
-            } catch (e) {
-              UtilRecord.error(`[grid-strategy] gridWebsocket 执行错误`, e);
-            }
-          });
-        });
-      }
-
-      wealthySoon.onWarn = async function (data) {
-        // 错误处理
-        UtilRecord.log('[grid-strategy] 网格策略错误', {
-          strategyId: this.config.id,
-          api_key: this.config.api_key?.substring(0, 8),
-          symbol: this.config.trading_pair,
-          positionSide: this.config.position_side,
-          productType: this.config.exchange_type || 'u本位合约',
-          error: data,
-          timestamp: dayjs().format('YYYY-MM-DD HH:mm:ss')
-        });
-        console.error("InfiniteGrid error:", data);
-      };
-
-      // 建仓成功事件处理
-      wealthySoon.onOpenPosition = async function (data) {
-        // 根据持仓方向获取网格交易数量
-        const gridTradeQuantity = wealthySoon.config.position_side === 'LONG'
-          ? (wealthySoon.config.grid_long_open_quantity || wealthySoon.config.grid_trade_quantity)
-          : (wealthySoon.config.grid_short_open_quantity || wealthySoon.config.grid_trade_quantity);
-
-        await createTradeHistory({
-          grid_id: data.id, // 网格策略ID
-          trading_pair: data.symbol, // 交易对
-          api_key: wealthySoon.config.api_key, // API密钥
-          grid_price_difference: wealthySoon.config.grid_price_difference, // 网格价差
-          grid_trade_quantity: gridTradeQuantity, // 网格交易数量
-          max_position_quantity: wealthySoon.config.max_open_position_quantity || 0, // 最大持仓数量
-          min_position_quantity: wealthySoon.config.min_open_position_quantity || 0, // 最小持仓数量
-          fall_prevention_coefficient: wealthySoon.config.fall_prevention_coefficient || 0, // 防跌系数
-          entry_order_id: data.orderId, // 开仓订单ID
-          exit_order_id: "", // 平仓订单ID（开仓时为空）
-          grid_level: 0, // 网格层级（暂时设为0）
-          entry_price: data.avgPrice, // 开仓价格
-          exit_price: 0, // 平仓价格（开仓时为0）
-          position_quantity: data.executedQty, // 仓位数量
-          profit_loss: 0, // 收益(USDT)（开仓时为0）
-          profit_loss_percentage: 0, // 收益率(%)
-          entry_fee: 0, // 开仓手续费（暂时设为0）
-          exit_fee: 0, // 平仓手续费（开仓时为0）
-          total_fee: 0, // 总手续费（暂时设为0）
-          fee_asset: "USDT", // 手续费资产类型
-          entry_time: new Date(data.time), // 开仓时间
-          exit_time: null, // 平仓时间（开仓时为空）
-          holding_period: 0, // 持仓时长(秒)（开仓时为0）
-          exchange: "BINANCE", // 交易所
-          exchange_type: "USDT-M", // 交易所类型
-          leverage: wealthySoon.config.leverage || 20, // 杠杆倍数
-          margin_type: "", // 保证金模式（暂时为空）
-          margin_used: 0, // 占用保证金（暂时为0）
-          realized_roe: 0, // 已实现收益率(%)
-          unrealized_pnl: 0, // 未实现盈亏（暂时为0）
-          liquidation_price: 0, // 强平价格（暂时为0）
-          market_price: 0, // 开仓时市场价格（暂时为0）
-          market_volume: 0, // 开仓时24h成交量（暂时为0）
-          funding_rate: 0, // 当时资金费率(%)
-          execution_delay: 0, // 执行延迟(ms)
-          slippage: 0, // 滑点(%)
-          retry_count: 0, // 重试次数
-          error_message: "", // 错误信息
-          trade_direction: data.side, // 交易方向(BUY/SELL)
-          position_side: data.position_side || null, // 持仓方向(LONG/SHORT)
-          order_type: data.type, // 订单类型(MARKET/LIMIT)
-          time_in_force: data.timeInForce || "GTC", // 订单有效期(GTC/IOC/FOK)
-          avg_entry_price: data.avgPrice, // 平均开仓价格
-          avg_exit_price: 0, // 平均平仓价格（开仓时为0）
-          price_difference: 0, // 开平仓价差（开仓时为0）
-          price_difference_percentage: 0, // 价差百分比(%)
-          max_drawdown: 0, // 最大回撤(%)
-          risk_reward_ratio: 0, // 风险收益比
-          win_rate: 0, // 胜率(%)
-          initial_margin: 0, // 初始保证金（暂时为0）
-          maintenance_margin: 0, // 维持保证金（暂时为0）
-          funding_fee: 0, // 资金费用（暂时为0）
-          commission_asset: "USDT", // 手续费资产
-          market_trend: "", // 市场趋势(BULLISH/BEARISH/SIDEWAYS)
-          volatility: 0, // 波动率(%)
-          volume_ratio: 0, // 成交量比率
-          rsi_entry: 0, // 开仓时RSI值（暂时为0）
-          rsi_exit: 0, // 平仓时RSI值（开仓时为0）
-          ma_signal: "", // 均线信号
-          execution_quality: "NORMAL", // 执行质量(EXCELLENT/GOOD/NORMAL/POOR)
-          latency: 0, // 网络延迟(ms)
-          partial_fill_count: 0, // 部分成交次数
-          cancel_count: 0, // 撤单次数
-          execution_type: "WEBSOCKET", // 执行方式(HTTP/WEBSOCKET)
-          status: "COMPLETED", // 状态(COMPLETED/FAILED)
-          remark: "Open position" // 备注
-        });
-      };
-
-      // 平仓成功事件处理
-      wealthySoon.onClosePosition = async function (data) {
-        try {
-          // 根据持仓方向获取网格交易数量
-          const gridTradeQuantity = wealthySoon.config.position_side === 'LONG'
-            ? (wealthySoon.config.grid_long_close_quantity || wealthySoon.config.grid_trade_quantity)
-            : (wealthySoon.config.grid_short_close_quantity || wealthySoon.config.grid_trade_quantity);
-
-          await createTradeHistory({
-            grid_id: data.id, // 网格策略ID
-            trading_pair: data.symbol, // 交易对
-            api_key: wealthySoon.config.api_key, // API密钥
-            grid_price_difference: wealthySoon.config.grid_price_difference, // 网格价差
-            grid_trade_quantity: gridTradeQuantity, // 网格交易数量
-            entry_order_id: "", // 开仓订单ID（平仓时为空）
-            exit_order_id: data.orderId, // 平仓订单ID
-            entry_price: 0, // 开仓价格（平仓时为0）
-            exit_price: data.avgPrice, // 平仓价格
-            entry_time: null, // 开仓时间（平仓时为空）
-            exit_time: new Date(data.time), // 平仓时间
-            trade_direction: data.side, // 交易方向(BUY/SELL)
-            position_side: data.position_side || null, // 持仓方向(LONG/SHORT)
-            order_type: data.type, // 订单类型(MARKET/LIMIT)
-            position_quantity: data.executedQty, // 仓位数量
-            exchange: "BINANCE", // 交易所
-            exchange_type: "USDT-M", // 交易所类型
-            execution_type: "WEBSOCKET", // 执行方式(HTTP/WEBSOCKET)
-            status: "COMPLETED", // 状态(COMPLETED/FAILED)
-            remark: "Close position" // 备注
-          });
-        } catch (error) {
-          // 移除throw，确保异步流程不被中断，只记录日志
-          console.error("Error creating trade history for close position:", error);
-        }
-      };
-    }, 0);
+    console.log(logMessage);
+    UtilRecord.log('[grid-strategy] 复用现有网格订阅', {
+      symbol,
+      strategyId: row.id,
+      api_key: params.api_key?.substring(0, 8),
+      positionSide: params.position_side,
+      productType: params.exchange_type || 'u本位合约',
+      action: 'subscribe',
+      isReused: true,
+      currentSubscribers: currentCount
+    });
   }
 
-  return { row, created };
+  // 添加策略实例
+  gridStrategyRegistry.get(symbol).add({ id: row.id, grid: wealthySoon });
+
+  // 绑定全局 WS 分发器（仅绑定一次，避免重复监听）
+  if (!tickListenerBound) {
+    tickListenerBound = true;
+    UtilRecord.log('[grid-strategy] 绑定全局 tick 事件监听器');
+    global.wsManager.on("tick", ({ symbol, latestPrice }) => {
+      const subs = gridStrategyRegistry.get(symbol);
+      if (!subs || subs.size === 0) return;
+      UtilRecord.debug(`[grid-strategy] tick 事件分发: ${symbol} @ ${latestPrice}, 订阅者数量: ${subs.size}`);
+      subs.forEach(({ grid }) => {
+        try {
+          grid.gridWebsocket({ latestPrice });
+        } catch (e) {
+          UtilRecord.error(`[grid-strategy] gridWebsocket 执行错误`, e);
+        }
+      });
+    });
+  }
+
+  // 绑定错误处理事件
+  wealthySoon.onWarn = async function (data) {
+    UtilRecord.log('[grid-strategy] 网格策略错误', {
+      strategyId: this.config.id,
+      api_key: this.config.api_key?.substring(0, 8),
+      symbol: this.config.trading_pair,
+      positionSide: this.config.position_side,
+      productType: this.config.exchange_type || 'u本位合约',
+      error: data,
+      timestamp: dayjs().format('YYYY-MM-DD HH:mm:ss')
+    });
+    console.error("InfiniteGrid error:", data);
+  };
+
+  // 绑定建仓成功事件
+  wealthySoon.onOpenPosition = async function (data) {
+    const gridTradeQuantity = wealthySoon.config.position_side === 'LONG'
+      ? (wealthySoon.config.grid_long_open_quantity || wealthySoon.config.grid_trade_quantity)
+      : (wealthySoon.config.grid_short_open_quantity || wealthySoon.config.grid_trade_quantity);
+
+    await createTradeHistory({
+      grid_id: data.id,
+      trading_pair: data.symbol,
+      api_key: wealthySoon.config.api_key,
+      grid_price_difference: wealthySoon.config.grid_price_difference,
+      grid_trade_quantity: gridTradeQuantity,
+      max_position_quantity: wealthySoon.config.max_open_position_quantity || 0,
+      min_position_quantity: wealthySoon.config.min_open_position_quantity || 0,
+      fall_prevention_coefficient: wealthySoon.config.fall_prevention_coefficient || 0,
+      entry_order_id: data.orderId,
+      exit_order_id: "",
+      grid_level: 0,
+      entry_price: data.avgPrice,
+      exit_price: 0,
+      position_quantity: data.executedQty,
+      profit_loss: 0,
+      profit_loss_percentage: 0,
+      entry_fee: 0,
+      exit_fee: 0,
+      total_fee: 0,
+      fee_asset: "USDT",
+      entry_time: new Date(data.time),
+      exit_time: null,
+      holding_period: 0,
+      exchange: "BINANCE",
+      exchange_type: "USDT-M",
+      leverage: wealthySoon.config.leverage || 20,
+      margin_type: "",
+      margin_used: 0,
+      realized_roe: 0,
+      unrealized_pnl: 0,
+      liquidation_price: 0,
+      market_price: 0,
+      market_volume: 0,
+      funding_rate: 0,
+      execution_delay: 0,
+      slippage: 0,
+      retry_count: 0,
+      error_message: "",
+      trade_direction: data.side,
+      position_side: data.position_side || null,
+      order_type: data.type,
+      time_in_force: data.timeInForce || "GTC",
+      avg_entry_price: data.avgPrice,
+      avg_exit_price: 0,
+      price_difference: 0,
+      price_difference_percentage: 0,
+      max_drawdown: 0,
+      risk_reward_ratio: 0,
+      win_rate: 0,
+      initial_margin: 0,
+      maintenance_margin: 0,
+      funding_fee: 0,
+      commission_asset: "USDT",
+      market_trend: "",
+      volatility: 0,
+      volume_ratio: 0,
+      rsi_entry: 0,
+      rsi_exit: 0,
+      ma_signal: "",
+      execution_quality: "NORMAL",
+      latency: 0,
+      partial_fill_count: 0,
+      cancel_count: 0,
+      execution_type: "WEBSOCKET",
+      status: "COMPLETED",
+      remark: "Open position"
+    }).catch((err) => {
+      console.error("Error creating trade history for open position:", err);
+    });
+  };
+
+  // 绑定平仓成功事件
+  wealthySoon.onClosePosition = async function (data) {
+    const gridTradeQuantity = wealthySoon.config.position_side === 'LONG'
+      ? (wealthySoon.config.grid_long_close_quantity || wealthySoon.config.grid_trade_quantity)
+      : (wealthySoon.config.grid_short_close_quantity || wealthySoon.config.grid_trade_quantity);
+
+    await createTradeHistory({
+      grid_id: data.id,
+      trading_pair: data.symbol,
+      api_key: wealthySoon.config.api_key,
+      grid_price_difference: wealthySoon.config.grid_price_difference,
+      grid_trade_quantity: gridTradeQuantity,
+      entry_order_id: "",
+      exit_order_id: data.orderId,
+      grid_level: 0,
+      entry_price: 0,
+      exit_price: data.avgPrice,
+      position_quantity: data.executedQty,
+      profit_loss: 0,
+      profit_loss_percentage: 0,
+      entry_fee: 0,
+      exit_fee: 0,
+      total_fee: 0,
+      fee_asset: "USDT",
+      entry_time: null,
+      exit_time: new Date(data.time),
+      holding_period: 0,
+      exchange: "BINANCE",
+      exchange_type: "USDT-M",
+      leverage: wealthySoon.config.leverage || 20,
+      margin_type: "",
+      margin_used: 0,
+      realized_roe: 0,
+      unrealized_pnl: 0,
+      liquidation_price: 0,
+      market_price: 0,
+      market_volume: 0,
+      funding_rate: 0,
+      execution_delay: 0,
+      slippage: 0,
+      retry_count: 0,
+      error_message: "",
+      trade_direction: data.side,
+      position_side: data.position_side || null,
+      order_type: data.type,
+      time_in_force: data.timeInForce || "GTC",
+      execution_type: "WEBSOCKET",
+      status: "COMPLETED",
+      remark: "Close position"
+    }).catch((err) => {
+      console.error("Error creating trade history for close position:", err);
+    });
+  };
+
+  return { row, created: true };
 };
+
 async function latestMessage(params) {
   const { api_key, api_secret } = params;
 
   const result = await GridStrategy.findOne({
     where: { api_key, api_secret },
-    order: [["id", "DESC"]], // Assuming there's a created_at field to determine the order
+    order: [["id", "DESC"]],
     limit: 1,
   });
 
@@ -324,7 +384,6 @@ const getAllGridStrategys = async (
     const { currentPage = 1, pageSize = 10 } = options;
     const offset = currentPage ? (currentPage - 1) * pageSize : 0;
 
-    // 单用户系统：filter 中应包含 api_key 和 api_secret 用于数据隔离
     const { count, rows } = await GridStrategy.findAndCountAll({
       where: filter,
       limit: pageSize,
@@ -370,12 +429,10 @@ const getGridStrategyByApiKey = async (api_key, api_secret) => {
  * @returns {Promise<Object>} - 返回更新后的网格策略对象
  */
 const updateGridStrategyById = async (updateBody) => {
-  // 单用户系统：直接使用 API Key/Secret，无需查询用户表
   let grid_strategy_instance = GridStrategy.build(updateBody);
   let params = grid_strategy_instance.get();
   let { id, api_key, api_secret, paused } = params;
 
-  // 数据隔离：通过 api_key + api_secret
   const whereCondition = { id, api_key, api_secret };
 
   const [affectedCount] = await GridStrategy.update(params, {
@@ -386,23 +443,19 @@ const updateGridStrategyById = async (updateBody) => {
   if (affectedCount > 0) {
     data = await GridStrategy.findByPk(id);
 
-    // 更新成功后，同步更新内存中的网格实例状态
     if (paused === true && gridMap[id]) {
       gridMap[id].onManualPausedGrid();
     }
     if (paused === false) {
       if (gridMap[id]) {
-        // 内存中存在策略实例，直接恢复
         gridMap[id].onManualContinueGrid();
       } else if (data) {
-        // 内存中不存在策略实例（服务重启后），需要重新创建
         UtilRecord.log('[grid-strategy] 策略实例不存在，正在重新创建...', {
           strategyId: id,
           tradingPair: data.trading_pair,
           positionSide: data.position_side
         });
         const strategyData = data.dataValues || data;
-        // 调用 createGridStrategy 重新创建策略实例
         await createGridStrategy({
           ...strategyData,
           trading_pair: strategyData.trading_pair,
@@ -424,29 +477,23 @@ const updateGridStrategyById = async (updateBody) => {
  * @returns {Promise<Object>} - 返回删除结果
  */
 const deleteGridStrategyById = async (updateBody) => {
-  // 单用户系统：直接使用 API Key/Secret，无需查询用户表
   let grid_strategy_instance = GridStrategy.build(updateBody);
   let params = grid_strategy_instance.get();
   let { id, api_key, api_secret } = params;
 
-  // 数据隔离：通过 api_key + api_secret
   const whereCondition = { id, api_key, api_secret };
 
-  // 获取 symbol 用于退订引用计数
   const existed = await GridStrategy.findOne({ where: whereCondition });
   const row = await GridStrategy.destroy({
     where: whereCondition,
   });
 
-  // 清理内存中的策略实例
   if (gridMap[id]) {
     try { gridMap[id].onManualPausedGrid(); } catch (e) {
-      // 忽略清理策略时的错误，继续执行删除逻辑
     }
     delete gridMap[id];
   }
 
-  // 清理 WebSocket 订阅（无论 gridMap[id] 是否存在都要执行）
   if (row) {
     const symbol = existed?.trading_pair || existed?.symbol;
     UtilRecord.log('[grid-strategy] 删除策略，准备清理订阅', {
@@ -468,7 +515,6 @@ const deleteGridStrategyById = async (updateBody) => {
           UtilRecord.log('[grid-strategy] 已取消订阅', { symbol, strategyId: id });
         }
       } else {
-        // registry 中没有记录，但仍尝试取消订阅（处理服务重启后的情况）
         UtilRecord.log('[grid-strategy] registry 中无记录，强制取消订阅', { symbol, strategyId: id });
         global.wsManager.unsubscribeMarkPrice(symbol);
       }
