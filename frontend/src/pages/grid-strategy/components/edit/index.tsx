@@ -65,6 +65,7 @@ function GridStrategyEditPage() {
     status: 'idle' | 'loading' | 'success' | 'error';
     data?: any;
     error?: string;
+    errorType?: 'validation_failed' | 'vip_required' | 'network_error';
     ipAddress?: string;
   }>({ status: 'idle' });
 
@@ -100,6 +101,12 @@ function GridStrategyEditPage() {
           ? response.datum
           : response.message || '获取账户信息失败';
 
+        // 判断错误类型
+        let error_type: 'validation_failed' | 'vip_required' | 'network_error' = 'validation_failed';
+        if (error_message.includes('您不是 VIP 用户') || error_message.includes('VIP 已过期')) {
+          error_type = 'vip_required';
+        }
+
         // 提取IP地址
         let ip_address = undefined;
         const ip_match = error_message.match(/request ip:\s*([\d.]+)/);
@@ -117,12 +124,19 @@ function GridStrategyEditPage() {
         setAccountValidation({
           status: 'error',
           error: error_message,
+          errorType: error_type,
           ipAddress: ip_address
         });
       }
     } catch (error: any) {
       console.error('验证账户信息失败:', error);
       let error_message = error.message || 'API Key 验证失败，请检查配置';
+
+      // 判断错误类型
+      let error_type: 'validation_failed' | 'vip_required' | 'network_error' = 'validation_failed';
+      if (error_message.includes('您不是 VIP 用户') || error_message.includes('VIP 已过期')) {
+        error_type = 'vip_required';
+      }
 
       // 提取IP地址
       let ip_address = undefined;
@@ -139,6 +153,7 @@ function GridStrategyEditPage() {
       setAccountValidation({
         status: 'error',
         error: error_message,
+        errorType: error_type,
         ipAddress: ip_address
       });
     }
@@ -649,6 +664,7 @@ function GridStrategyEditPage() {
           status={accountValidation.status}
           data={accountValidation.data}
           error={accountValidation.error}
+          errorType={accountValidation.errorType}
           ipAddress={accountValidation.ipAddress}
         />
 

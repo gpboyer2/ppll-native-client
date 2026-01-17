@@ -284,3 +284,149 @@
 .account-card-help li {
   margin-bottom: 6px;
 }
+
+/* VIP权限提示样式 */
+.account-card-vip-notice {
+  padding: 16px;
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.08) 0%, rgba(139, 92, 246, 0.06) 100%);
+  border: 1px solid rgba(168, 85, 247, 0.25);
+  border-radius: var(--radius-md);
+}
+
+.account-card-vip-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.account-card-vip-icon {
+  font-size: 26px;
+  flex-shrink: 0;
+}
+
+.account-card-vip-title {
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: #a855f7;
+}
+
+.account-card-vip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.account-card-vip-description {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  line-height: 1.6;
+}
+
+.account-card-vip-features {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.account-card-vip-feature {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: rgba(168, 85, 247, 0.05);
+  border: 1px solid rgba(168, 85, 247, 0.15);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.account-card-vip-feature:hover {
+  background: rgba(168, 85, 247, 0.08);
+  border-color: rgba(168, 85, 247, 0.25);
+  transform: translateX(4px);
+}
+
+.account-card-vip-feature-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.account-card-vip-feature-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-card-vip-feature-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.account-card-vip-feature-desc {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.account-card-vip-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: rgba(251, 191, 36, 0.1);
+  border: 1px solid rgba(251, 191, 36, 0.25);
+  border-radius: var(--radius-md);
+}
+
+.account-card-vip-note-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.account-card-vip-note-text {
+  font-size: var(--text-sm);
+  color: #f59e0b;
+  line-height: 1.5;
+}
+
+.account-card-vip-contact {
+  margin-top: 4px;
+}
+
+.account-card-vip-contact-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #a855f7 0%, #8b5cf6 100%);
+  border: none;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.account-card-vip-contact-link:hover {
+  background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.account-card-vip-contact-link:active {
+  transform: translateY(0);
+}
+
+.account-card-vip-contact-icon {
+  font-size: 20px;
+}
+
+.account-card-vip-contact-text {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #fff;
+}
+
