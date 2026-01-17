@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import './index.scss';
 import { TextInput } from '../../components/mantine';
 import { ROUTES } from '../../router';
 import { NumberFormat } from '../../utils';

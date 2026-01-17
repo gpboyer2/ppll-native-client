@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { IconX } from '@tabler/icons-react';
+import './index.scss';
 import { NumberInput } from '../../mantine';
 import { showWarning, showSuccess } from '../../../utils/api-error';
 import { NumberFormat } from '../../../utils';

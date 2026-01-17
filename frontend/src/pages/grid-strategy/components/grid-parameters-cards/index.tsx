@@ -1,5 +1,7 @@
 import { NumberInput } from '../../../../components/mantine';
 import type { GridStrategyForm } from '../../../../types/grid-strategy';
+import './index.scss';
+
 
 interface GridParametersCardsProps {
   formData: GridStrategyForm;

@@ -1,4 +1,5 @@
 import { showSuccess, showError } from '../../../utils/api-error';
+import './index.scss';
 
 interface AccountValidationData {
   availableBalance?: string;

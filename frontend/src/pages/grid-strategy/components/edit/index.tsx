@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import './index.scss';
 import { Select, NumberInput } from '../../../../components/mantine';
 import { SmartConfigModal, AccountValidationCard } from '../../../../components/grid-strategy';
 import { ReferralCommissionDialog } from '../../../../components/referral-commission-invitation';
