@@ -48,7 +48,18 @@ export function SmartConfigModal({
       setInterval('4h');
       setOptimizationResult(null);
       setSelectedConfigIndex(0);
+
+      // 禁用底层页面滚动
+      document.body.style.overflow = 'hidden';
+    } else {
+      // 恢复底层页面滚动
+      document.body.style.overflow = '';
     }
+
+    // 清理函数：组件卸载时恢复滚动
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [opened]);
 
   // ==================== 开始计算 ====================
