@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
 import { ApiEndpoints } from '../api/endpoints';
 import { TextInput, Select } from '../components/mantine';
@@ -62,6 +63,7 @@ interface TableDataResponse {
 }
 
 function DatabaseManagerPage() {
+  const [search_params, setSearchParams] = useSearchParams();
   const [dbInfo, setDbInfo] = useState<DatabaseInfo | null>(null);
   const [tableList, setTableList] = useState<TableItem[]>([]);
   const [selectedTable, setSelectedTable] = useState<string>('');
@@ -77,6 +79,9 @@ function DatabaseManagerPage() {
   const [loading, setLoading] = useState(false);
   const [sqlQuery, setSqlQuery] = useState('SELECT * FROM users LIMIT 10');
   const [queryResult, setQueryResult] = useState<any>(null);
+
+  // 是否已经从 URL 参数初始化过选中表
+  const initialized_from_url_ref = useRef(false);
 
   // 表操作菜单状态
   const [showTableMenu, setShowTableMenu] = useState<string | null>(null);
@@ -185,6 +190,9 @@ function DatabaseManagerPage() {
     setActiveTab('browse');
     setCurrentPage(1);
     fetch_table_detail(tableName);
+
+    // 更新 URL 参数
+    setSearchParams({ table_name: tableName });
   };
 
   // 排序
@@ -418,6 +426,24 @@ function DatabaseManagerPage() {
     fetch_database_info();
     fetch_table_list();
   }, []);
+
+  // 从 URL 参数读取并选中表
+  useEffect(() => {
+    // 只在表列表加载完成后执行一次
+    if (initialized_from_url_ref.current || tableList.length === 0) {
+      return;
+    }
+
+    const table_name_from_url = search_params.get('table_name');
+    if (table_name_from_url) {
+      // 检查表是否存在
+      const table_exists = tableList.some(t => t.name === table_name_from_url);
+      if (table_exists) {
+        handle_select_table(table_name_from_url);
+        initialized_from_url_ref.current = true;
+      }
+    }
+  }, [tableList, search_params]);
 
   // 监听选中表变化
   useEffect(() => {
