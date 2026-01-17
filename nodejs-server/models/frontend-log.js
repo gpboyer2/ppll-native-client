@@ -30,11 +30,6 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         comment: "日志级别（log/error/warn/info/table/debug）",
       },
-      log_message: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-        comment: "日志消息内容",
-      },
       log_data: {
         type: DataTypes.JSON,
         allowNull: true,
