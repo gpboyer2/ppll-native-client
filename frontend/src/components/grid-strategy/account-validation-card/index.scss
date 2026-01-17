@@ -124,26 +124,56 @@
 .account-card-error-message {
   margin: 0;
   font-size: var(--text-sm);
-  color: var(--color-text);
+  color: #ef4444;
+  font-weight: 500;
   line-height: 1.5;
 }
 
-.account-card-ip-section {
+.account-card-proxy-tip {
+  padding: 14px;
+  background: rgba(156, 163, 175, 0.08);
+  border: 1px solid rgba(156, 163, 175, 0.2);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.account-card-proxy-tip-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.2);
-  border-radius: var(--radius-md);
+  gap: 10px;
+}
+
+.account-card-proxy-tip-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.account-card-proxy-tip-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.account-card-proxy-tip-content {
+  display: block;
+}
+
+.account-card-proxy-tip-text {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  line-height: 1.5;
 }
 
 .account-card-ip-info {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
+  padding: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-sm);
 }
 
 .account-card-ip-label {
@@ -164,8 +194,8 @@
 }
 
 .account-card-copy-button {
-  width: 102px;
   height: 40px;
+  padding: 0 20px;
   background: var(--color-primary);
   color: #fff;
   border: none;
@@ -189,6 +219,8 @@
 .account-card-actions {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .account-card-action-link {
@@ -212,16 +244,16 @@
 
 .account-card-help {
   padding: 12px;
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  background: rgba(156, 163, 175, 0.05);
+  border: 1px solid rgba(156, 163, 175, 0.15);
   border-radius: var(--radius-md);
 }
 
 .account-card-help p {
   margin: 0 0 8px 0;
   font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--color-text);
+  font-weight: 500;
+  color: var(--color-text-muted);
 }
 
 .account-card-help ol {

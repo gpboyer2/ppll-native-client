@@ -82,12 +82,28 @@ export function AccountValidationCard({
           <div className="account-card-error-content">
             <p className="account-card-error-message">{error}</p>
 
-            {ipAddress && (
-              <div className="account-card-ip-section">
+            {/* 代理提示 */}
+            <div className="account-card-proxy-tip">
+              <div className="account-card-proxy-tip-header">
+                <span className="account-card-proxy-tip-icon">💡</span>
+                <span className="account-card-proxy-tip-title">可能是网络连接问题</span>
+              </div>
+              <div className="account-card-proxy-tip-content">
+                <p className="account-card-proxy-tip-text">
+                  如果您在中国大陆地区使用币安API，可能需要开启或者切换网络代理才能正常连接。配置完成后请手动刷新页面。
+                </p>
+              </div>
+
+              {ipAddress && (
                 <div className="account-card-ip-info">
                   <span className="account-card-ip-label">当前服务器IP:</span>
                   <code className="account-card-ip-address">{ipAddress}</code>
                 </div>
+              )}
+            </div>
+
+            <div className="account-card-actions">
+              {ipAddress && (
                 <button
                   type="button"
                   className="account-card-copy-button"
@@ -95,10 +111,7 @@ export function AccountValidationCard({
                 >
                   复制IP
                 </button>
-              </div>
-            )}
-
-            <div className="account-card-actions">
+              )}
               <a
                 href="https://www.binance.com/zh-CN/my/settings/api-management"
                 target="_blank"
@@ -112,11 +125,17 @@ export function AccountValidationCard({
             <div className="account-card-help">
               <p>解决步骤：</p>
               <ol>
-                <li>点击上方"复制IP"按钮复制服务器IP地址</li>
-                <li>点击"前往币安API管理页面"链接</li>
-                <li>找到对应的API Key，点击"编辑"按钮</li>
-                <li>在"IP访问限制"中选择"限定IP（推荐）"</li>
-                <li>将复制的IP地址粘贴到IP白名单中并保存</li>
+                <li>如果在中国大陆，请先开启网络代理（如VPN）</li>
+                <li>开启代理后，手动刷新浏览器页面</li>
+                {ipAddress && (
+                  <>
+                    <li>如果仍有问题，点击"复制IP"按钮复制服务器IP地址</li>
+                    <li>点击"前往币安API管理页面"链接</li>
+                    <li>找到对应的API Key，点击"编辑"按钮</li>
+                    <li>在"IP访问限制"中选择"限定IP（推荐）"</li>
+                    <li>将复制的IP地址粘贴到IP白名单中并保存</li>
+                  </>
+                )}
               </ol>
             </div>
           </div>

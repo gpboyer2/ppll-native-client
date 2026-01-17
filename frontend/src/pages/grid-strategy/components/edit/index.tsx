@@ -798,6 +798,7 @@ function GridStrategyEditPage() {
             className="btn btn-outline"
             style={{ height: '40px', padding: '0 24px' }}
             onClick={handleReset}
+            disabled={accountValidation.status === 'error'}
           >
                         重置表单
           </button>
@@ -805,7 +806,7 @@ function GridStrategyEditPage() {
             type="submit"
             className={`btn ${saveStatus === 'saving' ? 'btn-outline' : 'btn-primary'}`}
             style={{ height: '40px', padding: '0 32px' }}
-            disabled={saveStatus === 'saving'}
+            disabled={saveStatus === 'saving' || accountValidation.status === 'error'}
           >
             {getSaveButtonText()}
           </button>
