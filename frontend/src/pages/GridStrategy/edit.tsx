@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Select, NumberInput } from '../../components/mantine';
-import { SmartConfigModal } from '../../components/grid-strategy/SmartConfigModal';
+import { SmartConfigModal, AccountValidationCard } from '../../components/grid-strategy';
 import { ReferralCommissionDialog } from '../../components/referral-commission-invitation';
 import { GridParametersCards } from './components/grid-parameters-cards';
 import { ROUTES } from '../../router';
 import { useBinanceStore } from '../../stores/binance-store';
-import { GridStrategyApi } from '../../api';
+import { GridStrategyApi, BinanceAccountApi } from '../../api';
 import { BinanceExchangeInfoApi } from '../../api';
 import type { GridStrategyForm, PositionSide, OptimizedConfig } from '../../types/grid-strategy';
 import type { BinanceSymbol, StrategyValidationResult } from '../../types/binance';
@@ -59,6 +59,14 @@ function GridStrategyEditPage() {
   // 标记返佣弹窗关闭后是否需要跳转（通过保存按钮打开的弹窗才需要跳转）
   const [shouldNavigateAfterClose, setShouldNavigateAfterClose] = useState(false);
 
+  // 账户信息验证状态
+  const [accountValidation, setAccountValidation] = useState<{
+    status: 'idle' | 'loading' | 'success' | 'error';
+    data?: any;
+    error?: string;
+    ipAddress?: string;
+  }>({ status: 'idle' });
+
   // 初始化 store
   useEffect(() => {
     init();
@@ -82,6 +90,11 @@ function GridStrategyEditPage() {
             _api_key_id: undefined,
           };
           setFormData(formData);
+
+          // 立即验证账户信息
+          if (formData.api_key && formData.secret_key) {
+            validateAccountInfo(formData.api_key, formData.secret_key);
+          }
         } else {
           showError('未找到该策略');
           navigate(ROUTES.GRID_STRATEGY);
@@ -137,6 +150,77 @@ function GridStrategyEditPage() {
     }
   }, [formData.api_key, formData.secret_key]);
 
+  // 验证账户信息
+  const validateAccountInfo = useCallback(async (api_key: string, secret_key: string) => {
+    if (!api_key || !secret_key) {
+      setAccountValidation({ status: 'idle' });
+      return;
+    }
+
+    setAccountValidation({ status: 'loading' });
+
+    try {
+      const response = await BinanceAccountApi.getUSDMFutures({
+        api_key,
+        secret_key,
+        include_positions: true
+      });
+
+      if (response.status === 'success' && response.datum) {
+        setAccountValidation({
+          status: 'success',
+          data: response.datum
+        });
+      } else {
+        // 优先显示 datum 中的详细错误信息，如果没有才显示 message
+        let error_message = response.datum && typeof response.datum === 'string'
+          ? response.datum
+          : response.message || '获取账户信息失败';
+
+        // 提取IP地址
+        let ip_address = undefined;
+        const ip_match = error_message.match(/request ip:\s*([\d.]+)/);
+        if (ip_match && ip_match[1]) {
+          ip_address = ip_match[1];
+        }
+
+        // 针对常见错误提供友好提示
+        if (error_message.includes('Invalid API-key, IP, or permissions')) {
+          error_message = 'IP 白名单限制：当前服务器IP地址未加入币安API白名单';
+        } else if (error_message.includes('API-key')) {
+          error_message = `API Key 错误：${error_message}`;
+        }
+
+        setAccountValidation({
+          status: 'error',
+          error: error_message,
+          ipAddress: ip_address
+        });
+      }
+    } catch (error: any) {
+      console.error('验证账户信息失败:', error);
+      let error_message = error.message || 'API Key 验证失败，请检查配置';
+
+      // 提取IP地址
+      let ip_address = undefined;
+      const ip_match = error_message.match(/request ip:\s*([\d.]+)/);
+      if (ip_match && ip_match[1]) {
+        ip_address = ip_match[1];
+      }
+
+      // 针对常见错误提供友好提示
+      if (error_message.includes('Invalid API-key, IP, or permissions')) {
+        error_message = 'IP 白名单限制：当前服务器IP地址未加入币安API白名单';
+      }
+
+      setAccountValidation({
+        status: 'error',
+        error: error_message,
+        ipAddress: ip_address
+      });
+    }
+  }, []);
+
   // 当交易对改变时更新当前符号信息
   useEffect(() => {
     if (exchangeInfo && formData.trading_pair) {
@@ -169,7 +253,7 @@ function GridStrategyEditPage() {
     }));
   }, [currentSymbolInfo]);
 
-  // 当 API Key 列表加载完成后，自动选择第一个作为默认值
+  // 当 API Key 列表加载完成后，自动选择第一个作为默认值并验证账户信息
   useEffect(() => {
     // 只在新建模式下，且 API Key 列表已加载，且当前未选择 API Key 时设置默认值
     if (!is_editing && api_key_list.length > 0 && !formData._api_key_id) {
@@ -182,8 +266,11 @@ function GridStrategyEditPage() {
         _api_key_id: first_api_key.id
       }));
       console.log('已设置默认 API Key:', first_api_key.name, `(${first_api_key.api_key.substring(0, 8)}...)`);
+
+      // 立即验证账户信息
+      validateAccountInfo(first_api_key.api_key, first_api_key.secret_key);
     }
-  }, [api_key_list, is_editing, formData._api_key_id]);
+  }, [api_key_list, is_editing, formData._api_key_id, validateAccountInfo]);
 
   // WebSocket 实时获取标记价格
   useEffect(() => {
@@ -353,10 +440,12 @@ function GridStrategyEditPage() {
     return formData.position_side === 'SHORT';
   }
 
+
   // 选择 API Key 后自动填充 Secret
   function handleApiKeyChange(value: string | null) {
     if (!value) {
       setFormData(prev => ({ ...prev, api_key: '', secret_key: '', _api_key_id: undefined }));
+      setAccountValidation({ status: 'idle' });
       return;
     }
     const api_key_id = parseInt(value);
@@ -370,6 +459,8 @@ function GridStrategyEditPage() {
       }));
       // 选择API Key后自动刷新交易对列表
       refreshTradingPairs();
+      // 验证账户信息
+      validateAccountInfo(selected_key.api_key, selected_key.secret_key);
     } else {
       setFormData(prev => ({
         ...prev,
@@ -377,6 +468,7 @@ function GridStrategyEditPage() {
         secret_key: '',
         _api_key_id: undefined
       }));
+      setAccountValidation({ status: 'idle' });
     }
   }
 
@@ -550,6 +642,15 @@ function GridStrategyEditPage() {
 
       {/* 表单 */}
       <form onSubmit={handleSubmit} className="grid-strategy-form">
+
+        {/* 账户信息验证卡片 */}
+        <AccountValidationCard
+          status={accountValidation.status}
+          data={accountValidation.data}
+          error={accountValidation.error}
+          ipAddress={accountValidation.ipAddress}
+        />
+
         {/* 智能配置按钮 */}
         <div className="surface p-12 mb-16">
           <div className="flex items-center justify-between">

@@ -766,8 +766,9 @@ function InfiniteGrid(options) {
 
   /**
    * 初始化账户信息与仓位信息
+   * @param {boolean} shouldThrow - 是否在失败时抛出错误（初始化阶段为 true，运行时为 false）
    */
-  this.initAccountInfo = async () => {
+  this.initAccountInfo = async (shouldThrow = false) => {
     let accountInfo = await this.getAccountInfo().catch((error) => {
       this.logger.error('获取账户信息失败', error);
 
@@ -778,6 +779,11 @@ function InfiniteGrid(options) {
           message: '获取账户信息失败',
           error: error
         });
+      }
+
+      // 如果需要抛出错误，直接抛出
+      if (shouldThrow) {
+        throw error;
       }
     });
 
@@ -829,8 +835,14 @@ function InfiniteGrid(options) {
         });
       }
 
+      // 如果需要抛出错误，直接抛出（用于初始化阶段）
+      if (shouldThrow) {
+        throw error;
+      }
+
+      // 运行时失败，使用 setTimeout 重试
       setTimeout(async () => {
-        await this.initAccountInfo();
+        await this.initAccountInfo(false);
       }, (this.account_info_retry_interval += 1000));
     }
   };
@@ -1201,7 +1213,7 @@ function InfiniteGrid(options) {
 
     // 获取账户信息，失败则抛出错误
     try {
-      await this.initAccountInfo();
+      await this.initAccountInfo(true);  // 初始化阶段，传入 true 让错误抛出
     } catch (error) {
       const errorMsg = '初始化账户信息失败，请检查 API Key 配置（可能存在 IP 白名单限制）';
       this.logger.error(errorMsg, error);
