@@ -16,7 +16,6 @@ import {
   IconCopy,
   IconClean,
   IconKey,
-  IconCheck,
   IconX
 } from '../components/icons';
 
@@ -639,11 +638,11 @@ function DatabaseManagerPage() {
                       <table className="data-table">
                         <thead>
                           <tr>
-                            {tableData.columns.map((col) => (
+                            {tableData.columns.map((col, index) => (
                               <th
                                 key={col}
                                 onClick={() => handle_sort(col)}
-                                className={sortBy === col ? 'sorted' : ''}
+                                className={`${sortBy === col ? 'sorted' : ''} ${index === 0 ? 'fixed-column-first' : ''}`}
                               >
                                 <div className="flex items-center gap-4">
                                   <span>{col}</span>
@@ -653,7 +652,7 @@ function DatabaseManagerPage() {
                                 </div>
                               </th>
                             ))}
-                            <th>操作</th>
+                            <th className="fixed-column-last">操作</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -672,10 +671,10 @@ function DatabaseManagerPage() {
                           ) : (
                             tableData.list.map((row, idx) => (
                               <tr key={idx}>
-                                {tableData.columns.map((col) => (
-                                  <td key={col}>{row[col]?.toString() ?? 'NULL'}</td>
+                                {tableData.columns.map((col, colIndex) => (
+                                  <td key={col} className={colIndex === 0 ? 'fixed-column-first' : ''}>{row[col]?.toString() ?? 'NULL'}</td>
                                 ))}
-                                <td>
+                                <td className="fixed-column-last">
                                   <button
                                     className="btn-icon btn-icon-danger"
                                     onClick={() => {

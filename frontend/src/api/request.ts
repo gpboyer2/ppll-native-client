@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { Response, ok } from '../core/response';
+import { Response } from '../core/response';
 import { getStaticInfo } from '../stores/system-info-store';
 import { useBinanceStore } from '../stores/binance-store';
 import dayjs from 'dayjs';

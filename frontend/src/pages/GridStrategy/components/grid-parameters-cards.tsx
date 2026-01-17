@@ -1,6 +1,5 @@
 import { NumberInput } from '../../../components/mantine';
 import type { GridStrategyForm } from '../../../types/grid-strategy';
-import type { StrategyValidationResult } from '../../../types/binance';
 
 interface GridParametersCardsProps {
   formData: GridStrategyForm;
@@ -8,7 +7,6 @@ interface GridParametersCardsProps {
   isLongOnlyField: () => boolean;
   isShortOnlyField: () => boolean;
   renderValidationHint: (field_name: string) => JSX.Element | null;
-  currentMarkPrice: number | null;
 }
 
 /**
@@ -20,8 +18,7 @@ export function GridParametersCards({
   updateFormField,
   isLongOnlyField,
   isShortOnlyField,
-  renderValidationHint,
-  currentMarkPrice
+  renderValidationHint
 }: GridParametersCardsProps) {
   return (
     <>

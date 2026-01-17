@@ -61,7 +61,7 @@ class SocketIOLogger {
 
       // 启动批量发送定时器
       this.startBatchTimer();
-    } catch (error) {
+    } catch {
       // 静默失败
     }
   }
@@ -135,7 +135,7 @@ class SocketIOLogger {
 
     try {
       this.socket.emit('frontend_logs', { logs: logs_to_send });
-    } catch (error) {
+    } catch {
       // 发送失败，将日志放回队列
       this.log_queue.unshift(...logs_to_send);
     }

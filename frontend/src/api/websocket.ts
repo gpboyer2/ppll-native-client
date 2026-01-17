@@ -51,7 +51,7 @@ export class WebSocketManager {
         this.ws = new WebSocket(this.config.url, this.config.protocols);
 
         // 连接打开
-        this.ws.onopen = (event) => {
+        this.ws.onopen = (_event) => {
           this.state = WebSocketState.OPEN;
           this.reconnectAttempts = 0;
           logger.info('WebSocket连接成功');

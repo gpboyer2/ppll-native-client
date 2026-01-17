@@ -5,7 +5,7 @@ import { getPluginList, type PluginItem } from '../../router';
 
 function HomePage() {
   const [notifyList, setNotifyList] = useState(notifications.list);
-  const [pluginList, setPluginList] = useState<PluginItem[]>(() => getPluginList());
+  const [pluginList] = useState<PluginItem[]>(() => getPluginList());
   const [isEditingShortcuts, setIsEditingShortcuts] = useState(false);
 
   // 通知系统初始化

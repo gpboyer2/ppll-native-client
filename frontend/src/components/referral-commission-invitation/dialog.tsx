@@ -175,7 +175,7 @@ export function ReferralCommissionDialog({
     } else {
       // 浏览器环境：使用 window.open 打开新标签页
       try {
-        const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+        window.open(url, '_blank', 'noopener,noreferrer');
       } catch (error) {
         console.error('打开链接失败:', error);
         // 备用方案：使用当前页面跳转

@@ -8,7 +8,7 @@ import { useAppInitStore } from '../stores/app-init-store';
 import logo from '../assets/images/logo-universal.png';
 
 export const GlobalLoading: React.FC = () => {
-  const { appReady, initializing, error, progress, init } = useAppInitStore();
+  const { appReady, error, progress, init } = useAppInitStore();
 
   useEffect(() => {
     // 开始初始化

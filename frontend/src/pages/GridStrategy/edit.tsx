@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Select, NumberInput } from '../../components/mantine';
 import { SmartConfigModal } from '../../components/grid-strategy/SmartConfigModal';
@@ -6,10 +6,9 @@ import { ReferralCommissionDialog } from '../../components/referral-commission-i
 import { GridParametersCards } from './components/grid-parameters-cards';
 import { ROUTES } from '../../router';
 import { useBinanceStore } from '../../stores/binance-store';
-import { GridStrategyApi, InformationApi } from '../../api';
+import { GridStrategyApi } from '../../api';
 import { BinanceExchangeInfoApi } from '../../api';
-import type { TickerPrice } from '../../stores/binance-store';
-import type { GridStrategy, GridStrategyForm, PositionSide, OptimizedConfig } from '../../types/grid-strategy';
+import type { GridStrategyForm, PositionSide, OptimizedConfig } from '../../types/grid-strategy';
 import type { BinanceSymbol, StrategyValidationResult } from '../../types/binance';
 import { defaultGridStrategy } from '../../types/grid-strategy';
 import { showWarning, showSuccess, showError } from '../../utils/api-error';
@@ -27,7 +26,7 @@ function GridStrategyEditPage() {
   const is_editing = Boolean(id);
 
   // 使用币安 store
-  const { api_key_list, usdt_pairs, init, loading, refreshTradingPairs, initialized, connectSocket, subscribeTicker, unsubscribeTicker, ticker_prices } = useBinanceStore();
+  const { api_key_list, usdt_pairs, init, refreshTradingPairs, initialized, connectSocket, subscribeTicker, unsubscribeTicker, ticker_prices } = useBinanceStore();
 
   // 表单数据状态
   const [formData, setFormData] = useState<GridStrategyForm>(defaultGridStrategy);
@@ -685,7 +684,6 @@ function GridStrategyEditPage() {
           isLongOnlyField={isLongOnlyField}
           isShortOnlyField={isShortOnlyField}
           renderValidationHint={renderValidationHint}
-          currentMarkPrice={currentMarkPrice}
         />
 
         {/* 操作按钮 */}

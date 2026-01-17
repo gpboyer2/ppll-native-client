@@ -1,10 +1,9 @@
-import { useEffect } from 'react';
 import { useSystemInfoStore, getHealthData } from '../stores/system-info-store';
 import { IconNetwork, IconWorld, IconServer, IconDatabase, IconGit, IconActivity, IconCpu } from '../components/icons';
 import InfoItem from '../components/InfoItem';
 
 function SystemInfoPage() {
-  const { staticInfo, dynamicInfo, loading } = useSystemInfoStore();
+  const { staticInfo, loading } = useSystemInfoStore();
   const health = getHealthData();
 
   if (loading || !staticInfo) {

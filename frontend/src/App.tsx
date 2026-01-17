@@ -100,9 +100,6 @@ function Navigation() {
   // 检查是否在插件详情页面（路径格式：/plugins/插件ID）
   const isPluginDetailPage = location.pathname.match(/^\/plugins\/[^\/]+$/);
 
-  // 检查是否在网格策略编辑页面
-  const isGridStrategyEditPage = location.pathname.startsWith('/grid-strategy/edit');
-
   // 如果在插件详情页面，不显示导航栏
   if (isPluginDetailPage) {
     return null;

@@ -1,5 +1,4 @@
 import { ApiConfig, RequestConfig, RequestMethod, ApiResponse, ApiError } from '../types';
-import { useBinanceStore } from '../stores/binance-store';
 
 /**
  * API客户端类

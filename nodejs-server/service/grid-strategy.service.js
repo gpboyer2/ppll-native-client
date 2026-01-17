@@ -490,6 +490,8 @@ const deleteGridStrategyById = async (updateBody) => {
 
   if (gridMap[id]) {
     try { gridMap[id].onManualPausedGrid(); } catch (e) {
+      console.error(`[grid-strategy] 清理策略 ${id} 时出错:`, e);
+      // 忽略清理策略时的错误，继续执行删除逻辑
     }
     delete gridMap[id];
   }

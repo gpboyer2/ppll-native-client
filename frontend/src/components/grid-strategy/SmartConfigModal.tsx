@@ -3,7 +3,6 @@ import { IconX } from '@tabler/icons-react';
 import { NumberInput } from '../mantine';
 import { showWarning, showSuccess } from '../../utils/api-error';
 import { NumberFormat } from '../../utils';
-import { calculateCommission } from '../../utils/commission-calculator';
 import { GridStrategyApi } from '../../api';
 import type {
   SmartConfigModalProps,

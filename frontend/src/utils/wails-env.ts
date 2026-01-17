@@ -25,7 +25,7 @@ export function isWailsReady(): boolean {
 }
 
 // 检查 Node.js 服务是否可用（通过健康检查接口）
-export async function isNodejsServiceAvailable(baseUrl?: string): Promise<boolean> {
+export async function isNodejsServiceAvailable(_baseUrl?: string): Promise<boolean> {
   try {
     const response = await SystemApi.healthCheck();
     return response.status === 'success';

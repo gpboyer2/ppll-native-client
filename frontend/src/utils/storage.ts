@@ -94,7 +94,7 @@ export class Storage {
     try {
       const item = localStorage.getItem(key);
       return item ? new Blob([item]).size : 0;
-    } catch (error) {
+    } catch {
       return 0;
     }
   }

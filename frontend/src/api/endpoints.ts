@@ -1,6 +1,5 @@
 import { RequestWrapper } from './request';
 import { PageRequest, PageData, PluginInfo, Notification, UUID } from '../types';
-import { BinanceApi } from './binance';
 import { SystemLogsApi } from './modules/system-logs';
 
 /**

@@ -9,7 +9,6 @@ import type { BinanceCredentials, AccountInfo, PositionConfig } from '../../type
 let container: HTMLElement | null = null;
 let currentCredentials: BinanceCredentials | null = null;
 let accountData: AccountInfo | null = null;
-let isLoading = false;
 
 const html = `
   <div class="u-contract-container">

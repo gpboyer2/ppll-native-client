@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
-import { UpdateSaveConfig, UpdateCheckNow, ClearAllData, GetDataSize, GetNodejsServiceURL } from '../../wailsjs/go/main/App';
+import { UpdateSaveConfig, UpdateCheckNow, ClearAllData, GetDataSize } from '../../wailsjs/go/main/App';
 import { EventsOn } from '../../wailsjs/runtime';
-import type { Response } from '../core/response';
 import { feedURLExamples } from '../router';
 import { useDataManagementStore } from '../stores/data-management-store';
 import { useSystemInfoStore } from '../stores/system-info-store';
@@ -85,7 +84,7 @@ function SettingsPage() {
         setSaveStatus('error');
         setTimeout(() => setSaveStatus('idle'), 500);
       }
-    } catch (error) {
+    } catch {
       setSaveStatus('error');
       setTimeout(() => setSaveStatus('idle'), 500);
     }

@@ -325,7 +325,7 @@ export class FormValidator {
   /**
    * 验证字段
    */
-  validateField(value: any, rules: Array<(value: any) => ValidationResult>, field?: string): void {
+  validateField(value: any, rules: Array<(value: any) => ValidationResult>, _field?: string): void {
     rules.forEach(rule => {
       const result = rule(value);
       if (!result.isValid) {

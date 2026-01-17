@@ -66,7 +66,8 @@ interface BinanceStore {
     getTickerPrice: (symbol: string) => number | null;
 }
 
-// 获取 auth token
+
+// 获取 auth token（当前未使用，保留备用）
 async function getAuthToken(): Promise<string> {
   try {
     // 检查 Wails 环境是否可用
@@ -160,7 +161,6 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
   // 刷新 API Key 列表（静默模式，不显示错误）
   refreshApiKeys: async () => {
     const nodejs_url = await getNodejsUrl();
-    const auth_token = await getAuthToken();
 
     if (!nodejs_url) return;
 
@@ -281,13 +281,13 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
           reconnectionDelay: 3000,
         });
 
-        new_socket.on('connect', () => {
+        new_socket.on('connect', (_event) => {
           clearTimeout(timeout);
           console.log('[binance-store] WebSocket 已连接');
           resolve();
         });
 
-        new_socket.on('disconnect', () => {
+        new_socket.on('disconnect', (_event) => {
           console.log('[binance-store] WebSocket 已断开');
         });
 

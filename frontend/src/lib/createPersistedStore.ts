@@ -122,14 +122,6 @@ interface PersistConfig {
   skipHydration?: boolean;
 }
 
-// 提取 actions 的工具类型
-type Actions<T> = {
-  [K in keyof T]: T[K] extends (...args: any[]) => any ? K : never;
-}[keyof T];
-
-// 提取 state 的工具类型  
-type State<T> = Omit<T, Actions<T>>;
-
 // Store 定义函数类型
 type StoreDefinition<T> = (set: any, get: any) => T;
 

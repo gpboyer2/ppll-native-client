@@ -94,7 +94,6 @@ function GridStrategyListPage() {
   // 切换策略状态
   async function handleToggleStatus(id: string, currentStatus: StrategyStatus) {
     const new_status = currentStatus === 'running' ? 'paused' : 'running';
-    const action = new_status === 'paused' ? 'pause' : 'resume';
     const api_method = new_status === 'paused' ? GridStrategyApi.pause : GridStrategyApi.resume;
 
     try {
@@ -148,32 +147,6 @@ function GridStrategyListPage() {
     const paused = strategyList.filter(s => s.status === 'paused').length;
     const stopped = strategyList.filter(s => s.status === 'stopped').length;
     return { total, running, paused, stopped };
-  }
-
-  // 获取状态标签颜色
-  function getStatusColor(status: StrategyStatus): string {
-    switch (status) {
-      case 'running':
-        return 'var(--color-success)';
-      case 'paused':
-        return 'var(--color-warning)';
-      case 'stopped':
-        return 'var(--color-text-muted)';
-      default:
-        return 'var(--color-text-muted)';
-    }
-  }
-
-  // 获取持仓方向标签颜色
-  function getPositionSideColor(side: PositionSide): string {
-    switch (side) {
-      case 'LONG':
-        return 'var(--color-success)';
-      case 'SHORT':
-        return 'var(--color-danger)';
-      default:
-        return 'var(--color-text-muted)';
-    }
   }
 
   // 获取持仓方向文本
@@ -403,12 +376,6 @@ function GridStrategyListPage() {
       )}
     </div>
   );
-}
-
-// 辅助函数：颜色混合
-function colorMix(color: string, alpha: number): string {
-  // 简化处理，实际可以使用更复杂的颜色混合算法
-  return color;
 }
 
 export default GridStrategyListPage;

@@ -2292,6 +2292,34 @@ nav.surface {
   padding: 24px;
 }
 
+/* 固定列样式 - 用于数据库管理页面表格的首列和操作列 */
+/* 在表格水平滚动时固定首列和操作列，提升大数据表格的易用性 */
+.data-table .fixed-column-first {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--color-surface);
+  border-right: 2px solid var(--color-border);
+}
+
+.data-table thead .fixed-column-first {
+  z-index: 2;
+  background: var(--color-bg-muted);
+}
+
+.data-table .fixed-column-last {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: var(--color-surface);
+  border-left: 2px solid var(--color-border);
+}
+
+.data-table thead .fixed-column-last {
+  z-index: 2;
+  background: var(--color-bg-muted);
+}
+
 /* 分页 */
 .pagination {
   display: flex;

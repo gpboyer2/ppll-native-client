@@ -1,7 +1,7 @@
 // 插件系统类型定义
 
 // 导入通用类型
-import type { Timestamp, UUID } from './common';
+import type { Timestamp } from './common';
 
 // 插件元数据
 export interface PluginMetadata {
