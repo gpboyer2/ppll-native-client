@@ -39,7 +39,7 @@ async function loadSocketIOLogger(): Promise<boolean> {
     // 等待连接
     await new Promise(resolve => setTimeout(resolve, 500));
     return socketio_logger.isConnected();
-  } catch (error) {
+  } catch {
     return false;
   }
 }
@@ -94,7 +94,7 @@ async function flushLogs(): Promise<void> {
         socketio_logger.addLog(log);
       }
     }
-  } catch (error) {
+  } catch {
     // WebSocket 连接失败，日志将被丢弃
   }
 }
