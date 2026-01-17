@@ -10,7 +10,7 @@ const vipMiddleware = require("../../middleware/vip.js");
 
 /**
  * @openapi
- * /v1/smart-money-flow/kol-vc-holdings:
+ * /api/v1/smart-money-flow/kol-vc-holdings:
  *   get:
  *     summary: 获取KOL/VC链上持仓分布数据
  *     description: 获取前1000名KOL/VC的链上地址代币持仓占比数据（全部链）
@@ -47,7 +47,7 @@ const vipMiddleware = require("../../middleware/vip.js");
 
 /**
  * @openapi
- * /v1/smart-money-flow/twitter-resonance-signal:
+ * /api/v1/smart-money-flow/twitter-resonance-signal:
  *   get:
  *     summary: 获取聪明钱共振信号数据
  *     description: |
@@ -136,7 +136,7 @@ const vipMiddleware = require("../../middleware/vip.js");
 
 /**
  * @openapi
- * /v1/smart-money-flow/kol-vc-top-list:
+ * /api/v1/smart-money-flow/kol-vc-top-list:
  *   get:
  *     summary: 获取KOL/VC盈亏排行榜
  *     description: |
@@ -240,7 +240,7 @@ const vipMiddleware = require("../../middleware/vip.js");
 
 /**
  * @openapi
- * /v1/smart-money-flow/24h-trade-volume:
+ * /api/v1/smart-money-flow/24h-trade-volume:
  *   get:
  *     summary: 获取24小时KOL/VC买卖量数据
  *     description: |
@@ -304,7 +304,7 @@ const vipMiddleware = require("../../middleware/vip.js");
 
 /**
  * @openapi
- * /v1/smart-money-flow/30d-profit-distribution:
+ * /api/v1/smart-money-flow/30d-profit-distribution:
  *   get:
  *     summary: 获取KOL/VC 30日盈亏分布数据
  *     description: 获取前1000名KOL/VC地址的30日盈亏走势数据

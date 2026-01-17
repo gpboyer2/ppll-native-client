@@ -9,37 +9,37 @@ const vipMiddleware = require("../../middleware/vip.js");
 
 /**
  * 获取币安交易所信息
- * /v1/binance-exchange-info/list
+ * /api/v1/binance-exchange-info/list
  */
 router.get("/list", vipMiddleware.validateVipAccess, binanceExchangeInfoController.getExchangeInfo);
 
 /**
  * 强制更新交易所信息
- * /v1/binance-exchange-info/force-update
+ * /api/v1/binance-exchange-info/force-update
  */
 router.post("/force-update", vipMiddleware.validateVipAccess, binanceExchangeInfoController.forceUpdate);
 
 /**
  * 获取交易所信息状态
- * /v1/binance-exchange-info/status
+ * /api/v1/binance-exchange-info/status
  */
 router.get("/status", vipMiddleware.validateVipAccess, binanceExchangeInfoController.getStatus);
 
 /**
  * 获取币安交易所的溢价指数
- * /v1/binance-exchange-info/premium-index
+ * /api/v1/binance-exchange-info/premium-index
  */
 router.get("/premium-index", vipMiddleware.validateVipAccess, binanceExchangeInfoController.getPremiumIndex);
 
 /**
  * 获取即将下架的U本位永续合约
- * /v1/binance-exchange-info/delisting-perpetual-contracts
+ * /api/v1/binance-exchange-info/delisting-perpetual-contracts
  */
 router.get("/delisting-perpetual-contracts", vipMiddleware.validateVipAccess, binanceExchangeInfoController.getDelistingPerpetualContracts);
 
 /**
  * 测试获取下架计划原始数据
- * /v1/binance-exchange-info/delist-schedule-test
+ * /api/v1/binance-exchange-info/delist-schedule-test
  */
 router.get("/delist-schedule-test", vipMiddleware.validateVipAccess, binanceExchangeInfoController.getDelistScheduleTest);
 
@@ -63,7 +63,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/binance-exchange-info/list:
+ * /api/v1/binance-exchange-info/list:
  *  get:
  *     tags: [BinanceExchangeInfo]
  *     summary: 获取币安交易所信息
@@ -88,7 +88,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/binance-exchange-info/force-update:
+ * /api/v1/binance-exchange-info/force-update:
  *  post:
  *     tags: [BinanceExchangeInfo]
  *     summary: 强制更新交易所信息
@@ -112,7 +112,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/binance-exchange-info/status:
+ * /api/v1/binance-exchange-info/status:
  *  get:
  *     tags: [BinanceExchangeInfo]
  *     summary: 获取交易所信息状态
@@ -140,7 +140,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/binance-exchange-info/premium-index:
+ * /api/v1/binance-exchange-info/premium-index:
  *  get:
  *     tags: [BinanceExchangeInfo]
  *     summary: 获取最新标记价格和资金费率
@@ -218,7 +218,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/binance-exchange-info/delisting-perpetual-contracts:
+ * /api/v1/binance-exchange-info/delisting-perpetual-contracts:
  *  get:
  *     tags: [BinanceExchangeInfo]
  *     summary: 获取即将下架的U本位永续合约

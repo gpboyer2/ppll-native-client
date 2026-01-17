@@ -117,7 +117,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/login-logs/query:
+ * /api/v1/login-logs/query:
  *   get:
  *     tags: [LoginLogs]
  *     summary: 分页查询登录日志
@@ -232,7 +232,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/login-logs/detail:
+ * /api/v1/login-logs/detail:
  *   get:
  *     tags: [LoginLogs]
  *     summary: 获取登录日志详情
@@ -279,7 +279,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/login-logs/create:
+ * /api/v1/login-logs/create:
  *   post:
  *     tags: [LoginLogs]
  *     summary: 新增登录日志
@@ -373,7 +373,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/login-logs/update:
+ * /api/v1/login-logs/update:
  *   post:
  *     tags: [LoginLogs]
  *     summary: 更新登录日志
@@ -466,7 +466,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/login-logs/delete:
+ * /api/v1/login-logs/delete:
  *   post:
  *     tags: [LoginLogs]
  *     summary: 删除登录日志

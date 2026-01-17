@@ -43,7 +43,7 @@ module.exports = router;
  *           description: 主键ID
  *         api_endpoint:
  *           type: string
- *           example: "/v1/orders/create"
+ *           example: "/api/v1/orders/create"
  *           description: 接口地址
  *         http_method:
  *           type: string
@@ -91,7 +91,7 @@ module.exports = router;
  *           description: 所属模块（从接口路径或扩展信息推断）
  *         endpoint:
  *           type: string
- *           example: "/v1/orders/create"
+ *           example: "/api/v1/orders/create"
  *           description: 请求接口
  *         method:
  *           type: string
@@ -130,7 +130,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/system-logs/query:
+ * /api/v1/system-logs/query:
  *   get:
  *     tags: [SystemLogs]
  *     summary: 分页查询系统错误日志
@@ -244,7 +244,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/system-logs/detail:
+ * /api/v1/system-logs/detail:
  *   get:
  *     tags: [SystemLogs]
  *     summary: 获取系统错误日志详情
@@ -283,7 +283,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/system-logs/create:
+ * /api/v1/system-logs/create:
  *   post:
  *     tags: [SystemLogs]
  *     summary: 新增系统错误日志
@@ -325,7 +325,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/system-logs/batch-create:
+ * /api/v1/system-logs/batch-create:
  *   post:
  *     tags: [SystemLogs]
  *     summary: 批量新增系统错误日志
@@ -350,7 +350,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/system-logs/delete:
+ * /api/v1/system-logs/delete:
  *   post:
  *     tags: [SystemLogs]
  *     summary: 删除系统错误日志

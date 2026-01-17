@@ -21,13 +21,13 @@ router.post('/deletes', controller.deletes);
 
 /**
  * 分页查询网格交易历史
- * /v1/grid-trade-history
+ * /api/v1/grid-trade-history
  */
 router.get('/', controller.query);
 
 /**
  * 获取交易历史详情
- * /v1/grid-trade-history/:id
+ * /api/v1/grid-trade-history/:id
  */
 router.get('/:id', vipMiddleware.validateVipAccess, controller.detail);
 
@@ -42,7 +42,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/grid-trade-history:
+ * /api/v1/grid-trade-history:
  *  get:
  *     tags: [GridTradeHistory]
  *     summary: 分页查询网格交易历史
@@ -114,7 +114,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/grid-trade-history/{id}:
+ * /api/v1/grid-trade-history/{id}:
  *  get:
  *     tags: [GridTradeHistory]
  *     summary: 获取交易历史详情
@@ -172,7 +172,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/grid-trade-history/create:
+ * /api/v1/grid-trade-history/create:
  *  post:
  *     tags: [GridTradeHistory]
  *     summary: 创建交易历史记录
@@ -236,7 +236,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/grid-trade-history/update:
+ * /api/v1/grid-trade-history/update:
  *  post:
  *     tags: [GridTradeHistory]
  *     summary: 更新交易历史记录
@@ -303,7 +303,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/grid-trade-history/deletes:
+ * /api/v1/grid-trade-history/deletes:
  *  post:
  *     tags: [GridTradeHistory]
  *     summary: 批量删除交易历史记录

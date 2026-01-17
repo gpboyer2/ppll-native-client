@@ -9,37 +9,37 @@ const vipMiddleware = require("../../middleware/vip.js");
 
 /**
  * 获取U本位合约账户信息
- * /v1/binance-account/usdm-futures
+ * /api/v1/binance-account/usdm-futures
  */
 router.get("/usdm-futures", vipMiddleware.validateVipAccess, binanceAccountController.getUSDMFuturesAccount);
 
 /**
  * 获取现货账户信息
- * /v1/binance-account/spot
+ * /api/v1/binance-account/spot
  */
 router.get("/spot", vipMiddleware.validateVipAccess, binanceAccountController.getSpotAccount);
 
 /**
  * 获取币本位合约账户信息
- * /v1/binance-account/coinm-futures
+ * /api/v1/binance-account/coinm-futures
  */
 router.get("/coinm-futures", vipMiddleware.validateVipAccess, binanceAccountController.getCoinMFuturesAccount);
 
 /**
  * 设置U本位合约杠杆倍数（支持批量）
- * /v1/binance-account/set-leverage
+ * /api/v1/binance-account/set-leverage
  */
 router.post("/set-leverage", vipMiddleware.validateVipAccess, binanceAccountController.setLeverage);
 
 /**
  * 生成 ListenKey (U本位合约)
- * /v1/binance-account/generate-listen-key
+ * /api/v1/binance-account/generate-listen-key
  */
 router.post("/generate-listen-key", vipMiddleware.validateVipAccess, binanceAccountController.generateListenKey);
 
 /**
  * 延长 ListenKey 有效期
- * /v1/binance-account/keep-alive-listen-key
+ * /api/v1/binance-account/keep-alive-listen-key
  */
 router.put("/keep-alive-listen-key", vipMiddleware.validateVipAccess, binanceAccountController.keepAliveListenKey);
 
@@ -225,7 +225,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/binance-account/usdm-futures:
+ * /api/v1/binance-account/usdm-futures:
  *  get:
  *     tags: [BinanceAccount]
  *     summary: 获取U本位合约账户信息
@@ -358,7 +358,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/binance-account/spot:
+ * /api/v1/binance-account/spot:
  *  get:
  *     tags: [BinanceAccount]
  *     summary: 获取现货账户信息
@@ -465,7 +465,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/binance-account/coinm-futures:
+ * /api/v1/binance-account/coinm-futures:
  *  get:
  *     tags: [BinanceAccount]
  *     summary: 获取币本位合约账户信息
@@ -584,7 +584,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/binance-account/set-leverage:
+ * /api/v1/binance-account/set-leverage:
  *   post:
  *     tags:
  *       - BinanceAccount

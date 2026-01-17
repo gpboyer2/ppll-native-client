@@ -7,7 +7,7 @@ const router = express.Router();
 const frontendLogController = require('../../controller/frontend-log.controller.js');
 
 /**
- * 创建前端日志 POST /api/v1/frontend-logs/create body: { log_level, log_message, log_data, page_url, user_agent }
+ * 创建前端日志 POST /api/v1/frontend-logs/create body: { log_level, log_data, page_url, user_agent }
  */
 router.post('/create', frontendLogController.create);
 
@@ -44,12 +44,8 @@ module.exports = router;
  *           example: 1
  *         log_level:
  *           type: string
- *           description: 日志级别
+ *           description: 日志级别（log/error/warn/info/table/debug）
  *           example: "log"
- *         log_message:
- *           type: string
- *           description: 日志消息内容
- *           example: "用户登录成功"
  *         log_data:
  *           type: object
  *           description: 日志数据
@@ -68,7 +64,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/frontend-logs/create:
+ * /api/v1/frontend-logs/create:
  *   post:
  *     tags: [FrontendLog]
  *     summary: 创建前端日志
@@ -82,12 +78,8 @@ module.exports = router;
  *             properties:
  *               log_level:
  *                 type: string
- *                 description: 日志级别
+ *                 description: 日志级别（log/error/warn/info/table/debug）
  *                 example: "log"
- *               log_message:
- *                 type: string
- *                 description: 日志消息内容
- *                 example: "用户操作成功"
  *               log_data:
  *                 type: object
  *                 description: 日志数据（可选）
@@ -104,7 +96,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/frontend-logs/list:
+ * /api/v1/frontend-logs/list:
  *   get:
  *     tags: [FrontendLog]
  *     summary: 获取前端日志列表
@@ -132,7 +124,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/frontend-logs/delete:
+ * /api/v1/frontend-logs/delete:
  *   post:
  *     tags: [FrontendLog]
  *     summary: 删除前端日志

@@ -49,61 +49,61 @@ const ipQuerySchema = {
 
 /**
  * 获取被封禁IP列表:
- * /v1/banned-ips
+ * /api/v1/banned-ips
  */
 router.get('/', validateMiddleware(listSchema), bannedIpController.getBannedIps);
 
 /**
  * 封禁IP地址:
- * /v1/banned-ips
+ * /api/v1/banned-ips
  */
 router.post('/', validateMiddleware(banIPSchema), bannedIpController.banIP);
 
 /**
  * 解封IP地址:
- * /v1/banned-ips/unban
+ * /api/v1/banned-ips/unban
  */
 router.delete('/unban', validateMiddleware(ipQuerySchema), bannedIpController.unbanIp);
 
 /**
  * 获取IP封禁详情:
- * /v1/banned-ips/detail
+ * /api/v1/banned-ips/detail
  */
 router.get('/detail', validateMiddleware(ipQuerySchema), bannedIpController.getIPBanDetail);
 
 /**
  * 批量解封IP地址:
- * /v1/banned-ips/batch-unban
+ * /api/v1/banned-ips/batch-unban
  */
 router.post('/batch-unban', validateMiddleware(batchUnbanSchema), bannedIpController.batchUnbanIP);
 
 /**
  * 清理过期封禁记录:
- * /v1/banned-ips/cleanup
+ * /api/v1/banned-ips/cleanup
  */
 router.post('/cleanup', bannedIpController.cleanupExpiredBans);
 
 /**
  * 内存紧急清理:
- * /v1/banned-ips/memory/cleanup
+ * /api/v1/banned-ips/memory/cleanup
  */
 router.post('/memory/cleanup', bannedIpController.executeEmergencyCleanup);
 
 /**
  * 获取可信IP列表:
- * /v1/banned-ips/trusted-ips
+ * /api/v1/banned-ips/trusted-ips
  */
 router.get('/trusted-ips', bannedIpController.getTrustedIPs);
 
 /**
  * 添加可信IP地址:
- * /v1/banned-ips/trusted-ips
+ * /api/v1/banned-ips/trusted-ips
  */
 router.post('/trusted-ips', validateMiddleware(trustedIPSchema), bannedIpController.addTrustedIPAddress);
 
 /**
  * 移除可信IP地址:
- * /v1/banned-ips/trusted-ips/remove
+ * /api/v1/banned-ips/trusted-ips/remove
  */
 router.delete('/trusted-ips/remove', validateMiddleware(ipQuerySchema), bannedIpController.removeTrustedIPAddress);
 
@@ -205,7 +205,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/banned-ips:
+ * /api/v1/banned-ips:
  *   get:
  *     tags: [BannedIP]
  *     summary: 获取被封禁IP列表
@@ -276,7 +276,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/banned-ips/unban:
+ * /api/v1/banned-ips/unban:
  *   delete:
  *     tags: [BannedIP]
  *     summary: 解封IP地址
@@ -349,7 +349,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/banned-ips/detail:
+ * /api/v1/banned-ips/detail:
  *   get:
  *     tags: [BannedIP]
  *     summary: 获取IP封禁详情
@@ -405,7 +405,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/banned-ips/trusted-ips/remove:
+ * /api/v1/banned-ips/trusted-ips/remove:
  *   delete:
  *     tags: [BannedIP]
  *     summary: 移除可信IP

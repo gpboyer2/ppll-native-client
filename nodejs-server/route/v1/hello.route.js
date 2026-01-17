@@ -9,7 +9,7 @@ const helloController = require('../../controller/hello.controller.js');
 
 /**
  * 系统连通性测试接口
- * /v1/hello
+ * /api/v1/hello
  */
 router.get('/', helloController.template);
 
@@ -24,7 +24,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/hello:
+ * /api/v1/hello:
  *  get:
  *     tags: [Hello]
  *     summary: 系统连通性测试接口

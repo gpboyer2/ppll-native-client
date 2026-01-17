@@ -12,25 +12,25 @@ const Joi = require('joi');
 
 /**
  * 获取系统分析数据概览:
- * /v1/analytics/overview
+ * /api/v1/analytics/overview
  */
 router.get('/overview', analyticsController.getSystemOverview);
 
 /**
  * 获取系统性能指标:
- * /v1/analytics/performance
+ * /api/v1/analytics/performance
  */
 router.get('/performance', analyticsController.getPerformanceMetrics);
 
 /**
  * 获取用户行为分析数据:
- * /v1/analytics/user-behavior
+ * /api/v1/analytics/user-behavior
  */
 router.get('/user-behavior', analyticsController.getUserBehaviorAnalytics);
 
 /**
  * 获取API使用统计:
- * /v1/analytics/api-usage - 获取API调用频率、响应时间、错误率等统计数据
+ * /api/v1/analytics/api-usage - 获取API调用频率、响应时间、错误率等统计数据
  */
 router.get('/api-usage', analyticsController.getAPIUsageStats);
 
@@ -47,7 +47,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/analytics/overview:
+ * /api/v1/analytics/overview:
  *   get:
  *     summary: 获取系统分析数据概览
  *     description: 获取系统整体运行状态和关键指标概览，包括用户数量、订单统计、系统健康状态等核心业务指标
@@ -88,7 +88,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/analytics/performance:
+ * /api/v1/analytics/performance:
  *   get:
  *     summary: 获取系统性能指标
  *     description: 获取CPU使用率、内存使用情况、磁盘IO、网络流量等系统性能数据
@@ -129,7 +129,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/analytics/user-behavior:
+ * /api/v1/analytics/user-behavior:
  *   get:
  *     summary: 获取用户行为分析数据
  *     description: 获取用户活跃度、登录频率、功能使用统计、用户留存等行为分析数据
@@ -170,7 +170,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/analytics/api-usage:
+ * /api/v1/analytics/api-usage:
  *   get:
  *     summary: 获取API使用统计
  *     description: 获取API调用频率、响应时间、错误率、热门接口等API使用统计数据

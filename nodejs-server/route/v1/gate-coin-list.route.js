@@ -10,25 +10,25 @@ const router = express.Router();
 
 /**
  * 获取涨幅榜数据
- * /v1/gate-coin-list/gainers
+ * /api/v1/gate-coin-list/gainers
  */
 router.get('/gainers', gateCoinListController.getGainers);
 
 /**
  * 获取跌幅榜数据
- * /v1/gate-coin-list/losers
+ * /api/v1/gate-coin-list/losers
  */
 router.get('/losers', gateCoinListController.getLosers);
 
 /**
  * 获取所有币种数据，按24h涨跌幅排序
- * /v1/gate-coin-list/all
+ * /api/v1/gate-coin-list/all
  */
 router.get('/all', gateCoinListController.getAllSorted);
 
 /**
  * 获取缓存状态信息
- * /v1/gate-coin-list/status
+ * /api/v1/gate-coin-list/status
  */
 router.get('/status', gateCoinListController.getCacheStatus);
 
@@ -36,7 +36,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/gate-coin-list/gainers:
+ * /api/v1/gate-coin-list/gainers:
  *   get:
  *     summary: 获取涨幅榜数据
  *     tags: [Gate币种数据]
@@ -93,7 +93,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/gate-coin-list/losers:
+ * /api/v1/gate-coin-list/losers:
  *   get:
  *     summary: 获取跌幅榜数据
  *     tags: [Gate币种数据]
@@ -150,7 +150,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/gate-coin-list/all:
+ * /api/v1/gate-coin-list/all:
  *   get:
  *     summary: 获取全部币种数据（按24h涨跌幅排序）
  *     tags: [Gate币种数据]
@@ -218,7 +218,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /v1/gate-coin-list/status:
+ * /api/v1/gate-coin-list/status:
  *   get:
  *     summary: 获取缓存状态信息
  *     tags: [Gate币种数据]

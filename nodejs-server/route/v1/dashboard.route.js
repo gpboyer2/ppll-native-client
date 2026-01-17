@@ -33,7 +33,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/dashboard:
+ * /api/v1/dashboard:
  *  get:
  *     tags: [Dashboard]
  *     summary: 获取仪表盘概览数据
@@ -56,7 +56,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/dashboard/account:
+ * /api/v1/dashboard/account:
  *  post:
  *     tags: [Dashboard]
  *     summary: 获取合约账户详情

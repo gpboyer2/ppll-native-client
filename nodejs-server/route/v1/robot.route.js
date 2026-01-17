@@ -29,7 +29,7 @@ router.post('/update', robotController.updateRobot);
 
 /**
  * @openapi
- * /v1/robot/query:
+ * /api/v1/robot/query:
  *  get:
  *     tags: [Robot]
  *     description: 根据apikey等相关信息查询网格策略

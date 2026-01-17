@@ -9,19 +9,19 @@ const chatController = require("../../controller/chat.controller.js");
 
 /**
  * 获取聊天室消息列表
- * /v1/chat
+ * /api/v1/chat
  */
 router.get("/", chatController.chat);
 
 /**
  * 发送聊天消息
- * /v1/chat/send
+ * /api/v1/chat/send
  */
 router.post("/send", chatController.sendMessage);
 
 /**
  * 获取指定消息详情
- * /v1/chat/message
+ * /api/v1/chat/message
  */
 router.get("/message", chatController.message);
 
@@ -36,7 +36,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/chat:
+ * /api/v1/chat:
  *  get:
  *     tags: [Chat]
  *     summary: 获取聊天室消息列表
@@ -61,7 +61,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/chat/send:
+ * /api/v1/chat/send:
  *  post:
  *     tags: [Chat]
  *     summary: 发送聊天消息
@@ -101,7 +101,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/chat/message:
+ * /api/v1/chat/message:
  *  get:
  *     tags: [Chat]
  *     summary: 获取指定消息详情

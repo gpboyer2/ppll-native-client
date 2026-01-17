@@ -19,7 +19,7 @@ router.put('/update', orderController.updateOrder);
 
 /**
  * 查询订单（单用户系统）:
- * /v1/template/query - 支持查询单个ID、多个ID、所有订单
+ * /api/v1/template/query - 支持查询单个ID、多个ID、所有订单
  * 查询参数：
  * - id: 单个订单ID（可选）
  * - ids: 多个订单ID，用逗号分隔（可选，例如：1,2,3）
@@ -228,7 +228,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/template/create:
+ * /api/v1/template/create:
  *   post:
  *     tags: [Order]
  *     summary: 创建新订单
@@ -354,7 +354,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/template/delete:
+ * /api/v1/template/delete:
  *   post:
  *     tags: [Order]
  *     summary: 删除订单
@@ -414,7 +414,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/template/update:
+ * /api/v1/template/update:
  *   put:
  *     tags: [Order]
  *     summary: 更新订单
@@ -554,7 +554,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/template/query:
+ * /api/v1/template/query:
  *   get:
  *     tags: [Order]
  *     summary: 查询订单列表

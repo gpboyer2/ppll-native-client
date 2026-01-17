@@ -9,13 +9,13 @@ const vipMiddleware = require("../../middleware/vip.js");
 
 /**
  * 模板接口: 测试接口连通性
- * /v1/orders
+ * /api/v1/orders
  */
 router.get('/', ordersController.template);
 
 /**
  * 批量建仓（对冲单）: 一键建仓/批量建仓功能，对所有USDT永续合约进行批量建仓操作
- * /v1/orders/batch-build-position
+ * /api/v1/orders/batch-build-position
  */
 router.post('/batch-build-position',
   vipMiddleware.validateVipAccess,
@@ -25,7 +25,7 @@ router.post('/batch-build-position',
 
 /**
  * 自定义建仓（对冲单）: 根据指定的交易对列表进行自定义建仓操作
- * /v1/orders/custom-build-position
+ * /api/v1/orders/custom-build-position
  */
 router.post('/custom-build-position',
   vipMiddleware.validateVipAccess,
@@ -35,7 +35,7 @@ router.post('/custom-build-position',
 
 /**
  * 自定义平多单（看空策略）: 只平多单，空单不做任何操作。适用于看空策略
- * /v1/orders/custom-close-multiple-position
+ * /api/v1/orders/custom-close-multiple-position
  */
 router.post('/custom-close-multiple-position',
   vipMiddleware.validateVipAccess,
@@ -45,7 +45,7 @@ router.post('/custom-close-multiple-position',
 
 /**
  * 批量平仓: 一键收菜/批量平仓功能，对所有指定交易对进行平仓操作
- * /v1/orders/batch-close-position
+ * /api/v1/orders/batch-close-position
  */
 router.post('/batch-close-position',
   vipMiddleware.validateVipAccess,
@@ -55,7 +55,7 @@ router.post('/batch-close-position',
 
 /**
  * 自定义平仓: 根据币种，平仓方向，平仓数量等参数执行平仓操作
- * /v1/orders/custom-close-position
+ * /api/v1/orders/custom-close-position
  */
 router.post('/custom-close-position',
   vipMiddleware.validateVipAccess,
@@ -65,7 +65,7 @@ router.post('/custom-close-position',
 
 /**
  * 指定平仓: 指定平仓哪些币种，哪个方向，并确认平仓数量
- * /v1/orders/appoint-close-position
+ * /api/v1/orders/appoint-close-position
  */
 router.post('/appoint-close-position',
   vipMiddleware.validateVipAccess,
@@ -75,7 +75,7 @@ router.post('/appoint-close-position',
 
 /**
  * 批量检查对冲单持仓: 检查哪些对冲单持仓仅有单边
- * /v1/orders/batch-inspect
+ * /api/v1/orders/batch-inspect
  */
 router.post('/batch-inspect',
   vipMiddleware.validateVipAccess,
@@ -162,7 +162,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/orders:
+ * /api/v1/orders:
  *   get:
  *     tags: [Orders]
  *     summary: 模板接口
@@ -184,7 +184,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/orders/batch-build-position:
+ * /api/v1/orders/batch-build-position:
  *   post:
  *     tags: [Orders]
  *     summary: 批量建仓（对冲单）
@@ -256,7 +256,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/orders/custom-build-position:
+ * /api/v1/orders/custom-build-position:
  *   post:
  *     tags: [Orders]
  *     summary: 自定义建仓（对冲单）
@@ -310,7 +310,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/orders/batch-close-position:
+ * /api/v1/orders/batch-close-position:
  *   post:
  *     tags: [Orders]
  *     summary: 批量平仓
@@ -373,7 +373,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/orders/batch-inspect:
+ * /api/v1/orders/batch-inspect:
  *   post:
  *     tags: [Orders]
  *     summary: 批量检查对冲单持仓
@@ -429,7 +429,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/orders/custom-close-multiple-position:
+ * /api/v1/orders/custom-close-multiple-position:
  *   post:
  *     tags: [Orders]
  *     summary: 自定义平多单（看空策略）
@@ -491,7 +491,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/orders/custom-close-position:
+ * /api/v1/orders/custom-close-position:
  *   post:
  *     tags: [Orders]
  *     summary: 自定义平仓
@@ -561,7 +561,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/orders/appoint-close-position:
+ * /api/v1/orders/appoint-close-position:
  *   post:
  *     tags: [Orders]
  *     summary: 指定平仓

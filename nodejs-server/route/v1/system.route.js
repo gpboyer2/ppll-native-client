@@ -46,7 +46,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/system/ipv4-list:
+ * /api/v1/system/ipv4-list:
  *  get:
  *     tags: [System]
  *     summary: 获取本机 IPv4 地址列表

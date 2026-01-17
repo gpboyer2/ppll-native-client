@@ -12,7 +12,7 @@ const vipMiddleware = require("../../middleware/vip.js");
 
 /**
  * 获取标记价格和资金费率信息
- * /v1/information/premiumIndex
+ * /api/v1/information/premiumIndex
  */
 router.post('/premiumIndex', vipMiddleware.validateVipAccess, async (req, res) => {
   const { symbol, apiKey, apiSecret } = req.body;
@@ -54,7 +54,7 @@ router.post('/premiumIndex', vipMiddleware.validateVipAccess, async (req, res) =
 
 /**
  * 获取合约交易对及最新价格
- * /v1/information/ticker/price
+ * /api/v1/information/ticker/price
  */
 router.post('/ticker/price', vipMiddleware.validateVipAccess, async (req, res) => {
   const { apiKey, apiSecret } = req.body;
@@ -124,7 +124,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/information/premiumIndex:
+ * /api/v1/information/premiumIndex:
  *  post:
  *     tags: [Information]
  *     description: 当前币安用户的账户信息，包括API速率限制，杠杠倍数，最新标记价格和资金费率等等
@@ -135,7 +135,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/ticker/price:
+ * /api/v1/ticker/price:
  *  post:
  *     tags: [Information]
  *     description: 返回合约交易对及其最新价格

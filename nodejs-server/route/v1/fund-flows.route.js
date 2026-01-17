@@ -11,49 +11,49 @@ const vipMiddleware = require("../../middleware/vip.js");
 
 /**
  * 获取合约资金流向数据
- * /v1/fund-flows/contract
+ * /api/v1/fund-flows/contract
  */
 router.get('/contract', vipMiddleware.validateVipAccess, fundFlowsController.getContractFundFlows);
 
 /**
  * 获取趋势预测数据
- * /v1/fund-flows/trend-prediction
+ * /api/v1/fund-flows/trend-prediction
  */
 router.get('/trend-prediction', vipMiddleware.validateVipAccess, fundFlowsController.getTrendPrediction);
 
 /**
  * 获取资金流占比数据
- * /v1/fund-flows/distribution
+ * /api/v1/fund-flows/distribution
  */
 router.get('/distribution', vipMiddleware.validateVipAccess, fundFlowsController.getFundFlowDistribution);
 
 /**
  * 获取资金流向分析数据
- * /v1/fund-flows/analysis
+ * /api/v1/fund-flows/analysis
  */
 router.get('/analysis', vipMiddleware.validateVipAccess, fundFlowsController.getFundFlowAnalysis);
 
 /**
  * 获取资金流向百分比数据
- * /v1/fund-flows/percentage
+ * /api/v1/fund-flows/percentage
  */
 router.get('/percentage', vipMiddleware.validateVipAccess, fundFlowsController.getFundFlowPercentage);
 
 /**
  * 获取合约持仓量历史数据（CoinAnk接口，暂时废弃）
- * /v1/fund-flows/coinank_open-interest-history
+ * /api/v1/fund-flows/coinank_open-interest-history
  */
 router.get('/coinank_open-interest-history', vipMiddleware.validateVipAccess, fundFlowsController.getOpenInterestHistory);
 
 /**
  * 获取合约持仓量历史数据
- * /v1/fund-flows/open-interest-history
+ * /api/v1/fund-flows/open-interest-history
  */
 router.get('/open-interest-history', vipMiddleware.validateVipAccess, fundFlowsController.getOpenInterestHistory);
 
 /**
  * 获取全网各交易所持仓量
- * /v1/fund-flows/open-interest-by-exchange
+ * /api/v1/fund-flows/open-interest-by-exchange
  */
 router.get('/open-interest-by-exchange', vipMiddleware.validateVipAccess, fundFlowsController.getOpenInterestByExchange);
 
@@ -68,7 +68,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/fund-flows/contract:
+ * /api/v1/fund-flows/contract:
  *   get:
  *     summary: 获取合约资金流向数据
  *     description: 获取不同时间粒度下的合约资金流向分析数据（大单/中单/小单）
@@ -110,7 +110,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/fund-flows/trend-prediction:
+ * /api/v1/fund-flows/trend-prediction:
  *   get:
  *     summary: 获取趋势预测数据
  *     description: 获取当前市场的趋势预测分析
@@ -133,7 +133,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/fund-flows/distribution:
+ * /api/v1/fund-flows/distribution:
  *   get:
  *     summary: 获取资金流占比数据
  *     description: 获取主力/散户资金流动分布数据
@@ -159,7 +159,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/fund-flows/analysis:
+ * /api/v1/fund-flows/analysis:
  *   get:
  *     summary: 资金流分析数据代理接口
  *     description: 代理访问Gate.io的资金流数据接口
@@ -186,7 +186,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/fund_flow/percentage:
+ * /api/v1/fund_flow/percentage:
  *   get:
  *     summary: 资金流占比数据代理接口
  *     description: 代理访问Gate.io的资金流占比接口
@@ -213,7 +213,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/fund-flows/coinank_open-interest-history:
+ * /api/v1/fund-flows/coinank_open-interest-history:
  *   get:
  *     summary: 暂时废弃 - 获取合约持仓量历史数据
  *     description: 从 CoinAnk 获取指定交易对、时间间隔和类型的合约持仓量历史数据。
@@ -250,7 +250,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/fund-flows/open-interest-history:
+ * /api/v1/fund-flows/open-interest-history:
  *   get:
  *     summary: 获取合约持仓量历史数据
  *     description: 从 Gate.io 获取指定币种、交易所、时间间隔和计价单位的合约持仓量历史数据。
@@ -294,7 +294,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/fund-flows/open-interest-by-exchange:
+ * /api/v1/fund-flows/open-interest-by-exchange:
  *   get:
  *     summary: 获取全网各交易所持仓量
  *     description: 通过爬虫抓取Gate.io页面，获取指定币种在全网各大交易所的实时持仓量数据。

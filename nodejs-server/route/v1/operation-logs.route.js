@@ -117,7 +117,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/operation-logs/query:
+ * /api/v1/operation-logs/query:
  *   get:
  *     tags: [OperationLogs]
  *     summary: 分页查询操作日志
@@ -242,7 +242,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/operation-logs/detail:
+ * /api/v1/operation-logs/detail:
  *   get:
  *     tags: [OperationLogs]
  *     summary: 获取操作日志详情
@@ -281,7 +281,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/operation-logs/create:
+ * /api/v1/operation-logs/create:
  *   post:
  *     tags: [OperationLogs]
  *     summary: 新增操作日志
@@ -328,7 +328,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/operation-logs/batch-create:
+ * /api/v1/operation-logs/batch-create:
  *   post:
  *     tags: [OperationLogs]
  *     summary: 批量新增操作日志
@@ -372,7 +372,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/operation-logs/delete:
+ * /api/v1/operation-logs/delete:
  *   post:
  *     tags: [OperationLogs]
  *     summary: 删除操作日志

@@ -32,7 +32,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/mark-price/create:
+ * /api/v1/mark-price/create:
  *  post:
  *     tags: [MarkPrice]
  *     summary: 创建一条标记价格记录
@@ -90,7 +90,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/mark-price/delete:
+ * /api/v1/mark-price/delete:
  *  post:
  *     tags: [MarkPrice]
  *     summary: 删除一条标记价格记录
@@ -117,7 +117,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/mark-price/update:
+ * /api/v1/mark-price/update:
  *  post:
  *     tags: [MarkPrice]
  *     summary: 更新一条标记价格记录
@@ -173,7 +173,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/mark-price/query:
+ * /api/v1/mark-price/query:
  *  get:
  *     tags: [MarkPrice]
  *     summary: 查询标记价格记录

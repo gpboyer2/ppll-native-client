@@ -7,14 +7,14 @@ const tradingPairsComparisonController = require('../../controller/trading-pairs
 
 /** 
  * 获取有合约但没有现货的交易对: 
- * /v1/trading-pairs-comparison/futures-only
+ * /api/v1/trading-pairs-comparison/futures-only
  */
 router.get('/futures-only', tradingPairsComparisonController.getFuturesOnlyPairs);
 
 
 /** 
  * 获取有现货但没有合约的交易对: 
- * /v1/trading-pairs-comparison/spot-only
+ * /api/v1/trading-pairs-comparison/spot-only
  */
 router.get('/spot-only', tradingPairsComparisonController.getSpotOnlyPairs);
 
@@ -22,35 +22,35 @@ router.get('/spot-only', tradingPairsComparisonController.getSpotOnlyPairs);
 /** 
  * 获取交易对与基础资产综合分析报告: 
  * 包含现货与合约交易对对比、基础资产覆盖情况等综合信息
- * /v1/trading-pairs-comparison/comprehensive-report
+ * /api/v1/trading-pairs-comparison/comprehensive-report
  */
 router.get('/comprehensive-report', tradingPairsComparisonController.getComprehensiveReport);
 
 
 /** 
  * 分析特定交易对的可用性: 
- * /v1/trading-pairs-comparison/analyze?symbol=XXX
+ * /api/v1/trading-pairs-comparison/analyze?symbol=XXX
  */
 router.get('/analyze', tradingPairsComparisonController.analyzeTradingPairAvailability);
 
 
 /** 
  * 获取所有现货交易对列表: 
- * /v1/trading-pairs-comparison/spot-pairs
+ * /api/v1/trading-pairs-comparison/spot-pairs
  */
 router.get('/spot-pairs', tradingPairsComparisonController.getSpotTradingPairs);
 
 
 /**
  * 获取所有合约交易对列表:
- * /v1/trading-pairs-comparison/futures-pairs
+ * /api/v1/trading-pairs-comparison/futures-pairs
  */
 router.get('/futures-pairs', tradingPairsComparisonController.getFuturesTradingPairs);
 
 
 /**
  * 获取所有币本位合约交易对列表:
- * /v1/trading-pairs-comparison/coin-m-futures-pairs
+ * /api/v1/trading-pairs-comparison/coin-m-futures-pairs
  */
 router.get('/coin-m-futures-pairs', tradingPairsComparisonController.getCoinMFuturesTradingPairs);
 
@@ -197,7 +197,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/trading-pairs-comparison/futures-only:
+ * /api/v1/trading-pairs-comparison/futures-only:
  *   get:
  *     summary: 获取有合约但没有现货的交易对
  *     tags: [TradingPairsComparison]
@@ -254,7 +254,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/trading-pairs-comparison/spot-only:
+ * /api/v1/trading-pairs-comparison/spot-only:
  *   get:
  *     summary: 获取有现货但没有合约的交易对
  *     tags: [TradingPairsComparison]
@@ -311,7 +311,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/trading-pairs-comparison/comprehensive-report:
+ * /api/v1/trading-pairs-comparison/comprehensive-report:
  *   get:
  *     summary: 获取交易对与基础资产综合分析报告
  *     description: |
@@ -404,7 +404,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/trading-pairs-comparison/analyze:
+ * /api/v1/trading-pairs-comparison/analyze:
  *   get:
  *     summary: 分析特定交易对的可用性
  *     tags: [TradingPairsComparison]
@@ -488,7 +488,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/trading-pairs-comparison/spot-pairs:
+ * /api/v1/trading-pairs-comparison/spot-pairs:
  *   get:
  *     summary: 获取所有现货交易对列表
  *     tags: [TradingPairsComparison]
@@ -545,7 +545,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/trading-pairs-comparison/futures-pairs:
+ * /api/v1/trading-pairs-comparison/futures-pairs:
  *   get:
  *     summary: 获取所有合约交易对列表
  *     tags: [TradingPairsComparison]
@@ -602,7 +602,7 @@ module.exports = router;
 
 /**
  * @openapi
- * /v1/trading-pairs-comparison/coin-m-futures-pairs:
+ * /api/v1/trading-pairs-comparison/coin-m-futures-pairs:
  *   get:
  *     summary: 获取所有币本位合约交易对列表
  *     description: |
