@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Select, NumberInput } from '../../components/mantine';
 import { SmartConfigModal } from '../../components/grid-strategy/SmartConfigModal';
 import { ReferralCommissionDialog } from '../../components/referral-commission-invitation';
 import { ROUTES } from '../../router';
 import { useBinanceStore } from '../../stores/binance-store';
-import { GridStrategyApi } from '../../api';
+import { GridStrategyApi, InformationApi } from '../../api';
 import { BinanceExchangeInfoApi } from '../../api';
 import type { GridStrategy, GridStrategyForm, PositionSide, OptimizedConfig } from '../../types/grid-strategy';
 import type { BinanceSymbol, StrategyValidationResult } from '../../types/binance';
@@ -36,6 +36,9 @@ function GridStrategyEditPage() {
 
   // 验证提示状态
   const [validationHints, setValidationHints] = useState<Record<string, StrategyValidationResult>>({});
+
+  // 实时标记价格状态
+  const [currentMarkPrice, setCurrentMarkPrice] = useState<number | null>(null);
 
   // 保存状态
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'success' | 'error'>('idle');
@@ -180,6 +183,55 @@ function GridStrategyEditPage() {
       console.log('已设置默认 API Key:', first_api_key.name, `(${first_api_key.api_key.substring(0, 8)}...)`);
     }
   }, [api_key_list, is_editing, formData._api_key_id]);
+
+  // 实时获取标记价格
+  useEffect(() => {
+    // 如果没有选择交易对或没有 API Key，不获取价格
+    if (!formData.trading_pair || !formData.api_key || !formData.secret_key) {
+      setCurrentMarkPrice(null);
+      return;
+    }
+
+    let is_mounted = true;
+    let timer_id: NodeJS.Timeout | null = null;
+
+    // 获取标记价格的函数
+    const fetch_mark_price = async () => {
+      try {
+        const response = await InformationApi.getPremiumIndex({
+          api_key: formData.api_key,
+          secret_key: formData.secret_key,
+          symbol: formData.trading_pair
+        });
+
+        if (is_mounted && response.status === 'success' && response.datum?.markPrice) {
+          const price = parseFloat(response.datum.markPrice);
+          if (!isNaN(price)) {
+            setCurrentMarkPrice(price);
+          }
+        }
+      } catch (error) {
+        // 静默失败，不影响用户体验
+        console.warn('获取标记价格失败:', error);
+      }
+    };
+
+    // 立即获取一次
+    fetch_mark_price();
+
+    // 每秒更新一次
+    timer_id = setInterval(() => {
+      fetch_mark_price();
+    }, 1000);
+
+    // 清理函数
+    return () => {
+      is_mounted = false;
+      if (timer_id) {
+        clearInterval(timer_id);
+      }
+    };
+  }, [formData.trading_pair, formData.api_key, formData.secret_key]);
 
   // 保存策略数据
   async function saveStrategy(data: GridStrategyForm) {
@@ -619,9 +671,19 @@ function GridStrategyEditPage() {
                   }
                 }}
                 decimalScale={2}
-                placeholder="不填值时自动按当前价格建仓"
+                placeholder={
+                  currentMarkPrice !== null
+                    ? `当前价格 ${currentMarkPrice.toFixed(2)}（不填值时自动按当前价格建仓）`
+                    : formData.trading_pair
+                      ? '加载中...'
+                      : '请先选择交易对'
+                }
               />
-              <div className="help">不填值时自动按当前价格建仓</div>
+              <div className="help">
+                {currentMarkPrice !== null
+                  ? `当前标记价格：${currentMarkPrice.toFixed(2)}，不填值时自动按当前价格建仓`
+                  : '不填值时自动按当前价格建仓'}
+              </div>
             </div>
           </div>
         </div>

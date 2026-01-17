@@ -31,6 +31,7 @@ const binanceAccountRoute = require("./v1/binance-account.route");
 const binanceApiKeyRoute = require("./v1/binance-api-key.route");
 const systemRoute = require("./v1/system.route");
 const databaseAdminRoute = require("./v1/database-admin.route");
+const frontendLogRoute = require("./v1/frontend-log.route");
 
 const routeManager = (app) => {
   // API V1 Routes - 统一使用 /api/v1 前缀
@@ -59,6 +60,7 @@ const routeManager = (app) => {
   app.use("/api/v1/binance-api-key", binanceApiKeyRoute);
   app.use("/api/v1/system", systemRoute);
   app.use("/api/v1/database-admin", databaseAdminRoute);
+  app.use("/api/v1/frontend-logs", frontendLogRoute);
 };
 
 module.exports = routeManager;

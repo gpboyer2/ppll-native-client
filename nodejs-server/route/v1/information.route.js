@@ -36,7 +36,7 @@ router.post('/premiumIndex', vipMiddleware.validateVipAccess, async (req, res) =
     }
 
     const client = new USDMClient(options, requestOptions);
-    const accountInfo = await client.getPremiumIndex(symbol ? { symbol } : {});
+    const accountInfo = await client.getMarkPrice(symbol ? { symbol: String(symbol) } : undefined);
 
     res.send({
       status: 'success',

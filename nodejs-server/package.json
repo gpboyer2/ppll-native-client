@@ -18,10 +18,9 @@
     "pm2:dev": "cross-env NODE_ENV=development pm2 start app.js",
     "pm2:test": "cross-env NODE_ENV=test pm2 start app.js",
     "pm2:prod": "cross-env NODE_ENV=production pm2 start app.js",
-    "node:dev": "cross-env NODE_ENV=development node app.js",
-    "node:test": "cross-env NODE_ENV=test node app.js",
-    "node:prod": "cross-env NODE_ENV=production node app.js",
-    "test": "jest",
+    "test": "cross-env NODE_ENV=test node app.js",
+    "prod": "cross-env NODE_ENV=production node app.js",
+    "dev": "cross-env NODE_ENV=development nodemon app.js",
     "test:watch": "jest --watch"
   },
   "bin": {
