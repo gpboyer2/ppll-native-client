@@ -1,16 +1,16 @@
 import { useState, useEffect } from 'react';
 import { IconX } from '@tabler/icons-react';
-import { NumberInput } from '../mantine';
-import { showWarning, showSuccess } from '../../utils/api-error';
-import { NumberFormat } from '../../utils';
-import { GridStrategyApi } from '../../api';
+import { NumberInput } from '../../mantine';
+import { showWarning, showSuccess } from '../../../utils/api-error';
+import { NumberFormat } from '../../../utils';
+import { GridStrategyApi } from '../../../api';
 import type {
   SmartConfigModalProps,
   OptimizationResult,
   GridConfigOption,
   OptimizedConfig,
   OptimizeTarget
-} from '../../types/grid-strategy';
+} from '../../../types/grid-strategy';
 
 /**
  * 智能配置弹窗组件

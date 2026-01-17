@@ -1,3 +1,4 @@
+import './index.scss';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { notifications } from '../../notifications/store';

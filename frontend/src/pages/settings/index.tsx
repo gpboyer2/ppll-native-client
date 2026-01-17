@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { UpdateSaveConfig, UpdateCheckNow, ClearAllData, GetDataSize } from '../../wailsjs/go/main/App';
 import { EventsOn } from '../../wailsjs/runtime';
-import { feedURLExamples } from '../router';
-import { useDataManagementStore } from '../stores/data-management-store';
-import { useSystemInfoStore } from '../stores/system-info-store';
-import { useBinanceStore } from '../stores/binance-store';
-import { TextInput, PasswordInput, NumberInput } from '../components/mantine';
-import { BinanceApiKeyApi } from '../api';
-import type { BinanceApiKey } from '../stores/binance-store';
-import { showSuccess } from '../utils/api-error';
+import { feedURLExamples } from '../../router';
+import { useDataManagementStore } from '../../stores/data-management-store';
+import { useSystemInfoStore } from '../../stores/system-info-store';
+import { useBinanceStore } from '../../stores/binance-store';
+import { TextInput, PasswordInput, NumberInput } from '../../components/mantine';
+import { BinanceApiKeyApi } from '../../api';
+import type { BinanceApiKey } from '../../stores/binance-store';
+import { showSuccess } from '../../utils/api-error';
 
 function SettingsPage() {
   // 使用系统信息 store

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { OpenBrowser } from '../../../wailsjs/go/main/App';
 import { NumberFormat } from '../../utils';
-import './dialog.scss';
+import './index.scss';
 
 // 网格策略参数类型
 export interface GridStrategyParams {

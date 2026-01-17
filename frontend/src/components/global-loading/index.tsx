@@ -4,8 +4,8 @@
  * 在应用初始化时显示，等待 Wails 环境就绪
  */
 import React, { useEffect } from 'react';
-import { useAppInitStore } from '../stores/app-init-store';
-import logo from '../assets/images/logo-universal.png';
+import { useAppInitStore } from '../../stores/app-init-store';
+import logo from '../../assets/images/logo-universal.png';
 
 export const GlobalLoading: React.FC = () => {
   const { appReady, error, progress, init } = useAppInitStore();

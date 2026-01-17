@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { pluginRegistry } from '../plugins/registry';
-import { getPluginList, setPluginEnable, type PluginItem } from '../router';
+import { pluginRegistry } from '../../plugins/registry';
+import { getPluginList, setPluginEnable, type PluginItem } from '../../router';
 
 function PluginsPage() {
   const params = useParams();

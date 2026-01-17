@@ -1,4 +1,4 @@
-import { showSuccess, showError } from '../../utils/api-error';
+import { showSuccess, showError } from '../../../utils/api-error';
 
 interface AccountValidationData {
   availableBalance?: string;

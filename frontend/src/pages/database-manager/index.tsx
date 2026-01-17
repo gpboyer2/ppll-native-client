@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { notifications } from '@mantine/notifications';
-import { ApiEndpoints } from '../api/endpoints';
-import { TextInput, Select } from '../components/mantine';
+import { ApiEndpoints } from '../../api/endpoints';
+import { TextInput, Select } from '../../components/mantine';
 import {
   IconDatabase,
   IconTable,

@@ -72,6 +72,77 @@ function GridStrategyEditPage() {
     init();
   }, [init]);
 
+  // 验证账户信息
+  const validateAccountInfo = useCallback(async (api_key: string, secret_key: string) => {
+    if (!api_key || !secret_key) {
+      setAccountValidation({ status: 'idle' });
+      return;
+    }
+
+    setAccountValidation({ status: 'loading' });
+
+    try {
+      const response = await BinanceAccountApi.getUSDMFutures({
+        api_key,
+        secret_key,
+        include_positions: true
+      });
+
+      if (response.status === 'success' && response.datum) {
+        setAccountValidation({
+          status: 'success',
+          data: response.datum
+        });
+      } else {
+        // 优先显示 datum 中的详细错误信息，如果没有才显示 message
+        let error_message = response.datum && typeof response.datum === 'string'
+          ? response.datum
+          : response.message || '获取账户信息失败';
+
+        // 提取IP地址
+        let ip_address = undefined;
+        const ip_match = error_message.match(/request ip:\s*([\d.]+)/);
+        if (ip_match && ip_match[1]) {
+          ip_address = ip_match[1];
+        }
+
+        // 针对常见错误提供友好提示
+        if (error_message.includes('Invalid API-key, IP, or permissions')) {
+          error_message = 'IP 白名单限制：当前服务器IP地址未加入币安API白名单';
+        } else if (error_message.includes('API-key')) {
+          error_message = `API Key 错误：${error_message}`;
+        }
+
+        setAccountValidation({
+          status: 'error',
+          error: error_message,
+          ipAddress: ip_address
+        });
+      }
+    } catch (error: any) {
+      console.error('验证账户信息失败:', error);
+      let error_message = error.message || 'API Key 验证失败，请检查配置';
+
+      // 提取IP地址
+      let ip_address = undefined;
+      const ip_match = error_message.match(/request ip:\s*([\d.]+)/);
+      if (ip_match && ip_match[1]) {
+        ip_address = ip_match[1];
+      }
+
+      // 针对常见错误提供友好提示
+      if (error_message.includes('Invalid API-key, IP, or permissions')) {
+        error_message = 'IP 白名单限制：当前服务器IP地址未加入币安API白名单';
+      }
+
+      setAccountValidation({
+        status: 'error',
+        error: error_message,
+        ipAddress: ip_address
+      });
+    }
+  }, []);
+
   // 从后端 API 加载策略数据
   async function loadStrategy(strategyId: string) {
     try {
@@ -149,77 +220,6 @@ function GridStrategyEditPage() {
       console.error('加载交易所信息失败:', error);
     }
   }, [formData.api_key, formData.secret_key]);
-
-  // 验证账户信息
-  const validateAccountInfo = useCallback(async (api_key: string, secret_key: string) => {
-    if (!api_key || !secret_key) {
-      setAccountValidation({ status: 'idle' });
-      return;
-    }
-
-    setAccountValidation({ status: 'loading' });
-
-    try {
-      const response = await BinanceAccountApi.getUSDMFutures({
-        api_key,
-        secret_key,
-        include_positions: true
-      });
-
-      if (response.status === 'success' && response.datum) {
-        setAccountValidation({
-          status: 'success',
-          data: response.datum
-        });
-      } else {
-        // 优先显示 datum 中的详细错误信息，如果没有才显示 message
-        let error_message = response.datum && typeof response.datum === 'string'
-          ? response.datum
-          : response.message || '获取账户信息失败';
-
-        // 提取IP地址
-        let ip_address = undefined;
-        const ip_match = error_message.match(/request ip:\s*([\d.]+)/);
-        if (ip_match && ip_match[1]) {
-          ip_address = ip_match[1];
-        }
-
-        // 针对常见错误提供友好提示
-        if (error_message.includes('Invalid API-key, IP, or permissions')) {
-          error_message = 'IP 白名单限制：当前服务器IP地址未加入币安API白名单';
-        } else if (error_message.includes('API-key')) {
-          error_message = `API Key 错误：${error_message}`;
-        }
-
-        setAccountValidation({
-          status: 'error',
-          error: error_message,
-          ipAddress: ip_address
-        });
-      }
-    } catch (error: any) {
-      console.error('验证账户信息失败:', error);
-      let error_message = error.message || 'API Key 验证失败，请检查配置';
-
-      // 提取IP地址
-      let ip_address = undefined;
-      const ip_match = error_message.match(/request ip:\s*([\d.]+)/);
-      if (ip_match && ip_match[1]) {
-        ip_address = ip_match[1];
-      }
-
-      // 针对常见错误提供友好提示
-      if (error_message.includes('Invalid API-key, IP, or permissions')) {
-        error_message = 'IP 白名单限制：当前服务器IP地址未加入币安API白名单';
-      }
-
-      setAccountValidation({
-        status: 'error',
-        error: error_message,
-        ipAddress: ip_address
-      });
-    }
-  }, []);
 
   // 当交易对改变时更新当前符号信息
   useEffect(() => {

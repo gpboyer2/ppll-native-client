@@ -1,6 +1,6 @@
-import { useSystemInfoStore, getHealthData } from '../stores/system-info-store';
-import { IconNetwork, IconWorld, IconServer, IconDatabase, IconGit, IconActivity, IconCpu } from '../components/icons';
-import InfoItem from '../components/InfoItem';
+import { useSystemInfoStore, getHealthData } from '../../stores/system-info-store';
+import { IconNetwork, IconWorld, IconServer, IconDatabase, IconGit, IconActivity, IconCpu } from '../../components/icons';
+import InfoItem from '../../components/info-item';
 
 function SystemInfoPage() {
   const { staticInfo, loading } = useSystemInfoStore();

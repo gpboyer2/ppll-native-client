@@ -15,7 +15,7 @@ export const ROUTES = {
 
 // 页面组件路径映射
 export const pageComponents = {
-  HomePage: '../pages/HomePage',
+  HomePage: '../pages/home-page',
   SettingsPage: '../pages/SettingsPage',
   PluginsPage: '../pages/PluginsPage',
   GridStrategyListPage: '../pages/GridStrategy',

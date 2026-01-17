@@ -1,5 +1,5 @@
-import { NumberInput } from '../../../components/mantine';
-import type { GridStrategyForm } from '../../../types/grid-strategy';
+import { NumberInput } from '../../../../components/mantine';
+import type { GridStrategyForm } from '../../../../types/grid-strategy';
 
 interface GridParametersCardsProps {
   formData: GridStrategyForm;
