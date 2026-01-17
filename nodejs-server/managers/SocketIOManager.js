@@ -177,7 +177,7 @@ const init = (server, wsManagerInstance) => {
 
     /**
      * 接收前端日志批量保存
-     * data: { logs: [{ log_level, log_message, log_data, page_url, user_agent }] }
+     * data: { logs: [{ log_data, page_url, user_agent }] }
      */
     socket.on('frontend_logs', async (data) => {
       try {

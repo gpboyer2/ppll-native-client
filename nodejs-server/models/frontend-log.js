@@ -25,11 +25,6 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         comment: "主键ID",
       },
-      log_level: {
-        type: DataTypes.STRING(16),
-        allowNull: false,
-        comment: "日志级别（log/error/warn/info/table/debug）",
-      },
       log_data: {
         type: DataTypes.JSON,
         allowNull: true,

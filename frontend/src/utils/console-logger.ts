@@ -3,13 +3,8 @@
  * 通过 WebSocket（Socket.IO）批量发送日志
  */
 
-// 日志级别定义
-type LogLevel = 'log' | 'error' | 'warn' | 'info' | 'table' | 'debug';
-
 // 日志数据接口
 interface LogData {
-  log_level: LogLevel;
-  log_message: string;
   log_data?: any;
   page_url: string;
   user_agent: string;
@@ -57,27 +52,6 @@ function isSerializable(data: any): boolean {
 }
 
 /**
- * 格式化日志消息
- */
-function formatMessage(args: any[]): string {
-  return args
-    .map((arg) => {
-      if (typeof arg === 'string') {
-        return arg;
-      }
-      if (typeof arg === 'object' && arg !== null) {
-        try {
-          return JSON.stringify(arg, null, 2);
-        } catch {
-          return String(arg);
-        }
-      }
-      return String(arg);
-    })
-    .join(' ');
-}
-
-/**
  * 批量发送日志
  */
 async function flushLogs(): Promise<void> {
@@ -102,13 +76,8 @@ async function flushLogs(): Promise<void> {
 /**
  * 添加日志到队列
  */
-function addLogToQueue(
-  log_level: LogLevel,
-  args: any[]
-): void {
+function addLogToQueue(args: any[]): void {
   const log_data: LogData = {
-    log_level,
-    log_message: formatMessage(args),
     log_data: undefined,
     page_url: window.location.hash || window.location.pathname,
     user_agent: navigator.userAgent,
@@ -150,37 +119,37 @@ export function initConsoleLogger(): void {
   // 拦截 console.log
   console.log = (...args: any[]) => {
     original_console.log(...args);
-    addLogToQueue('log', args);
+    addLogToQueue(args);
   };
 
   // 拦截 console.error
   console.error = (...args: any[]) => {
     original_console.error(...args);
-    addLogToQueue('error', args);
+    addLogToQueue(args);
   };
 
   // 拦截 console.warn
   console.warn = (...args: any[]) => {
     original_console.warn(...args);
-    addLogToQueue('warn', args);
+    addLogToQueue(args);
   };
 
   // 拦截 console.info
   console.info = (...args: any[]) => {
     original_console.info(...args);
-    addLogToQueue('info', args);
+    addLogToQueue(args);
   };
 
   // 拦截 console.table
   console.table = (...args: any[]) => {
     original_console.table(...args);
-    addLogToQueue('table', args);
+    addLogToQueue(args);
   };
 
   // 拦截 console.debug
   console.debug = (...args: any[]) => {
     original_console.debug(...args);
-    addLogToQueue('debug', args);
+    addLogToQueue(args);
   };
 
   // 定期刷新日志队列

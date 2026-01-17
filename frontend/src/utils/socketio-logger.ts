@@ -6,8 +6,6 @@ import { io, Socket } from 'socket.io-client';
 
 // 日志数据接口
 interface LogData {
-  log_level: string;
-  log_message: string;
   log_data?: any;
   page_url: string;
   user_agent: string;

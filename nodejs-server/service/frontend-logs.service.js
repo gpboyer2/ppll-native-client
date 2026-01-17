@@ -45,9 +45,7 @@ async function cleanup_old_logs() {
 /**
  * 添加前端日志（支持单个和批量）
  * @param {Array<object>} log_list - 日志数组
- * @param {string} log_list[].log_level - 日志级别
- * @param {string} log_list[].log_message - 日志消息
- * @param {any} log_list[].log_data - 日志附加数据
+ * @param {any} log_list[].log_data - 日志数据（数组）
  * @param {string} log_list[].page_url - 页面URL
  * @param {string} log_list[].user_agent - 用户代理
  * @returns {Promise<Array<object>>} 创建成功的日志记录列表
@@ -64,8 +62,6 @@ async function add_frontend_log(log_list) {
     // 批量创建日志记录
     const log_promises = log_list.map(log =>
       FrontendLog.create({
-        log_level: log.log_level,
-        log_message: log.log_message,
         log_data: log.log_data,
         page_url: log.page_url,
         user_agent: log.user_agent,
