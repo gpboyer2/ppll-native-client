@@ -1,10 +1,38 @@
 import { showSuccess, showError } from '../../../utils/api-error';
 import './index.scss';
 
+// 币安U本位合约账户信息接口
+interface BinancePosition {
+  symbol: string;
+  positionAmount: string;
+  entryPrice: string;
+  unrealizedProfit: string;
+}
+
+interface BinanceAsset {
+  asset: string;
+  walletBalance: string;
+  crossWalletBalance: string;
+}
+
 interface AccountValidationData {
-  availableBalance?: string;
-  totalWalletBalance?: string;
+  feeTier?: number;
   canTrade?: boolean;
+  canDeposit?: boolean;
+  canWithdraw?: boolean;
+  totalInitialMargin?: string;
+  totalMaintMargin?: string;
+  totalWalletBalance?: string;
+  totalUnrealizedProfit?: string;
+  totalMarginBalance?: string;
+  totalPositionInitialMargin?: string;
+  totalOpenOrderInitialMargin?: string;
+  totalCrossWalletBalance?: string;
+  totalCrossUnPnl?: string;
+  availableBalance?: string;
+  maxWithdrawAmount?: string;
+  assets?: BinanceAsset[];
+  positions?: BinancePosition[];
 }
 
 interface AccountValidationProps {
@@ -51,23 +79,72 @@ export function AccountValidationCard({
         <div className="account-card-success">
           <div className="account-card-header">
             <span className="account-card-icon">✓</span>
-            <span className="account-card-title">账户信息验证成功</span>
+            <span className="account-card-title">U本位合约账户验证成功</span>
           </div>
-          <div className="account-card-details">
-            <div className="account-card-item">
-              <span className="account-card-label">可用余额:</span>
-              <span className="account-card-value">{Number(data.availableBalance || 0).toFixed(2)} USDT</span>
+          <div className="account-card-grid">
+            {/* 可用余额 - 重点突出 */}
+            <div className="account-card-item account-card-item-highlight">
+              <span className="account-card-label">可用余额</span>
+              <span className="account-card-value">{Number(data.availableBalance || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
             </div>
+
+            {/* 总余额 */}
             <div className="account-card-item">
-              <span className="account-card-label">总余额:</span>
-              <span className="account-card-value">{Number(data.totalWalletBalance || 0).toFixed(2)} USDT</span>
+              <span className="account-card-label">总余额</span>
+              <span className="account-card-value">{Number(data.totalWalletBalance || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
             </div>
+
+            {/* 未实现盈亏 */}
+            {data.totalUnrealizedProfit !== undefined && (
+              <div className="account-card-item">
+                <span className="account-card-label">未实现盈亏</span>
+                <span className={`account-card-value ${Number(data.totalUnrealizedProfit) >= 0 ? 'account-card-value-positive' : 'account-card-value-negative'}`}>
+                  {Number(data.totalUnrealizedProfit) >= 0 ? '+' : ''}{Number(data.totalUnrealizedProfit || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span>
+                </span>
+              </div>
+            )}
+
+            {/* 保证金余额 */}
             <div className="account-card-item">
-              <span className="account-card-label">交易权限:</span>
+              <span className="account-card-label">保证金余额</span>
+              <span className="account-card-value">{Number(data.totalMarginBalance || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
+            </div>
+
+            {/* 持仓保证金 */}
+            <div className="account-card-item">
+              <span className="account-card-label">持仓保证金</span>
+              <span className="account-card-value">{Number(data.totalPositionInitialMargin || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
+            </div>
+
+            {/* 挂单保证金 */}
+            <div className="account-card-item">
+              <span className="account-card-label">挂单保证金</span>
+              <span className="account-card-value">{Number(data.totalOpenOrderInitialMargin || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
+            </div>
+
+            {/* 手续费等级 */}
+            {data.feeTier !== undefined && (
+              <div className="account-card-item">
+                <span className="account-card-label">手续费等级</span>
+                <span className="account-card-value account-card-badge">VIP {data.feeTier}</span>
+              </div>
+            )}
+
+            {/* 交易权限 */}
+            <div className="account-card-item">
+              <span className="account-card-label">交易权限</span>
               <span className={`account-card-value ${data.canTrade ? 'account-card-permission-granted' : 'account-card-permission-denied'}`}>
                 {data.canTrade ? '已启用' : '未启用'}
               </span>
             </div>
+
+            {/* 持仓数量 */}
+            {data.positions && (
+              <div className="account-card-item">
+                <span className="account-card-label">持仓数量</span>
+                <span className="account-card-value">{data.positions.filter(p => parseFloat(p.positionAmount) !== 0).length} 个</span>
+              </div>
+            )}
           </div>
         </div>
       )}

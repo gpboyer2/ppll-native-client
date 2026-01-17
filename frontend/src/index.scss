@@ -278,14 +278,14 @@ a:hover {
 
 .btn-outline {
   color: var(--color-text);
-  background: transparent;
-  border-color: var(--color-border);
+  background: rgba(59, 130, 246, 0.08);
+  border-color: rgba(59, 130, 246, 0.25);
 }
 
 .btn-outline:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  background: rgba(59, 130, 246, 0.15);
 }
 
 .btn-ghost {
@@ -830,9 +830,44 @@ nav.surface {
 /* ApiKey 项目操作区域 */
 .binance-apikey-item-actions {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row;
+  gap: 8px;
   margin-left: 16px;
+  align-items: center;
+}
+
+/* ApiKey 当前使用标签 */
+.binance-apikey-active-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 82px;
+  height: 32px;
+  padding: 0 16px;
+  background: transparent;
+  border: none;
+  border-radius: 16px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: #22c55e;
+}
+
+.binance-apikey-active-badge::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: #22c55e;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* 小尺寸按钮 */
+.btn-small {
+  min-width: 82px;
+  padding: 6px 16px;
+  font-size: var(--text-sm);
 }
 
 /* ApiKey 空状态 */

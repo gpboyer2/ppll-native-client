@@ -64,6 +64,18 @@ const getUSDMFuturesAccount = catchAsync(async (req, res) => {
       includePositions
     );
 
+    // 只打印关键字段用于调试
+    console.log('[U本位合约账户] 关键字段:', {
+      availableBalance: account_info.availableBalance,
+      totalWalletBalance: account_info.totalWalletBalance,
+      totalMarginBalance: account_info.totalMarginBalance,
+      totalUnrealizedProfit: account_info.totalUnrealizedProfit,
+      feeTier: account_info.feeTier,
+      canTrade: account_info.canTrade,
+      positionsCount: account_info.positions?.length || 0,
+      assetsCount: account_info.assets?.length || 0
+    });
+
     const message = includePositions
       ? "获取U本位合约账户信息成功"
       : "获取U本位合约账户信息成功（不包含持仓数据）";

@@ -218,8 +218,6 @@ function SettingsPage() {
   function handleSetActiveApiKey(id: string) {
     set_active_api_key(id);
     showSuccess('已切换 API Key');
-    // 刷新相关数据
-    window.location.reload();
   }
 
   function maskApiKey(key: string | undefined): string {
@@ -324,23 +322,27 @@ function SettingsPage() {
                       </div>
                     </div>
                     <div className="binance-apikey-item-actions">
+                      {is_active ? (
+                        <div className="binance-apikey-active-badge">当前使用</div>
+                      ) : (
+                        <button
+                          className="btn btn-outline btn-small"
+                          onClick={() => handleSetActiveApiKey(String(item.id))}
+                        >
+                          设为当前
+                        </button>
+                      )}
                       <button
-                        className={`btn ${is_active ? 'btn-primary' : 'btn-ghost'}`}
-                        onClick={() => handleSetActiveApiKey(String(item.id))}
-                      >
-                        {is_active ? '当前使用' : '设为当前'}
-                      </button>
-                      <button
-                        className="btn btn-ghost"
+                        className="btn btn-outline btn-small"
                         onClick={() => handleEditApiKey(item)}
                       >
-                                                编辑
+                        编辑
                       </button>
                       <button
-                        className="btn btn-danger"
+                        className="btn btn-danger btn-small"
                         onClick={() => handleDeleteApiKey(item.id)}
                       >
-                                                删除
+                        删除
                       </button>
                     </div>
                   </div>
