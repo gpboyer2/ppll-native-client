@@ -268,46 +268,61 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
       const nodejs_url = await getNodejsUrl();
       const socket_url = nodejs_url.replace('http://', 'ws://').replace('https://', 'wss://');
 
-      const new_socket = io(socket_url, {
-        transports: ['websocket', 'polling'],
-        reconnection: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 3000,
-      });
+      // 等待连接完成的 Promise
+      const connectPromise = new Promise<void>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('WebSocket 连接超时'));
+        }, 10000); // 10秒超时
 
-      new_socket.on('connect', () => {
-        console.log('[binance-store] WebSocket 已连接');
-      });
+        const new_socket = io(socket_url, {
+          transports: ['websocket', 'polling'],
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 3000,
+        });
 
-      new_socket.on('disconnect', () => {
-        console.log('[binance-store] WebSocket 已断开');
-      });
+        new_socket.on('connect', () => {
+          clearTimeout(timeout);
+          console.log('[binance-store] WebSocket 已连接');
+          resolve();
+        });
 
-      new_socket.on('connect_error', (error) => {
-        console.error('[binance-store] WebSocket 连接失败:', error.message);
-      });
+        new_socket.on('disconnect', () => {
+          console.log('[binance-store] WebSocket 已断开');
+        });
 
-      // 监听 ticker 更新
-      new_socket.on('ticker_update', (data: any) => {
-        const { symbol, price, market } = data;
-        if (symbol && price) {
-          set({
-            ticker_prices: {
-              ...get().ticker_prices,
-              [symbol]: {
-                symbol,
-                price: parseFloat(price),
-                market: market || 'usdm',
-                timestamp: Date.now()
+        new_socket.on('connect_error', (error) => {
+          clearTimeout(timeout);
+          console.error('[binance-store] WebSocket 连接失败:', error.message);
+          reject(error);
+        });
+
+        // 监听 ticker 更新
+        new_socket.on('ticker_update', (data: any) => {
+          const { symbol, price, market } = data;
+          if (symbol && price) {
+            set({
+              ticker_prices: {
+                ...get().ticker_prices,
+                [symbol]: {
+                  symbol,
+                  price: parseFloat(price),
+                  market: market || 'usdm',
+                  timestamp: Date.now()
+                }
               }
-            }
-          });
-        }
+            });
+          }
+        });
+
+        set({ socket: new_socket });
       });
 
-      set({ socket: new_socket });
+      // 等待连接完成
+      await connectPromise;
     } catch (error) {
       console.error('[binance-store] WebSocket 连接失败:', error);
+      throw error;
     }
   },
 

@@ -194,14 +194,26 @@ function GridStrategyEditPage() {
       return;
     }
 
-    // 连接 WebSocket
-    connectSocket();
+    let subscribed = false;
 
-    // 订阅 ticker
-    subscribeTicker(formData.trading_pair, 'usdm');
+    // 异步连接并订阅
+    (async () => {
+      try {
+        // 等待 WebSocket 连接完成
+        await connectSocket();
+
+        // 连接成功后再订阅 ticker
+        if (!subscribed) {
+          subscribeTicker(formData.trading_pair, 'usdm');
+        }
+      } catch (error) {
+        console.error('[edit] WebSocket 连接或订阅失败:', error);
+      }
+    })();
 
     // 清理函数：取消订阅
     return () => {
+      subscribed = true;
       unsubscribeTicker(formData.trading_pair, 'usdm');
     };
   }, [formData.trading_pair, formData.api_key, formData.secret_key, connectSocket, subscribeTicker, unsubscribeTicker]);
@@ -653,16 +665,14 @@ function GridStrategyEditPage() {
                 decimalScale={2}
                 placeholder={
                   currentMarkPrice !== null
-                    ? `当前价格 ${currentMarkPrice.toFixed(2)}（不填值时自动按当前价格建仓）`
+                    ? `当前价格 ${currentMarkPrice.toFixed(2)}`
                     : formData.trading_pair
                       ? '加载中...'
                       : '请先选择交易对'
                 }
               />
               <div className="help">
-                {currentMarkPrice !== null
-                  ? `当前标记价格：${currentMarkPrice.toFixed(2)}，不填值时自动按当前价格建仓`
-                  : '不填值时自动按当前价格建仓'}
+                不填值时则按当前价格建仓
               </div>
             </div>
           </div>
