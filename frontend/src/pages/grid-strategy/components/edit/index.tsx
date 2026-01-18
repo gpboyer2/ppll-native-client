@@ -27,7 +27,7 @@ function GridStrategyEditPage() {
   const is_editing = Boolean(id);
 
   // 使用币安 store
-  const { api_key_list, usdt_pairs, init, refreshTradingPairs, initialized, connectSocket, subscribeTicker, unsubscribeTicker, ticker_prices } = useBinanceStore();
+  const { api_key_list, usdt_pairs, init, refreshTradingPairs, initialized, connectSocket, subscribeTicker, unsubscribeTicker, ticker_prices, set_active_api_key } = useBinanceStore();
 
   // 表单数据状态
   const [formData, setFormData] = useState<GridStrategyForm>(defaultGridStrategy);
@@ -65,7 +65,7 @@ function GridStrategyEditPage() {
     status: 'idle' | 'loading' | 'success' | 'error';
     data?: any;
     error?: string;
-    errorType?: 'validation_failed' | 'vip_required' | 'network_error';
+    errorType?: 'validation_failed' | 'vip_required' | 'network_error' | 'signature_error' | 'invalid_api_key' | 'ip_restricted';
     ipAddress?: string;
   }>({ status: 'idle' });
 
@@ -76,52 +76,33 @@ function GridStrategyEditPage() {
 
   // 验证账户信息
   const validateAccountInfo = useCallback(async (api_key: string, secret_key: string) => {
-    console.log('[validateAccountInfo] ========== 开始验证账户信息 ==========');
-    console.log('[validateAccountInfo] 接收到的参数 - API Key:', api_key ? api_key.substring(0, 8) : 'empty');
-    console.log('[validateAccountInfo] 接收到的参数 - Secret:', secret_key ? secret_key.substring(0, 8) : 'empty');
-
     if (!api_key || !secret_key) {
-      console.log('[validateAccountInfo] API Key 或 Secret 为空，设置为 idle');
       setAccountValidation({ status: 'idle' });
       return;
     }
 
-    console.log('[validateAccountInfo] 设置状态为 loading');
     setAccountValidation({ status: 'loading' });
 
     try {
-      console.log('[validateAccountInfo] 准备发起 API 请求...');
-      console.log('[validateAccountInfo] 请求参数 - API Key:', api_key.substring(0, 8));
-      console.log('[validateAccountInfo] 请求参数 - Secret:', secret_key.substring(0, 8));
-
       const response = await BinanceAccountApi.getUSDMFutures({
         api_key,
         secret_key,
         include_positions: true
       });
 
-      console.log('[validateAccountInfo] 收到响应:', response.status, response.datum ? '有数据' : '无数据');
-      console.log('[validateAccountInfo] 账户余额:', response.datum?.availableBalance);
-
       if (response.status === 'success' && response.datum) {
-        console.log('[validateAccountInfo] 更新账户验证状态为 success，余额:', response.datum.availableBalance);
         setAccountValidation({
           status: 'success',
           data: response.datum
         });
-        console.log('[validateAccountInfo] 状态更新完成');
       } else {
-        console.log('[validateAccountInfo] 响应状态不是 success，处理错误');
         // 优先显示 datum 中的详细错误信息，如果没有才显示 message
         let error_message = response.datum && typeof response.datum === 'string'
           ? response.datum
           : response.message || '获取账户信息失败';
 
         // 判断错误类型
-        let error_type: 'validation_failed' | 'vip_required' | 'network_error' = 'validation_failed';
-        if (error_message.includes('您不是 VIP 用户') || error_message.includes('VIP 已过期')) {
-          error_type = 'vip_required';
-        }
+        let error_type: 'validation_failed' | 'vip_required' | 'network_error' | 'signature_error' | 'invalid_api_key' | 'ip_restricted' = 'validation_failed';
 
         // 提取IP地址
         let ip_address = undefined;
@@ -130,14 +111,21 @@ function GridStrategyEditPage() {
           ip_address = ip_match[1];
         }
 
-        // 针对常见错误提供友好提示
-        if (error_message.includes('Invalid API-key, IP, or permissions')) {
-          error_message = 'IP 白名单限制：当前服务器IP地址未加入币安API白名单';
-        } else if (error_message.includes('API-key')) {
-          error_message = `API Key 错误：${error_message}`;
+        // 识别错误类型并设置简洁的错误描述
+        if (error_message.includes('您不是 VIP 用户') || error_message.includes('VIP 已过期')) {
+          error_type = 'vip_required';
+          error_message = '您不是 VIP 用户，无法使用该功能';
+        } else if (error_message.includes('Signature for this request is not valid') || error_message.includes('签名错误')) {
+          error_type = 'signature_error';
+          error_message = '签名错误';
+        } else if (error_message.includes('Invalid API-key, IP, or permissions') || error_message.includes('IP 白名单限制')) {
+          error_type = 'ip_restricted';
+          error_message = 'IP 白名单限制';
+        } else if (error_message.includes('Invalid API-key') || error_message.includes('API-key')) {
+          error_type = 'invalid_api_key';
+          error_message = 'API Key 无效';
         }
 
-        console.log('[validateAccountInfo] 设置错误状态:', error_message);
         setAccountValidation({
           status: 'error',
           error: error_message,
@@ -146,14 +134,10 @@ function GridStrategyEditPage() {
         });
       }
     } catch (error: any) {
-      console.error('[validateAccountInfo] 验证账户信息失败:', error);
       let error_message = error.message || 'API Key 验证失败，请检查配置';
 
       // 判断错误类型
-      let error_type: 'validation_failed' | 'vip_required' | 'network_error' = 'validation_failed';
-      if (error_message.includes('您不是 VIP 用户') || error_message.includes('VIP 已过期')) {
-        error_type = 'vip_required';
-      }
+      let error_type: 'validation_failed' | 'vip_required' | 'network_error' | 'signature_error' | 'invalid_api_key' | 'ip_restricted' = 'validation_failed';
 
       // 提取IP地址
       let ip_address = undefined;
@@ -162,12 +146,24 @@ function GridStrategyEditPage() {
         ip_address = ip_match[1];
       }
 
-      // 针对常见错误提供友好提示
-      if (error_message.includes('Invalid API-key, IP, or permissions')) {
-        error_message = 'IP 白名单限制：当前服务器IP地址未加入币安API白名单';
+      // 识别错误类型并设置简洁的错误描述
+      if (error_message.includes('您不是 VIP 用户') || error_message.includes('VIP 已过期')) {
+        error_type = 'vip_required';
+        error_message = '您不是 VIP 用户，无法使用该功能';
+      } else if (error_message.includes('Signature for this request is not valid') || error_message.includes('签名错误')) {
+        error_type = 'signature_error';
+        error_message = '签名错误';
+      } else if (error_message.includes('Invalid API-key, IP, or permissions') || error_message.includes('IP 白名单限制')) {
+        error_type = 'ip_restricted';
+        error_message = 'IP 白名单限制';
+      } else if (error_message.includes('Invalid API-key') || error_message.includes('API-key')) {
+        error_type = 'invalid_api_key';
+        error_message = 'API Key 无效';
+      } else if (error_message.includes('网络') || error_message.includes('Network') || error_message.includes('ETIMEDOUT')) {
+        error_type = 'network_error';
+        error_message = '网络连接失败';
       }
 
-      console.log('[validateAccountInfo] 设置异常状态:', error_message);
       setAccountValidation({
         status: 'error',
         error: error_message,
@@ -195,10 +191,8 @@ function GridStrategyEditPage() {
           ...prev,
           leverage: response.datum.leverage
         }));
-        console.log(`已更新 ${symbol} 的杠杆倍数为: ${response.datum.leverage}`);
       }
     } catch (error) {
-      console.error('获取杠杆倍数失败:', error);
       // 失败时保持默认值
     }
   }, []);
@@ -258,7 +252,6 @@ function GridStrategyEditPage() {
       // 精确匹配 BTCUSDT
       if (usdt_pairs.includes('BTCUSDT')) {
         setFormData((prev: GridStrategyForm) => ({ ...prev, trading_pair: 'BTCUSDT' }));
-        console.log('已设置默认交易对: BTCUSDT');
       }
     }
   }, [usdt_pairs, is_editing, formData.trading_pair]);
@@ -333,7 +326,6 @@ function GridStrategyEditPage() {
         secret_key: first_api_key.secret_key,
         _api_key_id: first_api_key.id
       }));
-      console.log('已设置默认 API Key:', first_api_key.name, `(${first_api_key.api_key.substring(0, 8)}...)`);
 
       // 立即验证账户信息
       validateAccountInfo(first_api_key.api_key, first_api_key.secret_key);
@@ -511,10 +503,6 @@ function GridStrategyEditPage() {
 
   // 选择 API Key 后自动填充 Secret
   function handleApiKeyChange(value: string | null) {
-    console.log('[handleApiKeyChange] ========== 切换API Key开始 ==========');
-    console.log('[handleApiKeyChange] 切换API Key, value:', value);
-    console.log('[handleApiKeyChange] 当前 api_key_list 长度:', api_key_list.length);
-
     if (!value) {
       // 清空 API Key 时，重置所有关联状态
       setFormData((prev: GridStrategyForm) => ({
@@ -535,22 +523,16 @@ function GridStrategyEditPage() {
       setValidationHints({});
       // 清空实时标记价格
       setCurrentMarkPrice(null);
-      console.log('[handleApiKeyChange] ========== 清空完成 ==========');
       return;
     }
     const api_key_id = parseInt(value);
-    console.log('[handleApiKeyChange] 查找 API Key ID:', api_key_id);
 
     const selected_key = api_key_list.find((k: any) => k.id === api_key_id);
 
-    console.log('[handleApiKeyChange] selected_key:', selected_key ? {
-      id: selected_key.id,
-      name: selected_key.name,
-      api_key_prefix: selected_key.api_key.substring(0, 8)
-    } : 'not found');
-
     if (selected_key) {
-      console.log('[handleApiKeyChange] 准备更新表单数据');
+      // 同步更新 binance-store 的 active_api_key_id，确保后续 API 请求使用正确的凭证
+      set_active_api_key(String(selected_key.id));
+
       setFormData((prev: GridStrategyForm) => ({
         ...prev,
         api_key: selected_key.api_key,
@@ -572,11 +554,8 @@ function GridStrategyEditPage() {
       // 选择API Key后自动刷新交易对列表
       refreshTradingPairs();
       // 验证账户信息
-      console.log('[handleApiKeyChange] 即将验证账户信息, API Key:', selected_key.api_key.substring(0, 8), 'Secret:', selected_key.secret_key.substring(0, 8));
       validateAccountInfo(selected_key.api_key, selected_key.secret_key);
-      console.log('[handleApiKeyChange] ========== 切换完成 ==========');
     } else {
-      console.log('[handleApiKeyChange] 未找到对应的 API Key');
       setFormData((prev: GridStrategyForm) => ({
         ...prev,
         api_key: '',

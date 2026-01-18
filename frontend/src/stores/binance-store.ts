@@ -165,7 +165,6 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
     if (!nodejs_url) return;
 
     try {
-      console.log('[binance-store] 开始查询 API Key 列表');
       const response = await BinanceApiKeyApi.query();
 
       // 后端返回字段名直接使用，不做任何转换
@@ -173,7 +172,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         set({ api_key_list: response.datum.list });
       }
     } catch (error) {
-      console.error('[binance-store] 查询 API Key 失败:', error);
+      // 静默模式，不显示错误
     }
   },
 
@@ -182,30 +181,17 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
     const nodejs_url = await getNodejsUrl();
     if (!nodejs_url) return;
 
-    // 从 api_key_list 中获取第一个可用的 api_key
-    const api_key_list = get().api_key_list;
-    if (api_key_list.length === 0) {
-      console.warn('[binance-store] 无可用的 API Key，跳过获取交易对');
+    // 使用当前激活的 API Key，而不是第一个
+    const active_api_key = get().get_active_api_key();
+    if (!active_api_key) {
       return;
     }
 
-    const api_key = api_key_list[0];
-    console.log('[binance-store] 使用 API Key:', {
-      id: api_key.id,
-      name: api_key.name,
-      api_key: api_key.api_key.substring(0, 8) + '...',  // 脱敏
-      hasSecret: !!api_key.secret_key
-    });
-
     try {
       const params = {
-        api_key: api_key.api_key,
-        secret_key: api_key.secret_key
+        api_key: active_api_key.api_key,
+        secret_key: active_api_key.secret_key
       };
-      console.log('[binance-store] 调用 getExchangeInfo，参数:', {
-        api_key: params.api_key.substring(0, 8) + '...',
-        hasSecret: !!params.secret_key
-      });
 
       // 传递 api_key 和 secret_key 参数
       const response = await BinanceExchangeInfoApi.getExchangeInfo(params);
@@ -226,7 +212,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         });
       }
     } catch (error) {
-      console.error('[binance-store] 获取交易对失败:', error);
+      // 静默模式，不显示错误
     }
   },
 
@@ -283,17 +269,15 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
         new_socket.on('connect', () => {
           clearTimeout(timeout);
-          console.log('[binance-store] WebSocket 已连接');
           resolve();
         });
 
         new_socket.on('disconnect', () => {
-          console.log('[binance-store] WebSocket 已断开');
+          // WebSocket 断开
         });
 
         new_socket.on('connect_error', (error) => {
           clearTimeout(timeout);
-          console.error('[binance-store] WebSocket 连接失败:', error.message);
           reject(error);
         });
 

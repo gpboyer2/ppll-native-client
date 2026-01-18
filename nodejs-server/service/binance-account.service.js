@@ -43,7 +43,12 @@ const createClient = (marketType, api_key, secret_key) => {
   }
 
   // 记录客户端创建日志
-  UtilRecord.debug(`创建${marketType}客户端`, `api_key: ${api_key ? api_key.substring(0, 8) + '...' : 'undefined'}`);
+  UtilRecord.debug(`[createClient] 创建${marketType}客户端`, {
+    api_key_prefix: api_key ? api_key.substring(0, 8) + '...' : 'undefined',
+    secret_key_prefix: secret_key ? secret_key.substring(0, 8) + '...' : 'undefined',
+    api_key_length: api_key?.length || 0,
+    secret_key_length: secret_key?.length || 0
+  });
 
   const options = {
     api_key: api_key,
@@ -96,9 +101,7 @@ const createCoinMClient = (api_key, secret_key) => /** @type {CoinMClient} */ (c
  * @param {string} marketType - 市场类型：spot | usdm | coinm
  * @param {string} api_key - 用户API Key（用于数据隔离）
  * @param {string} secret_key - 用户API Secret
- * @param {Object} filterOptions - 过滤选项
- * @param {boolean} filterOptions.includePositions - 是否包含持仓信息（usdm/coinm）
- * @param {boolean} filterOptions.includeEmptyBalances - 是否包含空余额币种（spot）
+ * @param {{includePositions?: boolean, includeEmptyBalances?: boolean}} filterOptions - 过滤选项
  * @returns {Promise<Object>} 账户信息
  */
 const getAccountInfo = async (marketType, api_key, secret_key, filterOptions = {}) => {
@@ -106,46 +109,44 @@ const getAccountInfo = async (marketType, api_key, secret_key, filterOptions = {
   const marketLabel = { spot: '现货', usdm: 'U本位合约', coinm: '币本位合约' }[marketType];
 
   try {
-    // 1. 先查询数据库缓存（通过 api_key）
-    if (api_key && db[modelName]) {
-      const cached = await db[modelName].findOne({ where: { api_key: api_key } });
-      if (cached) {
-        const updated_at = new Date(cached.updated_at).getTime();
-        // 缓存未过期，直接返回
-        if (Date.now() - updated_at < CACHE_TTL_MS) {
-          const account_info = JSON.parse(cached.account_json);
-          UtilRecord.debug(`[账户服务] 数据库缓存命中: ${marketLabel} (api_key: ${api_key.substring(0, 8)}...)`);
-          return applyAccountFilter(account_info, marketType, filterOptions);
-        }
-      }
-    }
+    // 直接调用币安 API，不使用数据库缓存
+    UtilRecord.debug(`[账户服务] 直接调用币安 API: ${marketLabel}`, {
+      api_key_prefix: api_key.substring(0, 8) + '...',
+      secret_key_prefix: secret_key.substring(0, 8) + '...',
+      api_key_length: api_key.length,
+      secret_key_length: secret_key.length
+    });
 
-    // 2. 缓存过期或不存在，使用限流管理器调用API
     const client = createClient(marketType, api_key, secret_key);
 
     const account_info = await rateLimiter.execute(
       () => client.getAccountInformation(),
       {
-        api_key,
+        apiKey: api_key,
         method: `getAccountInformation_${marketType}`,
         params: {},
-        useCache: true,
+        useCache: false, // 禁用内存缓存
         retries: 3
       }
     );
 
-    // 3. 更新数据库缓存（通过 api_key）
+    // 仍然更新数据库缓存（用于调试和监控）
     if (api_key && db[modelName]) {
       await db[modelName].upsert({
         api_key: api_key,
         account_json: JSON.stringify(account_info)
       });
-      UtilRecord.debug(`[账户服务] 已更新数据库缓存: ${marketLabel} (api_key: ${api_key.substring(0, 8)}...)`);
+      UtilRecord.debug(`[账户服务] 已更新数据库缓存: ${marketLabel} (api_key: ${api_key.substring(0, 8)}...), availableBalance: ${account_info.availableBalance}`);
     }
 
     return applyAccountFilter(account_info, marketType, filterOptions);
   } catch (error) {
-    UtilRecord.log(`获取${marketLabel}账户信息失败:`, error);
+    UtilRecord.log(`获取${marketLabel}账户信息失败:`, {
+      api_key_prefix: api_key.substring(0, 8) + '...',
+      error_message: error.message,
+      error_code: error.code,
+      error_stack: error.stack?.split('\n')?.[0]
+    });
     throw error;
   }
 };
@@ -186,7 +187,7 @@ const applyAccountFilter = (account_info, marketType, filterOptions) => {
  * @returns {Promise<Object>} U本位合约账户信息
  */
 const getUSDMFuturesAccount = async (api_key, secret_key, includePositions = true) => {
-  return getAccountInfo('usdm', api_key, secret_key, { includePositions });
+  return getAccountInfo('usdm', api_key, secret_key, { includePositions, includeEmptyBalances: true });
 };
 
 /**
@@ -198,7 +199,7 @@ const getUSDMFuturesAccount = async (api_key, secret_key, includePositions = tru
  * @returns {Promise<Object>} 现货账户信息
  */
 const getSpotAccount = async (api_key, secret_key, includeEmptyBalances = true) => {
-  return getAccountInfo('spot', api_key, secret_key, { includeEmptyBalances });
+  return getAccountInfo('spot', api_key, secret_key, { includePositions: true, includeEmptyBalances });
 };
 
 /**
@@ -255,14 +256,16 @@ const getMaxLeverage = async (client, symbol) => {
     const response = await client.getNotionalAndLeverageBrackets({ symbol });
 
     // 处理不同的响应格式
-    /** @type {any[]} */
+    /** @type {any[] | null} */
     let brackets = null;
-    if (Array.isArray(response)) {
-      brackets = response;
-    } else if (response && Array.isArray(response.brackets)) {
-      brackets = response.brackets;
-    } else if (response && response.length > 0 && response[0] && Array.isArray(response[0].brackets)) {
-      brackets = response[0].brackets;
+    /** @type {any} */
+    const resp = response;
+    if (Array.isArray(resp)) {
+      brackets = resp;
+    } else if (resp && Array.isArray(resp.brackets)) {
+      brackets = resp.brackets;
+    } else if (resp && resp.length > 0 && resp[0] && Array.isArray(resp[0].brackets)) {
+      brackets = resp[0].brackets;
     }
 
     if (brackets && brackets.length > 0) {

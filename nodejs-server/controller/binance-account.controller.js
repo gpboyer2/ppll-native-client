@@ -11,13 +11,85 @@ const UtilRecord = require('../utils/record-log.js');
 
 /**
  * 通用错误处理函数
- * @param {Error} error - 错误对象
+ * @param {Error & {body?: string|{code?: number; msg?: string}, code?: number}} error - 错误对象
  * @param {Object} res - Express响应对象
  * @param {string} operation - 操作描述
  */
 const handleError = (error, res, operation) => {
   console.error(`${operation}出错:`, error);
-  return res.apiError(error.message || `${operation}失败`);
+
+  // 解析错误信息
+  let errorCode = null;
+  let errorMessage = error.message || `${operation}失败`;
+
+  // 尝试从 error.body 中提取错误代码
+  if (error.body) {
+    try {
+      const body = typeof error.body === 'string' ? JSON.parse(error.body) : error.body;
+      errorCode = body.code;
+      errorMessage = body.msg || errorMessage;
+    } catch (e) {
+      // 无法解析 body
+    }
+  }
+
+  // 检查 error.code
+  if (!errorCode && error.code) {
+    errorCode = error.code;
+  }
+
+  // 针对签名错误提供详细的用户引导
+  if (errorCode === -1022 || errorMessage.includes('Signature for this request is not valid')) {
+    return res.apiError(
+      null,
+      `API Key 配置错误，请检查以下项：
+
+1. 检查 API Key 是否正确复制
+   • 确保没有多余的空格
+   • 确保复制了完整的内容
+
+2. 检查 Secret Key 是否正确复制
+   • 确保没有多余的空格
+   • 确保复制了完整的内容
+
+3. 检查币安后台权限设置
+   • 访问：https://www.binance.com/zh-CN/my/settings/api-management
+   • 确保启用了「U本位合约交易」权限
+   • 如果设置了 IP 白名单，请删除限制或添加服务器 IP
+
+4. 重新生成 API Key
+   • 如果以上都正确，建议删除当前 API Key
+   • 重新生成新的 API Key 和 Secret Key
+   • 然后在系统中更新
+
+💡 提示：签名错误通常是因为 Secret Key 输入错误或权限设置不正确。`
+    );
+  }
+
+  // 针对无效 API Key 错误
+  if (errorCode === -2015 || errorMessage.includes('Invalid API-key')) {
+    return res.apiError(
+      null,
+      `API Key 无效，请检查以下项：
+
+1. 检查 API Key 是否正确复制
+   • 确保没有多余的空格
+   • 确保复制了完整的内容
+
+2. 检查币安后台 API Key 状态
+   • 访问：https://www.binance.com/zh-CN/my/settings/api-management
+   • 确认 API Key 是否被禁用或删除
+
+3. 重新生成 API Key
+   • 如果 API Key 已失效，请重新生成
+   • 然后在系统中更新
+
+💡 提示：API Key 可能已过期或被删除，需要重新生成。`
+    );
+  }
+
+  // 默认错误消息
+  return res.apiError(null, errorMessage);
 };
 
 
@@ -63,18 +135,6 @@ const getUSDMFuturesAccount = catchAsync(async (req, res) => {
       secret_key,
       includePositions
     );
-
-    // 只打印关键字段用于调试
-    console.log('[U本位合约账户] 关键字段:', {
-      availableBalance: account_info.availableBalance,
-      totalWalletBalance: account_info.totalWalletBalance,
-      totalMarginBalance: account_info.totalMarginBalance,
-      totalUnrealizedProfit: account_info.totalUnrealizedProfit,
-      feeTier: account_info.feeTier,
-      canTrade: account_info.canTrade,
-      positionsCount: account_info.positions?.length || 0,
-      assetsCount: account_info.assets?.length || 0
-    });
 
     const message = includePositions
       ? "获取U本位合约账户信息成功"

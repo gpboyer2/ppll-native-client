@@ -155,7 +155,7 @@ export class RequestWrapper {
         };
       }
     } catch (error) {
-      console.warn('[RequestWrapper] 获取 API Key 失败:', error);
+      // 静默处理
     }
     return {};
   }
@@ -232,9 +232,11 @@ export class RequestWrapper {
    */
   static async get<T = any>(url: string, params?: Record<string, any>): Promise<Response<T>> {
     // 如果需要 API Key，自动添加（手动传递的优先）
+    const autoParams = this.getApiKeyParams();
     const mergedParams = this.needsApiKey(url)
-      ? { ...this.getApiKeyParams(), ...params }
+      ? { ...autoParams, ...params }
       : params;
+
     return this.request<T>('GET', url, () => apiClient.get<T>(url, mergedParams), mergedParams);
   }
 

@@ -3,7 +3,47 @@ const catchAsync = require("../utils/catch-async");
 const ordersService = require("../service/orders.service.js");
 const bigNumber = require('bignumber.js');
 const UtilRecord = require("../utils/record-log.js");
-const binanceAccount = require("../binance/account");
+const { USDMClient } = require("binance");
+const proxy = require("../utils/proxy.js");
+
+// 最小余额要求
+const MIN_BALANCE_REQUIRED = 10;
+
+/**
+ * 检查账户余额是否充足
+ * @param {string} api_key - API密钥
+ * @param {string} secret_key - API密钥Secret
+ * @returns {Promise<Object>} 账户信息
+ */
+async function checkAccountBalance(api_key, secret_key) {
+  try {
+    const requestOptions = {
+      timeout: 10000,
+    };
+
+    // 从环境变量读取代理配置
+    const proxyConfig = proxy.getProxyConfig();
+    if (proxyConfig) {
+      requestOptions.proxy = proxyConfig;
+    }
+
+    const client = new USDMClient({
+      api_key: api_key,
+      api_secret: secret_key,
+      beautify: true,
+    }, requestOptions);
+
+    const accountInfo = await client.getAccountInformation();
+
+    if (new bigNumber(accountInfo.availableBalance).isLessThan(MIN_BALANCE_REQUIRED)) {
+      throw new Error(`当前合约账户余额${accountInfo.availableBalance}, 不足${MIN_BALANCE_REQUIRED}u, 请充值`);
+    }
+
+    return accountInfo;
+  } catch (error) {
+    throw new Error(`获取账户信息失败: ${error.message}`);
+  }
+}
 
 /**
  * 参数验证中间件
@@ -123,7 +163,7 @@ const batchInspect = catchAsync(async (req, res) => {
   const { api_key, secret_key } = req.body;
 
   // 获取账户信息
-  const account_info = await binanceAccount.checkAccountBalance(api_key, secret_key);
+  const account_info = await checkAccountBalance(api_key, secret_key);
   const positions = account_info.positions;
 
   const missingPositions = {}; // 缺少对冲仓交易对

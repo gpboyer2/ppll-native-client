@@ -186,7 +186,6 @@ export function ReferralCommissionDialog({
   // 下次不再提示
   function handleToggleDontShow(e: React.ChangeEvent<HTMLInputElement>) {
     const checked = e.target.checked;
-    console.log('下次不再提示:', checked);
     // TODO: 将设置保存到 localStorage
   }
 
