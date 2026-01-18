@@ -12,6 +12,87 @@
 const BigNumber = require('bignumber.js');
 const binanceExchangeInfoService = require('./binance-exchange-info.service');
 
+/**
+ * 获取数字的小数位数
+ * @param {string|number} numberStr 数字
+ * @returns {number} 小数位数
+ */
+const getDecimalPlaces = (numberStr) => {
+  if (!numberStr || numberStr === '0') return 0;
+
+  const str = String(numberStr);
+  const parts = str.split('.');
+  if (parts.length < 2) return 0;
+
+  // 移除尾部的零
+  const decimals = parts[1].replace(/0+$/, '');
+  return decimals.length || 0;
+};
+
+/**
+ * 智能格式化数值，根据精度规则和当前价格动态确定小数位数
+ * @param {number|string|BigNumber} value 原始值
+ * @param {Object} precision_rules 精度规则 { tickSize, stepSize }
+ * @param {boolean} isPrice 是否为价格（true使用tickSize，false使用stepSize）
+ * @param {number} current_price 当前价格（用于确定基础精度）
+ * @param {number} defaultDecimals 默认小数位数
+ * @returns {string} 格式化后的字符串
+ */
+const smartFormat = (value, precision_rules, isPrice = true, current_price = null, defaultDecimals = 2) => {
+  if (!precision_rules) {
+    return new BigNumber(value).toFixed(defaultDecimals);
+  }
+
+  const step = isPrice ? precision_rules.tickSize : precision_rules.stepSize;
+
+  if (!step || step <= 0) {
+    return new BigNumber(value).toFixed(defaultDecimals);
+  }
+
+  // 1. 确定基础精度
+  let basePrecision;
+
+  if (isPrice && current_price) {
+    // 优先使用当前价格的小数位数
+    basePrecision = getDecimalPlaces(current_price);
+  } else {
+    // 否则使用交易规则（tickSize 或 stepSize）的精度
+    basePrecision = getDecimalPlaces(step);
+  }
+
+  // 确保基础精度至少为 1
+  basePrecision = Math.max(basePrecision, 1);
+
+  // 2. 尝试用基础精度格式化
+  let formatted = new BigNumber(value).toFixed(basePrecision);
+  let actualPrecision = basePrecision;
+
+  // 3. 如果格式化后是 0（但原值不是 0），增加位数直到能显示
+  const numValue = parseFloat(String(value));
+  const formattedNum = parseFloat(formatted);
+
+  if (numValue > 0 && formattedNum === 0) {
+    // 自动增加精度，最多到 8 位
+    while (actualPrecision <= 8) {
+      actualPrecision++;
+      formatted = new BigNumber(value).toFixed(actualPrecision);
+      if (parseFloat(formatted) > 0) {
+        break;
+      }
+    }
+  }
+
+  // 4. 对于大价格，限制精度避免过多小数位
+  if (isPrice && numValue >= 10) {
+    // 价格 >= 10 时，最多保留 4 位小数
+    const maxPrecision = numValue >= 1000 ? 2 : 4;
+    actualPrecision = Math.min(actualPrecision, maxPrecision);
+    formatted = new BigNumber(value).toFixed(actualPrecision);
+  }
+
+  return formatted;
+};
+
 // K线缓存和币安客户端
 const {
   createClient,
@@ -315,15 +396,15 @@ const optimizeForProfit = (params) => {
       if (daily_profit > max_daily_profit) {
         max_daily_profit = daily_profit;
         best_config = {
-          grid_spacing: new BigNumber(grid_spacing).toFixed(6),
+          grid_spacing: smartFormat(grid_spacing, precision_rules, true, market.avg_price),
           grid_spacing_percent: new BigNumber(grid_spacing / avg_price * 100).toFixed(4) + '%',
-          trade_quantity: new BigNumber(trade_quantity).toFixed(6),
+          trade_quantity: smartFormat(trade_quantity, precision_rules, false),
           trade_value: new BigNumber(trade_value).toFixed(2),
           expected_daily_frequency: new BigNumber(daily_frequency).toFixed(2),
           expected_daily_profit: new BigNumber(daily_profit).toFixed(2),
           expected_daily_fee: new BigNumber(daily_fee).toFixed(2),
           expected_daily_roi: new BigNumber(daily_roi * 100).toFixed(4) + '%',
-          single_net_profit: new BigNumber(net_profit).toFixed(6),
+          single_net_profit: smartFormat(net_profit, precision_rules, true, market.avg_price),
           turnover_ratio: new BigNumber(turnover_ratio * 100).toFixed(2) + '%'
         };
       }
@@ -337,14 +418,14 @@ const optimizeForProfit = (params) => {
       .sort((a, b) => b.daily_profit - a.daily_profit)
       .slice(0, 5)
       .map(config => ({
-        grid_spacing: new BigNumber(config.grid_spacing).toFixed(6),
+        grid_spacing: smartFormat(config.grid_spacing, precision_rules, true, market.avg_price),
         grid_spacing_percent: new BigNumber(config.grid_spacing_percent).toFixed(4) + '%',
-        trade_quantity: new BigNumber(config.trade_quantity).toFixed(6),
+        trade_quantity: smartFormat(config.trade_quantity, precision_rules, false),
         trade_value: new BigNumber(config.trade_value).toFixed(2),
         expected_daily_frequency: new BigNumber(config.daily_frequency).toFixed(2),
         expected_daily_profit: new BigNumber(config.daily_profit).toFixed(2),
         expected_daily_roi: new BigNumber(config.daily_roi * 100).toFixed(4) + '%',
-        single_net_profit: new BigNumber(config.net_profit).toFixed(6),
+        single_net_profit: smartFormat(config.net_profit, precision_rules, true, market.avg_price),
         turnover_ratio: new BigNumber(config.turnover_ratio * 100).toFixed(2) + '%'
       }));
     analysis = {
@@ -497,9 +578,9 @@ const optimizeForCostReduction = (params) => {
       if (efficiency > max_efficiency) {
         max_efficiency = efficiency;
         best_config = {
-          grid_spacing: new BigNumber(grid_spacing).toFixed(6),
+          grid_spacing: smartFormat(grid_spacing, precision_rules, true, market.avg_price),
           grid_spacing_percent: new BigNumber(grid_spacing / avg_price * 100).toFixed(4) + '%',
-          trade_quantity: new BigNumber(trade_quantity).toFixed(6),
+          trade_quantity: smartFormat(trade_quantity, precision_rules, false),
           trade_value: new BigNumber(trade_value).toFixed(2),
           expected_daily_frequency: new BigNumber(daily_frequency).toFixed(2),
           expected_daily_profit: new BigNumber(daily_profit).toFixed(2),
@@ -508,7 +589,7 @@ const optimizeForCostReduction = (params) => {
           turnover_ratio: new BigNumber(turnover_ratio * 100).toFixed(2) + '%',
           // 新增：效率指标
           efficiency: new BigNumber(efficiency).toFixed(6),
-          single_net_profit: new BigNumber(net_profit).toFixed(6)
+          single_net_profit: smartFormat(net_profit, precision_rules, true, market.avg_price)
         };
       }
     }
@@ -521,14 +602,14 @@ const optimizeForCostReduction = (params) => {
       .sort((a, b) => b.efficiency - a.efficiency)
       .slice(0, 3)
       .map(config => ({
-        grid_spacing: new BigNumber(config.grid_spacing).toFixed(6),
+        grid_spacing: smartFormat(config.grid_spacing, precision_rules, true, market.avg_price),
         grid_spacing_percent: new BigNumber(config.grid_spacing / avg_price * 100).toFixed(4) + '%',
-        trade_quantity: new BigNumber(config.trade_quantity).toFixed(6),
+        trade_quantity: smartFormat(config.trade_quantity, precision_rules, false),
         trade_value: new BigNumber(config.trade_value).toFixed(2),
         expected_daily_frequency: new BigNumber(config.daily_frequency).toFixed(2),
         expected_daily_profit: new BigNumber(config.daily_profit).toFixed(2),
         expected_daily_roi: new BigNumber((config.daily_profit / total_capital) * 100).toFixed(4) + '%',
-        single_net_profit: new BigNumber(config.net_profit).toFixed(6),
+        single_net_profit: smartFormat(config.net_profit, precision_rules, true, market.avg_price),
         turnover_ratio: new BigNumber(config.turnover_ratio * 100).toFixed(2) + '%'
       }));
     analysis = {
@@ -673,15 +754,15 @@ const optimizeForBoundary = (params) => {
     if (daily_frequency < min_daily_frequency) {
       min_daily_frequency = daily_frequency;
       best_config = {
-        grid_spacing: new BigNumber(grid_spacing).toFixed(6),
+        grid_spacing: smartFormat(grid_spacing, precision_rules, true, market.avg_price),
         grid_spacing_percent: new BigNumber(grid_spacing / avg_price * 100).toFixed(4) + '%',
-        trade_quantity: new BigNumber(trade_quantity).toFixed(6),
+        trade_quantity: smartFormat(trade_quantity, precision_rules, false),
         trade_value: new BigNumber(trade_value).toFixed(2),
         expected_daily_frequency: new BigNumber(daily_frequency).toFixed(2),
         expected_daily_profit: new BigNumber(daily_profit).toFixed(2),
         expected_daily_fee: new BigNumber(daily_fee).toFixed(2),
         expected_daily_roi: new BigNumber(daily_roi * 100).toFixed(4) + '%',
-        single_net_profit: new BigNumber(net_profit).toFixed(6),
+        single_net_profit: smartFormat(net_profit, precision_rules, true, market.avg_price),
         turnover_ratio: new BigNumber(turnover_ratio * 100).toFixed(2) + '%'
       };
     }
@@ -694,14 +775,14 @@ const optimizeForBoundary = (params) => {
       .sort((a, b) => a.daily_frequency - b.daily_frequency) // 按频率从低到高排序
       .slice(0, 3)
       .map(config => ({
-        grid_spacing: new BigNumber(config.grid_spacing).toFixed(6),
+        grid_spacing: smartFormat(config.grid_spacing, precision_rules, true, market.avg_price),
         grid_spacing_percent: new BigNumber(config.grid_spacing_percent).toFixed(4) + '%',
-        trade_quantity: new BigNumber(config.trade_quantity).toFixed(6),
+        trade_quantity: smartFormat(config.trade_quantity, precision_rules, false),
         trade_value: new BigNumber(config.trade_value).toFixed(2),
         expected_daily_frequency: new BigNumber(config.daily_frequency).toFixed(2),
         expected_daily_profit: new BigNumber(config.daily_profit).toFixed(2),
         expected_daily_roi: new BigNumber(config.daily_roi * 100).toFixed(4) + '%',
-        single_net_profit: new BigNumber(config.net_profit).toFixed(6),
+        single_net_profit: smartFormat(config.net_profit, precision_rules, true, market.avg_price),
         turnover_ratio: new BigNumber(config.turnover_ratio * 100).toFixed(2) + '%'
       }));
     analysis = {
@@ -889,6 +970,14 @@ const optimizeGridParams = async (options) => {
   const riskResult = calculateRiskLevel(volatility_level, 20, grid_spacing_percent, volatility_percent);
 
   // 6. 返回结果（参数已在计算时符合交易所规则）
+  const precision_rules_for_return = {
+    minQty,
+    maxQty,
+    stepSize,
+    tickSize,
+    minPrice
+  };
+
   return {
     symbol,
     interval,
@@ -903,11 +992,11 @@ const optimizeGridParams = async (options) => {
 
     // 市场分析数据
     market: {
-      current_price: new BigNumber(market.currentPrice).toFixed(6),
-      support: new BigNumber(market.support).toFixed(6),
-      resistance: new BigNumber(market.resistance).toFixed(6),
-      avg_price: new BigNumber(market.avgPrice).toFixed(6),
-      price_range: new BigNumber(market.priceRange).toFixed(6),
+      current_price: smartFormat(market.currentPrice, precision_rules_for_return, true, market.currentPrice),
+      support: smartFormat(market.support, precision_rules_for_return, true, market.currentPrice),
+      resistance: smartFormat(market.resistance, precision_rules_for_return, true, market.currentPrice),
+      avg_price: smartFormat(market.avg_price, precision_rules_for_return, true, market.currentPrice),
+      price_range: smartFormat(market.price_range, precision_rules_for_return, true, market.currentPrice),
       // 波动率及其评级
       volatility: new BigNumber(volatility_percent).toFixed(2) + '%',
       volatility_level: volatility_level,
@@ -917,8 +1006,8 @@ const optimizeGridParams = async (options) => {
           ? `市场波动适中，价格波动约 ${volatility_percent.toFixed(2)}%，网格策略收益稳定，风险可控，适合稳健型投资者`
           : `市场波动偏低（${volatility_percent.toFixed(2)}%），价格变化较小，网格策略收益空间有限，建议选择波动更大的交易对或降低交易频次`,
       // ATR及其说明
-      atr: new BigNumber(atr).toFixed(2),
-      atr_desc: `每${interval_config.label}平均波动 ${new BigNumber(atr).toFixed(2)} USDT`,
+      atr: smartFormat(atr, precision_rules_for_return, true, market.currentPrice),
+      atr_desc: `每${interval_config.label}平均波动 ${smartFormat(atr, precision_rules_for_return, true, market.currentPrice)} USDT`,
       kline_count: kline_list.length,
       // 算法状态信息
       algorithm_status: market.algorithmStatus,

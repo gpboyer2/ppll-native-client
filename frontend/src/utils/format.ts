@@ -64,6 +64,84 @@ export class NumberFormat {
     // 移除末尾的 0（可选）
     return truncated.toFixed();
   }
+
+  /**
+   * 格式化金额（USDT），简单直接的规则
+   * - 最多 3 位小数
+   * - 自动移除末尾的 0
+   * - 如果格式化后是 0（但原值不是 0），增加位数确保显示非零值
+   * @param value 数值，支持 number、string、BigNumber
+   * @returns 格式化后的字符串
+   */
+  static formatAmount(value: number | string | BigNumber): string {
+    const valueStr = typeof value === 'number' ? value.toString() : value;
+    const bn = new BigNumber(valueStr);
+
+    // 保留最多 3 位小数
+    let formatted = bn.toFixed(3);
+
+    // 移除末尾的 0
+    if (formatted.includes('.')) {
+      formatted = formatted.replace(/\.?0+$/, '');
+    }
+
+    // 如果格式化后是 0（但原值不是 0），增加位数确保显示非零值
+    if (formatted === '0' && !bn.isZero()) {
+      for (let decimals = 4; decimals <= 8; decimals++) {
+        formatted = bn.toFixed(decimals);
+        // 移除末尾的 0
+        if (formatted.includes('.')) {
+          formatted = formatted.replace(/\.?0+$/, '');
+        }
+        if (formatted !== '0') {
+          break;
+        }
+      }
+    }
+
+    return formatted;
+  }
+
+  /**
+   * 格式化数量（个），根据数值大小智能调整小数位数
+   * @param value 数值，支持 number、string、BigNumber
+   * @returns 格式化后的字符串
+   */
+  static formatQuantity(value: number | string | BigNumber): string {
+    const valueStr = typeof value === 'number' ? value.toString() : value;
+    const bn = new BigNumber(valueStr);
+    const numValue = parseFloat(valueStr);
+
+    // 确定精度
+    let precision = 0; // 默认整数
+
+    if (numValue >= 1000) {
+      // 大数量：整数
+      precision = 0;
+    } else if (numValue >= 10) {
+      // 中等数量：0-2 位小数
+      precision = 1;
+    } else if (numValue >= 1) {
+      // 1-10：1-2 位小数
+      precision = 2;
+    } else if (numValue > 0) {
+      // 小数量：需要更多位数确保不显示为 0
+      for (let p = 1; p <= 6; p++) {
+        const formatted = bn.toFixed(p);
+        if (parseFloat(formatted) > 0) {
+          precision = p;
+          break;
+        }
+      }
+    }
+
+    // 如果精度为 0，返回整数
+    if (precision === 0) {
+      return bn.integerValue().toString();
+    }
+
+    return bn.toFixed(precision);
+  }
 }
 
 /**
