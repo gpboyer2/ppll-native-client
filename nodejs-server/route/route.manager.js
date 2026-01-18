@@ -32,6 +32,7 @@ const systemRoute = require("./v1/system.route");
 const databaseAdminRoute = require("./v1/database-admin.route");
 const frontendLogRoute = require("./v1/frontend-log.route");
 const hourlyKlineRoute = require("./v1/hourly-kline.route");
+const usdMFuturesPluginLogRoute = require("./v1/usd-m-futures-plugin-log.route");
 
 const routeManager = (app) => {
   // API V1 Routes - 统一使用 /api/v1 前缀
@@ -61,6 +62,7 @@ const routeManager = (app) => {
   app.use("/api/v1/database-admin", databaseAdminRoute);
   app.use("/api/v1/frontend-logs", frontendLogRoute);
   app.use("/api/v1/hourly-kline", hourlyKlineRoute);
+  app.use("/api/v1/usd-m-futures-plugin-log", usdMFuturesPluginLogRoute);
 };
 
 module.exports = routeManager;

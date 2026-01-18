@@ -108,9 +108,8 @@ export class NumberFormat {
    * @returns 格式化后的字符串
    */
   static formatQuantity(value: number | string | BigNumber): string {
-    const valueStr = typeof value === 'number' ? value.toString() : value;
-    const bn = new BigNumber(valueStr);
-    const numValue = parseFloat(valueStr);
+    const bn = new BigNumber(value.toString());
+    const numValue = parseFloat(value.toString());
 
     // 确定精度
     let precision = 0; // 默认整数

@@ -67,7 +67,7 @@ function GridStrategyDetailPage() {
     if (!id) return;
 
     try {
-      const response = await GridStrategyApi.list({});
+      const response = await GridStrategyApi.list({ current_page: 1, page_size: 1000 });
       if (response.status === 'success' && response.datum && response.datum.list) {
         const strategy_detail = response.datum.list.find((s: any) => s.id === parseInt(id));
         if (strategy_detail) {
@@ -144,7 +144,7 @@ function GridStrategyDetailPage() {
 
   useEffect(() => {
     if (strategy?.trading_pair && ticker_prices[strategy.trading_pair]) {
-      setCurrentPrice(ticker_prices[strategy.trading_pair]);
+      setCurrentPrice(ticker_prices[strategy.trading_pair].price);
     }
   }, [ticker_prices, strategy?.trading_pair]);
 

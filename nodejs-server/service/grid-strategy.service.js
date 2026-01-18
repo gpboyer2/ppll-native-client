@@ -14,6 +14,7 @@ const { createTradeHistory } = require('./grid-trade-history.service.js');
 const dayjs = require("dayjs");
 const UtilRecord = require('../utils/record-log.js');
 const ApiError = require("../utils/api-error");
+const usd_m_futures_infinite_grid_event_manager = require('../managers/usd-m-futures-infinite-grid-event-manager');
 
 
 global.gridMap = global.gridMap || {}; // 存储所有网格实例：id -> grid 实例
@@ -220,6 +221,16 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
       timestamp: dayjs().format('YYYY-MM-DD HH:mm:ss')
     });
     console.error("InfiniteGrid error:", data);
+
+    // 记录到插件事件管理器
+    await usd_m_futures_infinite_grid_event_manager.logEvent({
+      strategy_id: this.config.id,
+      trading_pair: this.config.trading_pair,
+      event_type: usd_m_futures_infinite_grid_event_manager.eventTypes.WARN,
+      level: 'warn',
+      message: data.message || '网格策略警告',
+      details: data,
+    });
   };
 
   // 绑定建仓成功事件
@@ -298,6 +309,22 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
     }).catch((err) => {
       console.error("Error creating trade history for open position:", err);
     });
+
+    // 记录建仓事件到插件事件管理器
+    await usd_m_futures_infinite_grid_event_manager.logEvent({
+      strategy_id: wealthySoon.config.id,
+      trading_pair: data.symbol,
+      event_type: usd_m_futures_infinite_grid_event_manager.eventTypes.OPEN_POSITION,
+      level: 'success',
+      message: `建仓成功: ${data.side} ${data.executedQty} @ ${data.avgPrice}`,
+      details: {
+        side: data.side,
+        quantity: data.executedQty,
+        price: data.avgPrice,
+        order_id: data.orderId,
+        position_side: data.position_side,
+      },
+    });
   };
 
   // 绑定平仓成功事件
@@ -351,6 +378,22 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
       remark: "Close position"
     }).catch((err) => {
       console.error("Error creating trade history for close position:", err);
+    });
+
+    // 记录平仓事件到插件事件管理器
+    await usd_m_futures_infinite_grid_event_manager.logEvent({
+      strategy_id: wealthySoon.config.id,
+      trading_pair: data.symbol,
+      event_type: usd_m_futures_infinite_grid_event_manager.eventTypes.CLOSE_POSITION,
+      level: 'success',
+      message: `平仓成功: ${data.side} ${data.executedQty} @ ${data.avgPrice}`,
+      details: {
+        side: data.side,
+        quantity: data.executedQty,
+        price: data.avgPrice,
+        order_id: data.orderId,
+        position_side: data.position_side,
+      },
     });
   };
 
