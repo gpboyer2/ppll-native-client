@@ -111,12 +111,29 @@ const getTableDetail = async (tableName) => {
     }
 
     const tableInfo = await db.sequelize.query(`PRAGMA table_info("${tableName}")`);
+
+    // 尝试从 Sequelize 模型中获取注释信息
+    const model_comment_map = {};
+    try {
+      const model = db.sequelize.models[tableName];
+      if (model && model.rawAttributes) {
+        for (const [field_name, attribute] of Object.entries(model.rawAttributes)) {
+          if (attribute.comment) {
+            model_comment_map[field_name] = attribute.comment;
+          }
+        }
+      }
+    } catch (e) {
+      // 忽略模型获取错误,继续执行
+    }
+
     const columns = tableInfo[0].map(col => ({
       name: col.name,
       type: col.type,
       nullable: col.notnull === 0,
       defaultValue: col.dflt_value,
-      primaryKey: col.pk > 0
+      primaryKey: col.pk > 0,
+      comment: model_comment_map[col.name] || null
     }));
 
     const indexInfo = await db.sequelize.query(`PRAGMA index_list("${tableName}")`);
