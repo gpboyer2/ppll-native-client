@@ -18,7 +18,12 @@ import {
   IconActivity,
   IconCoins,
   IconChartBar,
-  IconSettings
+  IconSettings,
+  IconFileText,
+  IconAlertCircle,
+  IconInfoCircle,
+  IconCheck,
+  IconBug
 } from '@tabler/icons-react';
 
 interface GridStrategyDetail {
@@ -51,6 +56,17 @@ interface GridStrategyDetail {
   liquidation_price?: number;
 }
 
+interface PluginLog {
+  id: number;
+  strategy_id: number;
+  trading_pair: string;
+  event_type: string;
+  level: string;
+  message: string;
+  details: any;
+  created_at: string;
+}
+
 function GridStrategyDetailPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -60,6 +76,8 @@ function GridStrategyDetailPage() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
+  const [pluginLogs, setPluginLogs] = useState<PluginLog[]>([]);
+  const [logLoading, setLogLoading] = useState(false);
 
   const { ticker_prices, subscribeTicker, unsubscribeTicker } = useBinanceStore();
 
@@ -135,6 +153,26 @@ function GridStrategyDetailPage() {
     navigate(`${ROUTES.GRID_STRATEGY_EDIT}?copy_from=${strategy.id}`);
   };
 
+  const loadPluginLogs = useCallback(async () => {
+    if (!id) return;
+
+    setLogLoading(true);
+    try {
+      const response = await GridStrategyApi.getPluginLogs({
+        strategy_id: parseInt(id),
+        current_page: 1,
+        page_size: 20
+      });
+      if (response.status === 'success' && response.datum) {
+        setPluginLogs(response.datum.list || []);
+      }
+    } catch (error) {
+      console.error('加载日志失败:', error);
+    } finally {
+      setLogLoading(false);
+    }
+  }, [id]);
+
   useEffect(() => {
     if (strategy?.trading_pair) {
       subscribeTicker(strategy.trading_pair);
@@ -151,6 +189,12 @@ function GridStrategyDetailPage() {
   useEffect(() => {
     loadStrategyDetail();
   }, [loadStrategyDetail]);
+
+  useEffect(() => {
+    if (strategy) {
+      loadPluginLogs();
+    }
+  }, [strategy, loadPluginLogs]);
 
   if (loading) {
     return (
@@ -200,6 +244,42 @@ function GridStrategyDetailPage() {
   };
 
   const run_duration = strategy.start_time ? formatRunDuration(strategy.start_time) : '未启动';
+
+  const getLogIcon = (level: string) => {
+    switch (level) {
+      case 'error': return <IconAlertCircle size={14} />;
+      case 'warn': return <IconAlertCircle size={14} />;
+      case 'success': return <IconCheck size={14} />;
+      case 'debug': return <IconBug size={14} />;
+      default: return <IconInfoCircle size={14} />;
+    }
+  };
+
+  const getLogColor = (level: string) => {
+    switch (level) {
+      case 'error': return 'var(--color-error)';
+      case 'warn': return 'rgb(234, 179, 8)';
+      case 'success': return 'var(--color-success)';
+      case 'debug': return 'rgb(156, 163, 175)';
+      default: return 'rgb(59, 130, 246)';
+    }
+  };
+
+  const getEventTypeName = (event_type: string) => {
+    const type_map: Record<string, string> = {
+      'error': '错误',
+      'warn': '警告',
+      'info': '信息',
+      'success': '成功',
+      'pause': '暂停',
+      'resume': '恢复',
+      'open_position': '开仓',
+      'close_position': '平仓',
+      'limit_reached': '限制触发',
+      'debug': '调试'
+    };
+    return type_map[event_type] || event_type;
+  };
 
   const profit_rate = strategy.total_open_position_value > 0
     ? (strategy.total_profit_loss / strategy.total_open_position_value) * 100
@@ -385,7 +465,48 @@ function GridStrategyDetailPage() {
 
           <div className="detail-card">
             <div className="detail-card-header">
-              <h3>费用明细</h3>
+              <div className="detail-card-header-left">
+                <IconFileText size={16} />
+                <h3>插件日志</h3>
+              </div>
+              <button className="action-btn" onClick={loadPluginLogs} disabled={logLoading}>
+                <IconRefresh size={14} />
+              </button>
+            </div>
+            <div className="detail-card-body">
+              {logLoading ? (
+                <div className="logs-loading">加载中...</div>
+              ) : pluginLogs.length === 0 ? (
+                <div className="logs-empty">暂无日志</div>
+              ) : (
+                <div className="logs-list">
+                  {pluginLogs.map((log) => (
+                    <div key={log.id} className="log-item">
+                      <div className="log-item-header">
+                        <div className="log-item-left">
+                          <span className="log-icon" style={{ color: getLogColor(log.level) }}>
+                            {getLogIcon(log.level)}
+                          </span>
+                          <span className="log-type">{getEventTypeName(log.event_type)}</span>
+                        </div>
+                        <span className="log-time">
+                          {new Date(log.created_at).toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="log-message">{log.message}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="detail-card">
+            <div className="detail-card-header">
+              <div className="detail-card-header-left">
+                <IconCoins size={16} />
+                <h3>费用明细</h3>
+              </div>
             </div>
             <div className="detail-card-body">
               <div className="fee-row">

@@ -86,4 +86,25 @@ export class GridStrategyApi {
   }): Promise<Response<any>> {
     return RequestWrapper.post(`${this.BASE_PATH}/optimize`, data);
   }
+
+  /**
+   * 获取插件日志列表
+   */
+  static async getPluginLogs(params: PageRequest & {
+    strategy_id?: number
+    trading_pair?: string
+    event_type?: string
+    level?: string
+    start_time?: string
+    end_time?: string
+  }): Promise<Response<PageData<any>>> {
+    return RequestWrapper.get('/api/v1/usd-m-futures-plugin-log/list', params);
+  }
+
+  /**
+   * 获取插件日志统计
+   */
+  static async getPluginLogStatistics(strategy_id?: number): Promise<Response<any>> {
+    return RequestWrapper.get('/api/v1/usd-m-futures-plugin-log/statistics', { strategy_id });
+  }
 }
