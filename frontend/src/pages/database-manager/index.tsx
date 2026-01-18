@@ -78,6 +78,7 @@ function DatabaseManagerPage() {
   const [loading, setLoading] = useState(false);
   const [sqlQuery, setSqlQuery] = useState('SELECT * FROM users LIMIT 10');
   const [queryResult, setQueryResult] = useState<any>(null);
+  const [selectedRowList, setSelectedRowList] = useState<any[]>([]);
 
   // 是否已经从 URL 参数初始化过选中表
   const initialized_from_url_ref = useRef(false);
@@ -238,6 +239,70 @@ function DatabaseManagerPage() {
       fetch_table_data();
       fetch_table_list();
     }
+  };
+
+  // 批量删除数据
+  const handle_batch_delete_rows = async () => {
+    if (selectedRowList.length === 0) return;
+    if (!confirm(`确定要删除选中的 ${selectedRowList.length} 条记录吗？此操作不可恢复！`)) return;
+
+    const response = await ApiEndpoints.deleteData(selectedTable, selectedRowList);
+    if (response.status === 'success') {
+      notifications.show({
+        title: '删除成功',
+        message: `已删除 ${selectedRowList.length} 条记录`,
+        color: 'teal'
+      });
+      setSelectedRowList([]);
+      fetch_table_data();
+      fetch_table_list();
+    } else {
+      notifications.show({
+        title: '删除失败',
+        message: response.message || '操作失败',
+        color: 'red'
+      });
+    }
+  };
+
+  // 切换行选中状态
+  const toggle_row_selection = (rowId: any) => {
+    if (selectedRowList.includes(rowId)) {
+      setSelectedRowList(selectedRowList.filter(id => id !== rowId));
+    } else {
+      setSelectedRowList([...selectedRowList, rowId]);
+    }
+  };
+
+  // 全选/取消全选当前页
+  const toggle_select_all = () => {
+    if (!tableData || !tableDetail) return;
+    const pk_column = tableDetail.columns.find(c => c.primaryKey);
+    if (!pk_column) return;
+
+    const current_page_ids = tableData.list.map(row => row[pk_column.name]);
+    const all_selected = current_page_ids.every(id => selectedRowList.includes(id));
+
+    if (all_selected) {
+      // 取消全选当前页
+      setSelectedRowList(selectedRowList.filter(id => !current_page_ids.includes(id)));
+    } else {
+      // 全选当前页
+      const new_selected = [...selectedRowList];
+      current_page_ids.forEach(id => {
+        if (!new_selected.includes(id)) {
+          new_selected.push(id);
+        }
+      });
+      setSelectedRowList(new_selected);
+    }
+  };
+
+  // 获取行的主键值
+  const get_row_id = (row: any) => {
+    if (!tableDetail) return null;
+    const pk_column = tableDetail.columns.find(c => c.primaryKey);
+    return pk_column ? row[pk_column.name] : null;
   };
 
   // 重命名表
@@ -449,6 +514,8 @@ function DatabaseManagerPage() {
     if (selectedTable && activeTab === 'browse') {
       fetch_table_data();
     }
+    // 切换表时清空选中项
+    setSelectedRowList([]);
   }, [selectedTable, currentPage, pageSize, sortBy, sortOrder, activeTab]);
 
   return (
@@ -634,10 +701,34 @@ function DatabaseManagerPage() {
               {activeTab === 'browse' && tableData && (
                 <div className="tab-content">
                   <div className="table-data-container">
+                    {selectedRowList.length > 0 && (
+                      <div className="batch-actions-bar">
+                        <span className="batch-actions-info">已选中 {selectedRowList.length} 条记录</span>
+                        <button
+                          className="btn btn-sm btn-danger"
+                          onClick={handle_batch_delete_rows}
+                        >
+                          <IconTrash />
+                          <span>批量删除</span>
+                        </button>
+                      </div>
+                    )}
                     <div className="table-wrapper">
                       <table className="data-table">
                         <thead>
                           <tr>
+                            <th className="checkbox-column">
+                              <label className="checkbox-label">
+                                <input
+                                  type="checkbox"
+                                  checked={tableData.list.length > 0 && tableData.list.every(row => {
+                                    const rowId = get_row_id(row);
+                                    return rowId !== null && selectedRowList.includes(rowId);
+                                  })}
+                                  onChange={toggle_select_all}
+                                />
+                              </label>
+                            </th>
                             {tableData.columns.map((col, index) => (
                               <th
                                 key={col}
@@ -658,42 +749,59 @@ function DatabaseManagerPage() {
                         <tbody>
                           {loading ? (
                             <tr>
-                              <td colSpan={tableData.columns.length + 1} className="text-center">
+                              <td colSpan={tableData.columns.length + 2} className="text-center">
                                                                 加载中...
                               </td>
                             </tr>
                           ) : tableData.list.length === 0 ? (
                             <tr>
-                              <td colSpan={tableData.columns.length + 1} className="text-center">
+                              <td colSpan={tableData.columns.length + 2} className="text-center">
                                                                 暂无数据
                               </td>
                             </tr>
                           ) : (
-                            tableData.list.map((row, idx) => (
-                              <tr key={idx}>
-                                {tableData.columns.map((col, colIndex) => (
-                                  <td key={col} className={colIndex === 0 ? 'fixed-column-first' : ''}>{row[col]?.toString() ?? 'NULL'}</td>
-                                ))}
-                                <td className="fixed-column-last">
-                                  <button
-                                    className="btn-icon btn-icon-danger"
-                                    onClick={() => {
-                                      const pk_column = tableDetail?.columns.find(c => c.primaryKey);
-                                      if (pk_column) handle_delete_row(row[pk_column.name]);
-                                    }}
-                                  >
-                                    <IconTrash />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))
+                            tableData.list.map((row, idx) => {
+                              const rowId = get_row_id(row);
+                              const is_selected = rowId !== null && selectedRowList.includes(rowId);
+                              return (
+                                <tr key={idx} className={is_selected ? 'selected-row' : ''}>
+                                  <td className="checkbox-column">
+                                    <label className="checkbox-label">
+                                      <input
+                                        type="checkbox"
+                                        checked={is_selected}
+                                        onChange={() => {
+                                          if (rowId !== null) {
+                                            toggle_row_selection(rowId);
+                                          }
+                                        }}
+                                      />
+                                    </label>
+                                  </td>
+                                  {tableData.columns.map((col, colIndex) => (
+                                    <td key={col} className={colIndex === 0 ? 'fixed-column-first' : ''}>{row[col]?.toString() ?? 'NULL'}</td>
+                                  ))}
+                                  <td className="fixed-column-last">
+                                    <button
+                                      className="btn-icon btn-icon-danger"
+                                      onClick={() => {
+                                        const pk_column = tableDetail?.columns.find(c => c.primaryKey);
+                                        if (pk_column) handle_delete_row(row[pk_column.name]);
+                                      }}
+                                    >
+                                      <IconTrash />
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })
                           )}
                         </tbody>
                       </table>
                     </div>
 
                     {/* 分页 */}
-                    {tableData.pagination.total > pageSize && (
+                    {tableData.pagination.total > 0 && (
                       <div className="pagination">
                         <button
                           className="btn btn-sm btn-outline"

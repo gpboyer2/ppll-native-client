@@ -63,6 +63,7 @@ async function add_frontend_log(log_list) {
     const log_promises = log_list.map(log =>
       FrontendLog.create({
         log_data: log.log_data,
+        log_timestamp: log.log_timestamp,
         page_url: log.page_url,
         user_agent: log.user_agent,
       }).catch(err => {

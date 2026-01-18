@@ -3,11 +3,14 @@
  * 通过 WebSocket（Socket.IO）批量发送日志
  */
 
+import dayjs from 'dayjs';
+
 // 日志数据接口
 interface LogData {
   log_data?: any;
   page_url: string;
   user_agent: string;
+  log_timestamp?: number; // 前端日志时间戳（毫秒）
 }
 
 // 日志队列
@@ -77,17 +80,21 @@ async function flushLogs(): Promise<void> {
  * 添加日志到队列
  */
 function addLogToQueue(args: any[]): void {
+  const current_timestamp = Date.now();
+
   const log_data: LogData = {
     log_data: undefined,
     page_url: window.location.hash || window.location.pathname,
     user_agent: navigator.userAgent,
+    log_timestamp: current_timestamp, // 记录前端日志的精确时间戳
   };
 
   // 尝试提取可序列化的数据
   if (args.length > 0) {
     const serializable_args = args.filter(isSerializable);
     if (serializable_args.length > 0) {
-      log_data.log_data = serializable_args;
+      // 在第一条数据前添加时间戳
+      log_data.log_data = [`[${dayjs().format('HH:mm:ss.SSS')}]`, ...serializable_args];
     }
   }
 

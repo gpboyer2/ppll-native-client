@@ -1852,11 +1852,79 @@ nav.surface {
   padding: 24px;
 }
 
+/* 复选框列样式 - 用于数据库管理页面的多选批量删除功能 */
+.data-table .checkbox-column {
+  width: 40px;
+  text-align: center;
+  padding: 10px 8px;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--color-surface);
+  border-right: 2px solid var(--color-border);
+}
+
+.data-table thead .checkbox-column {
+  z-index: 2;
+  background: var(--color-bg-muted);
+  cursor: default;
+}
+
+.data-table thead .checkbox-column:hover {
+  background: var(--color-bg-muted);
+}
+
+.data-table .checkbox-column .checkbox-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.data-table tbody tr.selected-row {
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+}
+
+.data-table tbody tr.selected-row:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+}
+
+.data-table tbody tr.selected-row td {
+  color: var(--color-primary);
+}
+
+/* 批量操作栏样式 - 显示选中记录数量和批量操作按钮 */
+.batch-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+
+.batch-actions-info {
+  font-size: var(--text-sm);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.btn-danger {
+  background: var(--color-danger);
+  color: white;
+}
+
+.btn-danger:hover {
+  background: color-mix(in srgb, black 10%, var(--color-danger));
+  color: white;
+}
+
 /* 固定列样式 - 用于数据库管理页面表格的首列和操作列 */
 /* 在表格水平滚动时固定首列和操作列，提升大数据表格的易用性 */
 .data-table .fixed-column-first {
   position: sticky;
-  left: 0;
+  left: 40px;
   z-index: 1;
   background: var(--color-surface);
   border-right: 2px solid var(--color-border);

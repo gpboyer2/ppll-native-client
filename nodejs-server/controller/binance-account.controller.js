@@ -298,6 +298,35 @@ const keepAliveListenKey = catchAsync(async (req, res) => {
   }
 });
 
+/**
+ * 获取指定交易对的当前杠杆倍数
+ * 获取币安U本位合约中指定交易对的当前杠杆倍数
+ */
+const getPositionRisk = catchAsync(async (req, res) => {
+  let { api_key, secret_key, symbol } = extractApiCredentials(req);
+
+  // 验证必需参数
+  if (!api_key || !secret_key) {
+    return res.apiError("缺少必要的API凭证参数");
+  }
+
+  if (!symbol) {
+    return res.apiError("缺少交易对符号参数");
+  }
+
+  try {
+    const position_risk = await binanceAccountService.getPositionRisk(
+      api_key,
+      secret_key,
+      symbol
+    );
+
+    return res.apiSuccess(position_risk, "获取杠杆倍数成功");
+  } catch (error) {
+    return handleError(error, res, "获取杠杆倍数");
+  }
+});
+
 module.exports = {
   getUSDMFuturesAccount,
   getSpotAccount,
@@ -305,4 +334,5 @@ module.exports = {
   setLeverage,
   generateListenKey,
   keepAliveListenKey,
+  getPositionRisk,
 };

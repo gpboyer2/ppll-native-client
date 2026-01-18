@@ -419,6 +419,48 @@ const keepAliveListenKey = async (api_key) => {
   }
 };
 
+/**
+ * 获取指定交易对的当前杠杆倍数
+ * @param {string} api_key - 用户API Key
+ * @param {string} secret_key - 用户API Secret
+ * @param {string} symbol - 交易对符号，如 BTCUSDT
+ * @returns {Promise<{symbol: string, leverage: number}|null>} 返回杠杆倍数，如果未设置则返回null
+ */
+const getPositionRisk = async (api_key, secret_key, symbol) => {
+  try {
+    const client = createUSDMClient(api_key, secret_key);
+
+    // 获取持仓风险信息
+    const positionRisk = await client.getPositionRisk({
+      symbol: symbol
+    });
+
+    // 查找对应交易对的杠杆倍数
+    if (positionRisk && Array.isArray(positionRisk) && positionRisk.length > 0) {
+      const position = positionRisk.find(p => p.symbol === symbol);
+      if (position && position.leverage) {
+        return {
+          symbol: symbol,
+          leverage: parseInt(position.leverage)
+        };
+      }
+    }
+
+    // 如果没有找到持仓信息，返回默认杠杆倍数
+    return {
+      symbol: symbol,
+      leverage: 20  // 默认20倍
+    };
+  } catch (error) {
+    UtilRecord.log("获取持仓风险失败:", error);
+    // 出错时返回默认杠杆倍数
+    return {
+      symbol: symbol,
+      leverage: 20
+    };
+  }
+};
+
 module.exports = {
   getUSDMFuturesAccount,
   getSpotAccount,
@@ -426,4 +468,5 @@ module.exports = {
   batchSetLeverage,
   generateListenKey,
   keepAliveListenKey,
+  getPositionRisk,
 };

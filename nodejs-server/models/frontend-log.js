@@ -30,6 +30,11 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: true,
         comment: "日志数据（JSON 格式，用于 console.table 等复杂数据）",
       },
+      log_timestamp: {
+        type: DataTypes.BIGINT,
+        allowNull: true,
+        comment: "前端日志时间戳（毫秒，用于按前端执行时间排序）",
+      },
       page_url: {
         type: DataTypes.STRING(500),
         allowNull: true,

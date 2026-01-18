@@ -305,8 +305,7 @@ apiClient.addRequestInterceptor((config: RequestConfig) => {
     const requestId = (apiClient as any).__requestId;
     if (requestId) {
       console.log(
-        `%c[请求 #${requestId}] 最终数据:`,
-        'color: #0066cc; font-weight: bold',
+        `[请求 #${requestId}] 最终数据:`,
         JSON.stringify(config.data, null, 2)
       );
     }

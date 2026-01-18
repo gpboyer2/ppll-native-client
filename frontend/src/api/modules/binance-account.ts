@@ -53,4 +53,15 @@ export class BinanceAccountApi {
   static async keepAliveListenKey(params: { api_key: string }): Promise<Response<any>> {
     return RequestWrapper.put(`${this.BASE_PATH}/keep-alive-listen-key`, params);
   }
+
+  /**
+   * 获取指定交易对的当前杠杆倍数
+   */
+  static async getPositionRisk(params: {
+    api_key: string;
+    secret_key: string;
+    symbol: string;
+  }): Promise<Response<{ symbol: string; leverage: number }>> {
+    return RequestWrapper.get(`${this.BASE_PATH}/position-risk`, params);
+  }
 }

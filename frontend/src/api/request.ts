@@ -2,7 +2,6 @@ import { apiClient } from './client';
 import { Response } from '../core/response';
 import { getStaticInfo } from '../stores/system-info-store';
 import { useBinanceStore } from '../stores/binance-store';
-import dayjs from 'dayjs';
 
 /**
  * 获取 Node.js 服务 URL
@@ -35,17 +34,14 @@ class RequestLogger {
     if (!this.ENABLED) return 0;
 
     const requestId = ++this.requestId;
-    const timestamp = dayjs().format('HH:mm:ss.SSS');
 
     console.log(
-      `%c[${timestamp}] %c[请求 #${requestId}]`,
-      'color: #999',
-      'color: #0066cc; font-weight: bold',
+      `[请求 #${requestId}]`,
       `\n${method} ${url}`
     );
 
-    console.log(`%c #${requestId} Params:`, 'color: #666; font-weight: bold', this.truncateLog(params));
-    console.log(`%c #${requestId} Body:`, 'color: #666; font-weight: bold', this.truncateLog(data));
+    console.log(` #${requestId} Params:`, this.truncateLog(params));
+    console.log(` #${requestId} Body:`, this.truncateLog(data));
 
     return requestId;
   }
@@ -57,12 +53,9 @@ class RequestLogger {
     if (!this.ENABLED) return;
 
     const duration = Date.now() - startTime;
-    const timestamp = dayjs().format('HH:mm:ss.SSS');
 
     console.log(
-      `%c[${timestamp}] %c[响应 #${requestId}]`,
-      'color: #999',
-      'color: #009966; font-weight: bold',
+      `[响应 #${requestId}]`,
       `耗时: ${duration}ms`
     );
 
@@ -90,12 +83,9 @@ class RequestLogger {
     if (!this.ENABLED) return;
 
     const duration = Date.now() - startTime;
-    const timestamp = dayjs().format('HH:mm:ss.SSS');
 
     console.error(
-      `%c[${timestamp}] %c[错误 #${requestId}]`,
-      'color: #999',
-      'color: #cc0000; font-weight: bold',
+      `[错误 #${requestId}]`,
       `耗时: ${duration}ms`,
       '\n错误:',
       error

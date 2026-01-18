@@ -43,6 +43,12 @@ router.post("/generate-listen-key", vipMiddleware.validateVipAccess, binanceAcco
  */
 router.put("/keep-alive-listen-key", vipMiddleware.validateVipAccess, binanceAccountController.keepAliveListenKey);
 
+/**
+ * 获取指定交易对的当前杠杆倍数
+ * /api/v1/binance-account/position-risk
+ */
+router.get("/position-risk", vipMiddleware.validateVipAccess, binanceAccountController.getPositionRisk);
+
 module.exports = router;
 
 

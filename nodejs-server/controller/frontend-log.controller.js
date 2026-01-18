@@ -38,9 +38,17 @@ const list = catchAsync(async (req, res) => {
 
   const { count, rows } = await FrontendLog.findAndCountAll({
     where: where_clause,
-    order: [['created_at', 'DESC']],
+    // 按前端时间戳倒序排序（最新的在前），如果时间戳相同则按数据库创建时间倒序
+    order: [
+      ['log_timestamp', 'DESC'],
+      ['created_at', 'DESC']
+    ],
     limit: parseInt(page_size),
     offset: offset,
+    // 排除不需要的字段（log_timestamp 只用于排序，不需要返回给前端）
+    attributes: {
+      exclude: ['id', 'created_at', 'user_agent', 'page_url', 'log_timestamp']
+    }
   });
 
   return res.apiSuccess({
