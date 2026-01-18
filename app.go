@@ -1,34 +1,34 @@
 package main
 
 import (
-    "context"
-    "fmt"
-    "io"
-    "log/slog"
-    "os"
-    "path/filepath"
+	"context"
+	"fmt"
+	"io"
+	"log/slog"
+	"os"
+	"path/filepath"
 
-    "github.com/wailsapp/wails/v2/pkg/runtime"
-    "ppll-native-client/internal/services"
+	"github.com/wailsapp/wails/v2/pkg/runtime"
+	"ppll-native-client/internal/services"
 )
 
 // App - PPLL Native Client 应用程序结构
 // PPLL Native Client 是专业的量化交易桌面客户端
 // 为量化交易者提供高性能、安全可靠的跨平台桌面交易体验
 type App struct {
-    ctx context.Context
-    // 下列服务在 startup 中初始化
-    log  *slog.Logger
-    cfg  *services.ConfigStore
-    us   *services.UpdateService
-    ns   *services.NotificationService
-    ps   *services.PluginService
+	ctx context.Context
+	// 下列服务在 startup 中初始化
+	log *slog.Logger
+	cfg *services.ConfigStore
+	us  *services.UpdateService
+	ns  *services.NotificationService
+	ps  *services.PluginService
 
-    // Node.js 服务
-    njs *services.NodejsService
+	// Node.js 服务
+	njs *services.NodejsService
 
-    // 日志文件句柄（用于关闭）
-    logFile *os.File
+	// 日志文件句柄（用于关闭）
+	logFile *os.File
 }
 
 // NewApp 创建新的 App 实例
@@ -39,114 +39,114 @@ func NewApp() *App {
 // initLogger 初始化日志系统
 // 日志同时输出到终端和 PPLL_LOG_DIR/go.log（如果设置了环境变量）
 func (a *App) initLogger() {
-    logLevel := slog.LevelInfo
-    if os.Getenv("DEBUG") == "true" || os.Getenv("DEBUG") == "1" {
-        logLevel = slog.LevelDebug
-    }
+	logLevel := slog.LevelInfo
+	if os.Getenv("DEBUG") == "true" || os.Getenv("DEBUG") == "1" {
+		logLevel = slog.LevelDebug
+	}
 
-    var writer io.Writer = os.Stdout
-    if logDir := os.Getenv("PPLL_LOG_DIR"); logDir != "" {
-        os.MkdirAll(logDir, 0755)
-        if f, err := os.OpenFile(filepath.Join(logDir, "go.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644); err == nil {
-            a.logFile = f
-            writer = io.MultiWriter(os.Stdout, f)
-        }
-    }
-    a.log = slog.New(slog.NewTextHandler(writer, &slog.HandlerOptions{Level: logLevel}))
+	var writer io.Writer = os.Stdout
+	if logDir := os.Getenv("PPLL_LOG_DIR"); logDir != "" {
+		os.MkdirAll(logDir, 0755)
+		if f, err := os.OpenFile(filepath.Join(logDir, "go.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644); err == nil {
+			a.logFile = f
+			writer = io.MultiWriter(os.Stdout, f)
+		}
+	}
+	a.log = slog.New(slog.NewTextHandler(writer, &slog.HandlerOptions{Level: logLevel}))
 }
 
 // startup 应用启动时调用，保存上下文以便调用运行时方法
 func (a *App) startup(ctx context.Context) {
-    a.ctx = ctx
+	a.ctx = ctx
 
-    // 初始化日志系统
-    a.initLogger()
+	// 初始化日志系统
+	a.initLogger()
 
-    // 读取 AES 密钥：优先使用环境变量 PPLL_AES_KEY（hex 或任意字节字符串）
-    var key []byte
-    if v := os.Getenv("PPLL_AES_KEY"); v != "" {
-        key = []byte(v)
-    }
+	// 读取 AES 密钥：优先使用环境变量 PPLL_AES_KEY（hex 或任意字节字符串）
+	var key []byte
+	if v := os.Getenv("PPLL_AES_KEY"); v != "" {
+		key = []byte(v)
+	}
 
-    // 1. 配置存储：文件 + AES 加密
-    a.cfg = services.NewConfigStore(ctx, a.GetAppName(), key)
+	// 1. 配置存储：文件 + AES 加密
+	a.cfg = services.NewConfigStore(ctx, a.GetAppName(), key)
 
-    // 2. 初始化服务：更新、通知、插件
-    a.ns = services.NewNotificationService(ctx, a.log)
-    a.us = services.NewUpdateService(ctx, a.log, a.cfg, services.UpdateConfig{
-        FeedURL:             "",      // 由前端或设置页下发
-        Channel:             "stable", // 内部渠道
-        AutoCheck:           false,
-        CheckIntervalMinute: 30,
-        AutoDownload:        false,
-        SilentInstall:       true,
-        HashAlgo:            "md5",
-    })
-    a.ps = services.NewPluginService(ctx, a.log, a.cfg)
+	// 2. 初始化服务：更新、通知、插件
+	a.ns = services.NewNotificationService(ctx, a.log)
+	a.us = services.NewUpdateService(ctx, a.log, a.cfg, services.UpdateConfig{
+		FeedURL:             "",       // 由前端或设置页下发
+		Channel:             "stable", // 内部渠道
+		AutoCheck:           false,
+		CheckIntervalMinute: 30,
+		AutoDownload:        false,
+		SilentInstall:       true,
+		HashAlgo:            "md5",
+	})
+	a.ps = services.NewPluginService(ctx, a.log, a.cfg)
 
-    // 3. 启动 Node.js 后端服务（NodeJS 端已接管数据库初始化）
-    // 设置环境变量 SKIP_NODEJS_AUTO_START=1 可跳过自动启动
-    skipNodejs := os.Getenv("SKIP_NODEJS_AUTO_START") == "1"
-    a.njs = services.NewNodejsService(ctx, a.logWrapper(), services.Config{
-        ServerDir: "./nodejs-server",
-        Port:      54321,
-    })
+	// 3. 启动 Node.js 后端服务（NodeJS 端已接管数据库初始化）
+	// 设置环境变量 SKIP_NODEJS_AUTO_START=1 可跳过自动启动
+	skipNodejs := os.Getenv("SKIP_NODEJS_AUTO_START") == "1"
+	a.njs = services.NewNodejsService(ctx, a.logWrapper(), services.Config{
+		ServerDir: "./nodejs-server",
+		Port:      54321,
+	})
 
-    if skipNodejs {
-        a.log.Info("SKIP_NODEJS_AUTO_START=1，跳过 Node.js 服务自动启动")
-    } else {
-        a.log.Info("正在启动 Node.js 后端服务...")
-        if err := a.njs.Start(); err != nil {
-            a.log.Error("Node.js 服务启动失败", "error", err)
-        } else {
-            a.log.Info("Node.js 后端服务启动成功")
-        }
-    }
+	if skipNodejs {
+		a.log.Info("SKIP_NODEJS_AUTO_START=1，跳过 Node.js 服务自动启动")
+	} else {
+		a.log.Info("正在启动 Node.js 后端服务...")
+		if err := a.njs.Start(); err != nil {
+			a.log.Error("Node.js 服务启动失败", "error", err)
+		} else {
+			a.log.Info("Node.js 后端服务启动成功")
+		}
+	}
 }
 
 // shutdown 应用关闭时调用
 func (a *App) shutdown(ctx context.Context) {
-    a.log.Info("应用正在关闭...")
+	a.log.Info("应用正在关闭...")
 
-    // 停止 Node.js 服务
-    if a.njs != nil {
-        if err := a.njs.Stop(); err != nil {
-            a.log.Error("停止 Node.js 服务失败", "error", err)
-        }
-    }
+	// 停止 Node.js 服务
+	if a.njs != nil {
+		if err := a.njs.Stop(); err != nil {
+			a.log.Error("停止 Node.js 服务失败", "error", err)
+		}
+	}
 
-    // 关闭日志文件
-    if a.logFile != nil {
-        a.logFile.Close()
-    }
+	// 关闭日志文件
+	if a.logFile != nil {
+		a.logFile.Close()
+	}
 
-    a.log.Info("应用已关闭")
+	a.log.Info("应用已关闭")
 }
 
 // logWrapper 将 slog.Logger 包装为 services.Logger 接口
 func (a *App) logWrapper() *slogLogger {
-    return &slogLogger{log: a.log}
+	return &slogLogger{log: a.log}
 }
 
 // slogLogger 实现 services.Logger 接口
 type slogLogger struct {
-    log *slog.Logger
+	log *slog.Logger
 }
 
 func (l *slogLogger) Info(msg string, args ...any) {
-    l.log.Info(msg, args...)
+	l.log.Info(msg, args...)
 }
 
 func (l *slogLogger) Error(msg string, args ...any) {
-    l.log.Error(msg, args...)
+	l.log.Error(msg, args...)
 }
 
 func (l *slogLogger) Debug(msg string, args ...any) {
-    l.log.Debug(msg, args...)
+	l.log.Debug(msg, args...)
 }
 
 func (l *slogLogger) Warn(msg string, args ...any) {
-    l.log.Warn(msg, args...)
+	l.log.Warn(msg, args...)
 }
 
 // Greet 返回欢迎信息
@@ -166,86 +166,86 @@ func (a *App) GetAppVersion() string {
 
 // GetAppDescription 获取应用描述
 func (a *App) GetAppDescription() string {
-    return "专业量化交易桌面客户端 - 为量化交易者提供高性能、安全可靠的跨平台桌面交易体验"
+	return "专业量化交易桌面客户端 - 为量化交易者提供高性能、安全可靠的跨平台桌面交易体验"
 }
 
 // ===== Node.js 服务相关 =====
 
 // GetNodejsServiceURL 获取 Node.js 服务地址
 func (a *App) GetNodejsServiceURL() string {
-    if a.njs == nil {
-        return ""
-    }
-    return a.njs.GetServiceURL()
+	if a.njs == nil {
+		return ""
+	}
+	return a.njs.GetServiceURL()
 }
 
 // GetNodejsServiceStatus 获取 Node.js 服务状态
 func (a *App) GetNodejsServiceStatus() map[string]any {
-    if a.njs == nil {
-        return map[string]any{
-            "isRunning": false,
-            "isHealthy": false,
-            "error":     "Node.js 服务未初始化",
-        }
-    }
-    return a.njs.GetStatus()
+	if a.njs == nil {
+		return map[string]any{
+			"isRunning": false,
+			"isHealthy": false,
+			"error":     "Node.js 服务未初始化",
+		}
+	}
+	return a.njs.GetStatus()
 }
 
 // RestartNodejsService 重启 Node.js 服务
 func (a *App) RestartNodejsService() services.Response[any] {
-    if a.njs == nil {
-        return services.Err[any]("Node.js 服务未初始化")
-    }
+	if a.njs == nil {
+		return services.Err[any]("Node.js 服务未初始化")
+	}
 
-    if err := a.njs.Restart(); err != nil {
-        return services.Err[any]("重启失败: "+err.Error())
-    }
+	if err := a.njs.Restart(); err != nil {
+		return services.Err[any]("重启失败: " + err.Error())
+	}
 
-    return services.Ok[any](nil)
+	return services.Ok[any](nil)
 }
 
 // ===== 更新相关（统一响应结构）=====
 
 // UpdateSaveConfig 保存更新配置（feedURL/策略等）
 func (a *App) UpdateSaveConfig(cfg services.UpdateConfig) services.Response[any] {
-    if a.us == nil {
-        return services.Err[any]("更新服务未初始化")
-    }
-    return a.us.SaveConfig(cfg)
+	if a.us == nil {
+		return services.Err[any]("更新服务未初始化")
+	}
+	return a.us.SaveConfig(cfg)
 }
 
 // UpdateCheckNow 立即检查更新
 func (a *App) UpdateCheckNow() services.Response[services.UpdateInfo] {
-    if a.us == nil {
-        return services.Err[services.UpdateInfo]("更新服务未初始化")
-    }
-    return a.us.CheckNow()
+	if a.us == nil {
+		return services.Err[services.UpdateInfo]("更新服务未初始化")
+	}
+	return a.us.CheckNow()
 }
 
 // UpdateApplyOnNextStart 标记下次启动应用更新
 func (a *App) UpdateApplyOnNextStart() services.Response[any] {
-    if a.us == nil {
-        return services.Err[any]("更新服务未初始化")
-    }
-    return a.us.ApplyOnNextStart()
+	if a.us == nil {
+		return services.Err[any]("更新服务未初始化")
+	}
+	return a.us.ApplyOnNextStart()
 }
 
 // ===== 通知相关 =====
 
 // NotifyPush 发送应用内通知
 func (a *App) NotifyPush(n services.Notification) services.Response[services.Notification] {
-    if a.ns == nil {
-        return services.Err[services.Notification]("通知服务未初始化")
-    }
-    return a.ns.Push(n)
+	if a.ns == nil {
+		return services.Err[services.Notification]("通知服务未初始化")
+	}
+	return a.ns.Push(n)
 }
 
 // NotifyDismiss 撤销通知
 func (a *App) NotifyDismiss(id string) services.Response[any] {
-    if a.ns == nil {
-        return services.Err[any]("通知服务未初始化")
-    }
-    return a.ns.Dismiss(id)
+	if a.ns == nil {
+		return services.Err[any]("通知服务未初始化")
+	}
+	return a.ns.Dismiss(id)
 }
 
 // ===== 插件配置相关（插拔式）=====
@@ -253,172 +253,172 @@ func (a *App) NotifyDismiss(id string) services.Response[any] {
 
 // PluginGetConfig 读取插件运行时配置（如API密钥等敏感信息）
 func (a *App) PluginGetConfig(id string) services.Response[map[string]any] {
-    if a.ps == nil {
-        return services.Err[map[string]any]("插件服务未初始化")
-    }
-    return a.ps.GetConfig(id)
+	if a.ps == nil {
+		return services.Err[map[string]any]("插件服务未初始化")
+	}
+	return a.ps.GetConfig(id)
 }
 
 // PluginSaveConfig 保存插件运行时配置（如API密钥等敏感信息）
 func (a *App) PluginSaveConfig(id string, cfg map[string]any) services.Response[any] {
-    if a.ps == nil {
-        return services.Err[any]("插件服务未初始化")
-    }
-    return a.ps.SaveConfig(id, cfg)
+	if a.ps == nil {
+		return services.Err[any]("插件服务未初始化")
+	}
+	return a.ps.SaveConfig(id, cfg)
 }
 
 // ===== 通用配置存储 API (用于前端状态持久化) =====
 
 // GetConfig 获取配置项
 func (a *App) GetConfig(key string) string {
-    if a.cfg == nil {
-        return ""
-    }
+	if a.cfg == nil {
+		return ""
+	}
 
-    m, err := a.cfg.LoadMap()
-    if err != nil {
-        a.log.Error("加载配置失败", "error", err, "key", key)
-        return ""
-    }
+	m, err := a.cfg.LoadMap()
+	if err != nil {
+		a.log.Error("加载配置失败", "error", err, "key", key)
+		return ""
+	}
 
-    if value, exists := m[key]; exists {
-        if str, ok := value.(string); ok {
-            return str
-        }
-    }
+	if value, exists := m[key]; exists {
+		if str, ok := value.(string); ok {
+			return str
+		}
+	}
 
-    return ""
+	return ""
 }
 
 // SetConfig 设置配置项
 func (a *App) SetConfig(key, value string) error {
-    if a.cfg == nil {
-        return fmt.Errorf("配置服务未初始化")
-    }
+	if a.cfg == nil {
+		return fmt.Errorf("配置服务未初始化")
+	}
 
-    m, err := a.cfg.LoadMap()
-    if err != nil {
-        a.log.Error("加载配置失败", "error", err, "key", key)
-        return err
-    }
+	m, err := a.cfg.LoadMap()
+	if err != nil {
+		a.log.Error("加载配置失败", "error", err, "key", key)
+		return err
+	}
 
-    m[key] = value
+	m[key] = value
 
-    if err := a.cfg.SaveMap(m); err != nil {
-        a.log.Error("保存配置失败", "error", err, "key", key)
-        return err
-    }
+	if err := a.cfg.SaveMap(m); err != nil {
+		a.log.Error("保存配置失败", "error", err, "key", key)
+		return err
+	}
 
-    a.log.Info("配置已保存", "key", key)
-    return nil
+	a.log.Info("配置已保存", "key", key)
+	return nil
 }
 
 // RemoveConfig 删除配置项
 func (a *App) RemoveConfig(key string) error {
-    if a.cfg == nil {
-        return fmt.Errorf("配置服务未初始化")
-    }
+	if a.cfg == nil {
+		return fmt.Errorf("配置服务未初始化")
+	}
 
-    m, err := a.cfg.LoadMap()
-    if err != nil {
-        a.log.Error("加载配置失败", "error", err, "key", key)
-        return err
-    }
+	m, err := a.cfg.LoadMap()
+	if err != nil {
+		a.log.Error("加载配置失败", "error", err, "key", key)
+		return err
+	}
 
-    delete(m, key)
+	delete(m, key)
 
-    if err := a.cfg.SaveMap(m); err != nil {
-        a.log.Error("保存配置失败", "error", err, "key", key)
-        return err
-    }
+	if err := a.cfg.SaveMap(m); err != nil {
+		a.log.Error("保存配置失败", "error", err, "key", key)
+		return err
+	}
 
-    a.log.Info("配置已删除", "key", key)
-    return nil
+	a.log.Info("配置已删除", "key", key)
+	return nil
 }
 
 // ===== 数据清理 API =====
 
 // ClearAllData 清理所有应用数据
 func (a *App) ClearAllData() error {
-    if a.cfg == nil {
-        return fmt.Errorf("配置服务未初始化")
-    }
+	if a.cfg == nil {
+		return fmt.Errorf("配置服务未初始化")
+	}
 
-    a.log.Info("开始清理所有应用数据")
+	a.log.Info("开始清理所有应用数据")
 
-    // 清空配置存储
-    emptyConfig := map[string]any{}
-    if err := a.cfg.SaveMap(emptyConfig); err != nil {
-        a.log.Error("清理配置数据失败", "error", err)
-        return fmt.Errorf("清理配置数据失败: %w", err)
-    }
+	// 清空配置存储
+	emptyConfig := map[string]any{}
+	if err := a.cfg.SaveMap(emptyConfig); err != nil {
+		a.log.Error("清理配置数据失败", "error", err)
+		return fmt.Errorf("清理配置数据失败: %w", err)
+	}
 
-    a.log.Info("所有应用数据已清理完成")
-    return nil
+	a.log.Info("所有应用数据已清理完成")
+	return nil
 }
 
 // GetDataSize 获取当前数据大小信息
 func (a *App) GetDataSize() map[string]any {
-    if a.cfg == nil {
-        return map[string]any{
-            "configSize": 0,
-            "configPath": "配置服务未初始化",
-            "totalItems": 0,
-        }
-    }
+	if a.cfg == nil {
+		return map[string]any{
+			"configSize": 0,
+			"configPath": "配置服务未初始化",
+			"totalItems": 0,
+		}
+	}
 
-    // 获取配置文件路径和大小
-    configPath, err := a.cfg.LoadMap()
-    if err != nil {
-        a.log.Error("获取配置数据失败", "error", err)
-        return map[string]any{
-            "configSize": 0,
-            "configPath": "获取失败",
-            "totalItems": 0,
-            "error": err.Error(),
-        }
-    }
+	// 获取配置文件路径和大小
+	configPath, err := a.cfg.LoadMap()
+	if err != nil {
+		a.log.Error("获取配置数据失败", "error", err)
+		return map[string]any{
+			"configSize": 0,
+			"configPath": "获取失败",
+			"totalItems": 0,
+			"error":      err.Error(),
+		}
+	}
 
-    // 计算配置项数量
-    totalItems := len(configPath)
+	// 计算配置项数量
+	totalItems := len(configPath)
 
-    // 估算数据大小（序列化后的大小）
-    configSize := 0
-    for key, value := range configPath {
-        keySize := len(key)
-        valueSize := 0
-        if str, ok := value.(string); ok {
-            valueSize = len(str)
-        } else {
-            // 对于非字符串值，估算序列化后的大小
-            valueSize = len(fmt.Sprintf("%v", value))
-        }
-        configSize += keySize + valueSize
-    }
+	// 估算数据大小（序列化后的大小）
+	configSize := 0
+	for key, value := range configPath {
+		keySize := len(key)
+		valueSize := 0
+		if str, ok := value.(string); ok {
+			valueSize = len(str)
+		} else {
+			// 对于非字符串值，估算序列化后的大小
+			valueSize = len(fmt.Sprintf("%v", value))
+		}
+		configSize += keySize + valueSize
+	}
 
-    return map[string]any{
-        "configSize":  configSize,
-        "configPath":  "~/.config/ppll-client/config.enc.json",
-        "totalItems":  totalItems,
-        "itemDetails": configPath,
-    }
+	return map[string]any{
+		"configSize":  configSize,
+		"configPath":  "~/.config/ppll-client/config.enc.json",
+		"totalItems":  totalItems,
+		"itemDetails": configPath,
+	}
 }
 
 // GetSystemInfo 获取系统信息（供前端系统信息页面使用）
 func (a *App) GetSystemInfo() map[string]any {
-    return map[string]any{
-        "appName":        a.GetAppName(),
-        "appVersion":     a.GetAppVersion(),
-        "appDescription": a.GetAppDescription(),
-        "nodejsStatus":   a.GetNodejsServiceStatus(),
-        "nodejsURL":      a.GetNodejsServiceURL(),
-    }
+	return map[string]any{
+		"appName":        a.GetAppName(),
+		"appVersion":     a.GetAppVersion(),
+		"appDescription": a.GetAppDescription(),
+		"nodejsStatus":   a.GetNodejsServiceStatus(),
+		"nodejsURL":      a.GetNodejsServiceURL(),
+	}
 }
 
 // OpenBrowser 打开系统浏览器访问指定 URL
 // 参数：url - 要访问的网址
 // 在桌面客户端中打开系统浏览器，在浏览器环境中不做任何操作
 func (a *App) OpenBrowser(url string) error {
-    runtime.BrowserOpenURL(a.ctx, url)
-    return nil
+	runtime.BrowserOpenURL(a.ctx, url)
+	return nil
 }

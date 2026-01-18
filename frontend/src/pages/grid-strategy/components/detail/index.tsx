@@ -6,66 +6,23 @@ import { GridStrategyApi } from '../../../../api';
 import { ROUTES } from '../../../../router';
 import { showError, showSuccess } from '../../../../utils/api-error';
 import {
-  IconClock,
   IconRefresh,
   IconEdit,
   IconTrash,
   IconPlayerPlay,
   IconPlayerPause,
-  IconCopy,
-  IconTrendingUp,
-  IconTrendingDown,
-  IconActivity,
-  IconCoins,
-  IconChartBar,
-  IconSettings,
-  IconFileText,
-  IconAlertCircle,
-  IconInfoCircle,
-  IconCheck,
-  IconBug
+  IconCopy
 } from '@tabler/icons-react';
-
-interface GridStrategyDetail {
-  id: number;
-  name?: string;
-  trading_pair: string;
-  position_side: 'LONG' | 'SHORT';
-  leverage: number;
-  paused: boolean;
-  remark: string;
-  grid_price_difference: number;
-  grid_long_open_quantity?: number;
-  grid_long_close_quantity?: number;
-  grid_short_open_quantity?: number;
-  grid_short_close_quantity?: number;
-  total_open_position_quantity: number;
-  total_open_position_value: number;
-  total_open_position_entry_price: number;
-  total_profit_loss: number;
-  total_trades: number;
-  total_pairing_times: number;
-  total_fee: number;
-  funding_fee: number;
-  start_time?: string;
-  created_at: string;
-  updated_at: string;
-  exchange?: string;
-  exchange_type?: string;
-  margin_type?: string;
-  liquidation_price?: number;
-}
-
-interface PluginLog {
-  id: number;
-  strategy_id: number;
-  trading_pair: string;
-  event_type: string;
-  level: string;
-  message: string;
-  details: any;
-  created_at: string;
-}
+import {
+  ProfitCard,
+  PositionInfoCard,
+  GridParamsCard,
+  PluginLogsCard,
+  FeeDetailCard,
+  StrategyStatusCard,
+  TimeInfoCard
+} from '../../../../components/grid-strategy/detail-cards';
+import { GridStrategyDetail, PluginLog } from '../../../../types/grid-strategy';
 
 function GridStrategyDetailPage() {
   const navigate = useNavigate();
@@ -213,12 +170,6 @@ function GridStrategyDetailPage() {
   }
 
   const strategy_status = strategy.paused ? 'paused' : (strategy.remark === 'error' ? 'stopped' : 'running');
-  const is_long = strategy.position_side === 'LONG';
-  const profit_color = strategy.total_profit_loss >= 0 ? 'var(--color-success)' : 'var(--color-error)';
-
-  const run_days = strategy.start_time
-    ? Math.floor((Date.now() - new Date(strategy.start_time).getTime()) / (1000 * 60 * 60 * 24))
-    : 0;
 
   const formatRunDuration = (start_time: string): string => {
     const now = Date.now();
@@ -245,50 +196,6 @@ function GridStrategyDetailPage() {
 
   const run_duration = strategy.start_time ? formatRunDuration(strategy.start_time) : '未启动';
 
-  const getLogIcon = (level: string) => {
-    switch (level) {
-      case 'error': return <IconAlertCircle size={14} />;
-      case 'warn': return <IconAlertCircle size={14} />;
-      case 'success': return <IconCheck size={14} />;
-      case 'debug': return <IconBug size={14} />;
-      default: return <IconInfoCircle size={14} />;
-    }
-  };
-
-  const getLogColor = (level: string) => {
-    switch (level) {
-      case 'error': return 'var(--color-error)';
-      case 'warn': return 'rgb(234, 179, 8)';
-      case 'success': return 'var(--color-success)';
-      case 'debug': return 'rgb(156, 163, 175)';
-      default: return 'rgb(59, 130, 246)';
-    }
-  };
-
-  const getEventTypeName = (event_type: string) => {
-    const type_map: Record<string, string> = {
-      'error': '错误',
-      'warn': '警告',
-      'info': '信息',
-      'success': '成功',
-      'pause': '暂停',
-      'resume': '恢复',
-      'open_position': '开仓',
-      'close_position': '平仓',
-      'limit_reached': '限制触发',
-      'debug': '调试'
-    };
-    return type_map[event_type] || event_type;
-  };
-
-  const profit_rate = strategy.total_open_position_value > 0
-    ? (strategy.total_profit_loss / strategy.total_open_position_value) * 100
-    : 0;
-
-  const price_change = currentPrice && strategy.total_open_position_entry_price
-    ? ((currentPrice - strategy.total_open_position_entry_price) / strategy.total_open_position_entry_price) * 100
-    : 0;
-
   return (
     <div className="strategy-detail-page">
       <div className="detail-header">
@@ -296,8 +203,8 @@ function GridStrategyDetailPage() {
           <Link to={ROUTES.GRID_STRATEGY} className="back-link">← 返回</Link>
           <div className="strategy-info">
             <div className="strategy-title-row">
-              <span className={`position-badge ${is_long ? 'long' : 'short'}`}>
-                {is_long ? '做多' : '做空'}
+              <span className={`position-badge ${strategy.position_side === 'LONG' ? 'long' : 'short'}`}>
+                {strategy.position_side === 'LONG' ? '做多' : '做空'}
               </span>
               <h1 className="strategy-title">{strategy.trading_pair}</h1>
               <span className="leverage-badge">x{strategy.leverage}</span>
@@ -342,250 +249,60 @@ function GridStrategyDetailPage() {
 
       <div className="detail-content">
         <div className="main-section">
-          <div className="profit-card">
-            <div className="profit-main">
-              <div className="profit-label">总盈亏</div>
-              <div className="profit-value" style={{ color: profit_color }}>
-                {strategy.total_profit_loss >= 0 ? '+' : ''}{strategy.total_profit_loss.toFixed(2)}
-                <span className="profit-unit">USDT</span>
-              </div>
-              <div className="profit-rate" style={{ color: profit_color }}>
-                {profit_rate >= 0 ? '+' : ''}{profit_rate.toFixed(2)}%
-              </div>
-            </div>
-            <div className="profit-divider"></div>
-            <div className="profit-stats">
-              <div className="profit-stat-item">
-                <IconActivity size={14} />
-                <span className="stat-label">交易次数</span>
-                <span className="stat-value">{strategy.total_trades}</span>
-              </div>
-              <div className="profit-stat-item">
-                <IconChartBar size={14} />
-                <span className="stat-label">配对次数</span>
-                <span className="stat-value">{strategy.total_pairing_times}</span>
-              </div>
-              <div className="profit-stat-item">
-                <IconCoins size={14} />
-                <span className="stat-label">手续费</span>
-                <span className="stat-value">{strategy.total_fee.toFixed(2)} USDT</span>
-              </div>
-            </div>
-          </div>
+          <ProfitCard
+            total_profit_loss={strategy.total_profit_loss}
+            total_open_position_value={strategy.total_open_position_value}
+            total_trades={strategy.total_trades}
+            total_pairing_times={strategy.total_pairing_times}
+            total_fee={strategy.total_fee}
+          />
 
           <div className="info-cards">
-            <div className="info-card">
-              <div className="info-card-header">
-                <IconTrendingUp size={16} />
-                <span>当前持仓</span>
-              </div>
-              <div className="info-card-body">
-                <div className="info-row">
-                  <span className="info-label">持仓数量</span>
-                  <span className="info-value">{strategy.total_open_position_quantity.toFixed(4)}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">持仓价值</span>
-                  <span className="info-value">{strategy.total_open_position_value.toFixed(2)} USDT</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">成本价格</span>
-                  <span className="info-value">{strategy.total_open_position_entry_price.toFixed(2)}</span>
-                </div>
-                {currentPrice && (
-                  <div className="info-row">
-                    <span className="info-label">当前价格</span>
-                    <span className="info-value">{currentPrice.toFixed(2)}</span>
-                  </div>
-                )}
-                {currentPrice && strategy.total_open_position_entry_price && (
-                  <div className="info-row">
-                    <span className="info-label">价格变化</span>
-                    <span className={`info-value ${price_change >= 0 ? 'positive' : 'negative'}`}>
-                      {price_change >= 0 ? '+' : ''}{price_change.toFixed(2)}%
-                    </span>
-                  </div>
-                )}
-                {strategy.liquidation_price && (
-                  <div className="info-row">
-                    <span className="info-label">强平价格</span>
-                    <span className="info-value warning">{strategy.liquidation_price.toFixed(2)}</span>
-                  </div>
-                )}
-              </div>
-            </div>
+            <PositionInfoCard
+              total_open_position_quantity={strategy.total_open_position_quantity}
+              total_open_position_value={strategy.total_open_position_value}
+              total_open_position_entry_price={strategy.total_open_position_entry_price}
+              current_price={currentPrice}
+              liquidation_price={strategy.liquidation_price}
+            />
 
-            <div className="info-card">
-              <div className="info-card-header">
-                <IconSettings size={16} />
-                <span>网格参数</span>
-              </div>
-              <div className="info-card-body">
-                <div className="info-row">
-                  <span className="info-label">网格价差</span>
-                  <span className="info-value">{strategy.grid_price_difference}%</span>
-                </div>
-                {strategy.grid_long_open_quantity && (
-                  <div className="info-row">
-                    <span className="info-label">做多开仓</span>
-                    <span className="info-value">{strategy.grid_long_open_quantity}</span>
-                  </div>
-                )}
-                {strategy.grid_long_close_quantity && (
-                  <div className="info-row">
-                    <span className="info-label">做多平仓</span>
-                    <span className="info-value">{strategy.grid_long_close_quantity}</span>
-                  </div>
-                )}
-                {strategy.grid_short_open_quantity && (
-                  <div className="info-row">
-                    <span className="info-label">做空开仓</span>
-                    <span className="info-value">{strategy.grid_short_open_quantity}</span>
-                  </div>
-                )}
-                {strategy.grid_short_close_quantity && (
-                  <div className="info-row">
-                    <span className="info-label">做空平仓</span>
-                    <span className="info-value">{strategy.grid_short_close_quantity}</span>
-                  </div>
-                )}
-                <div className="info-row">
-                  <span className="info-label">交易所</span>
-                  <span className="info-value">{strategy.exchange || 'BINANCE'}</span>
-                </div>
-                {strategy.margin_type && (
-                  <div className="info-row">
-                    <span className="info-label">保证金模式</span>
-                    <span className="info-value">{strategy.margin_type}</span>
-                  </div>
-                )}
-              </div>
-            </div>
+            <GridParamsCard
+              grid_price_difference={strategy.grid_price_difference}
+              grid_long_open_quantity={strategy.grid_long_open_quantity}
+              grid_long_close_quantity={strategy.grid_long_close_quantity}
+              grid_short_open_quantity={strategy.grid_short_open_quantity}
+              grid_short_close_quantity={strategy.grid_short_close_quantity}
+              exchange={strategy.exchange}
+              margin_type={strategy.margin_type}
+            />
           </div>
 
-          <div className="detail-card">
-            <div className="detail-card-header">
-              <div className="detail-card-header-left">
-                <IconFileText size={16} />
-                <h3>插件日志</h3>
-              </div>
-              <button className="action-btn" onClick={loadPluginLogs} disabled={logLoading}>
-                <IconRefresh size={14} />
-              </button>
-            </div>
-            <div className="detail-card-body">
-              {logLoading ? (
-                <div className="logs-loading">加载中...</div>
-              ) : pluginLogs.length === 0 ? (
-                <div className="logs-empty">暂无日志</div>
-              ) : (
-                <div className="logs-list">
-                  {pluginLogs.map((log) => (
-                    <div key={log.id} className="log-item">
-                      <div className="log-item-header">
-                        <div className="log-item-left">
-                          <span className="log-icon" style={{ color: getLogColor(log.level) }}>
-                            {getLogIcon(log.level)}
-                          </span>
-                          <span className="log-type">{getEventTypeName(log.event_type)}</span>
-                        </div>
-                        <span className="log-time">
-                          {new Date(log.created_at).toLocaleString()}
-                        </span>
-                      </div>
-                      <div className="log-message">{log.message}</div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+          <PluginLogsCard
+            plugin_logs={pluginLogs}
+            log_loading={logLoading}
+            on_refresh_logs={loadPluginLogs}
+          />
 
-          <div className="detail-card">
-            <div className="detail-card-header">
-              <div className="detail-card-header-left">
-                <IconCoins size={16} />
-                <h3>费用明细</h3>
-              </div>
-            </div>
-            <div className="detail-card-body">
-              <div className="fee-row">
-                <span className="fee-label">总手续费</span>
-                <span className="fee-value">{strategy.total_fee.toFixed(2)} USDT</span>
-              </div>
-              <div className="fee-row">
-                <span className="fee-label">资金费用</span>
-                <span className={`fee-value ${strategy.funding_fee >= 0 ? 'positive' : 'negative'}`}>
-                  {strategy.funding_fee >= 0 ? '+' : ''}{strategy.funding_fee.toFixed(2)} USDT
-                </span>
-              </div>
-              <div className="fee-row total">
-                <span className="fee-label">总费用</span>
-                <span className="fee-value">
-                  {(strategy.total_fee + strategy.funding_fee).toFixed(2)} USDT
-                </span>
-              </div>
-            </div>
-          </div>
+          <FeeDetailCard
+            total_fee={strategy.total_fee}
+            funding_fee={strategy.funding_fee}
+          />
         </div>
 
         <div className="side-section">
-          <div className="status-card">
-            <div className="status-card-header">
-              <h3>策略状态</h3>
-            </div>
-            <div className="status-card-body">
-              <div className="status-row">
-                <span className="status-label">运行状态</span>
-                <span className={`status-badge status-${strategy_status}`}>
-                  {strategy_status === 'running' ? '运行中' : strategy_status === 'paused' ? '已暂停' : '已停止'}
-                </span>
-              </div>
-              <div className="status-row">
-                <span className="status-label">持仓方向</span>
-                <span className={`status-badge ${is_long ? 'long' : 'short'}`}>
-                  {is_long ? '做多' : '做空'}
-                </span>
-              </div>
-              <div className="status-row">
-                <span className="status-label">杠杆倍数</span>
-                <span className="status-value">x{strategy.leverage}</span>
-              </div>
-              {strategy.remark && strategy.remark !== 'error' && (
-                <div className="status-row">
-                  <span className="status-label">备注</span>
-                  <span className="status-value">{strategy.remark}</span>
-                </div>
-              )}
-            </div>
-          </div>
+          <StrategyStatusCard
+            strategy_status={strategy_status}
+            position_side={strategy.position_side}
+            leverage={strategy.leverage}
+            remark={strategy.remark}
+          />
 
-          <div className="time-card">
-            <div className="time-card-header">
-              <IconClock size={14} />
-              <span>时间信息</span>
-            </div>
-            <div className="time-card-body">
-              <div className="time-row">
-                <span className="time-label">创建时间</span>
-                <span className="time-value">{new Date(strategy.created_at).toLocaleString()}</span>
-              </div>
-              {strategy.start_time && (
-                <div className="time-row">
-                  <span className="time-label">启动时间</span>
-                  <span className="time-value">{new Date(strategy.start_time).toLocaleString()}</span>
-                </div>
-              )}
-              <div className="time-row">
-                <span className="time-label">更新时间</span>
-                <span className="time-value">{new Date(strategy.updated_at).toLocaleString()}</span>
-              </div>
-              <div className="time-row">
-                <span className="time-label">运行时长</span>
-                <span className="time-value">{run_duration}</span>
-              </div>
-            </div>
-          </div>
+          <TimeInfoCard
+            created_at={strategy.created_at}
+            start_time={strategy.start_time}
+            updated_at={strategy.updated_at}
+            run_duration={run_duration}
+          />
         </div>
       </div>
     </div>

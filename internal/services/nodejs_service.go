@@ -21,21 +21,21 @@ import (
 // 4. 健康检查
 // 5. 提供服务地址
 type NodejsService struct {
-	ctx        context.Context
-	log        Logger
-	serverDir  string // Node.js 服务目录
+	ctx       context.Context
+	log       Logger
+	serverDir string // Node.js 服务目录
 
-	mu             sync.RWMutex
-	cmd            *exec.Cmd
-	process        *os.Process
-	isRunning      bool
-	port           int
-	startTime      time.Time
+	mu              sync.RWMutex
+	cmd             *exec.Cmd
+	process         *os.Process
+	isRunning       bool
+	port            int
+	startTime       time.Time
 	lastHealthCheck time.Time
-	isHealthy      bool
+	isHealthy       bool
 
-	cancel         context.CancelFunc
-	outputDone     chan struct{}
+	cancel          context.CancelFunc
+	outputDone      chan struct{}
 	healthCheckDone chan struct{}
 
 	// 日志文件句柄
@@ -282,35 +282,35 @@ func (s *NodejsService) buildEnv(baseEnv []string) []string {
 // goLogListener 启动日志监听协程
 // stdout/stderr 同时输出到终端和 PPLL_LOG_DIR/nodejs-server.log
 func (s *NodejsService) goLogListener(stdout io.Reader, stderr io.Reader) {
-    var logWriter io.Writer = os.Stdout
-    if logDir := os.Getenv("PPLL_LOG_DIR"); logDir != "" {
-        if f, err := os.OpenFile(filepath.Join(logDir, "nodejs-server.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644); err == nil {
-            s.logFile = f
-            logWriter = io.MultiWriter(os.Stdout, f)
-        }
-    }
+	var logWriter io.Writer = os.Stdout
+	if logDir := os.Getenv("PPLL_LOG_DIR"); logDir != "" {
+		if f, err := os.OpenFile(filepath.Join(logDir, "nodejs-server.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0644); err == nil {
+			s.logFile = f
+			logWriter = io.MultiWriter(os.Stdout, f)
+		}
+	}
 
-    writeLog := func(prefix string, line string) {
-        fmt.Fprintln(logWriter, time.Now().Format("2006-01-02 15:04:05")+" "+prefix+" "+line)
-    }
+	writeLog := func(prefix string, line string) {
+		fmt.Fprintln(logWriter, time.Now().Format("2006-01-02 15:04:05")+" "+prefix+" "+line)
+	}
 
-    if stdout != nil {
-        go func() {
-            scanner := bufio.NewScanner(stdout)
-            for scanner.Scan() {
-                writeLog("[stdout]", scanner.Text())
-            }
-        }()
-    }
+	if stdout != nil {
+		go func() {
+			scanner := bufio.NewScanner(stdout)
+			for scanner.Scan() {
+				writeLog("[stdout]", scanner.Text())
+			}
+		}()
+	}
 
-    if stderr != nil {
-        go func() {
-            scanner := bufio.NewScanner(stderr)
-            for scanner.Scan() {
-                writeLog("[stderr]", scanner.Text())
-            }
-        }()
-    }
+	if stderr != nil {
+		go func() {
+			scanner := bufio.NewScanner(stderr)
+			for scanner.Scan() {
+				writeLog("[stderr]", scanner.Text())
+			}
+		}()
+	}
 }
 
 // goWaitForExit 等待进程退出

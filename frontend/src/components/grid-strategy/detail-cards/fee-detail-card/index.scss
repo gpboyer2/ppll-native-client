@@ -1,0 +1,71 @@
+.detail-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.detail-card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-card-header-left svg {
+  color: var(--color-text-muted);
+}
+
+.detail-card-header h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.detail-card-body {
+  padding: 8px 0;
+}
+
+.fee-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.fee-row:last-child {
+  border-bottom: none;
+}
+
+.fee-label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.fee-value {
+  font-size: 13px;
+  color: var(--color-text);
+  font-weight: 500;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+}
+
+.fee-value.positive {
+  color: rgb(16, 185, 129);
+}
+
+.fee-value.negative {
+  color: rgb(239, 68, 68);
+}
+
+.fee-row.total {
+  background-color: rgba(0, 0, 0, 0.02);
+  font-weight: 600;
+}

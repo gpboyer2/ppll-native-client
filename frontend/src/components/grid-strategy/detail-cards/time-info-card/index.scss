@@ -1,0 +1,56 @@
+.time-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+}
+
+.time-card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.time-card-header svg {
+  color: var(--color-text-muted);
+}
+
+.time-card-header span {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.time-card-body {
+  padding: 8px 0;
+}
+
+.time-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+.time-row:last-child {
+  border-bottom: none;
+}
+
+.time-label {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.time-value {
+  font-size: 13px;
+  color: var(--color-text);
+  font-weight: 500;
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+}

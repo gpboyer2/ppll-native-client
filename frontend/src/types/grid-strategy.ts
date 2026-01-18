@@ -285,3 +285,52 @@ export interface SmartConfigModalProps {
     secret_key?: string;
   };
 }
+
+// ==================== 策略详情相关类型 ====================
+
+/**
+ * 网格策略插件日志
+ */
+export interface PluginLog {
+  id: number;
+  strategy_id: number;
+  trading_pair: string;
+  event_type: string;
+  level: string;
+  message: string;
+  details: any;
+  created_at: string;
+}
+
+/**
+ * 网格策略详情(从后端 API 获取的完整数据)
+ */
+export interface GridStrategyDetail {
+  id: number;
+  name?: string;
+  trading_pair: string;
+  position_side: 'LONG' | 'SHORT';
+  leverage: number;
+  paused: boolean;
+  remark: string;
+  grid_price_difference: number;
+  grid_long_open_quantity?: number;
+  grid_long_close_quantity?: number;
+  grid_short_open_quantity?: number;
+  grid_short_close_quantity?: number;
+  total_open_position_quantity: number;
+  total_open_position_value: number;
+  total_open_position_entry_price: number;
+  total_profit_loss: number;
+  total_trades: number;
+  total_pairing_times: number;
+  total_fee: number;
+  funding_fee: number;
+  start_time?: string;
+  created_at: string;
+  updated_at: string;
+  exchange?: string;
+  exchange_type?: string;
+  margin_type?: string;
+  liquidation_price?: number;
+}
