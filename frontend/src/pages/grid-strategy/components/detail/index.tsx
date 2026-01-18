@@ -155,7 +155,7 @@ function GridStrategyDetailPage() {
 
   if (loading) {
     return (
-      <div className="strategy-detail-page">
+      <div className="strategy-detail-page container">
         <div className="loading-state">加载中...</div>
       </div>
     );
@@ -163,7 +163,7 @@ function GridStrategyDetailPage() {
 
   if (!strategy) {
     return (
-      <div className="strategy-detail-page">
+      <div className="strategy-detail-page container">
         <div className="error-state">策略不存在</div>
       </div>
     );
@@ -197,7 +197,7 @@ function GridStrategyDetailPage() {
   const run_duration = strategy.start_time ? formatRunDuration(strategy.start_time) : '未启动';
 
   return (
-    <div className="strategy-detail-page">
+    <div className="strategy-detail-page container">
       <div className="detail-header">
         <div className="detail-header-left">
           <Link to={ROUTES.GRID_STRATEGY} className="back-link">← 返回</Link>
