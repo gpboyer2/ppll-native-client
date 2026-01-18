@@ -104,11 +104,16 @@ function GridStrategyEditPage() {
         // 判断错误类型
         let error_type: 'validation_failed' | 'vip_required' | 'network_error' | 'signature_error' | 'invalid_api_key' | 'ip_restricted' = 'validation_failed';
 
-        // 提取IP地址
+        // 提取IP地址 - 优先从响应数据中获取
         let ip_address = undefined;
-        const ip_match = error_message.match(/request ip:\s*([\d.]+)/);
-        if (ip_match && ip_match[1]) {
-          ip_address = ip_match[1];
+        if (response.datum && typeof response.datum === 'object' && response.datum.ip_address) {
+          ip_address = response.datum.ip_address;
+        } else {
+          // 从错误消息中提取（兼容旧格式）
+          const ip_match = error_message.match(/request ip:\s*([\d.]+)/);
+          if (ip_match && ip_match[1]) {
+            ip_address = ip_match[1];
+          }
         }
 
         // 识别错误类型并设置简洁的错误描述
@@ -118,7 +123,7 @@ function GridStrategyEditPage() {
         } else if (error_message.includes('Signature for this request is not valid') || error_message.includes('签名错误')) {
           error_type = 'signature_error';
           error_message = '签名错误';
-        } else if (error_message.includes('Invalid API-key, IP, or permissions') || error_message.includes('IP 白名单限制')) {
+        } else if (error_message.includes('IP 白名单限制') || error_message.includes('IP, or permissions')) {
           error_type = 'ip_restricted';
           error_message = 'IP 白名单限制';
         } else if (error_message.includes('Invalid API-key') || error_message.includes('API-key')) {
@@ -153,7 +158,7 @@ function GridStrategyEditPage() {
       } else if (error_message.includes('Signature for this request is not valid') || error_message.includes('签名错误')) {
         error_type = 'signature_error';
         error_message = '签名错误';
-      } else if (error_message.includes('Invalid API-key, IP, or permissions') || error_message.includes('IP 白名单限制')) {
+      } else if (error_message.includes('IP 白名单限制') || error_message.includes('IP, or permissions')) {
         error_type = 'ip_restricted';
         error_message = 'IP 白名单限制';
       } else if (error_message.includes('Invalid API-key') || error_message.includes('API-key')) {

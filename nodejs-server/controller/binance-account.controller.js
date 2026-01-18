@@ -67,25 +67,24 @@ const handleError = (error, res, operation) => {
   }
 
   // 针对无效 API Key 错误
-  if (errorCode === -2015 || errorMessage.includes('Invalid API-key')) {
-    return res.apiError(
-      null,
-      `API Key 无效，请检查以下项：
+  if (errorCode === -2015) {
+    // 检查是否是 IP 白名单限制
+    if (errorMessage.includes('IP, or permissions')) {
+      // 提取 IP 地址
+      const ip_match = errorMessage.match(/request ip:\s*([\d.]+)/);
+      const ip_address = ip_match ? ip_match[1] : null;
+      return res.apiError({
+        error_type: 'ip_restricted',
+        ip_address: ip_address
+      }, 'IP 白名单限制');
+    }
+    // 其他 -2015 错误（真正的 API Key 无效）
+    return res.apiError(null, 'API Key 无效');
+  }
 
-1. 检查 API Key 是否正确复制
-   • 确保没有多余的空格
-   • 确保复制了完整的内容
-
-2. 检查币安后台 API Key 状态
-   • 访问：https://www.binance.com/zh-CN/my/settings/api-management
-   • 确认 API Key 是否被禁用或删除
-
-3. 重新生成 API Key
-   • 如果 API Key 已失效，请重新生成
-   • 然后在系统中更新
-
-💡 提示：API Key 可能已过期或被删除，需要重新生成。`
-    );
+  // 其他包含 Invalid API-key 的错误
+  if (errorMessage.includes('Invalid API-key')) {
+    return res.apiError(null, 'API Key 无效');
   }
 
   // 默认错误消息
