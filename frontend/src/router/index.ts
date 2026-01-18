@@ -10,7 +10,8 @@ export const ROUTES = {
   PLUGIN_DETAIL: '/plugins/:id',
   GRID_STRATEGY: '/grid-strategy',
   GRID_STRATEGY_CREATE: '/grid-strategy/create',
-  GRID_STRATEGY_EDIT: '/grid-strategy/edit'
+  GRID_STRATEGY_EDIT: '/grid-strategy/edit',
+  GRID_STRATEGY_DETAIL: '/grid-strategy/detail'
 } as const;
 
 // 页面组件路径映射
@@ -19,7 +20,8 @@ export const pageComponents = {
   SettingsPage: '../pages/SettingsPage',
   PluginsPage: '../pages/PluginsPage',
   GridStrategyListPage: '../pages/GridStrategy',
-  GridStrategyEditPage: '../pages/GridStrategy/edit'
+  GridStrategyEditPage: '../pages/GridStrategy/edit',
+  GridStrategyDetailPage: '../pages/grid-strategy/components/detail'
 } as const;
 
 // 导航配置

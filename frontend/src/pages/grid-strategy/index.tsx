@@ -337,10 +337,17 @@ function GridStrategyListPage() {
                 </div>
 
                 {/* 操作按钮 */}
-                <div className="flex gap-8">
+                <div className="flex gap-8" style={{ marginLeft: 'auto', justifyContent: 'flex-end' }}>
+                  <Link
+                    to={`/grid-strategy/detail?id=${strategy.id}`}
+                    className="btn btn-ghost"
+                    style={{ height: '32px', textDecoration: 'none' }}
+                  >
+                    查看详情
+                  </Link>
                   <button
                     className="btn btn-ghost"
-                    style={{ flex: 1, height: '32px' }}
+                    style={{ height: '32px' }}
                     onClick={() => handleToggleStatus(strategy.id, strategy.status ?? 'stopped')}
                   >
                     {strategy.status === 'running' ? '暂停' : '启动'}
@@ -348,16 +355,16 @@ function GridStrategyListPage() {
                   <Link
                     to={`/grid-strategy/edit?id=${strategy.id}`}
                     className="btn btn-outline"
-                    style={{ flex: 1, height: '32px', textAlign: 'center', textDecoration: 'none' }}
+                    style={{ height: '32px', textDecoration: 'none' }}
                   >
-                                        编辑
+                    编辑
                   </Link>
                   <button
                     className="btn btn-danger"
                     style={{ height: '32px', padding: '0 16px' }}
                     onClick={() => handleDeleteStrategy(strategy.id)}
                   >
-                                        删除
+                    删除
                   </button>
                 </div>
               </div>

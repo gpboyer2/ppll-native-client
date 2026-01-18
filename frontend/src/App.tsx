@@ -12,6 +12,7 @@ import DatabaseManagerPage from './pages/database-manager';
 import PluginsPage from './pages/plugins';
 import GridStrategyListPage from './pages/grid-strategy';
 import GridStrategyEditPage from './pages/grid-strategy/components/edit';
+import GridStrategyDetailPage from './pages/grid-strategy/components/detail';
 import { navItems, ROUTES } from './router';
 import { ThemeToggle } from './components/theme-toggle';
 import { useThemeStore } from './stores/theme-store';
@@ -172,6 +173,7 @@ function App() {
               <Route path={ROUTES.GRID_STRATEGY} element={<GridStrategyListPage />} />
               <Route path={ROUTES.GRID_STRATEGY_CREATE} element={<GridStrategyEditPage />} />
               <Route path={ROUTES.GRID_STRATEGY_EDIT} element={<GridStrategyEditPage />} />
+              <Route path={ROUTES.GRID_STRATEGY_DETAIL} element={<GridStrategyDetailPage />} />
             </Routes>
           </ApiKeyGuard>
         </Router>
