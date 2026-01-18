@@ -343,4 +343,6 @@ export interface GridStrategyDetail {
   exchange_type?: string;
   margin_type?: string;
   liquidation_price?: number;
+  is_above_open_price?: boolean;
+  is_below_open_price?: boolean;
 }

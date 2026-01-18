@@ -38,11 +38,13 @@ function GridStrategyDetailPage() {
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [pluginLogs, setPluginLogs] = useState<PluginLog[]>([]);
   const [logLoading, setLogLoading] = useState(false);
+  const [runDuration, setRunDuration] = useState<string>('未启动');
 
   // 防止 StrictMode 双重渲染导致重复请求
   const has_loaded_ref = useRef(false);
+  const interval_ref = useRef<NodeJS.Timeout | null>(null);
 
-  const { ticker_prices, subscribeTicker, unsubscribeTicker, initialized: binance_initialized } = useBinanceStore();
+  const { ticker_prices, subscribeTicker, unsubscribeTicker, initialized: binance_initialized, connectSocket } = useBinanceStore();
 
   const loadStrategyDetail = useCallback(async () => {
     if (!strategy_id) return;
@@ -166,10 +168,15 @@ function GridStrategyDetailPage() {
 
   useEffect(() => {
     if (strategy?.trading_pair) {
-      subscribeTicker(strategy.trading_pair);
+      // 先建立 WebSocket 连接,然后订阅 ticker
+      connectSocket().then(() => {
+        subscribeTicker(strategy.trading_pair);
+      }).catch(error => {
+        console.error('WebSocket 连接失败:', error);
+      });
       return () => unsubscribeTicker(strategy.trading_pair);
     }
-  }, [strategy?.trading_pair, subscribeTicker, unsubscribeTicker]);
+  }, [strategy?.trading_pair, subscribeTicker, unsubscribeTicker, connectSocket]);
 
   useEffect(() => {
     if (strategy?.trading_pair && ticker_prices[strategy.trading_pair]) {
@@ -200,6 +207,49 @@ function GridStrategyDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [strategy?.id]);
 
+  // 运行时长自动更新
+  useEffect(() => {
+    if (!strategy) return;
+
+    const start_time = strategy.start_time || strategy.created_at;
+    if (!start_time) return;
+
+    // 立即计算一次
+    const updateDuration = () => {
+      const diff_ms = Date.now() - new Date(start_time).getTime();
+      const total_seconds = Math.floor(diff_ms / 1000);
+
+      const seconds = total_seconds % 60;
+      const minutes = Math.floor((total_seconds / 60) % 60);
+      const hours = Math.floor((total_seconds / 3600) % 24);
+      const days = Math.floor((total_seconds / 86400) % 30);
+      const months = Math.floor((total_seconds / 2592000) % 12);
+      const years = Math.floor(total_seconds / 31536000);
+
+      const parts = [];
+      if (years > 0) parts.push(`${years}年`);
+      if (months > 0) parts.push(`${months}月`);
+      if (days > 0) parts.push(`${days}天`);
+      if (hours > 0) parts.push(`${hours}时`);
+      if (minutes > 0) parts.push(`${minutes}分`);
+      if (seconds > 0 || parts.length === 0) parts.push(`${seconds}秒`);
+
+      setRunDuration(parts.join(''));
+    };
+
+    updateDuration();
+
+    // 每秒更新一次
+    interval_ref.current = setInterval(updateDuration, 1000);
+
+    return () => {
+      if (interval_ref.current) {
+        clearInterval(interval_ref.current);
+        interval_ref.current = null;
+      }
+    };
+  }, [strategy]);
+
   if (loading) {
     return (
       <div className="strategy-detail-page container">
@@ -216,32 +266,11 @@ function GridStrategyDetailPage() {
     );
   }
 
-  const strategy_status = strategy.paused ? 'paused' : (strategy.remark === 'error' ? 'stopped' : 'running');
-
-  const formatRunDuration = (start_time: string): string => {
-    const now = Date.now();
-    const start = new Date(start_time).getTime();
-    const diff = now - start;
-
-    const seconds = Math.floor((diff / 1000) % 60);
-    const minutes = Math.floor((diff / (1000 * 60)) % 60);
-    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-    const days = Math.floor((diff / (1000 * 60 * 60 * 24)) % 30);
-    const months = Math.floor((diff / (1000 * 60 * 60 * 24 * 30)) % 12);
-    const years = Math.floor(diff / (1000 * 60 * 60 * 24 * 365));
-
-    const parts = [];
-    if (years > 0) parts.push(`${years}年`);
-    if (months > 0) parts.push(`${months}月`);
-    if (days > 0) parts.push(`${days}天`);
-    if (hours > 0) parts.push(`${hours}时`);
-    if (minutes > 0) parts.push(`${minutes}分`);
-    if (seconds > 0) parts.push(`${seconds}秒`);
-
-    return parts.length > 0 ? parts.join('') : '0秒';
-  };
-
-  const run_duration = strategy.start_time ? formatRunDuration(strategy.start_time) : '未启动';
+  // 修正策略状态判断逻辑
+  // 如果策略因为价格条件暂停（高于上限或低于下限），显示为暂停状态
+  const strategy_status = strategy.paused || strategy.is_above_open_price || strategy.is_below_open_price
+    ? 'paused'
+    : (strategy.remark === 'error' ? 'stopped' : 'running');
 
   return (
     <div className="strategy-detail-page container">
@@ -265,7 +294,7 @@ function GridStrategyDetailPage() {
               <span className="divider">|</span>
               <span className="meta-text">创建于 {new Date(strategy.created_at).toLocaleDateString()}</span>
               <span className="divider">|</span>
-              <span className="meta-text">累计运行 {run_duration}</span>
+              <span className="meta-text">累计运行 {runDuration}</span>
             </div>
           </div>
         </div>
@@ -321,6 +350,8 @@ function GridStrategyDetailPage() {
               grid_short_close_quantity={strategy.grid_short_close_quantity}
               exchange={strategy.exchange}
               margin_type={strategy.margin_type}
+              position_side={strategy.position_side}
+              current_price={currentPrice}
             />
           </div>
 
@@ -348,7 +379,7 @@ function GridStrategyDetailPage() {
             created_at={strategy.created_at}
             start_time={strategy.start_time}
             updated_at={strategy.updated_at}
-            run_duration={run_duration}
+            run_duration={runDuration}
           />
         </div>
       </div>
