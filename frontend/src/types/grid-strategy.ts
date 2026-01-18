@@ -110,12 +110,21 @@ export interface GridStrategy {
 
   /** 更新时间（前端维护） */
   updated_at?: string;
+
+  /** 内部字段：关联的 API Key ID（前端维护，用于列表展示） */
+  _api_key_id?: string;
+
+  /** 内部字段：关联的 API Key 名称（前端维护，用于列表展示） */
+  _api_key_name?: string;
 }
 
 /** 网格策略表单数据类型（用于编辑） */
-export type GridStrategyForm = Omit<GridStrategy, 'id' | 'status' | 'created_at' | 'updated_at'> & {
+export type GridStrategyForm = Omit<GridStrategy, 'id' | 'status' | 'created_at' | 'updated_at' | '_api_key_id' | '_api_key_name'> & {
     /** 内部字段：选择的 API Key ID（不保存到数据库） */
-    _api_key_id?: number;
+    _api_key_id?: number | string;
+
+    /** 内部字段：关联的 API Key 名称（前端维护，用于列表展示） */
+    _api_key_name?: string;
 };
 
 /** 网格策略列表项类型（用于列表展示） */
@@ -162,6 +171,7 @@ export interface StrategyFilter {
   keyword: string;
   position_side: 'all' | 'LONG' | 'SHORT';
   status: 'all' | StrategyStatus;
+  api_key_id: 'all' | string;
 }
 
 // ==================== 智能配置相关类型 ====================

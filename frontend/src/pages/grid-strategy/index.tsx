@@ -28,7 +28,8 @@ function GridStrategyListPage() {
   const [filter, setFilter] = useState<StrategyFilter>({
     keyword: '',
     position_side: 'all',
-    status: 'all'
+    status: 'all',
+    api_key_id: 'all'
   });
 
   // 加载策略列表
@@ -45,26 +46,62 @@ function GridStrategyListPage() {
 
     has_loaded_ref.current = true;
     loadStrategyList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [binance_initialized]);
 
   // 从后端 API 加载策略列表
   async function loadStrategyList() {
     setLoading(true);
     try {
-      const response = await GridStrategyApi.list({
-        current_page: 1,
-        page_size: 100
-      });
+      // 获取所有 API Key
+      const { api_key_list } = useBinanceStore.getState();
 
-      if (response.status === 'success' && response.datum) {
-        const list = response.datum.list || [];
-        const transformed_list = list.map((item: any): GridStrategy => ({
-          ...item,
-          status: (item.paused ? 'paused' : (item.remark === 'error' ? 'stopped' : 'running')) as StrategyStatus,
-        }));
-        setStrategyList(transformed_list);
-      } else {
-        showError(response.message || '加载策略列表失败');
+      // 如果没有 API Key,提示用户
+      if (!api_key_list || api_key_list.length === 0) {
+        showError('请先在币安 API Key 管理中添加 API Key');
+        setLoading(false);
+        return;
+      }
+
+      // 并发请求所有 API Key 的策略列表
+      const requests = api_key_list.map(api_key =>
+        GridStrategyApi.list({
+          current_page: 1,
+          page_size: 100,
+          api_key: api_key.api_key,
+          secret_key: api_key.secret_key
+        })
+      );
+
+      const responses = await Promise.all(requests);
+
+      // 合并所有策略列表
+      const all_strategies: GridStrategy[] = [];
+      for (let i = 0; i < responses.length; i++) {
+        const response = responses[i];
+        const api_key = api_key_list[i];
+
+        if (response.status === 'success' && response.datum) {
+          const list = response.datum.list || [];
+          // 为每个策略添加 api_key_id 信息,方便后续操作
+          const strategies_with_key = list.map((item: any): GridStrategy => ({
+            ...item,
+            _api_key_id: String(api_key.id),
+            _api_key_name: api_key.name,
+            status: (item.paused ? 'paused' : (item.remark === 'error' ? 'stopped' : 'running')) as StrategyStatus,
+          }));
+          all_strategies.push(...strategies_with_key);
+        }
+      }
+
+      setStrategyList(all_strategies);
+
+      // 如果所有请求都失败,提示用户
+      if (all_strategies.length === 0) {
+        const has_error = responses.some(r => r.status === 'error');
+        if (has_error) {
+          showError('加载策略列表失败,请检查 API Key 配置');
+        }
       }
     } catch (error) {
       console.error('加载策略列表失败:', error);
@@ -137,6 +174,11 @@ function GridStrategyListPage() {
         return false;
       }
 
+      // API Key 筛选
+      if (filter.api_key_id !== 'all' && strategy._api_key_id !== filter.api_key_id) {
+        return false;
+      }
+
       return true;
     });
   }
@@ -148,6 +190,21 @@ function GridStrategyListPage() {
     const paused = strategyList.filter(s => s.status === 'paused').length;
     const stopped = strategyList.filter(s => s.status === 'stopped').length;
     return { total, running, paused, stopped };
+  }
+
+  // 获取 API Key 筛选器的数量统计
+  function getApiKeyFilterCount() {
+    const api_key_list = useBinanceStore.getState().api_key_list;
+    const counts: Record<string, number> = {
+      'all': strategyList.length
+    };
+
+    api_key_list.forEach(api_key => {
+      const count = strategyList.filter(s => s._api_key_id === String(api_key.id)).length;
+      counts[String(api_key.id)] = count;
+    });
+
+    return counts;
   }
 
   // 获取持仓方向文本
@@ -178,6 +235,7 @@ function GridStrategyListPage() {
 
   const filtered_list = getFilteredStrategyList();
   const statistics = getStatistics();
+  const api_key_counts = getApiKeyFilterCount();
 
   return (
     <div className="container">
@@ -241,6 +299,25 @@ function GridStrategyListPage() {
                   </button>
                 );
               })}
+            </div>
+
+            <span className="text-muted label" style={{ marginLeft: '24px' }}>API Key：</span>
+            <div className="flex gap-4">
+              <button
+                className={`grid-strategy-filter-button ${filter.api_key_id === 'all' ? 'active' : ''}`}
+                onClick={() => updateFilter('api_key_id', 'all')}
+              >
+                全部({api_key_counts['all']})
+              </button>
+              {useBinanceStore.getState().api_key_list.map(api_key => (
+                <button
+                  key={api_key.id}
+                  className={`grid-strategy-filter-button ${filter.api_key_id === String(api_key.id) ? 'active' : ''}`}
+                  onClick={() => updateFilter('api_key_id', String(api_key.id))}
+                >
+                  {api_key.name}({api_key_counts[String(api_key.id)]})
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -306,21 +383,29 @@ function GridStrategyListPage() {
 
                 {/* 策略参数 */}
                 <div className="flex flex-col gap-6 mb-12">
+                  {strategy._api_key_name && (
+                    <div className="flex items-center gap-8">
+                      <span className="text-muted" style={{ fontSize: 'var(--text-sm)', width: '58px' }}>API Key:</span>
+                      <span style={{ fontWeight: 500 }}>
+                        {strategy._api_key_name}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-8">
-                    <span className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>网格差价:</span>
+                    <span className="text-muted" style={{ fontSize: 'var(--text-sm)', width: '58px' }}>网格差价:</span>
                     <span style={{ fontWeight: 500 }}>
                       {strategy.grid_price_difference ? NumberFormat.truncateDecimal(strategy.grid_price_difference) : '-'}
                     </span>
                   </div>
                   <div className="flex items-center gap-8">
-                    <span className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>交易数量:</span>
+                    <span className="text-muted" style={{ fontSize: 'var(--text-sm)', width: '58px' }}>交易数量:</span>
                     <span style={{ fontWeight: 500 }}>
                       {strategy.grid_trade_quantity ? NumberFormat.truncateDecimal(strategy.grid_trade_quantity) : '-'}
                     </span>
                   </div>
                   {strategy.gt_limitation_price && (
                     <div className="flex items-center gap-8">
-                      <span className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>价格上限:</span>
+                      <span className="text-muted" style={{ fontSize: 'var(--text-sm)', width: '58px' }}>价格上限:</span>
                       <span style={{ fontWeight: 500 }}>
                         {NumberFormat.truncateDecimal(strategy.gt_limitation_price)}
                       </span>
@@ -328,7 +413,7 @@ function GridStrategyListPage() {
                   )}
                   {strategy.lt_limitation_price && (
                     <div className="flex items-center gap-8">
-                      <span className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>价格下限:</span>
+                      <span className="text-muted" style={{ fontSize: 'var(--text-sm)', width: '58px' }}>价格下限:</span>
                       <span style={{ fontWeight: 500 }}>
                         {NumberFormat.truncateDecimal(strategy.lt_limitation_price)}
                       </span>
@@ -341,13 +426,13 @@ function GridStrategyListPage() {
                   <Link
                     to={`/grid-strategy/detail?id=${strategy.id}`}
                     className="btn btn-ghost"
-                    style={{ height: '32px', textDecoration: 'none' }}
+                    style={{ height: '32px', textDecoration: 'none', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
                   >
                     查看详情
                   </Link>
                   <button
                     className="btn btn-ghost"
-                    style={{ height: '32px' }}
+                    style={{ height: '32px', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
                     onClick={() => handleToggleStatus(strategy.id, strategy.status ?? 'stopped')}
                   >
                     {strategy.status === 'running' ? '暂停' : '启动'}
