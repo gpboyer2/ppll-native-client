@@ -224,9 +224,9 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
 
     // 记录到插件事件管理器
     await usd_m_futures_infinite_grid_event_manager.logEvent({
-      strategy_id: this.config.id,
-      trading_pair: this.config.trading_pair,
-      event_type: usd_m_futures_infinite_grid_event_manager.eventTypes.WARN,
+      strategyId: parseInt(this.config.id),
+      tradingPair: this.config.trading_pair,
+      eventType: usd_m_futures_infinite_grid_event_manager.eventTypes.WARN,
       level: 'warn',
       message: data.message || '网格策略警告',
       details: data,
@@ -312,9 +312,9 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
 
     // 记录建仓事件到插件事件管理器
     await usd_m_futures_infinite_grid_event_manager.logEvent({
-      strategy_id: wealthySoon.config.id,
-      trading_pair: data.symbol,
-      event_type: usd_m_futures_infinite_grid_event_manager.eventTypes.OPEN_POSITION,
+      strategyId: parseInt(wealthySoon.config.id),
+      tradingPair: data.symbol,
+      eventType: usd_m_futures_infinite_grid_event_manager.eventTypes.OPEN_POSITION,
       level: 'success',
       message: `建仓成功: ${data.side} ${data.executedQty} @ ${data.avgPrice}`,
       details: {
@@ -382,9 +382,9 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
 
     // 记录平仓事件到插件事件管理器
     await usd_m_futures_infinite_grid_event_manager.logEvent({
-      strategy_id: wealthySoon.config.id,
-      trading_pair: data.symbol,
-      event_type: usd_m_futures_infinite_grid_event_manager.eventTypes.CLOSE_POSITION,
+      strategyId: parseInt(wealthySoon.config.id),
+      tradingPair: data.symbol,
+      eventType: usd_m_futures_infinite_grid_event_manager.eventTypes.CLOSE_POSITION,
       level: 'success',
       message: `平仓成功: ${data.side} ${data.executedQty} @ ${data.avgPrice}`,
       details: {

@@ -37,9 +37,9 @@ class UsdMFuturesInfiniteGridLogManager extends EventEmitter {
    */
   async logEvent(event) {
     const {
-      strategy_id,
-      trading_pair,
-      event_type,
+      strategyId,
+      tradingPair,
+      eventType,
       level = 'info',
       message,
       details = {},
@@ -48,9 +48,9 @@ class UsdMFuturesInfiniteGridLogManager extends EventEmitter {
     try {
       // 保存到数据库
       const log = await UsdMFuturesInfiniteGridLog.create({
-        strategy_id,
-        trading_pair,
-        event_type,
+        strategy_id: strategyId,
+        trading_pair: tradingPair,
+        event_type: eventType,
         level,
         message,
         details: {
@@ -60,26 +60,30 @@ class UsdMFuturesInfiniteGridLogManager extends EventEmitter {
       });
 
       // 通过 Socket.IO 通知前端
-      this.emitToFrontend(strategy_id, {
+      this.emitToFrontend(strategyId, {
         id: log.id,
-        strategy_id,
-        trading_pair,
-        event_type,
+        strategy_id: strategyId,
+        trading_pair: tradingPair,
+        event_type: eventType,
         level,
         message,
         details,
         created_at: log.created_at,
       });
 
-      // 触发内部事件
-      this.emit(event_type, { strategy_id, trading_pair, message, details });
+      // 触发内部事件（添加错误处理）
+      try {
+        this.emit(eventType, { strategyId, tradingPair, message, details });
+      } catch (emitError) {
+        console.error('[UsdMFuturesInfiniteGridLogManager] 触发内部事件失败:', emitError);
+      }
 
       return log;
     } catch (error) {
       console.error('[UsdMFuturesInfiniteGridLogManager] 记录事件失败:', error);
 
       // 即使数据库记录失败，也要通知前端
-      this.emitToFrontend(strategy_id, event);
+      this.emitToFrontend(strategyId, event);
     }
   }
 

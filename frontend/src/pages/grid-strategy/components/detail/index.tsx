@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import './index.scss';
 import { useBinanceStore } from '../../../../stores/binance-store';
@@ -27,7 +27,10 @@ import { GridStrategyDetail, PluginLog } from '../../../../types/grid-strategy';
 function GridStrategyDetailPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const id = searchParams.get('id');
+  const id_str = searchParams.get('id');
+
+  // 一次性转换并验证 ID
+  const strategy_id = id_str ? parseInt(id_str) : null;
 
   const [strategy, setStrategy] = useState<GridStrategyDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,32 +39,63 @@ function GridStrategyDetailPage() {
   const [pluginLogs, setPluginLogs] = useState<PluginLog[]>([]);
   const [logLoading, setLogLoading] = useState(false);
 
-  const { ticker_prices, subscribeTicker, unsubscribeTicker } = useBinanceStore();
+  // 防止 StrictMode 双重渲染导致重复请求
+  const has_loaded_ref = useRef(false);
+
+  const { ticker_prices, subscribeTicker, unsubscribeTicker, initialized: binance_initialized } = useBinanceStore();
 
   const loadStrategyDetail = useCallback(async () => {
-    if (!id) return;
+    if (!strategy_id) return;
 
     try {
-      const response = await GridStrategyApi.list({ current_page: 1, page_size: 1000 });
-      if (response.status === 'success' && response.datum && response.datum.list) {
-        const strategy_detail = response.datum.list.find((s: any) => s.id === parseInt(id));
-        if (strategy_detail) {
-          setStrategy(strategy_detail);
-        } else {
-          showError('策略不存在');
-          navigate(ROUTES.GRID_STRATEGY);
+      // 从 binance-store 获取所有 API Key
+      const { api_key_list } = useBinanceStore.getState();
+
+      if (!api_key_list || api_key_list.length === 0) {
+        showError('请先在币安 API Key 管理中添加 API Key');
+        navigate(ROUTES.GRID_STRATEGY);
+        return;
+      }
+
+      // 并发请求所有 API Key 的策略列表
+      const requests = api_key_list.map(api_key =>
+        GridStrategyApi.list({
+          current_page: 1,
+          page_size: 100,
+          api_key: api_key.api_key,
+          secret_key: api_key.secret_key
+        })
+      );
+
+      const responses = await Promise.all(requests);
+
+      // 从所有策略列表中查找指定 ID 的策略
+      let strategy_detail = null;
+      for (let i = 0; i < responses.length; i++) {
+        const response = responses[i];
+        if (response.status === 'success' && response.datum && response.datum.list) {
+          const found = response.datum.list.find((s: any) => s.id === strategy_id);
+          if (found) {
+            strategy_detail = found;
+            break;
+          }
         }
+      }
+
+      if (strategy_detail) {
+        setStrategy(strategy_detail);
       } else {
-        showError('加载失败');
+        showError('策略不存在');
         navigate(ROUTES.GRID_STRATEGY);
       }
     } catch (error) {
+      console.error('加载策略详情失败:', error);
       showError('加载失败');
       navigate(ROUTES.GRID_STRATEGY);
     } finally {
       setLoading(false);
     }
-  }, [id, navigate]);
+  }, [strategy_id, navigate]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -111,12 +145,12 @@ function GridStrategyDetailPage() {
   };
 
   const loadPluginLogs = useCallback(async () => {
-    if (!id) return;
+    if (!strategy_id) return;
 
     setLogLoading(true);
     try {
       const response = await GridStrategyApi.getPluginLogs({
-        strategy_id: parseInt(id),
+        strategy_id: strategy_id,
         current_page: 1,
         page_size: 20
       });
@@ -128,7 +162,7 @@ function GridStrategyDetailPage() {
     } finally {
       setLogLoading(false);
     }
-  }, [id]);
+  }, [strategy_id]);
 
   useEffect(() => {
     if (strategy?.trading_pair) {
@@ -144,14 +178,27 @@ function GridStrategyDetailPage() {
   }, [ticker_prices, strategy?.trading_pair]);
 
   useEffect(() => {
+    // 防止 StrictMode 双重渲染导致重复请求
+    if (has_loaded_ref.current) {
+      return;
+    }
+
+    // 等待 binance-store 初始化完成后再加载策略详情
+    if (!binance_initialized) {
+      return;
+    }
+
+    has_loaded_ref.current = true;
     loadStrategyDetail();
-  }, [loadStrategyDetail]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [strategy_id, binance_initialized]);
 
   useEffect(() => {
     if (strategy) {
       loadPluginLogs();
     }
-  }, [strategy, loadPluginLogs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [strategy?.id]);
 
   if (loading) {
     return (
