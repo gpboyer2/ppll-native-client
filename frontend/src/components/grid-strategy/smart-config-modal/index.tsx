@@ -427,15 +427,9 @@ export function SmartConfigModal({
                           </span>
                         </div>
                         <div className="smart-config-selected-item">
-                          <span className="label">每笔交易数量</span>
+                          <span className="label">每笔交易</span>
                           <span className="value">
-                            {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.top_list[selectedConfigIndex].trade_quantity)} {default_params?.trading_pair?.replace('USDT', '') || 'BTC'}
-                          </span>
-                        </div>
-                        <div className="smart-config-selected-item">
-                          <span className="label">每笔交易金额</span>
-                          <span className="value">
-                            {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.top_list[selectedConfigIndex].trade_value)} USDT
+                            数量: {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.top_list[selectedConfigIndex].trade_quantity)} ({default_params?.trading_pair?.replace('USDT', '') || '--'}) / 金额: {NumberFormat.truncateDecimal(optimizationResult.recommended.analysis.top_list[selectedConfigIndex].trade_value)} USDT
                           </span>
                         </div>
                         <div className="smart-config-selected-item">
