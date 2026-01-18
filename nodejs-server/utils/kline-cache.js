@@ -4,13 +4,10 @@
  */
 
 const { USDMClient } = require('binance');
-const fs = require('fs');
-const path = require('path');
 const proxy = require('../utils/proxy.js');
 const { BINANCE_CONFIG: config, getProxyConfig } = proxy;
-
-// 缓存目录
-const CACHE_DIR = path.join(__dirname, '../datum/klines');
+const db = require('../models');
+const { Op } = require('sequelize');
 
 // 1小时K线的毫秒数
 const HOUR_MS = 60 * 60 * 1000;
@@ -67,81 +64,27 @@ const createClient = (apiKey, apiSecret) => {
 };
 
 // ============================================================
-// 缓存文件操作
+// 数据库操作
 // ============================================================
 
 /**
- * 获取交易对的缓存目录
- * @param {string} symbol - 交易对
- * @returns {string} 目录路径
- */
-const getSymbolCacheDir = (symbol) => {
-  return path.join(CACHE_DIR, symbol);
-};
-
-/**
- * 根据时间戳生成缓存文件名
- * 格式：YYYY-MM-DD-HH.json
- * 
- * 【重要】文件名使用 UTC 时间，不是北京时间！
- * 例如：北京时间 2025-12-02 09:00 的K线，文件名是 2025-12-02-01.json（UTC 01:00）
- * 
- * 原因：
- * 1. 币安API返回的时间戳是UTC时间戳
- * 2. UTC是国际通用标准，避免跨时区时的混乱
- * 3. 北京时间 = UTC + 8小时
- * 
- * @param {number} timestamp - 时间戳（毫秒）
- * @returns {string} 文件名
- */
-const getKlineFileName = (timestamp) => {
-  const date = new Date(timestamp);
-  // 使用UTC时间生成文件名（北京时间需要+8小时才是对应的本地时间）
-  const year = date.getUTCFullYear();
-  const month = String(date.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(date.getUTCDate()).padStart(2, '0');
-  const hour = String(date.getUTCHours()).padStart(2, '0');
-  return `${year}-${month}-${day}-${hour}.json`;
-};
-
-/**
- * 从文件名解析时间戳
- * @param {string} fileName - 文件名，如 2025-12-01-08.json
- * @returns {number} 时间戳
- */
-const parseFileNameToTimestamp = (fileName) => {
-  const match = fileName.match(/^(\d{4})-(\d{2})-(\d{2})-(\d{2})\.json$/);
-  if (!match) return 0;
-  const [, year, month, day, hour] = match;
-  return Date.UTC(parseInt(year), parseInt(month) - 1, parseInt(day), parseInt(hour));
-};
-
-/**
- * 确保目录存在
- * @param {string} dir - 目录路径
- */
-const ensureDir = (dir) => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-};
-
-/**
- * 保存单根1小时K线到文件
+ * 保存单根1小时K线到数据库
  * @param {string} symbol - 交易对
  * @param {Object} kline - K线数据
  */
-const saveHourlyKline = (symbol, kline) => {
-  const dir = getSymbolCacheDir(symbol);
-  ensureDir(dir);
-
-  const fileName = getKlineFileName(kline.openTime);
-  const filePath = path.join(dir, fileName);
-
+const saveHourlyKline = async (symbol, kline) => {
   try {
-    fs.writeFileSync(filePath, JSON.stringify(kline, null, 2));
+    await db.HourlyKline.upsert({
+      symbol,
+      open_time: kline.openTime,
+      open: kline.open,
+      high: kline.high,
+      low: kline.low,
+      close: kline.close,
+      volume: kline.volume,
+    });
   } catch (error) {
-    console.error(`[缓存] 写入失败: ${filePath}`, error.message);
+    console.error(`[缓存] 写入失败: ${symbol} ${kline.openTime}`, error.message);
   }
 };
 
@@ -150,83 +93,77 @@ const saveHourlyKline = (symbol, kline) => {
  * @param {string} symbol - 交易对
  * @param {Array} klineList - K线数据列表
  */
-const saveHourlyKlineList = (symbol, klineList) => {
-  const dir = getSymbolCacheDir(symbol);
-  ensureDir(dir);
-
+const saveHourlyKlineList = async (symbol, klineList) => {
   let savedCount = 0;
-  for (const kline of klineList) {
-    const fileName = getKlineFileName(kline.openTime);
-    const filePath = path.join(dir, fileName);
 
+  for (const kline of klineList) {
     try {
-      fs.writeFileSync(filePath, JSON.stringify(kline, null, 2));
+      await db.HourlyKline.upsert({
+        symbol,
+        open_time: kline.openTime,
+        open: kline.open,
+        high: kline.high,
+        low: kline.low,
+        close: kline.close,
+        volume: kline.volume,
+      });
       savedCount++;
     } catch (error) {
-      console.error(`[缓存] 写入失败: ${filePath}`, error.message);
+      console.error(`[缓存] 写入失败: ${symbol} ${kline.openTime}`, error.message);
     }
   }
 
   if (savedCount > 0) {
-    console.log(`[缓存] 已保存: ${symbol}/ (${savedCount}条1小时K线)`);
+    console.log(`[缓存] 已保存: ${symbol} (${savedCount}条1小时K线)`);
   }
 };
 
 /**
- * 读取本地已缓存的1小时K线数据
+ * 读取数据库中的1小时K线数据
  * @param {string} symbol - 交易对
  * @param {number} startTime - 开始时间戳
  * @param {number} endTime - 结束时间戳
- * @returns {Array} K线数据列表
+ * @returns {Promise<Array>} K线数据列表
  */
-const readHourlyKlineList = (symbol, startTime, endTime) => {
-  const dir = getSymbolCacheDir(symbol);
+const readHourlyKlineList = async (symbol, startTime, endTime) => {
+  try {
+    const records = await db.HourlyKline.findAll({
+      where: {
+        symbol,
+        open_time: {
+          [Op.between]: [startTime, endTime],
+        },
+      },
+      order: [['open_time', 'ASC']],
+    });
 
-  if (!fs.existsSync(dir)) {
+    return records.map(r => ({
+      openTime: r.open_time,
+      open: parseFloat(r.open),
+      high: parseFloat(r.high),
+      low: parseFloat(r.low),
+      close: parseFloat(r.close),
+      volume: parseFloat(r.volume),
+    }));
+  } catch (error) {
+    console.error(`[缓存] 读取失败: ${symbol}`, error.message);
     return [];
   }
-
-  const klineList = [];
-
-  // 遍历时间范围内的每个小时
-  for (let t = startTime; t <= endTime; t += HOUR_MS) {
-    const fileName = getKlineFileName(t);
-    const filePath = path.join(dir, fileName);
-
-    if (fs.existsSync(filePath)) {
-      try {
-        const data = fs.readFileSync(filePath, 'utf8');
-        klineList.push(JSON.parse(data));
-      } catch (error) {
-        // 文件损坏，跳过
-      }
-    }
-  }
-
-  return klineList;
 };
 
 /**
- * 获取本地缓存的最新K线时间戳
+ * 获取数据库中最新K线时间戳
  * @param {string} symbol - 交易对
- * @returns {number} 最新时间戳，无缓存返回0
+ * @returns {Promise<number>} 最新时间戳，无数据返回0
  */
-const getLatestCachedTime = (symbol) => {
-  const dir = getSymbolCacheDir(symbol);
-
-  if (!fs.existsSync(dir)) {
-    return 0;
-  }
-
+const getLatestCachedTime = async (symbol) => {
   try {
-    const fileList = fs.readdirSync(dir)
-      .filter(f => f.endsWith('.json'))
-      .sort()
-      .reverse();
+    const record = await db.HourlyKline.findOne({
+      where: { symbol },
+      order: [['open_time', 'DESC']],
+    });
 
-    if (fileList.length === 0) return 0;
-
-    return parseFileNameToTimestamp(fileList[0]);
+    return record ? record.open_time : 0;
   } catch (error) {
     return 0;
   }
@@ -303,22 +240,41 @@ const aggregateKlineList = (hourlyList, hours) => {
  * @param {string} symbol - 交易对
  * @param {number} startTime - 开始时间戳
  * @param {number} endTime - 结束时间戳（不含当前小时）
- * @returns {Array<number>} 缺失的时间戳列表
+ * @returns {Promise<Array<number>>} 缺失的时间戳列表
  */
-const findMissingHourList = (symbol, startTime, endTime) => {
-  const dir = getSymbolCacheDir(symbol);
-  const missingList = [];
+const findMissingHourList = async (symbol, startTime, endTime) => {
+  try {
+    // 查询数据库中已有的时间戳
+    const records = await db.HourlyKline.findAll({
+      where: {
+        symbol,
+        open_time: {
+          [Op.between]: [startTime, endTime],
+        },
+      },
+      attributes: ['open_time'],
+    });
 
-  for (let t = startTime; t <= endTime; t += HOUR_MS) {
-    const fileName = getKlineFileName(t);
-    const filePath = path.join(dir, fileName);
+    const existingTimes = new Set(records.map(r => r.open_time));
+    const missingList = [];
 
-    if (!fs.existsSync(filePath)) {
+    // 找出缺失的时间戳
+    for (let t = startTime; t <= endTime; t += HOUR_MS) {
+      if (!existingTimes.has(t)) {
+        missingList.push(t);
+      }
+    }
+
+    return missingList;
+  } catch (error) {
+    console.error(`[缓存] 检测缺失失败: ${symbol}`, error.message);
+    // 出错时假设全部缺失，触发重新拉取
+    const missingList = [];
+    for (let t = startTime; t <= endTime; t += HOUR_MS) {
       missingList.push(t);
     }
+    return missingList;
   }
-
-  return missingList;
 };
 
 // ============================================================
@@ -349,7 +305,7 @@ const fetchKlineList = async (client, symbol, interval) => {
   const startTime = lastCompleteHour - (requiredHours - 1) * HOUR_MS;
 
   // 检测缺失的K线（排除当前未收盘小时）
-  const missingHourList = findMissingHourList(symbol, startTime, lastCompleteHour);
+  const missingHourList = await findMissingHourList(symbol, startTime, lastCompleteHour);
 
   if (missingHourList.length === 0) {
     console.log(`[缓存] 使用本地缓存: ${symbol}/ (${requiredHours}条1小时K线完整)`);
@@ -384,7 +340,7 @@ const fetchKlineList = async (client, symbol, interval) => {
 
             // 只保存在需要范围内的（已完整收盘）
             if (kline.openTime >= startTime && kline.openTime <= lastCompleteHour) {
-              saveHourlyKline(symbol, kline);
+              await saveHourlyKline(symbol, kline);
               totalSavedCount++;
             }
           }
@@ -421,8 +377,8 @@ const fetchKlineList = async (client, symbol, interval) => {
     }
   }
 
-  // 从本地读取数据（只读取已完整收盘的K线）
-  const hourlyList = readHourlyKlineList(symbol, startTime, lastCompleteHour);
+  // 从数据库读取数据（只读取已完整收盘的K线）
+  const hourlyList = await readHourlyKlineList(symbol, startTime, lastCompleteHour);
 
   if (hourlyList.length === 0) {
     throw new Error(`无法获取 ${symbol} 的K线数据，请等待30秒后重试（API可能被限流）`);
@@ -454,7 +410,7 @@ const fetchDailyKlineList = async (client, symbol) => {
   const startTime = lastCompleteHour - (requiredHours - 1) * HOUR_MS;
 
   // 检测缺失的K线
-  const missingHourList = findMissingHourList(symbol, startTime, lastCompleteHour);
+  const missingHourList = await findMissingHourList(symbol, startTime, lastCompleteHour);
 
   if (missingHourList.length > 0) {
     console.log(`[缓存] ${symbol} 日线数据缺失${missingHourList.length}条小时K线，开始补齐...`);
@@ -482,7 +438,7 @@ const fetchDailyKlineList = async (client, symbol) => {
           for (const kline of parsedList) {
             if (kline.openTime >= nowHour) continue;
             if (kline.openTime >= startTime && kline.openTime <= lastCompleteHour) {
-              saveHourlyKline(symbol, kline);
+              await saveHourlyKline(symbol, kline);
               totalSavedCount++;
             }
           }
@@ -515,8 +471,8 @@ const fetchDailyKlineList = async (client, symbol) => {
     }
   }
 
-  // 从本地读取并聚合为日线
-  const hourlyList = readHourlyKlineList(symbol, startTime, lastCompleteHour);
+  // 从数据库读取并聚合为日线
+  const hourlyList = await readHourlyKlineList(symbol, startTime, lastCompleteHour);
   const dailyKlineList = aggregateKlineList(hourlyList, hours);
 
   console.log(`[数据] ${symbol} 日线: 从${hourlyList.length}条1小时K线聚合为${dailyKlineList.length}条日线`);
@@ -537,7 +493,6 @@ module.exports = {
   saveHourlyKline,
   saveHourlyKlineList,
   getLatestCachedTime,
-  getSymbolCacheDir,
 
   // 数据处理
   aggregateKlineList,
