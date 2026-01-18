@@ -41,6 +41,7 @@ interface ColumnInfo {
     nullable: boolean;
     defaultValue: any;
     primaryKey: boolean;
+    comment?: string;
 }
 
 interface TableDetail {
@@ -900,6 +901,7 @@ function DatabaseManagerPage() {
                               <th>主键</th>
                               <th>可空</th>
                               <th>默认值</th>
+                              <th>注释</th>
                               <th>操作</th>
                             </tr>
                           </thead>
@@ -911,6 +913,7 @@ function DatabaseManagerPage() {
                                 <td>{col.primaryKey ? '是' : '否'}</td>
                                 <td>{col.nullable ? '是' : '否'}</td>
                                 <td>{col.defaultValue?.toString() ?? '-'}</td>
+                                <td>{col.comment ?? '-'}</td>
                                 <td>
                                   <button
                                     className="btn-icon"
