@@ -241,7 +241,8 @@ function InfiniteGrid(options) {
     symbol: this.config.trading_pair,
     apiKey: this.config.api_key,
     market: 'um',
-    direction: this.config.position_side === 'LONG' ? 'long' : 'short'
+    direction: this.config.position_side === 'LONG' ? 'long' : 'short',
+    strategyId: this.config.id
   });
 
   let usdmClientConfig = {};

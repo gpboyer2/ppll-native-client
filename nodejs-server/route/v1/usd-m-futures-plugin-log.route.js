@@ -11,16 +11,34 @@ const controller = require('../../controller/usd-m-futures-plugin-log.controller
  * 查询插件日志列表
  * GET /api/v1/usd-m-futures-plugin-log/list
  */
-router.get('/list', controller.getPluginLogList);
+router.get('/list', controller.list);
 
 /**
  * 获取插件日志统计
  * GET /api/v1/usd-m-futures-plugin-log/statistics
  */
-router.get('/statistics', controller.getPluginLogStatistics);
+router.get('/statistics', controller.getStatistics);
 
 /**
- * 清理旧日志
+ * 创建插件日志
+ * POST /api/v1/usd-m-futures-plugin-log/create
+ */
+router.post('/create', controller.create);
+
+/**
+ * 更新插件日志
+ * PUT /api/v1/usd-m-futures-plugin-log/update
+ */
+router.put('/update', controller.update);
+
+/**
+ * 删除插件日志
+ * DELETE /api/v1/usd-m-futures-plugin-log/delete
+ */
+router.delete('/delete', controller.delete);
+
+/**
+ * 清理旧日志（按时间）
  * POST /api/v1/usd-m-futures-plugin-log/clean
  */
 router.post('/clean', controller.cleanOldLogs);
