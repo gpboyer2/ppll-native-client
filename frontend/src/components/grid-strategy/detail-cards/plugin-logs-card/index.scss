@@ -10,6 +10,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+}
+
+.detail-card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auto-refresh-countdown {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 2px 8px;
+  background-color: rgba(99, 102, 241, 0.1);
+  border-radius: 4px;
+  font-weight: 500;
 }
 
 .detail-card-header-left {
@@ -55,6 +71,84 @@
   cursor: not-allowed;
 }
 
+.action-btn svg.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.detail-card-filters {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background-color: rgba(99, 102, 241, 0.02);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.filter-label svg {
+  color: var(--color-text-muted);
+}
+
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.filter-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.filter-button:hover {
+  border-color: var(--color-primary);
+  background-color: rgba(99, 102, 241, 0.05);
+}
+
+.filter-button.active {
+  border-color: var(--color-primary);
+  background-color: var(--color-primary);
+  color: white;
+}
+
+.filter-count {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
 .detail-card-body {
   padding: 8px 0;
 }
@@ -72,13 +166,62 @@
   flex-direction: column;
 }
 
+.log-group {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.log-group:last-child {
+  border-bottom: none;
+}
+
+.log-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: rgba(99, 102, 241, 0.03);
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.log-group-header:hover {
+  background-color: rgba(99, 102, 241, 0.06);
+}
+
+.log-group-header svg {
+  color: var(--color-text-muted);
+  transition: transform 0.2s ease;
+}
+
+.log-group-date {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.log-group-count {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.log-group-items {
+  display: flex;
+  flex-direction: column;
+}
+
 .log-item {
   padding: 12px 16px;
   border-bottom: 1px solid var(--color-border);
+  transition: background-color 0.15s ease;
 }
 
 .log-item:last-child {
   border-bottom: none;
+}
+
+.log-item:hover {
+  background-color: rgba(99, 102, 241, 0.02);
 }
 
 .log-item-header {
@@ -122,7 +265,7 @@
 .log-type {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-text);
+  transition: color 0.15s ease;
 }
 
 .log-time {

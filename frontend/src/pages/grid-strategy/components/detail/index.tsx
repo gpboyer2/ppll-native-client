@@ -154,7 +154,7 @@ function GridStrategyDetailPage() {
       const response = await GridStrategyApi.getPluginLogs({
         strategy_id: strategy_id,
         current_page: 1,
-        page_size: 20
+        page_size: 1000
       });
       if (response.status === 'success' && response.datum) {
         setPluginLogs(response.datum.list || []);
