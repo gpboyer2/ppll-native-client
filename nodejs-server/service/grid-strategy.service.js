@@ -74,10 +74,27 @@ const cleanupSubscriber = async (symbol, id, remark) => {
  * @returns {Promise<Object>} - 返回创建的策略对象和是否创建成功的标记
  */
 const createGridStrategy = async (/** @type {{api_key: string, api_secret: string, trading_pair: string, position_side: string, exchange_type?: string}} */ params) => {
+  // 只输出关注交易对的日志
+  if (params.trading_pair === 'UNIUSDT') {
+    console.log(`[grid-strategy] ========== createGridStrategy 被调用 ==========`);
+    console.log(`[grid-strategy] 交易对: ${params.trading_pair}`);
+    console.log(`[grid-strategy] tickListenerBound 当前值: ${tickListenerBound}`);
+  }
+
   // 单用户系统：直接使用 API Key/Secret，无需查询用户表
-  let valid_params = sanitizeParams(params, GridStrategy);
+  let valid_params;
   let wealthySoon; // 声明插件实例变量
   let row, created; // 声明返回值变量
+
+  try {
+    valid_params = sanitizeParams(params, GridStrategy);
+    if (params.trading_pair === 'UNIUSDT') {
+      console.log(`[grid-strategy] ✅ sanitizeParams 成功`);
+    }
+  } catch (error) {
+    console.log(`[grid-strategy] ❌ sanitizeParams 失败:`, error.message);
+    throw error;
+  }
 
   // 步骤 1: 先检查是否已存在相同的策略
   const existing = await GridStrategy.findOne({
@@ -90,12 +107,22 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
   });
 
   if (existing) {
+    // 只输出关注交易对的日志
+    if (existing.trading_pair === 'UNIUSDT') {
+      console.log(`[grid-strategy] 找到已存在的策略，ID: ${existing.id}`);
+    }
     // 策略已存在，检查是否已有运行实例
     if (gridMap[existing.id]) {
+      if (existing.trading_pair === 'UNIUSDT') {
+        console.log(`[grid-strategy] 实例已存在，直接返回`);
+      }
       // 实例已存在，直接返回
       return { row: existing, created: false };
     }
 
+    if (existing.trading_pair === 'UNIUSDT') {
+      console.log(`[grid-strategy] 策略存在但没有运行实例，准备恢复`);
+    }
     // 策略存在但没有运行实例（可能是服务重启后恢复）
     row = existing;
     created = false;
@@ -118,45 +145,47 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
     // 添加到 gridMap
     gridMap[row.id] = wealthySoon;
 
-    return { row, created: false };
+    // 不要提前返回，继续执行后面的订阅和事件绑定逻辑
+  } else {
+    // 步骤 2: 策略不存在，创建数据库记录获得真实 ID
+    row = await GridStrategy.create({
+      api_key: params.api_key,
+      api_secret: params.api_secret,
+      trading_pair: params.trading_pair,
+      position_side: params.position_side,
+      ...valid_params
+    });
+    created = true;
+
+    // 步骤 3: 用真实 ID 创建 InfiniteGrid 实例
+    let infinite_grid_params = { ...valid_params };
+    infinite_grid_params.id = row.id;
+    infinite_grid_params.api_key = params.api_key;
+    infinite_grid_params.secret_key = params.api_secret;
+
+    wealthySoon = new InfiniteGrid(infinite_grid_params);
+
+    // 步骤 4: 初始化实例（验证 API Key、创建订单等）
+    try {
+      await wealthySoon.initOrders();
+    } catch (error) {
+      // 初始化失败，抛出错误让用户知道
+      // 注意：数据库记录已创建，保留记录作为失败的证据
+      throw new Error(`网格策略初始化失败：${error.message}`);
+    }
+
+    // 步骤 5: 添加到 gridMap
+    gridMap[row.id] = wealthySoon;
   }
-
-  // 步骤 2: 策略不存在，创建数据库记录获得真实 ID
-  row = await GridStrategy.create({
-    api_key: params.api_key,
-    api_secret: params.api_secret,
-    trading_pair: params.trading_pair,
-    position_side: params.position_side,
-    ...valid_params
-  });
-  created = true;
-
-  // 步骤 3: 用真实 ID 创建 InfiniteGrid 实例
-  let infinite_grid_params = { ...valid_params };
-  infinite_grid_params.id = row.id;
-  infinite_grid_params.api_key = params.api_key;
-  infinite_grid_params.secret_key = params.api_secret;
-
-  wealthySoon = new InfiniteGrid(infinite_grid_params);
-
-  // 步骤 4: 初始化实例（验证 API Key、创建订单等）
-  try {
-    await wealthySoon.initOrders();
-  } catch (error) {
-    // 初始化失败，抛出错误让用户知道
-    // 注意：数据库记录已创建，保留记录作为失败的证据
-    throw new Error(`网格策略初始化失败：${error.message}`);
-  }
-
-  // 步骤 5: 添加到 gridMap
-  gridMap[row.id] = wealthySoon;
 
   const symbol = valid_params.trading_pair;
 
   // 步骤 7: 初始化订阅
   if (!gridStrategyRegistry.has(symbol)) {
     gridStrategyRegistry.set(symbol, new Set());
-    const logMessage = `
+    // 只输出关注交易对的日志
+    if (symbol === 'UNIUSDT') {
+      const logMessage = `
 ╔══════════════════════════════════════════════════╗
                  🎉 新增一个网格订阅
 ╠══════════════════════════════════════════════════╣
@@ -168,7 +197,8 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
  产品类型: ${params.exchange_type || 'u本位合约'}
 ╚══════════════════════════════════════════════════╝
 `;
-    console.log(logMessage);
+      console.log(logMessage);
+    }
     UtilRecord.log('[grid-strategy] 新增网格订阅', {
       symbol,
       strategyId: row.id,
@@ -181,7 +211,9 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
     global.wsManager.subscribeMarkPrice(symbol);
   } else {
     const currentCount = gridStrategyRegistry.get(symbol).size;
-    const logMessage = `
+    // 只输出关注交易对的日志
+    if (symbol === 'UNIUSDT') {
+      const logMessage = `
 ╔══════════════════════════════════════════════════╗
                  🔄 复用现有网格订阅
 ╠══════════════════════════════════════════════════╣
@@ -194,7 +226,8 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
  当前订阅数: ${currentCount + 1}
 ╚══════════════════════════════════════════════════╝
 `;
-    console.log(logMessage);
+      console.log(logMessage);
+    }
     UtilRecord.log('[grid-strategy] 复用现有网格订阅', {
       symbol,
       strategyId: row.id,
@@ -211,21 +244,37 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
   gridStrategyRegistry.get(symbol).add({ id: row.id, grid: wealthySoon });
 
   // 绑定全局 WS 分发器（仅绑定一次，避免重复监听）
+  console.log(`[grid-strategy] tickListenerBound 当前值: ${tickListenerBound}`);
   if (!tickListenerBound) {
     tickListenerBound = true;
     UtilRecord.log('[grid-strategy] 绑定全局 tick 事件监听器');
     global.wsManager.on("tick", ({ symbol, latestPrice }) => {
+      // 只输出关注交易对的日志（UNIUSDT）
+      if (symbol === 'UNIUSDT') {
+        console.log(`[grid-strategy] 收到 tick 事件: ${symbol} @ ${latestPrice}`);
+      }
       const subs = gridStrategyRegistry.get(symbol);
-      if (!subs || subs.size === 0) return;
-      UtilRecord.debug(`[grid-strategy] tick 事件分发: ${symbol} @ ${latestPrice}, 订阅者数量: ${subs.size}`);
+      if (!subs || subs.size === 0) {
+        // 静默处理没有订阅者的情况
+        return;
+      }
+      if (symbol === 'UNIUSDT') {
+        console.log(`[grid-strategy] tick 事件分发: ${symbol} @ ${latestPrice}, 订阅者数量: ${subs.size}`);
+      }
       subs.forEach(({ grid }) => {
         try {
+          if (symbol === 'UNIUSDT') {
+            console.log(`[grid-strategy] 调用 gridWebsocket for ${symbol}`);
+          }
           grid.gridWebsocket({ latestPrice });
         } catch (e) {
           UtilRecord.error(`[grid-strategy] gridWebsocket 执行错误`, e);
         }
       });
     });
+    console.log(`[grid-strategy] ✅ tick 事件监听器绑定完成`);
+  } else {
+    console.log(`[grid-strategy] ⚠️ tick 事件监听器已经绑定过了，跳过`);
   }
 
   // 绑定错误处理事件
@@ -416,7 +465,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
     });
   };
 
-  return { row, created: true };
+  return { row, created };
 };
 
 async function latestMessage(params) {

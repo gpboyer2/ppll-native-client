@@ -950,6 +950,7 @@ function InfiniteGrid(options) {
 
     // 大于等于或小于等于限制价格时，暂停网格
     let { lt_limitation_price, gt_limitation_price } = this.config;
+
     if (Number.isFinite(lt_limitation_price) && latestPrice <= lt_limitation_price) {
       this.logger.sql(GridEventTypes.GRID, `⛔️ 币价${latestPrice}小于等于限制价格${lt_limitation_price}，自动暂停网格`).log();
       this.onPausedGrid();
@@ -1060,9 +1061,9 @@ function InfiniteGrid(options) {
           (this.config.position_side === 'SHORT' && latestPrice <= this.next_expected_rise_price && latestPrice <= this.total_open_position_entry_price)
         )
       ) {
-        this.logger.sql(GridEventTypes.GRID, `🔄 启用顺势仅减仓策略：仓位数量${this.total_open_position_quantity}/${this.config.trading_pair}，当前仍处于${this.config.position_side === 'LONG' ? '上涨' : '下跌'}趋势`).log();
+        this.logger.sql(GridEventTypes.GRID, `🔄 启用顺势仅减仓策略：当前实际仓位数量为 ${this.total_open_position_quantity}/${this.config.trading_pair}， 足够平仓，且当前仍处于${this.config.position_side === 'LONG' ? '上涨' : '下跌'}趋势，因此跳过创建新仓位`).log();
       } else {
-        this.logger.sql(GridEventTypes.GRID, `😎 增加新的${this.config.position_side === 'LONG' ? '多' : '空'}单仓位 (缓存无仓位且未超限)`).log();
+        this.logger.sql(GridEventTypes.GRID, `😎 缓存中没有${this.config.position_side === 'LONG' ? '多' : '空'}单仓位且没有超过最大持仓数量限制, 增加一个新的${this.config.position_side === 'LONG' ? '多' : '空'}单仓位`).log();
         this.openOrders(openQuantity);
         return;
       }

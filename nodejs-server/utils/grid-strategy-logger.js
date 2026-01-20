@@ -2,6 +2,7 @@
  * 网格策略专用日志记录器
  * 独立实现，专门为网格策略设计，使用队列异步写入数据库
  * event_type 由调用方显式传入，不在内部维护
+ * 支持所有市场类型（um、spot 等）
  */
 const dayjs = require('dayjs');
 const db = require('../models');
@@ -127,25 +128,37 @@ class GridStrategyLogger {
   async _processWriteQueue() {
     // 如果已经在处理队列，直接返回
     if (this._isProcessingQueue) {
+      if (this.symbol === 'UNIUSDT') {
+        console.log(`[GridStrategyLogger] 队列正在处理中，跳过`);
+      }
       return;
     }
 
     this._isProcessingQueue = true;
 
+    if (this.symbol === 'UNIUSDT') {
+      console.log(`[GridStrategyLogger] 开始处理队列，队列长度: ${this._writeQueue.length}`);
+    }
+
     try {
       while (this._writeQueue.length > 0) {
         const task = this._writeQueue.shift();
 
+        if (this.symbol === 'UNIUSDT') {
+          console.log(`[GridStrategyLogger] 处理任务:`, task);
+        }
+
         try {
-          // 只对 um 市场（U本位合约）写入数据库
-          if (this.market !== 'um') {
+          // strategy_id 是必填字段，如果没有则跳过
+          if (!this.strategyId) {
+            if (this.symbol === 'UNIUSDT') {
+              console.log(`[GridStrategyLogger] 缺少 strategyId，跳过写入数据库`);
+            }
             continue;
           }
 
-          // strategy_id 是必填字段，如果没有则跳过
-          if (!this.strategyId) {
-            console.log('[GridStrategyLogger] 缺少 strategyId，跳过写入数据库');
-            continue;
+          if (this.symbol === 'UNIUSDT') {
+            console.log(`[GridStrategyLogger] strategyId 验证通过: ${this.strategyId}`);
           }
 
           // 构建数据库记录
@@ -158,19 +171,33 @@ class GridStrategyLogger {
             created_at: new Date()
           };
 
+          if (this.symbol === 'UNIUSDT') {
+            console.log(`[GridStrategyLogger] 准备写入数据库记录:`, dbRecord);
+          }
+
           // 异步写入数据库
           await db.usd_m_futures_infinite_grid_logs.create(dbRecord);
+
+          if (this.symbol === 'UNIUSDT') {
+            console.log(`[GridStrategyLogger] ✅ 数据库写入成功`);
+          }
 
           // 写入成功，重置错误计数
           if (this._errorCount > 0) {
             this._errorCount = 0;
           }
         } catch (error) {
+          if (this.symbol === 'UNIUSDT') {
+            console.log(`[GridStrategyLogger] ❌ 数据库写入失败:`, error.message);
+          }
           this._handleWriteError(error, task.message, task.event_type);
         }
       }
     } finally {
       this._isProcessingQueue = false;
+      if (this.symbol === 'UNIUSDT') {
+        console.log(`[GridStrategyLogger] 队列处理完成`);
+      }
     }
   }
 
@@ -181,12 +208,21 @@ class GridStrategyLogger {
    * @param {Object} details - 详细信息
    */
   writeToDatabase(message, event_type, details = null) {
+    // 添加调试日志
+    if (this.symbol === 'UNIUSDT') {
+      console.log(`[GridStrategyLogger] writeToDatabase 被调用: strategyId=${this.strategyId}, symbol=${this.symbol}, eventType=${event_type}, message=${message}`);
+    }
+
     // 将写入任务加入队列
     this._writeQueue.push({
       message,
       event_type,
       details
     });
+
+    if (this.symbol === 'UNIUSDT') {
+      console.log(`[GridStrategyLogger] 队列长度: ${this._writeQueue.length}`);
+    }
 
     // 触发队列处理（异步，不阻塞）
     this._processWriteQueue().catch(error => {

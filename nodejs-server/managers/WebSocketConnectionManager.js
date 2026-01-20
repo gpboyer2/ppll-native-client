@@ -190,27 +190,40 @@ class WebSocketConnectionManager extends EventEmitter {
 
     client.on('formattedMessage', (data) => {
       try {
-        // 统一转换为上层可消费的事件
-        if (data.eventType === 'markPriceUpdate') {
-          const { symbol, markPrice } = data;
-          // market 使用 'usdm' 与前端保持一致
-          // 频繁的 tick 事件日志使用 trace 级别
-          UtilRecord.trace(`[WSManager] emit tick event: ${symbol} @ ${markPrice}`);
-          this.emit('tick', { market: 'usdm', eventType: 'markPrice', symbol, latestPrice: markPrice, raw: data });
-        } else if (data.eventType === 'continuous_kline') {
-          const { symbol } = data;
-          const { close } = data.kline || {};
-          this.emit('kline', { market: 'um', eventType: 'continuous_kline', symbol, latestPrice: close, raw: data });
-        } else if (data.eventType === 'ACCOUNT_UPDATE' || data.eventType === 'ORDER_TRADE_UPDATE') {
-          // User Data Stream events
-          // 需要识别是哪个用户的事件，通过 listenKey 关联
-          // 但 formattedMessage 中可能没有 listenKey，我们需要在创建 client 时关联
-          // 由于我们是每个 listenKey 创建一个 client，并且在下面 handle 中处理
-          // 这里先简单 emit，附带 raw data，由监听者根据 context 处理
-          // 但为了更好的分发，我们可以在 subscribeUserData 中单独监听 client 的消息
-        } else {
-          // 其他事件可按需扩展
-        }
+        // 处理数组格式的数据（全市场标记价格流返回的是数组）
+        const messageList = Array.isArray(data) ? data : [data];
+
+        messageList.forEach((message) => {
+          if (!message || !message.eventType) {
+            return;
+          }
+
+          // 统一转换为上层可消费的事件
+          if (message.eventType === 'markPriceUpdate') {
+            const { symbol, markPrice } = message;
+            // market 使用 'usdm' 与前端保持一致
+            // 频繁的 tick 事件日志使用 trace 级别
+            UtilRecord.trace(`[WSManager] emit tick event: ${symbol} @ ${markPrice}`);
+            // 只输出关注交易对的日志（UNIUSDT）
+            if (symbol === 'UNIUSDT') {
+              console.log(`[WSManager] ✅ emit tick 事件: ${symbol} @ ${markPrice}`);
+            }
+            this.emit('tick', { market: 'usdm', eventType: 'markPrice', symbol, latestPrice: markPrice, raw: message });
+          } else if (message.eventType === 'continuous_kline') {
+            const { symbol } = message;
+            const { close } = message.kline || {};
+            this.emit('kline', { market: 'um', eventType: 'continuous_kline', symbol, latestPrice: close, raw: message });
+          } else if (message.eventType === 'ACCOUNT_UPDATE' || message.eventType === 'ORDER_TRADE_UPDATE') {
+            // User Data Stream events
+            // 需要识别是哪个用户的事件，通过 listenKey 关联
+            // 但 formattedMessage 中可能没有 listenKey，我们需要在创建 client 时关联
+            // 由于我们是每个 listenKey 创建一个 client，并且在下面 handle 中处理
+            // 这里先简单 emit，附带 raw data，由监听者根据 context 处理
+            // 但为了更好的分发，我们可以在 subscribeUserData 中单独监听 client 的消息
+          } else {
+            // 其他事件可按需扩展
+          }
+        });
       } catch (e) {
         UtilRecord.log(`[WSManager] formattedMessage dispatch error: ${e.message}`);
       }

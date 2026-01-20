@@ -787,9 +787,9 @@ function InfiniteGridSpot(options) {
         latestPrice >= this.totalOpenPositionEntryPrice
       ) {
         // latestPrice >= this.nextExpectedFallPrice : 代表持续上涨中，不买入
-        UtilRecord.log(`🔄 启用顺势仅减仓策略：当前实际仓位数量为 ${this.currentBaseAssetQuantity} / ${this.config.tradingPair}， 足够平仓，且且当前仍处于上涨趋势，因此跳过创建新仓位`);
+        UtilRecord.log(`🔄 启用顺势仅减仓策略：当前实际仓位数量为 ${this.currentBaseAssetQuantity} / ${this.config.tradingPair}， 足够平仓，且当前仍处于上涨趋势，因此跳过创建新仓位`);
       } else {
-        UtilRecord.log(`😎 缓存中没有仓位且没有超过最大持仓数量限制, 创建一个新的仓位`);
+        UtilRecord.log(`😎 缓存中没有仓位且没有超过最大持仓数量限制, 增加一个新的仓位`);
         this.openOrders(buyQuantity);
         return;
       }
