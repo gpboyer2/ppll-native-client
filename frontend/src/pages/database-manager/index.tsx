@@ -812,7 +812,7 @@ function DatabaseManagerPage() {
                                                     上一页
                         </button>
                         <span className="pagination-info">
-                                                    第 {currentPage} / {Math.ceil(tableData.pagination.total / pageSize)} 页
+                                                    第 {currentPage} / {Math.ceil(tableData.pagination.total / pageSize)} 页，共 {tableData.pagination.total} 条
                         </span>
                         <button
                           className="btn btn-sm btn-outline"
