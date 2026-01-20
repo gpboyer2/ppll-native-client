@@ -121,12 +121,24 @@ app.use(gitInfoMiddleware());
 
 // 启动时同步模型与数据库
 // 注意：桌面客户端本地 SQLite 数据库可以安全启用 alter 自动同步表结构
-const dbSyncPromise = db.sequelize.sync({ alter: true })
+// 先清理所有 backup 表，避免 Sequelize alter 模式下的残留表导致唯一性约束冲突
+const cleanBackupTables = async () => {
+  const [backups] = await db.sequelize.query(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%_backup'"
+  );
+  for (const { name } of backups) {
+    await db.sequelize.query(`DROP TABLE IF EXISTS ${name}`);
+    console.log(`[数据库同步] 清理 backup 表: ${name}`);
+  }
+};
+
+const dbSyncPromise = cleanBackupTables()
+  .then(() => db.sequelize.sync({ alter: true }))
   .then(() => {
     console.log("数据库同步成功，表结构已创建/更新");
   })
   .catch((err) => {
-    console.log("数据库同步失败: " + err.message);
+    console.log("数据库同步失败:", JSON.stringify(err, null, 2), err.stack);
   });
 
 // 配置和启动一个基于Express的Node.js应用程序，并使用Swagger来生成API文档
