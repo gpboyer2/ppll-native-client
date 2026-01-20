@@ -18,6 +18,7 @@ async function cleanup_old_logs() {
 
   // 检查是否需要清理（每10秒执行一次）
   if (now - last_cleanup_time < CLEANUP_INTERVAL) {
+    UtilRecord.trace('[FrontendLogService] 距离上次清理不足间隔时间，跳过本次清理');
     return;
   }
 

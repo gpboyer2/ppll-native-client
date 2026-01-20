@@ -9,7 +9,7 @@ const dayjs = require('dayjs');
 const bigNumber = require('bignumber.js');
 const { getProxyConfig } = require('../utils/proxy.js');
 const UtilRecord = require('../utils/record-log.js');
-const StrategyLog = require('../utils/strategy-log.js');
+const { GridStrategyLogger } = require('../utils/grid-strategy-logger.js');
 const { USDMClient } = require('binance');
 const binancePrecision = require('../utils/binance-precision');
 const db = require('../models');
@@ -237,7 +237,7 @@ function InfiniteGrid(options) {
   this.exchange_info = null;
 
   /** 策略日志记录器 */
-  this.logger = StrategyLog.createLogger({
+  this.logger = new GridStrategyLogger({
     symbol: this.config.trading_pair,
     apiKey: this.config.api_key,
     market: 'um',

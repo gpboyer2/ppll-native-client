@@ -160,6 +160,7 @@ class BinanceRateLimiter {
    */
   async processQueue() {
     if (this.isProcessing || this.requestQueue.length === 0) {
+      console.log('[BinanceRateLimiter] 正在处理或队列为空，跳过本次处理');
       return;
     }
 

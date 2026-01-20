@@ -59,9 +59,9 @@ const cleanupSubscriber = async (symbol, id, remark) => {
  *
  * 流程：
  * 1. 先检查是否已存在相同的策略
- * 2. 如果不存在，先创建 InfiniteGrid 实例并初始化（验证 API Key、创建订单等）
- * 3. 只有初始化成功后才写入数据库
- * 4. 如果初始化失败，直接抛出错误，不写数据库
+ * 2. 如果存在且实例运行中，直接返回
+ * 3. 如果存在但实例未运行，恢复实例（服务重启场景）
+ * 4. 如果不存在，创建数据库记录获得真实 ID，然后创建实例并初始化
  *
  * 单用户系统：API Key 即为用户标识，通过 api_key + api_secret 实现数据隔离
  * @async
@@ -76,6 +76,8 @@ const cleanupSubscriber = async (symbol, id, remark) => {
 const createGridStrategy = async (/** @type {{api_key: string, api_secret: string, trading_pair: string, position_side: string, exchange_type?: string}} */ params) => {
   // 单用户系统：直接使用 API Key/Secret，无需查询用户表
   let valid_params = sanitizeParams(params, GridStrategy);
+  let wealthySoon; // 声明插件实例变量
+  let row, created; // 声明返回值变量
 
   // 步骤 1: 先检查是否已存在相同的策略
   const existing = await GridStrategy.findOne({
@@ -88,48 +90,65 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
   });
 
   if (existing) {
-    // 已存在，直接返回
-    return { row: existing, created: false };
-  }
+    // 策略已存在，检查是否已有运行实例
+    if (gridMap[existing.id]) {
+      // 实例已存在，直接返回
+      return { row: existing, created: false };
+    }
 
-  // 步骤 2: 创建临时 ID（用于初始化）
-  const tempId = `temp_${Date.now()}`;
+    // 策略存在但没有运行实例（可能是服务重启后恢复）
+    row = existing;
+    created = false;
 
-  // 步骤 3: 创建 InfiniteGrid 实例并初始化（验证 API Key、创建订单等）
-  let infinite_grid_params = { ...valid_params };
-  infinite_grid_params.id = tempId;
-  infinite_grid_params.api_key = params.api_key;
-  infinite_grid_params.secret_key = params.api_secret;
+    // 使用真实 ID 创建插件实例
+    let infinite_grid_params = { ...valid_params };
+    infinite_grid_params.id = row.id;
+    infinite_grid_params.api_key = params.api_key;
+    infinite_grid_params.secret_key = params.api_secret;
 
-  const wealthySoon = new InfiniteGrid(infinite_grid_params);
+    wealthySoon = new InfiniteGrid(infinite_grid_params);
 
-  // 步骤 4: 等待初始化完成（这里会验证 API Key 并创建订单）
-  // 如果失败，会抛出错误，直接返回给前端
-  try {
-    await wealthySoon.initOrders();
-  } catch (error) {
-    // 初始化失败，不写数据库，直接抛出错误
-    throw new Error(`网格策略初始化失败：${error.message}`);
-  }
+    // 初始化插件实例
+    try {
+      await wealthySoon.initOrders();
+    } catch (error) {
+      throw new Error(`网格策略初始化失败：${error.message}`);
+    }
 
-  // 步骤 5: 初始化成功后，写入数据库
-  const [row, created] = await GridStrategy.findOrCreate({
-    where: {
-      api_key: params.api_key,
-      api_secret: params.api_secret,
-      trading_pair: params.trading_pair,
-      position_side: params.position_side,
-    },
-    defaults: valid_params,
-  });
+    // 添加到 gridMap
+    gridMap[row.id] = wealthySoon;
 
-  if (!created) {
-    // 理论上不会到这里，因为前面已经检查过了
     return { row, created: false };
   }
 
-  // 步骤 6: 更新实例的真实 ID
-  wealthySoon.config.id = row.id;
+  // 步骤 2: 策略不存在，创建数据库记录获得真实 ID
+  row = await GridStrategy.create({
+    api_key: params.api_key,
+    api_secret: params.api_secret,
+    trading_pair: params.trading_pair,
+    position_side: params.position_side,
+    ...valid_params
+  });
+  created = true;
+
+  // 步骤 3: 用真实 ID 创建 InfiniteGrid 实例
+  let infinite_grid_params = { ...valid_params };
+  infinite_grid_params.id = row.id;
+  infinite_grid_params.api_key = params.api_key;
+  infinite_grid_params.secret_key = params.api_secret;
+
+  wealthySoon = new InfiniteGrid(infinite_grid_params);
+
+  // 步骤 4: 初始化实例（验证 API Key、创建订单等）
+  try {
+    await wealthySoon.initOrders();
+  } catch (error) {
+    // 初始化失败，抛出错误让用户知道
+    // 注意：数据库记录已创建，保留记录作为失败的证据
+    throw new Error(`网格策略初始化失败：${error.message}`);
+  }
+
+  // 步骤 5: 添加到 gridMap
   gridMap[row.id] = wealthySoon;
 
   const symbol = valid_params.trading_pair;

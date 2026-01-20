@@ -9,11 +9,7 @@ const { Model, DataTypes } = require('sequelize');
 module.exports = (sequelize) => {
   class UsdMFuturesInfiniteGridLog extends Model {
     static associate(models) {
-      // 关联网格策略
-      UsdMFuturesInfiniteGridLog.belongsTo(models.grid_strategies, {
-        foreignKey: 'strategy_id',
-        as: 'strategy'
-      });
+      // 无关联
     }
   }
 
@@ -27,7 +23,7 @@ module.exports = (sequelize) => {
       },
       strategy_id: {
         type: DataTypes.BIGINT,
-        allowNull: true,
+        allowNull: false,
         comment: '关联的网格策略ID',
       },
       trading_pair: {
@@ -38,7 +34,7 @@ module.exports = (sequelize) => {
       event_type: {
         type: DataTypes.STRING(50),
         allowNull: false,
-        comment: '事件类型: error/warn/info/success/pause/resume/open_position/close_position/limit_reached',
+        comment: '事件类型: pause/resume/open_position/close_position/limit_reached',
       },
       level: {
         type: DataTypes.STRING(10),

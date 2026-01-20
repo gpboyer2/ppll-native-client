@@ -2,12 +2,10 @@
  * 策略日志工具
  * 专门用于量化策略（网格、天地针、MACD等）的日志记录
  * 按 交易对/账户/市场类型/方向 分目录存储，方便排查策略执行情况
- * 同时支持写入数据库表 usd_m_futures_infinite_grid_logs
  */
 const dayjs = require('dayjs');
 const fs = require('fs');
 const path = require('path');
-const db = require('../models');
 
 // ==================== 常量配置 ====================
 const CONFIG = {
@@ -86,43 +84,6 @@ async function writeLogToFile(logText, context) {
     await fs.promises.appendFile(logFilePath, `${logText}\n`, 'utf8');
   } catch (error) {
     console.error('写入策略日志文件失败:', error.message);
-  }
-}
-
-/**
- * 将日志写入数据库
- * @param {Object} logData - 日志数据
- * @param {string} logData.level - 日志级别 (error/warn/info/debug)
- * @param {string} logData.message - 日志消息
- * @param {Object} logData.context - 策略上下文
- * @param {number} logData.strategyId - 策略ID
- * @param {string} logData.eventType - 事件类型
- * @param {Object} logData.details - 详细信息
- */
-async function writeLogToDatabase(logData) {
-  try {
-    const { level, message, context, strategyId, eventType, details } = logData;
-
-    // 只对 um 市场（U本位合约）写入数据库
-    if (context.market !== 'um') {
-      return;
-    }
-
-    // 构建数据库记录
-    const dbRecord = {
-      strategy_id: strategyId || null,
-      trading_pair: context.symbol || null,
-      event_type: eventType || level,
-      level: level,
-      message: message,
-      details: details || null
-    };
-
-    // 异步写入数据库，不阻塞主流程
-    await db.usd_m_futures_infinite_grid_logs.create(dbRecord);
-  } catch (error) {
-    // 数据库写入失败不影响日志输出，静默处理
-    // 避免日志系统本身产生过多错误
   }
 }
 
@@ -230,23 +191,21 @@ function formatMessageList(messageList) {
  * @param {string} context.apiKey - API Key
  * @param {string} context.market - 市场类型 (um/cm/spot)
  * @param {string} context.direction - 方向 (long/short)
- * @param {number} context.strategyId - 策略ID（可选，用于关联数据库记录）
  * @returns {Object} 日志记录器对象
- *
+ * 
  * @example
  * const StrategyLog = require('./utils/strategy-log.js');
  * const logger = StrategyLog.createLogger({
  *   symbol: 'BTCUSDT',
  *   apiKey: 'MmsE6fb2HmWWm74dwxRtqrN2iBufutcoJN9oCmyt8q2m2y60QSg4PpsM1MpW5Luz',
  *   market: 'um',
- *   direction: 'long',
- *   strategyId: 123
+ *   direction: 'long'
  * });
  * logger.log('订单已提交', { orderId: 123456 });
  * logger.error('订单失败', error);
  */
 function createLogger(context) {
-  const { symbol, apiKey, market, direction, strategyId } = context;
+  const { symbol, apiKey, market, direction } = context;
 
   // 验证必要参数
   if (!symbol || !apiKey || !market || !direction) {
@@ -272,19 +231,11 @@ function createLogger(context) {
      * @param {...any} messageList - 要记录的消息
      */
     async log(...messageList) {
-      const prefix = generateLogPrefix('');
+      const prefix = generateLogPrefix();
       const formattedMessage = formatMessageList(messageList);
       const finalMessage = `${prefix}${formattedMessage}`;
       console.log(finalMessage);
       await writeLogToFile(finalMessage, context);
-      // 写入数据库
-      await writeLogToDatabase({
-        level: 'info',
-        message: formattedMessage,
-        context: context,
-        strategyId: strategyId,
-        eventType: 'info'
-      });
     },
 
     /**
@@ -297,14 +248,6 @@ function createLogger(context) {
       const finalMessage = `${prefix}${formattedMessage}`;
       console.log(finalMessage);
       await writeLogToFile(finalMessage, context);
-      // 写入数据库
-      await writeLogToDatabase({
-        level: 'debug',
-        message: formattedMessage,
-        context: context,
-        strategyId: strategyId,
-        eventType: 'info'
-      });
     },
 
     /**
@@ -317,14 +260,6 @@ function createLogger(context) {
       const finalMessage = `${prefix}${formattedMessage}`;
       console.error(finalMessage);
       await writeLogToFile(finalMessage, context);
-      // 写入数据库
-      await writeLogToDatabase({
-        level: 'error',
-        message: formattedMessage,
-        context: context,
-        strategyId: strategyId,
-        eventType: 'error'
-      });
     },
 
     /**
@@ -337,14 +272,6 @@ function createLogger(context) {
       const finalMessage = `${prefix}${formattedMessage}`;
       console.warn(finalMessage);
       await writeLogToFile(finalMessage, context);
-      // 写入数据库
-      await writeLogToDatabase({
-        level: 'warn',
-        message: formattedMessage,
-        context: context,
-        strategyId: strategyId,
-        eventType: 'warn'
-      });
     },
 
     /**
@@ -371,20 +298,6 @@ function createLogger(context) {
       const finalMessage = `${prefix}[${action}] ${formattedData}`;
       console.log(finalMessage);
       await writeLogToFile(finalMessage, context);
-      // 写入数据库（订单操作需要记录）
-      const eventTypeMap = {
-        'create': 'open_position',
-        'close': 'close_position',
-        'query': 'info'
-      };
-      await writeLogToDatabase({
-        level: 'info',
-        message: finalMessage,
-        context: context,
-        strategyId: strategyId,
-        eventType: eventTypeMap[action] || 'info',
-        details: orderData
-      });
     },
 
     /**
@@ -401,7 +314,6 @@ function createLogger(context) {
         console.log(finalMessage);
       }
       await writeLogToFile(finalMessage, context);
-      // trace 日志不写入数据库，避免过度写入
     }
   };
 }
