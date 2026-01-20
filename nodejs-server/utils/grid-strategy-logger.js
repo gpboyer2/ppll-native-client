@@ -1,6 +1,6 @@
 /**
  * 网格策略专用日志记录器
- * 独立实现，专门为网格策略设计，直接同步写入数据库
+ * 独立实现，专门为网格策略设计，使用队列异步写入数据库
  * event_type 由调用方显式传入，不在内部维护
  */
 const dayjs = require('dayjs');
@@ -25,6 +25,22 @@ class GridStrategyLogger {
     this.apiKey = config.apiKey;
     this.market = config.market;
     this.direction = config.direction;
+
+    // 缓存上一次的日志内容，用于链式调用
+    this._lastMessage = null;
+
+    // 数据库写入队列
+    this._writeQueue = [];
+    this._isProcessingQueue = false;
+
+    // 错误统计
+    this._errorCount = 0;
+    this._lastErrorTime = null;
+    this._lastErrorMessage = null;
+
+    // 错误告警阈值：5分钟内超过10次错误
+    this._errorAlertThreshold = 10;
+    this._errorAlertWindow = 5 * 60 * 1000; // 5分钟
 
     // 验证必要参数
     if (!this.symbol || !this.apiKey || !this.market || !this.direction) {
@@ -71,150 +87,208 @@ class GridStrategyLogger {
   }
 
   /**
-   * 将日志写入数据库（直接同步写入）
-   * @param {string} level - 日志级别
+   * 处理数据库写入错误
+   * @param {Error} error - 错误对象
+   * @param {string} message - 日志消息
+   * @param {string} event_type - 事件类型
+   */
+  _handleWriteError(error, message, event_type) {
+    const now = Date.now();
+
+    // 更新错误统计
+    this._errorCount++;
+    this._lastErrorTime = now;
+    this._lastErrorMessage = error?.message || String(error);
+
+    // 检查是否需要告警（5分钟内超过阈值）
+    if (this._errorCount >= this._errorAlertThreshold) {
+      const timeSinceLastError = this._lastErrorTime ? (now - this._lastErrorTime) : Infinity;
+
+      if (timeSinceLastError <= this._errorAlertWindow) {
+        // 输出告警到控制台（避免循环调用 logger）
+        const prefix = this.generateLogPrefix('ERROR');
+        console.error(`${prefix} [数据库写入告警] 5分钟内已发生${this._errorCount}次写入失败，最近错误: ${this._lastErrorMessage}`);
+
+        // 重置计数器，避免频繁告警
+        this._errorCount = 0;
+      }
+    }
+
+    // 每10次错误输出一次详细错误信息
+    if (this._errorCount % 10 === 0) {
+      const prefix = this.generateLogPrefix('ERROR');
+      console.error(`${prefix} [数据库写入失败] 第${this._errorCount}次失败 | 事件类型: ${event_type} | 消息: ${message} | 错误: ${this._lastErrorMessage}`);
+    }
+  }
+
+  /**
+   * 处理写入队列（保证顺序执行）
+   */
+  async _processWriteQueue() {
+    // 如果已经在处理队列，直接返回
+    if (this._isProcessingQueue) {
+      return;
+    }
+
+    this._isProcessingQueue = true;
+
+    try {
+      while (this._writeQueue.length > 0) {
+        const task = this._writeQueue.shift();
+
+        try {
+          // 只对 um 市场（U本位合约）写入数据库
+          if (this.market !== 'um') {
+            continue;
+          }
+
+          // strategy_id 是必填字段，如果没有则跳过
+          if (!this.strategyId) {
+            console.log('[GridStrategyLogger] 缺少 strategyId，跳过写入数据库');
+            continue;
+          }
+
+          // 构建数据库记录
+          const dbRecord = {
+            strategy_id: this.strategyId,
+            trading_pair: this.symbol || null,
+            event_type: task.event_type,
+            message: task.message,
+            details: task.details,
+            created_at: new Date()
+          };
+
+          // 异步写入数据库
+          await db.usd_m_futures_infinite_grid_logs.create(dbRecord);
+
+          // 写入成功，重置错误计数
+          if (this._errorCount > 0) {
+            this._errorCount = 0;
+          }
+        } catch (error) {
+          this._handleWriteError(error, task.message, task.event_type);
+        }
+      }
+    } finally {
+      this._isProcessingQueue = false;
+    }
+  }
+
+  /**
+   * 将日志写入数据库（内部方法，加入队列）
    * @param {string} message - 日志消息
    * @param {string} event_type - 事件类型（由调用方显式传入）
    * @param {Object} details - 详细信息
    */
-  async writeToDatabase(level, message, event_type, details = null) {
-    try {
-      // 只对 um 市场（U本位合约）写入数据库
-      if (this.market !== 'um') {
-        console.log('[GridStrategyLogger] 非 um 市场，跳过写入数据库');
-        return;
-      }
+  writeToDatabase(message, event_type, details = null) {
+    // 将写入任务加入队列
+    this._writeQueue.push({
+      message,
+      event_type,
+      details
+    });
 
-      // strategy_id 是必填字段，如果没有则不写入数据库
-      if (!this.strategyId) {
-        console.log('[GridStrategyLogger] 缺少 strategyId，跳过写入数据库');
-        return;
-      }
+    // 触发队列处理（异步，不阻塞）
+    this._processWriteQueue().catch(error => {
+      // 队列处理本身出错（非常罕见）
+      const prefix = this.generateLogPrefix('ERROR');
+      console.error(`${prefix} [队列处理异常] ${error.message}`);
+    });
+  }
 
-      // 构建数据库记录
-      const dbRecord = {
-        strategy_id: this.strategyId,
-        trading_pair: this.symbol || null,
-        event_type: event_type,
-        level: level,
-        message: message,
-        details: details,
-        created_at: new Date()
-      };
-
-      // 直接同步写入数据库
-      await db.usd_m_futures_infinite_grid_logs.create(dbRecord);
-    } catch (error) {
-      console.error('[GridStrategyLogger] 写入数据库失败:', error?.message || error);
+  /**
+   * 记录普通日志（仅输出到终端）
+   * @param {...any} messageList - 要记录的消息（可选）
+   * @returns {GridStrategyLogger} 返回 this
+   */
+  log(...messageList) {
+    const message = messageList.length > 0 ? this.formatMessageList(messageList) : this._lastMessage;
+    if (message) {
+      const prefix = this.generateLogPrefix('');
+      console.log(`${prefix} ${message}`);
     }
+    return this;
   }
 
   /**
-   * 记录普通日志
-   * @param {string} event_type - 事件类型（由调用方显式传入）
-   * @param {...any} messageList - 要记录的消息
+   * 记录调试日志（仅输出到终端）
+   * @param {...any} messageList - 要记录的消息（可选）
+   * @returns {GridStrategyLogger} 返回 this
    */
-  async log(event_type, ...messageList) {
-    const formattedMessage = this.formatMessageList(messageList);
-    const prefix = this.generateLogPrefix('');
-    const finalMessage = `${prefix} ${formattedMessage}`;
-    console.log(finalMessage);
-    await this.writeToDatabase('info', formattedMessage, event_type);
-  }
-
-  /**
-   * 记录调试日志
-   * @param {string} event_type - 事件类型（由调用方显式传入）
-   * @param {...any} messageList - 要记录的消息
-   */
-  async debug(event_type, ...messageList) {
-    const formattedMessage = this.formatMessageList(messageList);
-    const prefix = this.generateLogPrefix('DEBUG');
-    const finalMessage = `${prefix} ${formattedMessage}`;
-    console.log(finalMessage);
-    await this.writeToDatabase('debug', formattedMessage, event_type);
-  }
-
-  /**
-   * 记录错误日志
-   * @param {string} event_type - 事件类型（由调用方显式传入）
-   * @param {...any} messageList - 要记录的消息
-   */
-  async error(event_type, ...messageList) {
-    const formattedMessage = this.formatMessageList(messageList);
-    const prefix = this.generateLogPrefix('ERROR');
-    const finalMessage = `${prefix} ${formattedMessage}`;
-    console.error(finalMessage);
-    await this.writeToDatabase('error', formattedMessage, event_type);
-  }
-
-  /**
-   * 记录警告日志
-   * @param {string} event_type - 事件类型（由调用方显式传入）
-   * @param {...any} messageList - 要记录的消息
-   */
-  async warn(event_type, ...messageList) {
-    const formattedMessage = this.formatMessageList(messageList);
-    const prefix = this.generateLogPrefix('WARN');
-    const finalMessage = `${prefix} ${formattedMessage}`;
-    console.warn(finalMessage);
-    await this.writeToDatabase('warn', formattedMessage, event_type);
-  }
-
-  /**
-   * 记录交易所返回的原始数据（不写入数据库）
-   * @param {string} action - 操作名称，如 submitOrder, getAccount
-   * @param {any} data - 交易所返回的数据
-   */
-  async exchange(action, data) {
-    const formattedData = typeof data === 'object' ? JSON.stringify(data) : String(data);
-    const message = `[${action}] ${formattedData}`;
-    const prefix = this.generateLogPrefix('EXCHANGE');
-    const finalMessage = `${prefix} ${message}`;
-    console.log(finalMessage);
-    // 交易所数据不写入数据库
-  }
-
-  /**
-   * 记录订单相关日志
-   * @param {string} event_type - 事件类型（由调用方显式传入）
-   * @param {string} action - 操作名称，如 create, cancel, filled
-   * @param {any} orderData - 订单数据
-   */
-  async order(event_type, action, orderData) {
-    const formattedData = typeof orderData === 'object' ? JSON.stringify(orderData) : String(orderData);
-    const message = `[${action}] ${formattedData}`;
-    const prefix = this.generateLogPrefix('ORDER');
-    const finalMessage = `${prefix} ${message}`;
-    console.log(finalMessage);
-
-    // 订单操作写入数据库
-    await this.writeToDatabase('info', message, event_type, orderData);
-  }
-
-  /**
-   * 记录 trace 级别日志（频繁但大部分时间无意义的日志）
-   * 特点：始终写入文件，默认不输出到终端（通过 LOG_TRACE=true 环境变量开启）
-   * @param {...any} messageList - 要记录的消息
-   */
-  async trace(...messageList) {
-    const formattedMessage = this.formatMessageList(messageList);
-    const prefix = this.generateLogPrefix('TRACE');
-    const finalMessage = `${prefix} ${formattedMessage}`;
-
-    // 只有开启了 LOG_TRACE 环境变量才输出到终端
-    if (process.env.LOG_TRACE === 'true') {
-      console.log(finalMessage);
+  debug(...messageList) {
+    const message = messageList.length > 0 ? this.formatMessageList(messageList) : this._lastMessage;
+    if (message) {
+      const prefix = this.generateLogPrefix('DEBUG');
+      console.log(`${prefix} ${message}`);
     }
+    return this;
+  }
 
-    // trace 日志不写入数据库
+  /**
+   * 记录错误日志（仅输出到终端）
+   * @param {...any} messageList - 要记录的消息（可选）
+   * @returns {GridStrategyLogger} 返回 this
+   */
+  error(...messageList) {
+    const message = messageList.length > 0 ? this.formatMessageList(messageList) : this._lastMessage;
+    if (message) {
+      const prefix = this.generateLogPrefix('ERROR');
+      console.error(`${prefix} ${message}`);
+    }
+    return this;
+  }
+
+  /**
+   * 记录警告日志（仅输出到终端）
+   * @param {...any} messageList - 要记录的消息（可选）
+   * @returns {GridStrategyLogger} 返回 this
+   */
+  warn(...messageList) {
+    const message = messageList.length > 0 ? this.formatMessageList(messageList) : this._lastMessage;
+    if (message) {
+      const prefix = this.generateLogPrefix('WARN');
+      console.warn(`${prefix} ${message}`);
+    }
+    return this;
+  }
+
+  /**
+   * 写入数据库并缓存日志内容用于链式调用
+   * @param {string} event_type - 事件类型
+   * @param {string} message - 日志消息
+   * @param {Object} details - 详细信息
+   * @returns {GridStrategyLogger} 返回 this 支持链式调用
+   */
+  sql(event_type, message, details = null) {
+    // 缓存日志内容
+    this._lastMessage = message;
+    // 写入数据库
+    this.writeToDatabase(message, event_type, details);
+    return this;
   }
 
   /**
    * 销毁日志记录器，清理资源
+   * 确保队列中的日志都已写入数据库
    */
-  destroy() {
-    // 直接同步写入，无需清理队列
+  async destroy() {
+    // 等待队列处理完成
+    while (this._writeQueue.length > 0 || this._isProcessingQueue) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+
+  /**
+   * 获取错误统计信息（用于监控）
+   * @returns {Object} 错误统计信息
+   */
+  getErrorStats() {
+    return {
+      errorCount: this._errorCount,
+      lastErrorTime: this._lastErrorTime,
+      lastErrorMessage: this._lastErrorMessage,
+      queueLength: this._writeQueue.length
+    };
   }
 }
 

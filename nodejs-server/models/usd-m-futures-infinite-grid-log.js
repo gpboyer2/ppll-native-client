@@ -34,13 +34,7 @@ module.exports = (sequelize) => {
       event_type: {
         type: DataTypes.STRING(50),
         allowNull: false,
-        comment: '事件类型: pause/resume/open_position/close_position/limit_reached',
-      },
-      level: {
-        type: DataTypes.STRING(10),
-        allowNull: false,
-        defaultValue: 'info',
-        comment: '日志级别: error/warn/info/success/debug',
+        comment: '事件类型: pause/resume/open_position/close_position/limit_reached/...',
       },
       message: {
         type: DataTypes.TEXT,

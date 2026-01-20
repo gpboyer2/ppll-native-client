@@ -11,7 +11,7 @@ const db = require('../models');
  * 查询插件日志列表
  */
 const list = catchAsync(async (req, res) => {
-  const filter = pick(req.query, ['strategy_id', 'trading_pair', 'event_type', 'level', 'start_time', 'end_time']);
+  const filter = pick(req.query, ['strategy_id', 'trading_pair', 'event_type', 'start_time', 'end_time']);
   const options = pick(req.query, ['sortBy', 'page_size', 'current_page']);
 
   const result = await usd_m_futures_infinite_grid_event_manager.getLogs(filter, options);
@@ -32,13 +32,12 @@ const getStatistics = catchAsync(async (req, res) => {
  * 创建插件日志
  */
 const create = catchAsync(async (req, res) => {
-  const { strategy_id, trading_pair, event_type, level, message, details } = req.body;
+  const { strategy_id, trading_pair, event_type, message, details } = req.body;
 
   const log = await usd_m_futures_infinite_grid_event_manager.logEvent({
     strategyId: strategy_id,
     tradingPair: trading_pair,
     eventType: event_type,
-    level,
     message,
     details
   });

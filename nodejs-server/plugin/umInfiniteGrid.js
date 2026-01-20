@@ -14,6 +14,7 @@ const { USDMClient } = require('binance');
 const binancePrecision = require('../utils/binance-precision');
 const db = require('../models');
 const binanceAccountService = require('../service/binance-account.service.js');
+const GridEventTypes = require('../constants/grid-event-types.js');
 
 
 /**
@@ -630,7 +631,7 @@ function InfiniteGrid(options) {
       this.logger.log(`🔍 查询订单详情 (重试${i + 1}/${MAX_RETRY})`);
       try {
         let res = await this.client.getOrder({ symbol: this.config.trading_pair, orderId });
-        this.logger.order('query', res);
+        this.logger.sql(GridEventTypes.ORDER, `查询订单详情`, { order: res });
         return this.getParseDatum(res);
       } catch (error) {
         this.logger.error(`查询订单详情失败 (重试${i + 1}/${MAX_RETRY})`, error);
@@ -668,10 +669,10 @@ function InfiniteGrid(options) {
     let result = null;
     try {
       const res = await this.placePositionOrder(positionQuantity);
-      this.logger.order('create', res);
+      this.logger.sql(GridEventTypes.ORDER, `创建仓位订单`, { order: res });
       result = this.getParseDatum(res);
     } catch (error) {
-      this.logger.error(`创建${this.config.position_side === 'LONG' ? '多' : '空'}单仓位失败`, error);
+      this.logger.sql(GridEventTypes.ERROR, `创建${this.config.position_side === 'LONG' ? '多' : '空'}单仓位失败: ${error.message}`, { error: error.message }).error();
       if (typeof this.onWarn === 'function') this.onWarn({ id: this.config.id, message: `创建仓位失败`, error });
     }
     await new Promise(r => setTimeout(r, 1000));
@@ -689,7 +690,7 @@ function InfiniteGrid(options) {
     this.logs.push(orderDetail);
     this.position_open_history.push(orderDetail);
     if (typeof this.onOpenPosition === 'function') this.onOpenPosition({ id: this.config.id, ...orderDetail });
-    this.logger.log(`🎉 建仓成功`);
+    this.logger.sql(GridEventTypes.ORDER, `🎉 建仓成功`).log();
     this.resetTargetPrice(Number(orderDetail.avgPrice));
     this.order_options.lock = 'idle';
   };
@@ -710,10 +711,10 @@ function InfiniteGrid(options) {
     let result = null;
     try {
       const res = await this.closePositionOrder(positionQuantity);
-      this.logger.order('close', res);
+      this.logger.sql(GridEventTypes.ORDER, `平仓订单`, { order: res });
       result = this.getParseDatum(res);
     } catch (error) {
-      this.logger.error(`平${this.config.position_side === 'LONG' ? '多' : '空'}单仓位失败`, error);
+      this.logger.sql(GridEventTypes.ERROR, `平${this.config.position_side === 'LONG' ? '多' : '空'}单仓位失败: ${error.message}`, { error: error.message }).error();
       if (typeof this.onWarn === 'function') this.onWarn({ id: this.config.id, message: `平仓失败`, error });
       this.handleCloseOrderError(error);
     }
@@ -732,7 +733,7 @@ function InfiniteGrid(options) {
     this.logs.push(orderDetail);
     this.position_open_history.pop();
     if (typeof this.onClosePosition === 'function') this.onClosePosition({ id: this.config.id, ...orderDetail });
-    this.logger.log(`🎉 平仓成功`);
+    this.logger.sql(GridEventTypes.ORDER, `🎉 平仓成功`).log();
     this.resetTargetPrice(Number(orderDetail.avgPrice));
     this.order_options.lock = 'idle';
   };
@@ -759,7 +760,7 @@ function InfiniteGrid(options) {
 
       return accountInfo;
     } catch (error) {
-      this.logger.error('获取账户信息失败:', error);
+      this.logger.sql(GridEventTypes.ERROR, `获取账户信息失败: ${error.message}`, { error: error.message }).error();
       throw error;
     }
   };
@@ -772,6 +773,7 @@ function InfiniteGrid(options) {
   this.initAccountInfo = async (shouldThrow = false) => {
     let accountInfo = await this.getAccountInfo().catch((error) => {
       this.logger.error('获取账户信息失败', error);
+      this.logger.sql(GridEventTypes.ERROR, `获取账户信息失败: ${error.message}`, { error: error.message });
 
       // 获取账户信息失败时触发 onWarn 事件
       if (typeof this.onWarn === 'function') {
@@ -821,11 +823,8 @@ function InfiniteGrid(options) {
       this.account_info_retry_interval = 5000;
       this.lastAccountInfoUpdate = Date.now();
     } catch (error) {
-      this.logger.error(`accountInfo 数据异常`, error);
+      this.logger.sql(GridEventTypes.ERROR, `accountInfo 数据异常: ${error.message}`, { error: error.message }).error();
       this.logger.debug(`NODE_ENV: ${process.env.NODE_ENV}`);
-      if (process.env.NODE_ENV !== 'production') {
-        this.logger.exchange('accountInfo', accountInfo);
-      }
 
       // 初始化账户信息失败时触发 onWarn 事件
       if (typeof this.onWarn === 'function') {
@@ -945,18 +944,18 @@ function InfiniteGrid(options) {
 
     // 根据用户要求, 将网格暂停
     if (this.paused) {
-      this.logger.log(`⛔️ 根据用户要求, 将网格暂停`);
+      this.logger.sql(GridEventTypes.GRID, `⛔️ 用户手动暂停网格`).log();
       return;
     }
 
     // 大于等于或小于等于限制价格时，暂停网格
     let { lt_limitation_price, gt_limitation_price } = this.config;
     if (Number.isFinite(lt_limitation_price) && latestPrice <= lt_limitation_price) {
-      this.logger.log(`⛔️ 币价小于等于限制价格，暂停网格`);
+      this.logger.sql(GridEventTypes.GRID, `⛔️ 币价${latestPrice}小于等于限制价格${lt_limitation_price}，自动暂停网格`).log();
       this.onPausedGrid();
     }
     else if (Number.isFinite(gt_limitation_price) && latestPrice >= gt_limitation_price) {
-      this.logger.log(`⛔️ 币价大于等于限制价格，暂停网格`);
+      this.logger.sql(GridEventTypes.GRID, `⛔️ 币价${latestPrice}大于等于限制价格${gt_limitation_price}，自动暂停网格`).log();
       this.onPausedGrid();
     }
     else {
@@ -964,11 +963,11 @@ function InfiniteGrid(options) {
     }
 
     if (latestPrice >= this.trading_pair_info.entryPrice && this.config.is_above_open_price) {
-      this.logger.log(`⛔️ 币价${latestPrice} 大于等于开仓价格${this.trading_pair_info.entryPrice}，暂停网格`);
+      this.logger.sql(GridEventTypes.GRID, `⛔️ 币价${latestPrice}大于等于开仓价格${this.trading_pair_info.entryPrice}，自动暂停网格`).log();
       this.onPausedGrid();
     }
     else if (latestPrice <= this.trading_pair_info.entryPrice && this.config.is_below_open_price) {
-      this.logger.log(`⛔️ 币价${latestPrice} 小于等于开仓价格${this.trading_pair_info.entryPrice}，暂停网格`);
+      this.logger.sql(GridEventTypes.GRID, `⛔️ 币价${latestPrice}小于等于开仓价格${this.trading_pair_info.entryPrice}，自动暂停网格`).log();
       this.onPausedGrid();
     }
     else {
@@ -978,7 +977,8 @@ function InfiniteGrid(options) {
     }
 
     if (this.auto_paused) {
-      this.logger.log(`⛔️ 因不满足本交易对的配置要求, 网格已暂停`);
+      this.logger.sql(GridEventTypes.GRID, `⛔️ 因不满足本交易对的配置要求, 网格已暂停`).log();
+      // 不重复写入数据库，因为上面的条件已经写入过了
       return;
     }
 
@@ -997,7 +997,7 @@ function InfiniteGrid(options) {
     // 定期刷新账户信息，避免手动转入资金后无法及时更新余额的问题
     // 每100次轮询或超过5分钟未更新时强制刷新一次
     if (this.count % 100 === 0 || !this.lastAccountInfoUpdate || (Date.now() - this.lastAccountInfoUpdate) > 300000) {
-      this.logger.log(`🔄 定期刷新账户信息以同步最新余额`);
+      this.logger.sql(GridEventTypes.ACCOUNT, `🔄 定期刷新账户信息以同步最新余额 (轮询第${this.count}次)`).log();
       await this.initAccountInfo().catch(() => { });
     }
 
@@ -1060,9 +1060,9 @@ function InfiniteGrid(options) {
           (this.config.position_side === 'SHORT' && latestPrice <= this.next_expected_rise_price && latestPrice <= this.total_open_position_entry_price)
         )
       ) {
-        this.logger.log(`🔄 启用顺势仅减仓策略：当前实际仓位数量为 ${this.total_open_position_quantity}/${this.config.trading_pair}， 足够平仓，且当前仍处于${this.config.position_side === 'LONG' ? '上涨' : '下跌'}趋势，因此跳过创建新仓位`);
+        this.logger.sql(GridEventTypes.GRID, `🔄 启用顺势仅减仓策略：仓位数量${this.total_open_position_quantity}/${this.config.trading_pair}，当前仍处于${this.config.position_side === 'LONG' ? '上涨' : '下跌'}趋势`).log();
       } else {
-        this.logger.log(`😎 缓存中没有${this.config.position_side === 'LONG' ? '多' : '空'}单仓位且没有超过最大持仓数量限制, 增加一个新的${this.config.position_side === 'LONG' ? '多' : '空'}单仓位`);
+        this.logger.sql(GridEventTypes.GRID, `😎 增加新的${this.config.position_side === 'LONG' ? '多' : '空'}单仓位 (缓存无仓位且未超限)`).log();
         this.openOrders(openQuantity);
         return;
       }
@@ -1087,7 +1087,7 @@ function InfiniteGrid(options) {
         latestPrice > this.next_expected_rise_price &&
         this.total_open_position_quantity >= (this.config.min_open_position_quantity || 0)
       ) {
-        this.logger.log(`⬆️ 币价上涨，匹配上一个网格的价格为：`, lastPosition?.avgPrice);
+        this.logger.sql(GridEventTypes.GRID, `⬆️ 币价${latestPrice}上涨，匹配上一个网格价格${lastPosition?.avgPrice}平仓`).log();
         this.closeOrders(this.getCloseQuantity()); // 做多平仓使用卖出多单数量
         return;
       }
@@ -1098,7 +1098,7 @@ function InfiniteGrid(options) {
         latestPrice < this.next_expected_fall_price &&
         (this.config.max_open_position_quantity ? this.total_open_position_quantity < this.config.max_open_position_quantity : true)
       ) {
-        this.logger.log(`⬇️ 币价下跌, 增加一个新的多单仓位`);
+        this.logger.sql(GridEventTypes.GRID, `⬇️ 币价${latestPrice}下跌，增加新的多单仓位`).log();
         this.openOrders(this.getOpenQuantity()); // 做多开仓使用买入多单数量
         return;
       }
@@ -1112,7 +1112,7 @@ function InfiniteGrid(options) {
         latestPrice < this.next_expected_fall_price &&
         this.total_open_position_quantity >= (this.config.min_open_position_quantity || 0)
       ) {
-        this.logger.log(`⬇️ 币价下跌，匹配上一个空单的网格盈利价：`, lastPosition?.avgPrice);
+        this.logger.sql(GridEventTypes.GRID, `⬇️ 币价${latestPrice}下跌，匹配上一个空单网格盈利价${lastPosition?.avgPrice}平仓`).log();
         this.closeOrders(this.getCloseQuantity()); // 做空平仓使用买入空单数量
         return;
       }
@@ -1123,7 +1123,7 @@ function InfiniteGrid(options) {
         latestPrice > this.next_expected_rise_price &&
         (this.config.max_open_position_quantity ? this.total_open_position_quantity < this.config.max_open_position_quantity : true)
       ) {
-        this.logger.log(`⬆️ 币价上涨, 增加一个新的空单仓位`);
+        this.logger.sql(GridEventTypes.GRID, `⬆️ 币价${latestPrice}上涨，增加新的空单仓位`).log();
         this.openOrders(this.getOpenQuantity()); // 做空开仓使用卖出空单数量
         return;
       }
@@ -1135,7 +1135,7 @@ function InfiniteGrid(options) {
       && this.config.max_open_position_quantity
       && this.total_open_position_quantity >= this.config.max_open_position_quantity
     ) {
-      this.logger.log(`⛔️ 当前已有的持仓数量${this.total_open_position_quantity} 大于 "最大持仓数量"${this.config.max_open_position_quantity}，不再加仓`);
+      this.logger.sql(GridEventTypes.GRID, `⛔️ 持仓数量${this.total_open_position_quantity}已达上限${this.config.max_open_position_quantity}，停止加仓`).log();
       return;
     }
 
@@ -1144,7 +1144,7 @@ function InfiniteGrid(options) {
       this.config.min_open_position_quantity ? this.total_open_position_quantity <= this.config.min_open_position_quantity : false
     ) {
       const quantity = this.getOpenQuantity(); // 使用开仓数量
-      this.logger.log(`😎 当前已有的持仓数量${this.total_open_position_quantity} 小于 "最少持仓数量"${this.config.min_open_position_quantity}, 立即加仓`);
+      this.logger.sql(GridEventTypes.GRID, `😎 持仓数量${this.total_open_position_quantity}低于最小值${this.config.min_open_position_quantity}，立即加仓`).log();
       this.openOrders(quantity);
       return;
     }
@@ -1206,7 +1206,7 @@ function InfiniteGrid(options) {
 
     // 先获取交易所信息,避免后续精度处理失败
     await this.getExchangeInfo().catch((err) => {
-      this.logger.error('初始化时获取交易所信息失败', err);
+      this.logger.sql(GridEventTypes.ERROR, `初始化时获取交易所信息失败: ${err.message}`, { error: err.message }).error();
     });
 
     // 添加延迟,避免API限流
@@ -1217,7 +1217,7 @@ function InfiniteGrid(options) {
       await this.initAccountInfo(true);  // 初始化阶段，传入 true 让错误抛出
     } catch (error) {
       const errorMsg = '初始化账户信息失败，请检查 API Key 配置（可能存在 IP 白名单限制）';
-      this.logger.error(errorMsg, error);
+      this.logger.sql(GridEventTypes.ERROR, `${errorMsg}: ${error.message}`, { error: error.message }).error();
       throw new Error(errorMsg);
     }
 
@@ -1230,14 +1230,16 @@ function InfiniteGrid(options) {
         .minus(this.total_open_position_quantity)
         .plus(openQuantity)
         .toNumber();
-      await this.openOrders(quantity).catch((err) => this.logger.error('初始化开仓失败', err));
+      await this.openOrders(quantity).catch((err) => {
+        this.logger.error('初始化开仓失败', err).sql(GridEventTypes.ERROR, `初始化开仓失败: ${err.message}`, { error: err.message });
+      });
     }
 
     this.init_status = true;
 
     // 初始化完成后，恢复网格运行（由 gridWebsocket 根据价格条件判断是否暂停）
     this.onContinueGrid();
-    this.logger.log(`✅ 策略初始化完成，网格已恢复运行`);
+    this.logger.sql(GridEventTypes.INIT, `✅ 策略初始化完成，网格已恢复运行`).log();
   };
 }
 

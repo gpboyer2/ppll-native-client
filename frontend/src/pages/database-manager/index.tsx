@@ -554,7 +554,7 @@ function DatabaseManagerPage() {
         </div>
       )}
 
-      <div className="database-manager-content p-16">
+      <div className="database-manager-content">
         {/* 左侧表列表 */}
         <div className="database-sidebar">
           <div className="database-sidebar-header">

@@ -31,7 +31,6 @@ class UsdMFuturesInfiniteGridLogManager extends EventEmitter {
    * @param {number} event.strategyId - 策略ID
    * @param {string} event.tradingPair - 交易对
    * @param {string} event.eventType - 事件类型
-   * @param {string} event.level - 日志级别
    * @param {string} event.message - 消息内容
    * @param {Object} event.details - 详细信息
    */
@@ -40,7 +39,6 @@ class UsdMFuturesInfiniteGridLogManager extends EventEmitter {
       strategyId,
       tradingPair,
       eventType,
-      level = 'info',
       message,
       details = {},
     } = event;
@@ -51,7 +49,6 @@ class UsdMFuturesInfiniteGridLogManager extends EventEmitter {
         strategy_id: strategyId,
         trading_pair: tradingPair,
         event_type: eventType,
-        level,
         message,
         details: {
           ...details,
@@ -65,7 +62,6 @@ class UsdMFuturesInfiniteGridLogManager extends EventEmitter {
         strategy_id: strategyId,
         trading_pair: tradingPair,
         event_type: eventType,
-        level,
         message,
         details,
         created_at: log.created_at,
@@ -111,7 +107,6 @@ class UsdMFuturesInfiniteGridLogManager extends EventEmitter {
       strategy_id,
       trading_pair,
       event_type,
-      level,
       start_time,
       end_time,
     } = filter;
@@ -127,7 +122,6 @@ class UsdMFuturesInfiniteGridLogManager extends EventEmitter {
     if (strategy_id) where.strategy_id = strategy_id;
     if (trading_pair) where.trading_pair = trading_pair;
     if (event_type) where.event_type = event_type;
-    if (level) where.level = level;
     if (start_time && end_time) {
       where.created_at = {
         [db.Sequelize.Op.between]: [start_time, end_time],
@@ -180,10 +174,8 @@ class UsdMFuturesInfiniteGridLogManager extends EventEmitter {
   async getStatistics(strategy_id = null) {
     const where = strategy_id ? { strategy_id } : {};
 
-    const [total, errors, warnings, byType] = await Promise.all([
+    const [total, byType] = await Promise.all([
       UsdMFuturesInfiniteGridLog.count({ where }),
-      UsdMFuturesInfiniteGridLog.count({ where: { ...where, level: 'error' } }),
-      UsdMFuturesInfiniteGridLog.count({ where: { ...where, level: 'warn' } }),
       UsdMFuturesInfiniteGridLog.findAll({
         where,
         attributes: [
@@ -197,8 +189,6 @@ class UsdMFuturesInfiniteGridLogManager extends EventEmitter {
 
     return {
       total,
-      errors,
-      warnings,
       by_type: byType.reduce((acc, item) => {
         acc[item.event_type] = parseInt(item.count);
         return acc;

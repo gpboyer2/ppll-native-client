@@ -78,11 +78,6 @@ module.exports = router;
  *           description: 事件类型
  *           enum: [error, warn, info, success, pause, resume, open_position, close_position, limit_reached]
  *           example: "open_position"
- *         level:
- *           type: string
- *           description: 日志级别
- *           enum: [error, warn, info, success, debug]
- *           example: "info"
  *         message:
  *           type: string
  *           description: 日志消息内容
@@ -119,11 +114,6 @@ module.exports = router;
  *         schema:
  *           type: string
  *         description: 事件类型过滤
- *       - in: query
- *         name: level
- *         schema:
- *           type: string
- *         description: 日志级别过滤
  *       - in: query
  *         name: start_time
  *         schema:
