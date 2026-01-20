@@ -360,11 +360,6 @@ function GridStrategyDetailPage() {
             log_loading={logLoading}
             on_refresh_logs={loadPluginLogs}
           />
-
-          <FeeDetailCard
-            total_fee={strategy.total_fee}
-            funding_fee={strategy.funding_fee}
-          />
         </div>
 
         <div className="side-section">
@@ -380,6 +375,11 @@ function GridStrategyDetailPage() {
             start_time={strategy.start_time}
             updated_at={strategy.updated_at}
             run_duration={runDuration}
+          />
+
+          <FeeDetailCard
+            total_fee={strategy.total_fee}
+            funding_fee={strategy.funding_fee}
           />
         </div>
       </div>
