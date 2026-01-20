@@ -5,6 +5,9 @@
 
 const fs = require('fs');
 const path = require('path');
+/** @type {import('axios')} */
+const axios = require('axios');
+const { applyProxyToAxiosConfig } = require('./proxy');
 
 // 存储 cookies 的文件路径
 const COOKIES_FILE = path.join(__dirname, '../cache/gate_cookies.json');
@@ -83,8 +86,8 @@ async function fetchCookiesWithPuppeteer() {
     // 模拟真实用户行为：随机等待
     const randomDelay = Math.floor(Math.random() * 3000) + 2000; // 2-5秒随机延迟
     console.log(`模拟用户浏览，等待 ${randomDelay}ms...`);
-    // @ts-ignore - waitForTimeout 可能在某些版本中不可用
-    await page.waitForTimeout(randomDelay);
+    // 使用原生 Promise 替代 waitForTimeout（Puppeteer 23+ 已移除此方法）
+    await new Promise(resolve => setTimeout(resolve, randomDelay));
 
     // 模拟鼠标移动和滚动
     await page.mouse.move(100, 100);
@@ -94,8 +97,7 @@ async function fetchCookiesWithPuppeteer() {
     });
 
     // 再次随机等待
-    // @ts-ignore - waitForTimeout 可能在某些版本中不可用
-    await page.waitForTimeout(Math.floor(Math.random() * 1000) + 500);
+    await new Promise(resolve => setTimeout(resolve, Math.floor(Math.random() * 1000) + 500));
 
     // 获取所有 cookies
     const cookies = await page.cookies();
@@ -147,7 +149,7 @@ async function fetchCookiesWithPlaywright() {
     });
 
     // 等待页面加载
-    await page.waitForTimeout(3000);
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     // 获取 cookies
     const cookies = await context.cookies();
@@ -175,9 +177,6 @@ async function fetchCookiesWithPlaywright() {
  * 轻量级方案：模拟浏览器请求获取基础 cookies
  */
 async function fetchCookiesWithAxios() {
-  /** @type {import('axios')} */
-  const axios = require('axios');
-  const { applyProxyToAxiosConfig } = require('./proxy');
 
   try {
     console.log('🌐 使用 HTTP 方式访问 Gate.io...');
@@ -210,6 +209,7 @@ async function fetchCookiesWithAxios() {
       console.log('🔗 使用代理');
     }
 
+    // @ts-ignore - axios 类型定义问题，实际运行正常
     const response = await axios(axiosConfig);
 
     console.log('📊 HTTP 响应状态:', response.status);
