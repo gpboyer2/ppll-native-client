@@ -463,6 +463,100 @@ tbody {}
 - 第三方库的类型定义问题（如 axios、socket.io、binance 等）不需要修复
 - 不增加额外负担：除非是反映实际业务逻辑的问题，否则忽略 TypeScript 错误
 
+提前返回必须添加日志（仅后端）：
+- 适用范围：仅限后端代码
+- 要求：所有提前返回（early return）的 guard clauses 必须添加日志, 禁止只有 return 语句而没有任何日志输出的提前返回
+- 目的：后端运行在服务器，无法直接观察，日志是排查问题的关键
+
+正确示例（后端）：
+```javascript
+// 正确：有日志的提前返回
+if (!this.strategyId) {
+  console.log('[GridStrategyLogger] 缺少 strategyId，跳过写入数据库');
+  return;
+}
+
+if (now - last_cleanup_time < CLEANUP_INTERVAL) {
+  UtilRecord.trace('[FrontendLogService] 距离上次清理不足间隔时间，跳过本次清理');
+  return;
+}
+```
+
+错误示例（后端）：
+```javascript
+// 错误：没有日志的提前返回
+if (!this.strategyId) {
+  return;
+}
+```
+
+前端特殊情况（不需要日志）：
+- React 组件的状态检查（如 `if (!initialized) return`）- 正常流程控制
+- 业务逻辑的条件分支 - 用户会通过 UI 得到反馈
+- 工具函数内部逻辑 - 保持简洁即可
+- 自动生成的代码 - 不应修改
+
+原因：
+- 前端代码运行在浏览器，过多的 console.log 会影响性能
+- React 组件重渲染频繁，每次都输出日志会造成日志爆炸
+- 前端错误通常通过 UI 反馈给用户，而不是通过日志
+
+业务流程中的健壮性原则（重要）：
+- 核心原则：业务流程中不要过度健壮，该报错就报错，该提示用户就提示用户
+- 业务流程必须是"显式"的，不能偷偷兼容、自动修复或向下处理
+- 异常必须暴露给用户，这样才能发现问题、解决问题
+
+错误示例（过度健壮）：
+```javascript
+// 错误：偷偷兼容，用户永远不知道出了问题
+if (!params.api_key) {
+  params.api_key = 'default_key';  // 自动使用默认值，掩盖问题
+}
+
+// 错误：静默失败，用户以为操作成功
+try {
+  await createStrategy(params);
+} catch (error) {
+  console.log('创建失败，但不告诉用户');  // 静默处理
+  return { success: true };  // 假装成功
+}
+
+// 错误：过度验证，自动修正
+if (typeof params.id === 'string') {
+  params.id = parseInt(params.id);  // 自动转换类型
+}
+```
+
+正确示例（暴露问题）：
+```javascript
+// 正确：参数缺失直接报错
+if (!params.api_key) {
+  throw new Error('api_key 是必填项');
+}
+
+// 正确：失败就抛错，让用户知道
+try {
+  await createStrategy(params);
+} catch (error) {
+  throw new Error(`策略创建失败：${error.message}`);
+}
+
+// 正确：类型不对就报错，不自动修正
+if (typeof params.id !== 'number') {
+  throw new Error('id 必须是数字类型');
+}
+```
+
+适用场景：
+- 用户业务流程：创建策略、下单、撤单、修改配置等
+- 产品业务逻辑：账户操作、交易执行、数据同步等
+- 任何需要用户知晓的操作
+
+不适用场景（可以健壮）：
+- 内部工具函数、日志记录、缓存清理等辅助功能
+- 网络重试、连接重试等技术层面的容错
+- 格式化、序列化等数据处理
+
 
 ## 3. Express Router 文件规范
 
