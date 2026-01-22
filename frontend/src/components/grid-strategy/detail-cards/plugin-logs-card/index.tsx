@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { IconRefresh, IconAlertCircle, IconInfoCircle, IconCheck, IconBug, IconChevronDown, IconChevronRight, IconFilter } from '@tabler/icons-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { IconRefresh, IconAlertCircle, IconInfoCircle, IconCheck, IconBug, IconChevronDown, IconChevronRight, IconFilter, IconChevronLeft, IconChevronRight as IconChevronRightPage } from '@tabler/icons-react';
 import './index.scss';
 import { PluginLog } from '../../../../types/grid-strategy';
 import { ICON_SIZE } from '../../../../constants/grid-strategy';
@@ -7,7 +7,17 @@ import { ICON_SIZE } from '../../../../constants/grid-strategy';
 interface PluginLogsCardProps {
   plugin_logs: PluginLog[];
   log_loading: boolean;
-  on_refresh_logs: () => void;
+  on_refresh_logs: (params?: {
+    current_page?: number;
+    event_type?: string;
+    start_time?: string;
+    end_time?: string;
+  }) => void;
+  pagination?: {
+    current_page: number;
+    page_size: number;
+    total: number;
+  };
 }
 
 const AUTO_REFRESH_INTERVAL = 10000; // 10秒自动刷新
@@ -18,7 +28,8 @@ type TimeFilterType = 'all' | 'today' | 'week' | 'month';
 export function PluginLogsCard({
   plugin_logs,
   log_loading,
-  on_refresh_logs
+  on_refresh_logs,
+  pagination
 }: PluginLogsCardProps) {
   const [event_filter, setEventFilter] = useState<EventFilterType>('all');
   const [time_filter, setTimeFilter] = useState<TimeFilterType>('all');
@@ -31,11 +42,66 @@ export function PluginLogsCard({
   const on_refresh_logs_ref = useRef(on_refresh_logs);
   on_refresh_logs_ref.current = on_refresh_logs;
 
-  // 手动刷新处理函数，重置倒计时
+  // 计算时间过滤参数
+  const getTimeFilterParams = useCallback((): { start_time?: string; end_time?: string } => {
+    if (time_filter === 'all') return {};
+
+    const now = new Date();
+    const today_start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const week_start = new Date(today_start);
+    week_start.setDate(week_start.getDate() - 7);
+    const month_start = new Date(today_start);
+    month_start.setDate(month_start.getDate() - 30);
+
+    switch (time_filter) {
+      case 'today':
+        return { start_time: today_start.toISOString() };
+      case 'week':
+        return { start_time: week_start.toISOString() };
+      case 'month':
+        return { start_time: month_start.toISOString() };
+      default:
+        return {};
+    }
+  }, [time_filter]);
+
+  // 计算事件类型过滤参数
+  const getEventFilterParams = useCallback((): { event_type?: string } => {
+    if (event_filter === 'all') return {};
+    if (event_filter === 'trade') return {}; // 交易类型需要特殊处理（包含 open_position 和 close_position）
+    return { event_type: event_filter };
+  }, [event_filter]);
+
+  // 手动刷新处理函数，重置倒计时并应用当前过滤条件
   const handleManualRefresh = useCallback(() => {
-    on_refresh_logs();
+    const params = {
+      current_page: 1,
+      ...getTimeFilterParams(),
+      ...getEventFilterParams()
+    };
+    on_refresh_logs(params);
     setNextRefreshCountdown(AUTO_REFRESH_INTERVAL / 1000);
-  }, [on_refresh_logs]);
+  }, [on_refresh_logs, getTimeFilterParams, getEventFilterParams]);
+
+  // 页码变化处理
+  const handlePageChange = useCallback((new_page: number) => {
+    const params = {
+      current_page: new_page,
+      ...getTimeFilterParams(),
+      ...getEventFilterParams()
+    };
+    on_refresh_logs(params);
+  }, [on_refresh_logs, getTimeFilterParams, getEventFilterParams]);
+
+  // 过滤条件变化处理
+  const handleFilterChange = useCallback(() => {
+    const params = {
+      current_page: 1,
+      ...getTimeFilterParams(),
+      ...getEventFilterParams()
+    };
+    on_refresh_logs(params);
+  }, [on_refresh_logs, getTimeFilterParams, getEventFilterParams]);
 
   useEffect(() => {
     if (!log_loading) {
@@ -69,10 +135,9 @@ export function PluginLogsCard({
   const getLogIcon = (level: string) => {
     switch (level) {
       case 'error': return <IconAlertCircle size={ICON_SIZE.SMALL} />;
-      case 'warn': return <IconAlertCircle size={ICON_SIZE.SMALL} />;
-      case 'success': return <IconCheck size={ICON_SIZE.SMALL} />;
-      case 'debug': return <IconBug size={ICON_SIZE.SMALL} />;
-      default: return <IconInfoCircle size={ICON_SIZE.SMALL} />;
+      case 'warn': return <IconInfoCircle size={ICON_SIZE.SMALL} />;
+      case 'info': return <IconCheck size={ICON_SIZE.SMALL} />;
+      default: return <IconBug size={ICON_SIZE.SMALL} />;
     }
   };
 
@@ -87,9 +152,7 @@ export function PluginLogsCard({
       'pause': '暂停',
       'resume': '恢复',
       'open_position': '开仓',
-      'close_position': '平仓',
-      'limit_reached': '限制触发',
-      'debug': '调试'
+      'close_position': '平仓'
     };
     return type_map[event_type] || event_type;
   };
@@ -107,39 +170,6 @@ export function PluginLogsCard({
       'close_position': 'rgb(236, 72, 153)'
     };
     return color_map[event_type] || 'rgb(107, 114, 128)';
-  };
-
-  const filterByTime = (logs: PluginLog[], filter: TimeFilterType) => {
-    if (filter === 'all') return logs;
-
-    const now = new Date();
-    const today_start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const week_start = new Date(today_start);
-    week_start.setDate(week_start.getDate() - 7);
-    const month_start = new Date(today_start);
-    month_start.setDate(month_start.getDate() - 30);
-
-    return logs.filter(log => {
-      const log_date = new Date(log.created_at);
-      switch (filter) {
-        case 'today':
-          return log_date >= today_start;
-        case 'week':
-          return log_date >= week_start;
-        case 'month':
-          return log_date >= month_start;
-        default:
-          return true;
-      }
-    });
-  };
-
-  const filterByEvent = (logs: PluginLog[], filter: EventFilterType) => {
-    if (filter === 'all') return logs;
-    if (filter === 'trade') {
-      return logs.filter(log => ['open_position', 'close_position'].includes(log.event_type));
-    }
-    return logs.filter(log => log.event_type === filter);
   };
 
   const groupLogs = (logs: PluginLog[]) => {
@@ -173,36 +203,10 @@ export function PluginLogsCard({
     });
   };
 
-  const filtered_logs = useMemo(() => {
-    let result = plugin_logs;
-    result = filterByTime(result, time_filter);
-    result = filterByEvent(result, event_filter);
-    return result;
-  }, [plugin_logs, event_filter, time_filter]);
+  const grouped_logs = groupLogs(plugin_logs);
 
-  const grouped_logs = useMemo(() => groupLogs(filtered_logs), [filtered_logs]);
-
-  const getEventFilterOptions = () => {
-    const options = [
-      { value: 'all' as EventFilterType, label: '全部', count: plugin_logs.length },
-      { value: 'init' as EventFilterType, label: '初始化', count: plugin_logs.filter(l => l.event_type === 'init').length },
-      { value: 'grid' as EventFilterType, label: '网格', count: plugin_logs.filter(l => l.event_type === 'grid').length },
-      { value: 'trade' as EventFilterType, label: '交易', count: plugin_logs.filter(l => ['open_position', 'close_position'].includes(l.event_type)).length },
-      { value: 'error' as EventFilterType, label: '错误', count: plugin_logs.filter(l => l.event_type === 'error').length },
-      { value: 'warn' as EventFilterType, label: '警告', count: plugin_logs.filter(l => l.event_type === 'warn').length }
-    ];
-    return options;
-  };
-
-  const getTimeFilterOptions = () => {
-    const options = [
-      { value: 'all' as TimeFilterType, label: '全部时间' },
-      { value: 'today' as TimeFilterType, label: '今天' },
-      { value: 'week' as TimeFilterType, label: '最近7天' },
-      { value: 'month' as TimeFilterType, label: '最近30天' }
-    ];
-    return options;
-  };
+  const total_pages = pagination ? Math.ceil(pagination.total / pagination.page_size) : 1;
+  const current_page = pagination?.current_page || 1;
 
   return (
     <div className="detail-card">
@@ -230,14 +234,20 @@ export function PluginLogsCard({
             <span>事件类型</span>
           </div>
           <div className="filter-buttons">
-            {getEventFilterOptions().map(option => (
+            {(['all', 'init', 'grid', 'trade', 'error', 'warn'] as EventFilterType[]).map(filter => (
               <button
-                key={option.value}
-                className={`filter-button ${event_filter === option.value ? 'active' : ''}`}
-                onClick={() => setEventFilter(option.value)}
+                key={filter}
+                className={`filter-button ${event_filter === filter ? 'active' : ''}`}
+                onClick={() => {
+                  setEventFilter(filter);
+                  setTimeout(() => handleFilterChange(), 0);
+                }}
               >
-                {option.label}
-                <span className="filter-count">({option.count})</span>
+                {filter === 'all' ? '全部' :
+                 filter === 'init' ? '初始化' :
+                 filter === 'grid' ? '网格' :
+                 filter === 'trade' ? '交易' :
+                 filter === 'error' ? '错误' : '警告'}
               </button>
             ))}
           </div>
@@ -249,13 +259,18 @@ export function PluginLogsCard({
             <span>时间范围</span>
           </div>
           <div className="filter-buttons">
-            {getTimeFilterOptions().map(option => (
+            {(['all', 'today', 'week', 'month'] as TimeFilterType[]).map(filter => (
               <button
-                key={option.value}
-                className={`filter-button ${time_filter === option.value ? 'active' : ''}`}
-                onClick={() => setTimeFilter(option.value)}
+                key={filter}
+                className={`filter-button ${time_filter === filter ? 'active' : ''}`}
+                onClick={() => {
+                  setTimeFilter(filter);
+                  setTimeout(() => handleFilterChange(), 0);
+                }}
               >
-                {option.label}
+                {filter === 'all' ? '全部时间' :
+                 filter === 'today' ? '今天' :
+                 filter === 'week' ? '最近7天' : '最近30天'}
               </button>
             ))}
           </div>
@@ -265,54 +280,79 @@ export function PluginLogsCard({
       <div className="detail-card-body">
         {log_loading ? (
           <div className="logs-loading">加载中...</div>
-        ) : filtered_logs.length === 0 && plugin_logs.length === 0 ? (
+        ) : plugin_logs.length === 0 ? (
           <div className="logs-empty">暂无日志</div>
-        ) : filtered_logs.length === 0 && plugin_logs.length > 0 ? (
-          <div className="logs-empty">当前过滤条件下无日志，请调整过滤条件</div>
         ) : (
-          <div className="logs-list">
-            {grouped_logs.map(group => (
-              <div key={group.date_key} className="log-group">
-                <div
-                  className="log-group-header"
-                  onClick={() => toggleGroup(group.date_key)}
-                >
-                  {collapsed_groups.has(group.date_key) ? (
-                    <IconChevronRight size={ICON_SIZE.SMALL} />
-                  ) : (
-                    <IconChevronDown size={ICON_SIZE.SMALL} />
-                  )}
-                  <span className="log-group-date">{group.date_key}</span>
-                  <span className="log-group-count">{group.logs.length} 条日志</span>
-                </div>
-                {!collapsed_groups.has(group.date_key) && (
-                  <div className="log-group-items">
-                    {group.logs.map(log => (
-                      <div key={log.id} className="log-item">
-                        <div className="log-item-header">
-                          <div className="log-item-left">
-                            <span className={`log-icon log-level-${log.level}`}>
-                              {getLogIcon(log.level)}
-                            </span>
-                            <span
-                              className="log-type"
-                              style={{ color: getEventTypeColor(log.event_type) }}
-                            >
-                              {getEventTypeName(log.event_type)}
+          <>
+            <div className="logs-list">
+              {grouped_logs.map(group => (
+                <div key={group.date_key} className="log-group">
+                  <div
+                    className="log-group-header"
+                    onClick={() => toggleGroup(group.date_key)}
+                  >
+                    {collapsed_groups.has(group.date_key) ? (
+                      <IconChevronRight size={ICON_SIZE.SMALL} />
+                    ) : (
+                      <IconChevronDown size={ICON_SIZE.SMALL} />
+                    )}
+                    <span className="log-group-date">{group.date_key}</span>
+                    <span className="log-group-count">{group.logs.length} 条日志</span>
+                  </div>
+                  {!collapsed_groups.has(group.date_key) && (
+                    <div className="log-group-items">
+                      {group.logs.map(log => (
+                        <div key={log.id} className="log-item">
+                          <div className="log-item-header">
+                            <div className="log-item-left">
+                              <span className={`log-icon log-level-${log.level}`}>
+                                {getLogIcon(log.level)}
+                              </span>
+                              <span
+                                className="log-type"
+                                style={{ color: getEventTypeColor(log.event_type) }}
+                              >
+                                {getEventTypeName(log.event_type)}
+                              </span>
+                            </div>
+                            <span className="log-time">
+                              {new Date(log.created_at).toLocaleTimeString()}
                             </span>
                           </div>
-                          <span className="log-time">
-                            {new Date(log.created_at).toLocaleTimeString()}
-                          </span>
+                          <div className="log-message">{log.message}</div>
                         </div>
-                        <div className="log-message">{log.message}</div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {pagination && pagination.total > 0 && (
+              <div className="logs-pagination">
+                <div className="pagination-info">
+                  共 {pagination.total} 条记录，第 {current_page}/{total_pages} 页
+                </div>
+                <div className="pagination-buttons">
+                  <button
+                    className="pagination-btn"
+                    onClick={() => handlePageChange(current_page - 1)}
+                    disabled={current_page <= 1 || log_loading}
+                  >
+                    <IconChevronLeft size={ICON_SIZE.SMALL} />
+                  </button>
+                  <span className="pagination-current">{current_page}</span>
+                  <button
+                    className="pagination-btn"
+                    onClick={() => handlePageChange(current_page + 1)}
+                    disabled={current_page >= total_pages || log_loading}
+                  >
+                    <IconChevronRightPage size={ICON_SIZE.SMALL} />
+                  </button>
+                </div>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>

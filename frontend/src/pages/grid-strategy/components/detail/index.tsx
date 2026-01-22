@@ -38,6 +38,11 @@ function GridStrategyDetailPage() {
   const [currentPrice, setCurrentPrice] = useState<number | null>(null);
   const [pluginLogs, setPluginLogs] = useState<PluginLog[]>([]);
   const [logLoading, setLogLoading] = useState(false);
+  const [logPagination, setLogPagination] = useState<{
+    current_page: number;
+    page_size: number;
+    total: number;
+  } | undefined>(undefined);
   const [runDuration, setRunDuration] = useState<string>('未启动');
 
   // 防止 StrictMode 双重渲染导致重复请求
@@ -146,18 +151,27 @@ function GridStrategyDetailPage() {
     navigate(`${ROUTES.GRID_STRATEGY_EDIT}?copy_from=${strategy.id}`);
   };
 
-  const loadPluginLogs = useCallback(async () => {
+  const loadPluginLogs = useCallback(async (params?: {
+    current_page?: number;
+    event_type?: string;
+    start_time?: string;
+    end_time?: string;
+  }) => {
     if (!strategy_id) return;
 
     setLogLoading(true);
     try {
       const response = await GridStrategyApi.getPluginLogs({
         strategy_id: strategy_id,
-        current_page: 1,
-        page_size: 1000
+        current_page: params?.current_page || 1,
+        page_size: 50,
+        event_type: params?.event_type,
+        start_time: params?.start_time,
+        end_time: params?.end_time
       });
       if (response.status === 'success' && response.datum) {
         setPluginLogs(response.datum.list || []);
+        setLogPagination(response.datum.pagination);
       }
     } catch (error) {
       console.error('加载日志失败:', error);
@@ -359,6 +373,7 @@ function GridStrategyDetailPage() {
             plugin_logs={pluginLogs}
             log_loading={logLoading}
             on_refresh_logs={loadPluginLogs}
+            pagination={logPagination}
           />
         </div>
 
