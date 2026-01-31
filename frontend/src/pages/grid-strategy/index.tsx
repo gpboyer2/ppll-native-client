@@ -10,6 +10,38 @@ import { useBinanceStore } from '../../stores/binance-store';
 import type { GridStrategy, StrategyFilter, StrategyStatus, PositionSide } from '../../types/grid-strategy';
 
 /**
+ * 获取策略状态
+ * 优先使用数据库的 status 字段，其次考虑 paused 和 remark 字段
+ * @param item 策略数据对象
+ * @returns 策略状态
+ */
+function getStrategyStatus(item: any): StrategyStatus {
+  // 优先使用后端返回的 status 字段
+  const dbStatus = item.status?.toUpperCase();
+
+  if (dbStatus === 'DELETED') {
+    return 'stopped';
+  }
+
+  if (dbStatus === 'STOPPED') {
+    return 'stopped';
+  }
+
+  // 如果数据库状态是 RUNNING，但被用户手动暂停了
+  if (item.paused) {
+    return 'paused';
+  }
+
+  // 原有逻辑：通过 remark 字段判断错误状态
+  if (item.remark === 'error') {
+    return 'stopped';
+  }
+
+  // 默认为运行中
+  return 'running';
+}
+
+/**
  * 网格策略列表页面
  * 显示所有网格策略，支持搜索和筛选功能
  */
@@ -88,7 +120,7 @@ function GridStrategyListPage() {
             ...item,
             _api_key_id: String(api_key.id),
             _api_key_name: api_key.name,
-            status: (item.paused ? 'paused' : (item.remark === 'error' ? 'stopped' : 'running')) as StrategyStatus,
+            status: getStrategyStatus(item),
           }));
           all_strategies.push(...strategies_with_key);
         }
