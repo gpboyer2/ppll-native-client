@@ -6,23 +6,19 @@ interface StrategyStatusCardProps {
   strategy_status: 'running' | 'paused' | 'stopped';
   position_side: 'LONG' | 'SHORT';
   leverage: number;
-  remark?: string;
+  status_text?: string;
 }
 
 export function StrategyStatusCard({
   strategy_status,
   position_side,
   leverage,
-  remark
+  status_text
 }: StrategyStatusCardProps) {
   const is_long = position_side === 'LONG';
 
   const getStatusText = () => {
-    switch (strategy_status) {
-      case 'running': return '运行中';
-      case 'paused': return '已暂停';
-      case 'stopped': return '已停止';
-    }
+    return status_text || (strategy_status === 'running' ? '运行中' : strategy_status === 'paused' ? '已暂停' : '已停止');
   };
 
   return (
@@ -48,12 +44,6 @@ export function StrategyStatusCard({
           <span className="status-label">杠杆倍数</span>
           <span className="status-value">x{leverage}</span>
         </div>
-        {remark && remark !== 'error' && (
-          <div className="status-row">
-            <span className="status-label">备注</span>
-            <span className="status-value">{remark}</span>
-          </div>
-        )}
       </div>
     </div>
   );

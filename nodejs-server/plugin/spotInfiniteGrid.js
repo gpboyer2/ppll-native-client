@@ -12,6 +12,7 @@ const UtilRecord = require('../utils/record-log.js');
 const StrategyLog = require('../utils/strategy-log.js');
 const { MainClient } = require('binance');
 const { normalizeDatatypes } = require('../utils/data-types.ts');
+const db = require('../models');
 
 /**
  * 无限网格策略 - 现货版本
@@ -149,7 +150,7 @@ function InfiniteGridSpot(options) {
   this.paused = false;
 
   /** 当前网格是否暂停(业务逻辑自动判断进行设定的暂停与否), 暂停权重2 */
-  this.paused = true;
+  this.auto_paused = true;
 
   /** 初始化状态 */
   this.initStatus = false;
@@ -679,7 +680,7 @@ function InfiniteGridSpot(options) {
 
     this.latestPrice = latestPrice;
 
-    if (this.paused) {
+    if (this.paused || this.auto_paused) {
       UtilRecord.log(`⛔️ 根据用户要求, 将网格暂停`);
       return;
     }
@@ -687,14 +688,14 @@ function InfiniteGridSpot(options) {
     let { ltLimitationPrice, gtLimitationPrice } = this.config;
     if (Number.isFinite(ltLimitationPrice) && latestPrice <= ltLimitationPrice) {
       UtilRecord.log(`⛔️ 币价小于等于限制价格，暂停网格`);
-      this.onPausedGrid();
+      await this.onPausedGrid('PRICE_BELOW_MIN');
     }
     else if (Number.isFinite(gtLimitationPrice) && latestPrice >= gtLimitationPrice) {
       UtilRecord.log(`⛔️ 币价大于等于限制价格，暂停网格`);
-      this.onPausedGrid();
+      await this.onPausedGrid('PRICE_ABOVE_MAX');
     }
     else {
-      this.onContinueGrid();
+      await this.onContinueGrid();
     }
 
     // TODO
@@ -713,7 +714,7 @@ function InfiniteGridSpot(options) {
     //   if (!this.paused) this.onContinueGrid();
     // }
 
-    if (this.paused) {
+    if (this.paused || this.auto_paused) {
       UtilRecord.log(`⛔️ 因不满足本交易对的配置要求, 网格已暂停`);
       return;
     }
@@ -769,6 +770,7 @@ function InfiniteGridSpot(options) {
       && (this.config.maxBaseAssetQuantity ? this.currentBaseAssetQuantity < this.config.maxBaseAssetQuantity : true)
     ) {
       if (this.currentQuoteAssetBalance < bigNumber(latestPrice).times(buyQuantity).toNumber()) {
+        await this.updateExecutionStatus('INSUFFICIENT_BALANCE');
         UtilRecord.log(`余额不足，无法执行买入操作`);
         return;
       }
@@ -817,6 +819,7 @@ function InfiniteGridSpot(options) {
       (this.config.maxBaseAssetQuantity ? this.currentBaseAssetQuantity < this.config.maxBaseAssetQuantity : true)
     ) {
       if (this.currentQuoteAssetBalance < bigNumber(latestPrice).times(buyQuantity).toNumber()) {
+        await this.updateExecutionStatus('INSUFFICIENT_BALANCE');
         UtilRecord.log(`余额不足，无法执行买入操作`);
         return;
       }
@@ -831,6 +834,7 @@ function InfiniteGridSpot(options) {
       this.currentBaseAssetQuantity < this.config.minBaseAssetQuantity
     ) {
       if (this.currentQuoteAssetBalance < bigNumber(latestPrice).times(buyQuantity).toNumber()) {
+        await this.updateExecutionStatus('INSUFFICIENT_BALANCE');
         UtilRecord.log(`余额不足，无法执行买入操作`);
         return;
       }
@@ -841,17 +845,46 @@ function InfiniteGridSpot(options) {
     }
   };
 
-  /** 暂停网格 */
-  this.onPausedGrid = () => { this.paused = true; };
+  /**
+   * 更新策略执行状态到数据库
+   * @param {string} newStatus - 新的执行状态
+   */
+  this.updateExecutionStatus = async (newStatus) => {
+    try {
+      await db.grid_strategies.update(
+        { execution_status: newStatus },
+        { where: { id: this.config.id } }
+      );
+      this.logger.debug(`策略执行状态已更新为: ${newStatus}`);
+    } catch (error) {
+      this.logger.error(`更新策略执行状态失败:`, error);
+    }
+  };
 
-  /** 继续网格 */
-  this.onContinueGrid = () => { this.paused = false; };
+  /** 暂停网格(业务逻辑自动判断进行设定的暂停与否) */
+  this.onPausedGrid = async (status) => {
+    this.auto_paused = true;
+    if (status) {
+      await this.updateExecutionStatus(status);
+    }
+  };
+
+  /** 继续网格交易(业务逻辑自动判断进行设定的暂停与否) */
+  this.onContinueGrid = async () => {
+    this.auto_paused = false;
+  };
 
   /** 手动暂停网格 */
-  this.onManualPausedGrid = () => { this.paused = true; };
+  this.onManualPausedGrid = async () => {
+    this.paused = true;
+    await this.updateExecutionStatus('PAUSED_MANUAL');
+  };
 
   /** 手动继续网格 */
-  this.onManualContinueGrid = () => { this.paused = false; };
+  this.onManualContinueGrid = async () => {
+    this.paused = false;
+    await this.updateExecutionStatus('TRADING');
+  };
 
   /** 启用日志输出 */
   this.enableLog = () => {
@@ -868,7 +901,8 @@ function InfiniteGridSpot(options) {
    * 入口函数 - 初始化持仓信息
    */
   this.initOrders = async () => {
-    this.onPausedGrid();
+    // 设置状态为初始化中
+    await this.updateExecutionStatus('INITIALIZING');
 
     let isOk = true;
     await this.initAccountInfo().catch(() => { isOk = false; });
@@ -893,7 +927,7 @@ function InfiniteGridSpot(options) {
         let requiredQuote = bigNumber(this.latestPrice).times(quantity).toNumber();
 
         if (this.currentQuoteAssetBalance >= requiredQuote) {
-          await this.executeBuyOrder(quantity).catch(UtilRecord.log);
+          await this.openOrders(quantity).catch(UtilRecord.log);
         } else {
           UtilRecord.log(`计价资产不足，需要 ${requiredQuote}，当前仅有 ${this.currentQuoteAssetBalance}`);
         }
@@ -903,6 +937,13 @@ function InfiniteGridSpot(options) {
     }
 
     this.initStatus = true;
+
+    // 初始化完成后，恢复网格运行
+    await this.onContinueGrid();
+    UtilRecord.log(`✅ 策略初始化完成，网格已恢复运行`);
+
+    // 设置状态为正常交易中
+    await this.updateExecutionStatus('TRADING');
   };
 }
 

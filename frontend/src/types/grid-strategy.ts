@@ -10,6 +10,20 @@ export type PositionSide = 'LONG' | 'SHORT';
 /** 策略状态类型 */
 export type StrategyStatus = 'running' | 'paused' | 'stopped';
 
+/** 策略执行状态类型（后端字段） */
+export type ExecutionStatus =
+  | 'TRADING'                    // 正常交易
+  | 'PAUSED_MANUAL'              // 手动暂停
+  | 'PRICE_ABOVE_MAX'            // 价格超过上限
+  | 'PRICE_BELOW_MIN'            // 价格低于下限
+  | 'PRICE_ABOVE_OPEN'           // 价格超过开仓价
+  | 'PRICE_BELOW_OPEN'           // 价格低于开仓价
+  | 'API_KEY_INVALID'            // API Key 无效
+  | 'NETWORK_ERROR'              // 网络错误
+  | 'INSUFFICIENT_BALANCE'       // 余额不足
+  | 'OTHER_ERROR'                // 其他错误
+  | 'INITIALIZING';              // 初始化中
+
 /** 网格策略配置类型 */
 export interface GridStrategy {
   /** 由GridStrategyService生成并传入的策略ID */
@@ -104,6 +118,9 @@ export interface GridStrategy {
 
   /** 策略运行状态（前端维护） */
   status?: StrategyStatus;
+
+  /** 策略执行状态（后端字段，细粒度状态） */
+  execution_status?: ExecutionStatus;
 
   /** 创建时间（前端维护） */
   created_at?: string;
@@ -323,6 +340,7 @@ export interface GridStrategyDetail {
   leverage: number;
   paused: boolean;
   remark: string;
+  execution_status?: ExecutionStatus;
   grid_price_difference: number;
   grid_long_open_quantity?: number;
   grid_long_close_quantity?: number;

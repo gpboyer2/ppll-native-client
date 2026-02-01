@@ -378,6 +378,22 @@ function InfiniteGrid(options) {
   };
 
   /**
+   * 更新策略执行状态到数据库
+   * @param {string} newStatus - 新的执行状态
+   */
+  this.updateExecutionStatus = async (newStatus) => {
+    try {
+      await db.grid_strategies.update(
+        { execution_status: newStatus },
+        { where: { id: this.config.id } }
+      );
+      this.logger.debug(`策略执行状态已更新为: ${newStatus}`);
+    } catch (error) {
+      this.logger.error(`更新策略执行状态失败:`, error);
+    }
+  };
+
+  /**
    * 后台更新交易所信息(不阻塞主流程)
    */
   this.updateExchangeInfoInBackground = () => {
@@ -775,6 +791,11 @@ function InfiniteGrid(options) {
       this.logger.error('获取账户信息失败', error);
       this.logger.sql(GridEventTypes.ERROR, `获取账户信息失败: ${error.message}`, { error: error.message });
 
+      // 检查是否是 API Key 失效错误（币安错误码 -2014 或 -2015）
+      if (error?.code === -2014 || error?.code === -2015) {
+        this.updateExecutionStatus('API_KEY_INVALID').catch(() => {});
+      }
+
       // 获取账户信息失败时触发 onWarn 事件
       if (typeof this.onWarn === 'function') {
         this.onWarn({
@@ -953,11 +974,11 @@ function InfiniteGrid(options) {
 
     if (Number.isFinite(lt_limitation_price) && latestPrice <= lt_limitation_price) {
       this.logger.sql(GridEventTypes.GRID, `⛔️ 币价${latestPrice}小于等于限制价格${lt_limitation_price}，自动暂停网格`).log();
-      this.onPausedGrid();
+      await this.onPausedGrid('PRICE_BELOW_MIN');
     }
     else if (Number.isFinite(gt_limitation_price) && latestPrice >= gt_limitation_price) {
       this.logger.sql(GridEventTypes.GRID, `⛔️ 币价${latestPrice}大于等于限制价格${gt_limitation_price}，自动暂停网格`).log();
-      this.onPausedGrid();
+      await this.onPausedGrid('PRICE_ABOVE_MAX');
     }
     else {
       this.onContinueGrid();
@@ -965,11 +986,11 @@ function InfiniteGrid(options) {
 
     if (latestPrice >= this.trading_pair_info.entryPrice && this.config.is_above_open_price) {
       this.logger.sql(GridEventTypes.GRID, `⛔️ 币价${latestPrice}大于等于开仓价格${this.trading_pair_info.entryPrice}，自动暂停网格`).log();
-      this.onPausedGrid();
+      await this.onPausedGrid('PRICE_ABOVE_OPEN');
     }
     else if (latestPrice <= this.trading_pair_info.entryPrice && this.config.is_below_open_price) {
       this.logger.sql(GridEventTypes.GRID, `⛔️ 币价${latestPrice}小于等于开仓价格${this.trading_pair_info.entryPrice}，自动暂停网格`).log();
-      this.onPausedGrid();
+      await this.onPausedGrid('PRICE_BELOW_OPEN');
     }
     else {
       // 网格处于 正常的状态(没有暂停), 则可以 继续网格.
@@ -1158,9 +1179,13 @@ function InfiniteGrid(options) {
 
   /**
    * 暂停网格(业务逻辑自动判断进行设定的暂停与否)
+   * @param {string} status - 可选的执行状态，不传则只暂停不更新状态
    */
-  this.onPausedGrid = async () => {
+  this.onPausedGrid = async (status) => {
     this.auto_paused = true;
+    if (status) {
+      await this.updateExecutionStatus(status);
+    }
   };
 
 
@@ -1175,12 +1200,14 @@ function InfiniteGrid(options) {
   /** 手动暂停网格交易(根据用户要求设定网格的暂停状态) */
   this.onManualPausedGrid = async () => {
     this.paused = true;
+    await this.updateExecutionStatus('PAUSED_MANUAL');
   };
 
 
   /** 手动继续网格交易(根据用户要求设定网格的暂停状态) */
   this.onManualContinueGrid = async () => {
     this.paused = false;
+    await this.updateExecutionStatus('TRADING');
   };
 
   /**
@@ -1203,6 +1230,8 @@ function InfiniteGrid(options) {
    *
    */
   this.initOrders = async () => {
+    // 设置状态为初始化中
+    await this.updateExecutionStatus('INITIALIZING');
     this.onPausedGrid();
 
     // 先获取交易所信息,避免后续精度处理失败
@@ -1241,6 +1270,9 @@ function InfiniteGrid(options) {
     // 初始化完成后，恢复网格运行（由 gridWebsocket 根据价格条件判断是否暂停）
     this.onContinueGrid();
     this.logger.sql(GridEventTypes.INIT, `✅ 策略初始化完成，网格已恢复运行`).log();
+
+    // 设置状态为正常交易中
+    await this.updateExecutionStatus('TRADING');
   };
 }
 

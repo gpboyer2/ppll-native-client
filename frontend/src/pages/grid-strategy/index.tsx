@@ -7,39 +7,8 @@ import { NumberFormat } from '../../utils';
 import { GridStrategyApi } from '../../api';
 import { showSuccess, showError } from '../../utils/api-error';
 import { useBinanceStore } from '../../stores/binance-store';
+import { getStrategyDisplayStatus, getStrategyStatusText } from '../../utils/grid-strategy-status';
 import type { GridStrategy, StrategyFilter, StrategyStatus, PositionSide } from '../../types/grid-strategy';
-
-/**
- * 获取策略状态
- * 优先使用数据库的 status 字段，其次考虑 paused 和 remark 字段
- * @param item 策略数据对象
- * @returns 策略状态
- */
-function getStrategyStatus(item: any): StrategyStatus {
-  // 优先使用后端返回的 status 字段
-  const dbStatus = item.status?.toUpperCase();
-
-  if (dbStatus === 'DELETED') {
-    return 'stopped';
-  }
-
-  if (dbStatus === 'STOPPED') {
-    return 'stopped';
-  }
-
-  // 如果数据库状态是 RUNNING，但被用户手动暂停了
-  if (item.paused) {
-    return 'paused';
-  }
-
-  // 原有逻辑：通过 remark 字段判断错误状态
-  if (item.remark === 'error') {
-    return 'stopped';
-  }
-
-  // 默认为运行中
-  return 'running';
-}
 
 /**
  * 网格策略列表页面
@@ -120,7 +89,7 @@ function GridStrategyListPage() {
             ...item,
             _api_key_id: String(api_key.id),
             _api_key_name: api_key.name,
-            status: getStrategyStatus(item),
+            status: getStrategyDisplayStatus(item),
           }));
           all_strategies.push(...strategies_with_key);
         }
@@ -252,17 +221,8 @@ function GridStrategyListPage() {
   }
 
   // 获取状态文本
-  function getStatusText(status: StrategyStatus): string {
-    switch (status) {
-      case 'running':
-        return '运行中';
-      case 'paused':
-        return '已暂停';
-      case 'stopped':
-        return '已停止';
-      default:
-        return '';
-    }
+  function getStatusText(item: GridStrategy): string {
+    return getStrategyStatusText(item.execution_status);
   }
 
   const filtered_list = getFilteredStrategyList();
@@ -409,7 +369,7 @@ function GridStrategyListPage() {
                   <span
                     className={`grid-strategy-status-badge ${(strategy.status || 'stopped').toLowerCase()}`}
                   >
-                    {getStatusText(strategy.status || 'stopped')}
+                    {getStatusText(strategy)}
                   </span>
                 </div>
 
@@ -466,8 +426,17 @@ function GridStrategyListPage() {
                     className="btn btn-ghost"
                     style={{ height: '32px', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
                     onClick={() => handleToggleStatus(strategy.id, strategy.status ?? 'stopped')}
+                    disabled={[
+                      'TRADING',
+                      'PRICE_ABOVE_MAX',
+                      'PRICE_BELOW_MIN',
+                      'PRICE_ABOVE_OPEN',
+                      'PRICE_BELOW_OPEN',
+                      'INITIALIZING',
+                      'PAUSED_MANUAL'
+                    ].includes(strategy.execution_status || '') ? false : true}
                   >
-                    {strategy.status === 'running' ? '暂停' : '启动'}
+                    {strategy.execution_status === 'PAUSED_MANUAL' ? '启动' : '暂停'}
                   </button>
                   <Link
                     to={`/grid-strategy/edit?id=${strategy.id}`}

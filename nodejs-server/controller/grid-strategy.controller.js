@@ -255,11 +255,15 @@ const update = catchAsync(async (req, res) => {
 /** 更新网格策略状态（暂停或继续） */
 const action = catchAsync(async (req, res) => {
   let { api_key, secret_key } = req.apiCredentials;
-  let { id, paused } = req.body;
+  let { id } = req.body;
 
   if (!id) {
     return res.apiError('缺少策略ID');
   }
+
+  // 根据路由路径判断是暂停还是恢复
+  const isPause = req.path.includes('/paused');
+  const paused = isPause;
 
   const result = await gridStrategyService.updateGridStrategyById({
     paused,
@@ -270,7 +274,8 @@ const action = catchAsync(async (req, res) => {
 
   // result.affectedCount > 0 表示更新成功
   if (result.affectedCount > 0) {
-    return res.apiSuccess(result.data, '更新策略状态成功');
+    const message = paused ? '策略已暂停' : '策略已恢复运行';
+    return res.apiSuccess(result.data, message);
   } else {
     return res.apiError('更新策略失败');
   }

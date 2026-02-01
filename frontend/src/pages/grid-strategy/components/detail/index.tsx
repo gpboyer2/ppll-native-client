@@ -5,6 +5,7 @@ import { useBinanceStore } from '../../../../stores/binance-store';
 import { GridStrategyApi } from '../../../../api';
 import { ROUTES } from '../../../../router';
 import { showError, showSuccess } from '../../../../utils/api-error';
+import { getStrategyDisplayStatus, getStrategyStatusText } from '../../../../utils/grid-strategy-status';
 import {
   IconRefresh,
   IconEdit,
@@ -280,11 +281,9 @@ function GridStrategyDetailPage() {
     );
   }
 
-  // 修正策略状态判断逻辑
-  // 如果策略因为价格条件暂停（高于上限或低于下限），显示为暂停状态
-  const strategy_status = strategy.paused || strategy.is_above_open_price || strategy.is_below_open_price
-    ? 'paused'
-    : (strategy.remark === 'error' ? 'stopped' : 'running');
+  // 使用新的状态映射逻辑
+  const strategy_status = getStrategyDisplayStatus(strategy);
+  const strategy_status_text = getStrategyStatusText(strategy.execution_status);
 
   return (
     <div className="strategy-detail-page container">
@@ -303,7 +302,7 @@ function GridStrategyDetailPage() {
             <div className="strategy-meta">
               <span className={`status-dot status-${strategy_status}`}></span>
               <span className="status-text">
-                {strategy_status === 'running' ? '运行中' : strategy_status === 'paused' ? '已暂停' : '已停止'}
+                {strategy_status_text}
               </span>
               <span className="divider">|</span>
               <span className="meta-text">创建于 {new Date(strategy.created_at).toLocaleDateString()}</span>
@@ -322,13 +321,18 @@ function GridStrategyDetailPage() {
           <button className="action-btn" onClick={handleCopy}>
             <IconCopy size={16} />
           </button>
-          {strategy_status === 'running' ? (
-            <button className="action-btn warning" onClick={handleToggleStatus}>
-              <IconPlayerPause size={16} />
-            </button>
-          ) : (
+          {strategy.execution_status === 'PAUSED_MANUAL' ? (
             <button className="action-btn success" onClick={handleToggleStatus}>
               <IconPlayerPlay size={16} />
+            </button>
+          ) : (
+            <button
+              className="action-btn warning"
+              onClick={handleToggleStatus}
+              disabled={strategy_status !== 'running'}
+              style={{ opacity: strategy_status !== 'running' ? 0.5 : 1 }}
+            >
+              <IconPlayerPause size={16} />
             </button>
           )}
           <button className="action-btn danger" onClick={handleDelete}>
@@ -382,7 +386,7 @@ function GridStrategyDetailPage() {
             strategy_status={strategy_status}
             position_side={strategy.position_side}
             leverage={strategy.leverage}
-            remark={strategy.remark}
+            status_text={strategy_status_text}
           />
 
           <TimeInfoCard

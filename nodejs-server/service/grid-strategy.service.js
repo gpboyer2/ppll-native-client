@@ -546,6 +546,24 @@ const updateGridStrategyById = async (updateBody) => {
 
   const whereCondition = { id, api_key, api_secret };
 
+  // 获取当前策略数据，用于状态校验
+  const currentStrategy = await GridStrategy.findOne({ where: whereCondition });
+  if (!currentStrategy) {
+    return { affectedCount: 0, data: null };
+  }
+
+  // 状态校验：不允许对已停止或已删除的策略进行暂停/恢复操作
+  if (paused !== undefined && (currentStrategy.status === 'STOPPED' || currentStrategy.status === 'DELETED')) {
+    throw new Error(`无法${paused ? '暂停' : '恢复'}策略：策略状态为 ${currentStrategy.status}`);
+  }
+
+  // 同步更新 execution_status 字段
+  if (paused === true) {
+    params.execution_status = 'PAUSED_MANUAL';
+  } else if (paused === false) {
+    params.execution_status = 'TRADING';
+  }
+
   const [affectedCount] = await GridStrategy.update(params, {
     where: whereCondition,
   });

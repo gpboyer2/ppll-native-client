@@ -183,6 +183,12 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: false,
         comment: "是否暂停(0:否,1:是),此字段表示用户手动暂停此网格",
       },
+      execution_status: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        defaultValue: 'INITIALIZING',
+        comment: "策略执行状态(TRADING/PAUSED_MANUAL/PRICE_ABOVE_MAX/PRICE_BELOW_MIN/PRICE_ABOVE_OPEN/PRICE_BELOW_OPEN/API_KEY_INVALID/NETWORK_ERROR/INSUFFICIENT_BALANCE/INITIALIZING/OTHER_ERROR)",
+      },
       throttle_enabled: {
         type: DataTypes.BOOLEAN,
         allowNull: true,
