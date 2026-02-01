@@ -180,7 +180,7 @@ const bulkUpdateMarkPrices = async (records) => {
       // 设置环境变量 DISABLE_MARK_PRICE_SQL_LOGGING=true 可关闭
       logging: process.env.DISABLE_MARK_PRICE_SQL_LOGGING === 'true' ? false : console.log
     });
-    UtilRecord.log(`批量更新了 ${records.length} 条标记价格记录`);
+    UtilRecord.trace(`批量更新了 ${records.length} 条标记价格记录`);
   } catch (error) {
     // 打印完整错误信息便于排查
     UtilRecord.log('批量更新标记价格失败:', error.message || error);

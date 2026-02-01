@@ -11,6 +11,10 @@
     "**/._*": true,
     "**/dist": true,
     "**/node_modules": true,
+    "**/logs": true,
+    "**/logs/**": true,
+    "nodejs-server/logs": true,
+    "nodejs-server/logs/**": true,
     "frontend/dist": true
   },
   "terminal.integrated.defaultProfile.windows": "Git Bash",

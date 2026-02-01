@@ -36,7 +36,7 @@ async function cleanup_old_logs() {
     });
 
     if (deleted_count > 0) {
-      UtilRecord.log(`[FrontendLogService] 清理 ${deleted_count} 条旧日志（${RETENTION_MINUTES}分钟前）`);
+      UtilRecord.trace(`[FrontendLogService] 清理 ${deleted_count} 条旧日志（${RETENTION_MINUTES}分钟前）`);
     }
   } catch (error) {
     UtilRecord.trace(`[FrontendLogService] 清理旧日志失败: ${error.message}`);

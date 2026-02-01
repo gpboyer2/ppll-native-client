@@ -39,7 +39,7 @@ const updateDatabase = async () => {
 
   try {
     await markPriceService.bulkUpdateMarkPrices(records);
-    UtilRecord.log(`已批量更新 ${records.length} 个交易对的标记价格`);
+    UtilRecord.trace(`已批量更新 ${records.length} 个交易对的标记价格`);
   } catch (error) {
     UtilRecord.error("定时更新数据库失败:", error.message);
   }
