@@ -849,6 +849,7 @@ const optimizeGridParams = async (options) => {
 
   // 获取交易规则
   const lotSizeFilter = symbolInfo.filters?.find(f => f.filterType === 'LOT_SIZE');
+  const marketLotSizeFilter = symbolInfo.filters?.find(f => f.filterType === 'MARKET_LOT_SIZE');
   const priceFilter = symbolInfo.filters?.find(f => f.filterType === 'PRICE_FILTER');
 
   if (!lotSizeFilter || !priceFilter) {
@@ -862,6 +863,8 @@ const optimizeGridParams = async (options) => {
 
   // 提取精度参数
   const minQty = Number(lotSizeFilter.minQty);
+  const marketMinQty = Number(marketLotSizeFilter?.minQty);
+  const effectiveMinQty = Math.max(minQty, !isNaN(marketMinQty) ? marketMinQty : 0);
   const maxQty = Number(lotSizeFilter.maxQty);
   const stepSize = Number(lotSizeFilter.stepSize);
   const tickSize = Number(priceFilter.tickSize);
@@ -869,6 +872,8 @@ const optimizeGridParams = async (options) => {
 
   console.log(`[优化参数] 交易对 ${symbol} 规则:`, {
     minQty,
+    marketMinQty,
+    effectiveMinQty,
     maxQty,
     stepSize,
     tickSize,
@@ -880,12 +885,37 @@ const optimizeGridParams = async (options) => {
     throw new Error(`交易对 ${symbol} 精度参数无效，请稍后重试`);
   }
 
-  // 3. 调整用户输入的 min_trade_value 和 max_trade_value 到符合规则的范围
-  const adjusted_min_trade_value = Math.max(min_trade_value, minQty * symbolInfo.filters?.find(f => f.filterType === 'MIN_NOTIONAL')?.notional || 10);
-  const adjusted_max_trade_value = Math.max(max_trade_value, adjusted_min_trade_value);
-
-  // 4. 创建客户端
+  // 3. 创建客户端
   const client = createClient(api_key, api_secret);
+
+  // 获取实时标记价格
+  let current_price = 0;
+  try {
+    const mark_price_data = await client.getMarkPrice({ symbol });
+    current_price = Number(mark_price_data.markPrice);
+  } catch (error) {
+    console.warn(`[警告] 获取实时标记价格失败，将仅使用 MIN_NOTIONAL 校验: ${error?.message || error}`);
+  }
+
+  // 4. 校验每笔交易金额是否满足最小交易金额要求
+  const minNotionalFilter = symbolInfo.filters?.find(f => f.filterType === 'MIN_NOTIONAL');
+  const minNotionalRaw = minNotionalFilter?.notional ?? minNotionalFilter?.minNotional;
+  const minNotional = Number(minNotionalRaw);
+  const minNotionalByQty = effectiveMinQty > 0 && current_price > 0 ? effectiveMinQty * current_price : 0;
+  const requiredMinTradeValue = Math.max(!isNaN(minNotional) ? minNotional : 0, minNotionalByQty);
+
+  if (requiredMinTradeValue > 0) {
+    if (min_trade_value < requiredMinTradeValue || max_trade_value < requiredMinTradeValue) {
+      const minTradeValueText = new BigNumber(requiredMinTradeValue).toFixed(2);
+      const reasonText = minNotionalByQty >= requiredMinTradeValue && minNotionalByQty > 0
+        ? `（基于最小数量 ${effectiveMinQty} 与当前价格 ${new BigNumber(current_price).toFixed(2)} USDT 计算）`
+        : '（币安 MIN_NOTIONAL 限制）';
+      throw new Error(`根据币安官方要求，${symbol} 最小单笔交易金额为 ${minTradeValueText} USDT ${reasonText}，请调整每笔交易金额范围`);
+    }
+  }
+
+  const adjusted_min_trade_value = min_trade_value;
+  const adjusted_max_trade_value = Math.max(max_trade_value, adjusted_min_trade_value);
 
   // 获取100根周期K线数据
   const kline_list = await fetchKlineList(client, symbol, interval);
@@ -905,13 +935,8 @@ const optimizeGridParams = async (options) => {
   // 计算ATR（需要先计算，用于市场结构分析）
   const atr = calculateATR(kline_list);
 
-  // 获取实时标记价格
-  let current_price = kline_list[kline_list.length - 1].close; // 默认用最后一根K线收盘价
-  try {
-    const mark_price_data = await client.getMarkPrice({ symbol });
-    current_price = parseFloat(mark_price_data.markPrice);
-  } catch (error) {
-    console.warn(`[警告] 获取实时标记价格失败，使用K线收盘价: ${error?.message || error}`);
+  if (!current_price && kline_list.length > 0) {
+    current_price = kline_list[kline_list.length - 1].close;
   }
 
   // 计算市场数据（使用新算法 + 历史关键位分析）

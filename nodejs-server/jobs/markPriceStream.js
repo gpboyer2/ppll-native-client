@@ -58,7 +58,7 @@ const initMarkPriceStream = async () => {
       try {
         // 只输出关注交易对的日志（UNIUSDT）
         if (data?.symbol === 'UNIUSDT') {
-          console.log('[markPriceStream] 收到 tick 事件:', data?.symbol, '@', data?.latestPrice);
+          UtilRecord.trace('[markPriceStream] 收到 tick 事件:', data?.symbol, '@', data?.latestPrice);
         }
 
         if (!data || !data.symbol) {

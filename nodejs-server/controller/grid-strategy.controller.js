@@ -335,7 +335,7 @@ const optimize_params = catchAsync(async (req, res) => {
     return res.apiSuccess(result, "获取优化参数成功");
   } catch (err) {
     console.error("网格参数优化失败:", err);
-    return res.apiError(err.message || "获取优化参数失败");
+    return res.apiError(null, err.message || "获取优化参数失败");
   }
 });
 
