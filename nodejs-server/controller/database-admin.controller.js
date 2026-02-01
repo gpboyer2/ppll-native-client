@@ -25,7 +25,7 @@ const getTableList = catchAsync(async (req, res) => {
 const getTableDetail = catchAsync(async (req, res) => {
   const { tableName } = req.body || {};
   if (!tableName) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   const data = await databaseAdminService.getTableDetail(tableName);
   return res.apiSuccess(data, '获取表结构成功');
@@ -36,7 +36,7 @@ const getTableDetail = catchAsync(async (req, res) => {
 const getTableData = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.tableName) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   const data = await databaseAdminService.getTableData(params);
   return res.apiSuccess(data, '获取表数据成功');
@@ -47,10 +47,10 @@ const getTableData = catchAsync(async (req, res) => {
 const createData = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.tableName) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   if (!params.data || !Array.isArray(params.data) || params.data.length === 0) {
-    return res.apiError('数据不能为空');
+    return res.apiError(null, '数据不能为空');
   }
   const data = await databaseAdminService.createData(params);
   return res.apiSuccess(data, '创建数据成功');
@@ -61,10 +61,10 @@ const createData = catchAsync(async (req, res) => {
 const updateData = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.tableName) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   if (!params.data || !Array.isArray(params.data) || params.data.length === 0) {
-    return res.apiError('数据不能为空');
+    return res.apiError(null, '数据不能为空');
   }
   const data = await databaseAdminService.updateData(params);
   return res.apiSuccess(data, '更新数据成功');
@@ -75,10 +75,10 @@ const updateData = catchAsync(async (req, res) => {
 const deleteData = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.tableName) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   if (!params.data || !Array.isArray(params.data) || params.data.length === 0) {
-    return res.apiError('数据不能为空');
+    return res.apiError(null, '数据不能为空');
   }
   const data = await databaseAdminService.deleteData(params);
   return res.apiSuccess(data, '删除数据成功');
@@ -89,7 +89,7 @@ const deleteData = catchAsync(async (req, res) => {
 const executeQuery = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.sql) {
-    return res.apiError('SQL 语句不能为空');
+    return res.apiError(null, 'SQL 语句不能为空');
   }
   const data = await databaseAdminService.executeQuery(params);
   return res.apiSuccess(data, '执行查询成功');
@@ -100,10 +100,10 @@ const executeQuery = catchAsync(async (req, res) => {
 const createTable = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.tableName) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   if (!params.columns || !Array.isArray(params.columns) || params.columns.length === 0) {
-    return res.apiError('列不能为空');
+    return res.apiError(null, '列不能为空');
   }
   const data = await databaseAdminService.createTable(params);
   return res.apiSuccess(data, '创建表成功');
@@ -114,7 +114,7 @@ const createTable = catchAsync(async (req, res) => {
 const deleteTable = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.data || !Array.isArray(params.data) || params.data.length === 0) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   const data = await databaseAdminService.deleteTable(params);
   return res.apiSuccess(data, '删除表成功');
@@ -125,13 +125,13 @@ const deleteTable = catchAsync(async (req, res) => {
 const createColumn = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.tableName) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   if (!params.columnName) {
-    return res.apiError('列名不能为空');
+    return res.apiError(null, '列名不能为空');
   }
   if (!params.type) {
-    return res.apiError('列类型不能为空');
+    return res.apiError(null, '列类型不能为空');
   }
   const data = await databaseAdminService.createColumn(params);
   return res.apiSuccess(data, '添加列成功');
@@ -142,10 +142,10 @@ const createColumn = catchAsync(async (req, res) => {
 const deleteColumn = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.tableName) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   if (!params.columnName) {
-    return res.apiError('列名不能为空');
+    return res.apiError(null, '列名不能为空');
   }
   const data = await databaseAdminService.deleteColumn(params);
   return res.apiSuccess(data, '删除列成功');
@@ -156,10 +156,10 @@ const deleteColumn = catchAsync(async (req, res) => {
 const renameTable = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.tableName) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   if (!params.newName) {
-    return res.apiError('新表名不能为空');
+    return res.apiError(null, '新表名不能为空');
   }
   const data = await databaseAdminService.renameTable(params);
   return res.apiSuccess(data, '重命名表成功');
@@ -170,10 +170,10 @@ const renameTable = catchAsync(async (req, res) => {
 const copyTable = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.tableName) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   if (!params.newName) {
-    return res.apiError('新表名不能为空');
+    return res.apiError(null, '新表名不能为空');
   }
   const data = await databaseAdminService.copyTable(params);
   return res.apiSuccess(data, '复制表成功');
@@ -184,7 +184,7 @@ const copyTable = catchAsync(async (req, res) => {
 const truncateTable = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.data || !Array.isArray(params.data) || params.data.length === 0) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   const data = await databaseAdminService.truncateTable(params);
   return res.apiSuccess(data, '清空表成功');
@@ -195,13 +195,13 @@ const truncateTable = catchAsync(async (req, res) => {
 const renameColumn = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.tableName) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   if (!params.oldName) {
-    return res.apiError('原列名不能为空');
+    return res.apiError(null, '原列名不能为空');
   }
   if (!params.newName) {
-    return res.apiError('新列名不能为空');
+    return res.apiError(null, '新列名不能为空');
   }
   const data = await databaseAdminService.renameColumn(params);
   return res.apiSuccess(data, '重命名列成功');
@@ -212,13 +212,13 @@ const renameColumn = catchAsync(async (req, res) => {
 const createIndex = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.tableName) {
-    return res.apiError('表名不能为空');
+    return res.apiError(null, '表名不能为空');
   }
   if (!params.indexName) {
-    return res.apiError('索引名不能为空');
+    return res.apiError(null, '索引名不能为空');
   }
   if (!params.columns || !Array.isArray(params.columns) || params.columns.length === 0) {
-    return res.apiError('列不能为空');
+    return res.apiError(null, '列不能为空');
   }
   const data = await databaseAdminService.createIndex(params);
   return res.apiSuccess(data, '创建索引成功');
@@ -229,7 +229,7 @@ const createIndex = catchAsync(async (req, res) => {
 const deleteIndex = catchAsync(async (req, res) => {
   const params = req.body || {};
   if (!params.data || !Array.isArray(params.data) || params.data.length === 0) {
-    return res.apiError('索引名不能为空');
+    return res.apiError(null, '索引名不能为空');
   }
   const data = await databaseAdminService.deleteIndex(params);
   return res.apiSuccess(data, '删除索引成功');

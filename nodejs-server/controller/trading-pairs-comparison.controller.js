@@ -36,7 +36,7 @@ const analyzeTradingPairAvailability = catchAsync(async (req, res) => {
   const { symbol } = req.query;
 
   if (!symbol) {
-    return res.apiError('请提供交易对符号');
+    return res.apiError(null, '请提供交易对符号');
   }
 
   const result = await tradingPairsComparisonService.analyzeTradingPairAvailability(symbol.toUpperCase());

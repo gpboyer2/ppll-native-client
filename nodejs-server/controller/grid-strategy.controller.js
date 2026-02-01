@@ -64,36 +64,36 @@ const create = catchAsync(async (req, res) => {
 
   // 参数验证
   if (!trading_pair) {
-    return res.apiError("trading_pair 是必填项");
+    return res.apiError(null, "trading_pair 是必填项");
   }
 
   // 数值参数边界检查
   if (grid_price_difference && (isNaN(grid_price_difference) || Number(grid_price_difference) <= 0)) {
-    return res.apiError("grid_price_difference 必须是大于0的数字");
+    return res.apiError(null, "grid_price_difference 必须是大于0的数字");
   }
 
   if (grid_trade_quantity && (isNaN(grid_trade_quantity) || Number(grid_trade_quantity) <= 0)) {
-    return res.apiError("grid_trade_quantity 必须是大于0的数字");
+    return res.apiError(null, "grid_trade_quantity 必须是大于0的数字");
   }
 
   if (max_open_position_quantity && (isNaN(max_open_position_quantity) || Number(max_open_position_quantity) <= 0)) {
-    return res.apiError("max_open_position_quantity 必须是大于0的数字");
+    return res.apiError(null, "max_open_position_quantity 必须是大于0的数字");
   }
 
   if (min_open_position_quantity && (isNaN(min_open_position_quantity) || Number(min_open_position_quantity) <= 0)) {
-    return res.apiError("min_open_position_quantity 必须是大于0的数字");
+    return res.apiError(null, "min_open_position_quantity 必须是大于0的数字");
   }
 
   if (price_precision && (isNaN(price_precision) || Number(price_precision) < 0)) {
-    return res.apiError("price_precision 必须是非负整数");
+    return res.apiError(null, "price_precision 必须是非负整数");
   }
 
   if (quantity_precision && (isNaN(quantity_precision) || Number(quantity_precision) < 0)) {
-    return res.apiError("quantity_precision 必须是非负整数");
+    return res.apiError(null, "quantity_precision 必须是非负整数");
   }
 
   if (leverage && (isNaN(leverage) || Number(leverage) <= 0)) {
-    return res.apiError("leverage 必须是大于0的整数");
+    return res.apiError(null, "leverage 必须是大于0的整数");
   }
 
   const strategyData = {
@@ -143,7 +143,7 @@ const create = catchAsync(async (req, res) => {
 
     // 检查创建结果
     if (!created) {
-      return res.apiError(`已存在该交易对 ${trading_pair} 的网格策略`);
+      return res.apiError(null, `已存在该交易对 ${trading_pair} 的网格策略`);
     }
 
     // 创建成功，返回数据
@@ -152,7 +152,7 @@ const create = catchAsync(async (req, res) => {
     return res.apiSuccess(row, "网格策略创建成功");
   } catch (err) {
     console.error("创建网格策略时出错:", err);
-    return res.apiError(err.message || "创建网格策略失败");
+    return res.apiError(null, err.message || "创建网格策略失败");
   }
 });
 
@@ -164,7 +164,7 @@ const deletes = catchAsync(async (req, res) => {
   let result = null;
 
   if (!id) {
-    return res.apiError('缺少参数: id');
+    return res.apiError(null, '缺少参数: id');
   }
 
   result = await gridStrategyService.deleteGridStrategyById({
@@ -176,7 +176,7 @@ const deletes = catchAsync(async (req, res) => {
   if (result?.status) {
     return res.apiSuccess({}, '网格策略删除成功');
   } else {
-    return res.apiError('网格策略删除失败');
+    return res.apiError(null, '网格策略删除失败');
   }
 });
 
@@ -207,7 +207,7 @@ const update = catchAsync(async (req, res) => {
   } = req.body;
 
   if (!id) {
-    return res.apiError("缺少参数: id");
+    return res.apiError(null, "缺少参数: id");
   }
 
   const updateData = {
@@ -247,7 +247,7 @@ const update = catchAsync(async (req, res) => {
   if (result.affectedCount > 0) {
     return res.apiSuccess(result.data, "网格策略更新成功");
   } else {
-    return res.apiError("网格策略更新失败");
+    return res.apiError(null, "网格策略更新失败");
   }
 });
 
@@ -258,7 +258,7 @@ const action = catchAsync(async (req, res) => {
   let { id } = req.body;
 
   if (!id) {
-    return res.apiError('缺少策略ID');
+    return res.apiError(null, '缺少策略ID');
   }
 
   // 根据路由路径判断是暂停还是恢复
@@ -277,7 +277,7 @@ const action = catchAsync(async (req, res) => {
     const message = paused ? '策略已暂停' : '策略已恢复运行';
     return res.apiSuccess(result.data, message);
   } else {
-    return res.apiError('更新策略失败');
+    return res.apiError(null, '更新策略失败');
   }
 });
 
@@ -312,11 +312,11 @@ const optimize_params = catchAsync(async (req, res) => {
 
   // 验证必填参数
   if (!symbol) {
-    return res.apiError("缺少交易对参数 symbol");
+    return res.apiError(null, "缺少交易对参数 symbol");
   }
 
   if (!total_capital || isNaN(total_capital) || Number(total_capital) <= 0) {
-    return res.apiError("总资金必须为大于0的数字");
+    return res.apiError(null, "总资金必须为大于0的数字");
   }
 
   try {

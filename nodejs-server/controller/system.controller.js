@@ -30,7 +30,7 @@ const getDatabasePath = catchAsync((req, res) => {
 const getGitInfo = catchAsync((req, res) => {
   const gitInfo = systemService.getGitInfo();
   if (!gitInfo) {
-    return res.apiError('Git 信息未初始化');
+    return res.apiError(null, 'Git 信息未初始化');
   }
   return res.apiSuccess(gitInfo, '获取 Git 信息成功');
 });

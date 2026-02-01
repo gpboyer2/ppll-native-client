@@ -81,13 +81,13 @@ const banIP = catchAsync(async (req, res) => {
   const { ip, reason, remark, duration = 24 } = req.body;
 
   if (!ip || !reason) {
-    return res.apiError('IP地址和封禁原因不能为空');
+    return res.apiError(null, 'IP地址和封禁原因不能为空');
   }
 
   // 验证IP格式
   const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
   if (!ipRegex.test(ip)) {
-    return res.apiError('IP地址格式不正确');
+    return res.apiError(null, 'IP地址格式不正确');
   }
 
   const bannedRecord = await BannedIP.banIP(
@@ -109,7 +109,7 @@ const batchUnbanIP = catchAsync(async (req, res) => {
   const { ips } = req.body;
 
   if (!Array.isArray(ips) || ips.length === 0) {
-    return res.apiError('IP地址列表不能为空');
+    return res.apiError(null, 'IP地址列表不能为空');
   }
 
   const results = [];
@@ -147,13 +147,13 @@ const getIPBanDetail = catchAsync(async (req, res) => {
   const { ip } = req.params;
 
   if (!ip) {
-    return res.apiError('IP地址不能为空');
+    return res.apiError(null, 'IP地址不能为空');
   }
 
   const bannedRecord = await BannedIP.findByIp(ip);
 
   if (!bannedRecord) {
-    return res.apiError('未找到该IP的封禁记录');
+    return res.apiError(null, '未找到该IP的封禁记录');
   }
 
   return res.apiSuccess(bannedRecord, '获取IP封禁详情成功');
@@ -185,13 +185,13 @@ const addTrustedIPAddress = catchAsync(async (req, res) => {
   const { ip } = req.body;
 
   if (!ip) {
-    return res.apiError('IP地址不能为空');
+    return res.apiError(null, 'IP地址不能为空');
   }
 
   // 验证IP格式
   const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
   if (!ipRegex.test(ip)) {
-    return res.apiError('IP地址格式不正确');
+    return res.apiError(null, 'IP地址格式不正确');
   }
 
   addTrustedIP(ip);
@@ -211,13 +211,13 @@ const removeTrustedIPAddress = catchAsync(async (req, res) => {
   const { ip } = req.params;
 
   if (!ip) {
-    return res.apiError('IP地址不能为空');
+    return res.apiError(null, 'IP地址不能为空');
   }
 
   const removed = removeTrustedIP(ip);
 
   if (!removed) {
-    return res.apiError('该IP不在可信列表中');
+    return res.apiError(null, '该IP不在可信列表中');
   }
 
   return res.apiSuccess({

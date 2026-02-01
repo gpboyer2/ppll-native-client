@@ -17,7 +17,7 @@ const create = catchAsync(async (req, res) => {
     const row = await service.createTradeHistory(body);
     return res.apiSuccess(row, "创建成功");
   } catch (e) {
-    return res.apiError(e.message || "参数校验失败");
+    return res.apiError(null, e.message || "参数校验失败");
   }
 });
 
@@ -38,11 +38,11 @@ const query = catchAsync(async (req, res) => {
 const detail = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { api_key, secret_key } = req.query || {};
-  if (!id) return res.apiError("缺少参数: id");
+  if (!id) return res.apiError(null, "缺少参数: id");
 
   const row = await service.getTradeHistoryById(Number(id));
   if (!row || row.api_key !== api_key) {
-    return res.apiError("未找到该记录或无权限访问");
+    return res.apiError(null, "未找到该记录或无权限访问");
   }
   return res.apiSuccess(row, "获取交易历史详情成功");
 });
@@ -53,17 +53,17 @@ const detail = catchAsync(async (req, res) => {
 const update = catchAsync(async (req, res) => {
   const body = req.body || {};
   const { id, api_key, secret_key } = body;
-  if (!id) return res.apiError("缺少参数: id");
+  if (!id) return res.apiError(null, "缺少参数: id");
 
   try {
     const result = await service.updateTradeHistoryById(body);
     if (result.affected > 0) {
       return res.apiSuccess(result.data, "更新成功");
     } else {
-      return res.apiError("未找到或无权限更新该记录");
+      return res.apiError(null, "未找到或无权限更新该记录");
     }
   } catch (e) {
-    return res.apiError(e.message || "更新失败");
+    return res.apiError(null, e.message || "更新失败");
   }
 });
 
@@ -73,7 +73,7 @@ const update = catchAsync(async (req, res) => {
 const deletes = catchAsync(async (req, res) => {
   const { ids, api_key, secret_key } = req.body || {};
   if (!Array.isArray(ids) || ids.length === 0) {
-    return res.apiError("缺少参数: ids");
+    return res.apiError(null, "缺少参数: ids");
   }
 
   const result = await service.deleteTradeHistoriesByIds({ ids, api_key });

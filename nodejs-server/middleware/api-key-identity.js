@@ -9,7 +9,7 @@ const apiKeyIdentity = (req, res, next) => {
 
   // 验证是否存在
   if (!api_key || !secret_key) {
-    return res.apiError('缺少必要参数: api_key 和 secret_key', 400);
+    return res.apiError(null, '缺少必要参数: api_key 和 secret_key');
   }
 
   // 将 API Key 标识附加到 request 对象，供后续使用

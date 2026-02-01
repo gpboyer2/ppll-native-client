@@ -17,7 +17,7 @@ const signUp = catchAsync(async (req, res) => {
   if (chat) {
     return res.apiSuccess({ chat }, '注册聊天成功');
   }
-  return res.apiError('聊天已存在');
+  return res.apiError(null, '聊天已存在');
 });
 
 const sendMessage = catchAsync(async (req, res) => {
@@ -26,7 +26,7 @@ const sendMessage = catchAsync(async (req, res) => {
   let error_msg = null;
 
   if (!api_key) {
-    return res.apiError('api_key 未定义');
+    return res.apiError(null, 'api_key 未定义');
   }
 
   const result = await chatService.createChat(req.body).catch((err) => {
@@ -39,14 +39,14 @@ const sendMessage = catchAsync(async (req, res) => {
   });
 
   if (error_msg) {
-    return res.apiError(error_msg.msg);
+    return res.apiError(null, error_msg.msg);
   }
 
   if (result?.dataValues) {
     return res.apiSuccess(result?.dataValues, '发送消息成功');
   }
 
-  return res.apiError('发送消息失败');
+  return res.apiError(null, '发送消息失败');
 });
 
 const message = catchAsync(async (req, res) => {
@@ -55,7 +55,7 @@ const message = catchAsync(async (req, res) => {
   let error_msg = null;
 
   if (!api_key) {
-    return res.apiError('api_key 未定义');
+    return res.apiError(null, 'api_key 未定义');
   }
 
   const result = await chatService.latestMessage(req.query).catch((err) => {
@@ -68,7 +68,7 @@ const message = catchAsync(async (req, res) => {
   });
 
   if (error_msg) {
-    return res.apiError(error_msg.msg);
+    return res.apiError(null, error_msg.msg);
   }
 
   if (result?.dataValues) {
@@ -81,7 +81,7 @@ const message = catchAsync(async (req, res) => {
 const getChatById = catchAsync(async (req, res) => {
   const chat = await chatService.getChatById(req.body.id);
   if (!chat) {
-    return res.apiError('聊天不存在');
+    return res.apiError(null, '聊天不存在');
   }
   return res.apiSuccess({ chat }, '获取聊天成功');
 });
@@ -89,7 +89,7 @@ const getChatById = catchAsync(async (req, res) => {
 const updateChat = catchAsync(async (req, res) => {
   const row = await chatService.updateChatById(req.body.id, req.body);
   if (!row) {
-    return res.apiError('聊天不存在');
+    return res.apiError(null, '聊天不存在');
   }
 
   const updatedChat = await chatService.getChatById(req.body.id);
@@ -99,7 +99,7 @@ const updateChat = catchAsync(async (req, res) => {
 const deleteChat = catchAsync(async (req, res) => {
   const deleted = await chatService.deleteChatById(req.body.id);
   if (!deleted) {
-    return res.apiError('聊天不存在');
+    return res.apiError(null, '聊天不存在');
   }
   return res.apiSuccess(null, '删除聊天成功');
 });

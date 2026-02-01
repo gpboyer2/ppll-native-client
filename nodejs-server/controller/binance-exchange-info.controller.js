@@ -28,7 +28,7 @@ const getExchangeInfo = catchAsync(async (req, res) => {
     const latestInfo = await binanceExchangeInfoService.getLatestExchangeInfo();
 
     if (!latestInfo) {
-      return res.apiError("未找到交易所信息");
+      return res.apiError(null, "未找到交易所信息");
     }
 
     // 过滤交易对：只保留USDT永续合约
@@ -39,7 +39,7 @@ const getExchangeInfo = catchAsync(async (req, res) => {
     return res.apiSuccess(latestInfo, '获取交易所信息成功');
   } catch (err) {
     console.error("获取交易所信息出错:", err);
-    return res.apiError(err.message || "获取交易所信息失败");
+    return res.apiError(null, err.message || "获取交易所信息失败");
   }
 });
 
@@ -64,7 +64,7 @@ const forceUpdate = catchAsync(async (req, res) => {
     return res.apiSuccess(exchangeInfo, "交易所信息已强制更新");
   } catch (err) {
     console.error("强制更新交易所信息出错:", err);
-    return res.apiError(err.message || "强制更新交易所信息失败");
+    return res.apiError(null, err.message || "强制更新交易所信息失败");
   }
 });
 
@@ -77,7 +77,7 @@ const getStatus = catchAsync(async (req, res) => {
     return res.apiSuccess(status, '获取交易所信息状态成功');
   } catch (err) {
     console.error("获取交易所信息状态出错:", err);
-    return res.apiError(err.message || "获取交易所信息状态失败");
+    return res.apiError(null, err.message || "获取交易所信息状态失败");
   }
 });
 
@@ -96,7 +96,7 @@ const getPremiumIndex = catchAsync(async (req, res) => {
     return res.apiSuccess(premiumIndex, '获取标记价格和资金费率成功');
   } catch (err) {
     console.error("获取标记价格和资金费率出错:", err);
-    return res.apiError(err.message || "获取标记价格和资金费率失败");
+    return res.apiError(null, err.message || "获取标记价格和资金费率失败");
   }
 });
 
@@ -125,7 +125,7 @@ const getDelistingPerpetualContracts = catchAsync(async (req, res) => {
     }, delistingContracts.length > 0 ? `发现${delistingContracts.length}个即将下架的永续合约` : "当前没有即将下架的永续合约");
   } catch (err) {
     console.error("获取即将下架的永续合约出错:", err);
-    return res.apiError(err.message || "获取即将下架的永续合约失败");
+    return res.apiError(null, err.message || "获取即将下架的永续合约失败");
   }
 });
 
@@ -148,7 +148,7 @@ const getDelistScheduleTest = catchAsync(async (req, res) => {
     }, `获取到${delistSchedule.length}条下架计划数据`);
   } catch (err) {
     console.error("获取下架计划数据出错:", err);
-    return res.apiError(err.message || "获取下架计划数据失败");
+    return res.apiError(null, err.message || "获取下架计划数据失败");
   }
 });
 

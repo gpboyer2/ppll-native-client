@@ -445,7 +445,7 @@ function InfiniteGrid(options) {
     if (!errorCode) return false;
 
     switch (errorCode) {
-    // -2022: ReduceOnly 订单被拒绝，说明实际没有仓位可平（可能被手动平仓了）
+      // -2022: ReduceOnly 订单被拒绝，说明实际没有仓位可平（可能被手动平仓了）
       case -2022:
         this.logger.warn(`检测到仓位已被手动平仓（错误码-2022），清空开仓历史记录并重新初始化情况`);
         this.position_open_history = [];
@@ -454,10 +454,10 @@ function InfiniteGrid(options) {
         this.next_expected_fall_price = undefined;
         return true;
 
-        // 可在此处扩展其他错误码的处理逻辑
-        // case -xxxx:
-        //   UtilRecord.log(`⚠️ 处理错误码 -xxxx`);
-        //   return true;
+      // 可在此处扩展其他错误码的处理逻辑
+      // case -xxxx:
+      //   UtilRecord.log(`⚠️ 处理错误码 -xxxx`);
+      //   return true;
 
       default:
         return false;
@@ -794,7 +794,7 @@ function InfiniteGrid(options) {
 
       // 检查是否是 API Key 失效错误（币安错误码 -2014 或 -2015）
       if (error?.code === -2014 || error?.code === -2015) {
-        this.updateExecutionStatus(execution_status.API_KEY_INVALID).catch(() => {});
+        this.updateExecutionStatus(execution_status.API_KEY_INVALID).catch(() => { });
       }
 
       // 获取账户信息失败时触发 onWarn 事件
@@ -1284,7 +1284,7 @@ function InfiniteGrid(options) {
  * @param {Object} params - 策略参数（不含 id）
  * @returns {Promise<InfiniteGrid>} - 返回创建的实例
  */
-InfiniteGrid.create = async function(params) {
+InfiniteGrid.create = async function (params) {
   const db = require('../models');
   const GridStrategy = db.grid_strategies;
   const { sanitizeParams } = require('../utils/pick.js');
@@ -1293,7 +1293,7 @@ InfiniteGrid.create = async function(params) {
   const valid_params = sanitizeParams(params, GridStrategy);
 
   // 使用事务确保原子性
-  const transaction = await db.transaction();
+  const transaction = await db.sequelize.transaction();
 
   try {
     // 尝试创建数据库记录（如果已存在会失败）
@@ -1363,7 +1363,7 @@ InfiniteGrid.create = async function(params) {
 /**
  * 公共启动方法（用于恢复已存在的策略）
  */
-InfiniteGrid.prototype.start = async function() {
+InfiniteGrid.prototype.start = async function () {
   await this._initOrders();
 };
 

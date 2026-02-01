@@ -21,7 +21,7 @@ const createOrder = catchAsync(async (req, res) => {
   });
 
   if (error_msg) {
-    return res.apiError(error_msg.msg);
+    return res.apiError(null, error_msg.msg);
   }
 
   return res.apiSuccess(result, '创建订单成功');
@@ -32,27 +32,27 @@ const updateOrder = catchAsync(async (req, res) => {
 
   // 检查必需参数
   if (!id) {
-    return res.apiError('订单ID不能为空');
+    return res.apiError(null, '订单ID不能为空');
   }
 
   // 检查订单是否存在
   const existingOrder = await orderService.getOrderById(id);
   if (!existingOrder) {
-    return res.apiError('订单不存在');
+    return res.apiError(null, '订单不存在');
   }
 
   try {
     const result = await orderService.updateOrderById(id, updateBody);
     return res.apiSuccess({ affectedRows: result[0] }, '订单更新成功');
   } catch (err) {
-    return res.apiError(err.message || '服务器内部错误');
+    return res.apiError(null, err.message || '服务器内部错误');
   }
 });
 
 const deleteOrder = catchAsync(async (req, res) => {
   const deleted = await orderService.deleteOrderById(req.body.id);
   if (!deleted) {
-    return res.apiError('订单不存在');
+    return res.apiError(null, '订单不存在');
   }
   return res.apiSuccess(null, '删除订单成功');
 });

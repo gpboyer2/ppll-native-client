@@ -39,12 +39,12 @@ const validateVipAccess = async (req, res, next) => {
         });
 
         if (!keyRecord) {
-          return res.apiError('API Key 或 Secret 无效', 403);
+          return res.apiError(null, 'API Key 或 Secret 无效');
         }
 
         // 验证状态
         if (keyRecord.status !== 2) {
-          return res.apiError('API Key 已被禁用', 403);
+          return res.apiError(null, 'API Key 已被禁用');
         }
 
         // 检查 VIP 是否过期
@@ -52,10 +52,10 @@ const validateVipAccess = async (req, res, next) => {
           const now = new Date();
           const expireTime = new Date(keyRecord.vip_expire_at);
           if (expireTime < now) {
-            return res.apiError('VIP 已过期', 403);
+            return res.apiError(null, 'VIP 已过期');
           }
         } else {
-          return res.apiError('您不是 VIP 用户，无法使用该功能', 403);
+          return res.apiError(null, '您不是 VIP 用户，无法使用该功能');
         }
 
         req.vipUser = {
@@ -66,17 +66,17 @@ const validateVipAccess = async (req, res, next) => {
         };
       } catch (error) {
         console.error('VIP验证过程中发生错误:', error);
-        return res.apiError('验证失败', 403);
+        return res.apiError(null, '验证失败');
       }
     } else {
-      return res.apiError('缺失参数 api_key 或 secret_key', 403);
+      return res.apiError(null, '缺失参数 api_key 或 secret_key');
     }
 
     // 验证通过，继续处理请求
     next();
   } catch (error) {
     console.error('VIP中间件执行错误:', error);
-    return res.apiError('验证失败', 403);
+    return res.apiError(null, '验证失败');
   }
 };
 

@@ -6,7 +6,7 @@ const downloadMedia = catchAsync(async (req, res) => {
   const { downloadUrl, fileName } = req.query;
 
   if (!downloadUrl || !fileName) {
-    return res.apiError('downloadUrl and fileName are required');
+    return res.apiError(null, 'downloadUrl and fileName are required');
   }
 
   // 基础的文件名清理，防止路径遍历攻击
@@ -23,7 +23,7 @@ const downloadMedia = catchAsync(async (req, res) => {
     return res.apiSuccess({ path: result.path }, 'File downloaded successfully');
 
   } catch (err) {
-    return res.apiError(err.message || 'Failed to download file');
+    return res.apiError(null, err.message || 'Failed to download file');
   }
 });
 

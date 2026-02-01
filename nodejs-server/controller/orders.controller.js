@@ -61,7 +61,7 @@ const validateParams = (requiredParams) => {
     });
 
     if (missingParams.length > 0) {
-      return res.apiError(`${missingParams.join(', ')} is not defined`);
+      return res.apiError(null, `${missingParams.join(', ')} is not defined`);
     }
 
     next();

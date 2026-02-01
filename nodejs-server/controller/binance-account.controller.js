@@ -125,7 +125,7 @@ const getUSDMFuturesAccount = catchAsync(async (req, res) => {
 
   // 验证必需参数
   if (!api_key || !secret_key) {
-    return res.apiError("缺少必要的API凭证参数");
+    return res.apiError(null, "缺少必要的API凭证参数");
   }
 
   try {
@@ -168,7 +168,7 @@ const getSpotAccount = catchAsync(async (req, res) => {
 
   // 验证必需参数
   if (!api_key || !secret_key) {
-    return res.apiError("缺少必要的API凭证参数");
+    return res.apiError(null, "缺少必要的API凭证参数");
   }
 
   try {
@@ -218,7 +218,7 @@ const getCoinMFuturesAccount = catchAsync(async (req, res) => {
 
   // 验证必需参数
   if (!api_key || !secret_key) {
-    return res.apiError("缺少必要的API凭证参数");
+    return res.apiError(null, "缺少必要的API凭证参数");
   }
 
   try {
@@ -247,29 +247,29 @@ const setLeverage = catchAsync(async (req, res) => {
 
   // 验证必需参数
   if (!api_key || !secret_key) {
-    return res.apiError("缺少API凭证");
+    return res.apiError(null, "缺少API凭证");
   }
 
   if (!leverageList || !Array.isArray(leverageList)) {
-    return res.apiError("leverageList 必须是一个数组，格式为 [{symbol: 'BTCUSDT', leverage: 20}, {symbol: 'ETHUSDT', leverage: 10}]");
+    return res.apiError(null, "leverageList 必须是一个数组，格式为 [{symbol: 'BTCUSDT', leverage: 20}, {symbol: 'ETHUSDT', leverage: 10}]");
   }
 
   if (leverageList.length === 0) {
-    return res.apiError("leverageList 不能为空数组");
+    return res.apiError(null, "leverageList 不能为空数组");
   }
 
   // 验证每个交易对的杠杆倍数
   for (const item of leverageList) {
     if (!item || typeof item !== 'object') {
-      return res.apiError("数组中的每个元素必须是包含 symbol 和 leverage 属性的对象");
+      return res.apiError(null, "数组中的每个元素必须是包含 symbol 和 leverage 属性的对象");
     }
 
     if (!item.symbol || typeof item.symbol !== 'string') {
-      return res.apiError("交易对符号必须是非空字符串");
+      return res.apiError(null, "交易对符号必须是非空字符串");
     }
 
     if (!Number.isInteger(item.leverage) || item.leverage < 1 || item.leverage > 125) {
-      return res.apiError(`${item.symbol} 的杠杆倍数必须是 1-125 之间的整数`);
+      return res.apiError(null, `${item.symbol} 的杠杆倍数必须是 1-125 之间的整数`);
     }
   }
 
@@ -326,7 +326,7 @@ const generateListenKey = catchAsync(async (req, res) => {
   const { api_key } = extractApiCredentials(req);
 
   if (!api_key) {
-    return res.apiError("缺少 API Key");
+    return res.apiError(null, "缺少 API Key");
   }
 
   try {
@@ -345,7 +345,7 @@ const keepAliveListenKey = catchAsync(async (req, res) => {
   const { api_key } = extractApiCredentials(req);
 
   if (!api_key) {
-    return res.apiError("缺少 API Key");
+    return res.apiError(null, "缺少 API Key");
   }
 
   try {
@@ -366,11 +366,11 @@ const getPositionRisk = catchAsync(async (req, res) => {
 
   // 验证必需参数
   if (!api_key || !secret_key) {
-    return res.apiError("缺少必要的API凭证参数");
+    return res.apiError(null, "缺少必要的API凭证参数");
   }
 
   if (!symbol) {
-    return res.apiError("缺少交易对符号参数");
+    return res.apiError(null, "缺少交易对符号参数");
   }
 
   try {
