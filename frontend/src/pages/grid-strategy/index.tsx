@@ -7,7 +7,8 @@ import { NumberFormat } from '../../utils';
 import { GridStrategyApi } from '../../api';
 import { showSuccess, showError } from '../../utils/api-error';
 import { useBinanceStore } from '../../stores/binance-store';
-import { getStrategyDisplayStatus, getStrategyStatusText } from '../../utils/grid-strategy-status';
+import { getStrategyDisplayStatus, getStrategyStatusText, canTogglePause } from '../../utils/grid-strategy-status';
+import { EXECUTION_STATUS } from '../../types/grid-strategy';
 import type { GridStrategy, StrategyFilter, StrategyStatus, PositionSide } from '../../types/grid-strategy';
 
 /**
@@ -426,17 +427,9 @@ function GridStrategyListPage() {
                     className="btn btn-ghost"
                     style={{ height: '32px', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
                     onClick={() => handleToggleStatus(strategy.id, strategy.status ?? 'stopped')}
-                    disabled={[
-                      'TRADING',
-                      'PRICE_ABOVE_MAX',
-                      'PRICE_BELOW_MIN',
-                      'PRICE_ABOVE_OPEN',
-                      'PRICE_BELOW_OPEN',
-                      'INITIALIZING',
-                      'PAUSED_MANUAL'
-                    ].includes(strategy.execution_status || '') ? false : true}
+                    disabled={!canTogglePause(strategy.execution_status)}
                   >
-                    {strategy.execution_status === 'PAUSED_MANUAL' ? '启动' : '暂停'}
+                    {strategy.execution_status === EXECUTION_STATUS.PAUSED_MANUAL ? '启动' : '暂停'}
                   </button>
                   <Link
                     to={`/grid-strategy/edit?id=${strategy.id}`}

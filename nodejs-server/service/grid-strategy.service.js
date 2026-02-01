@@ -15,6 +15,7 @@ const dayjs = require("dayjs");
 const UtilRecord = require('../utils/record-log.js');
 const ApiError = require("../utils/api-error");
 const usd_m_futures_infinite_grid_event_manager = require('../managers/usd-m-futures-infinite-grid-event-manager');
+const execution_status = require('../constants/grid-strategy-status-map');
 
 
 global.gridMap = global.gridMap || {}; // 存储所有网格实例：id -> grid 实例
@@ -55,55 +56,41 @@ const cleanupSubscriber = async (symbol, id, remark) => {
 };
 
 /**
- * 创建网格交易策略
- *
- * 流程：
- * 1. 先检查是否已存在相同的策略
- * 2. 如果存在且实例运行中，直接返回
- * 3. 如果存在但实例未运行，恢复实例（服务重启场景）
- * 4. 如果不存在，创建数据库记录获得真实 ID，然后创建实例并初始化
- *
- * 单用户系统：API Key 即为用户标识，通过 api_key + api_secret 实现数据隔离
- * @async
- * @function createGridStrategy
- * @param {Object} params - 网格策略参数
- * @param {string} params.api_key - API密钥（用户标识）
- * @param {string} params.api_secret - API密钥Secret
- * @param {string} params.trading_pair - 交易对
- * @param {string} params.position_side - 持仓方向
- * @returns {Promise<Object>} - 返回创建的策略对象和是否创建成功的标记
+ * 验证和清洗参数
+ * @param {Object} params - 原始参数
+ * @returns {Promise<Object>} - 验证后的参数
  */
-const createGridStrategy = async (/** @type {{api_key: string, api_secret: string, trading_pair: string, position_side: string, exchange_type?: string}} */ params) => {
-  // 只输出关注交易对的日志
-  if (params.trading_pair === 'UNIUSDT') {
-    console.log(`[grid-strategy] ========== createGridStrategy 被调用 ==========`);
-    console.log(`[grid-strategy] 交易对: ${params.trading_pair}`);
-    console.log(`[grid-strategy] tickListenerBound 当前值: ${tickListenerBound}`);
-  }
-
-  // 单用户系统：直接使用 API Key/Secret，无需查询用户表
-  let valid_params;
-  let wealthySoon; // 声明插件实例变量
-  let row, created; // 声明返回值变量
-
+async function validateAndSanitizeParams(params) {
   try {
-    valid_params = sanitizeParams(params, GridStrategy);
+    const valid_params = sanitizeParams(params, GridStrategy);
     if (params.trading_pair === 'UNIUSDT') {
       console.log(`[grid-strategy] ✅ sanitizeParams 成功`);
     }
+    return valid_params;
   } catch (error) {
     console.log(`[grid-strategy] ❌ sanitizeParams 失败:`, error.message);
     throw error;
   }
+}
 
-  // 步骤 1: 先检查是否已存在相同的策略
+/**
+ * 查找或创建策略（核心逻辑）
+ * @param {Object} params - 包含 valid_params 和原始 params 的对象
+ * @returns {Promise<Object>} - 返回 { row, created, instance }
+ */
+async function findOrCreateStrategy(params) {
+  const { valid_params } = params;
+  const { api_key, api_secret, trading_pair, position_side } = params.original;
+
+  // 只输出关注交易对的日志
+  if (trading_pair === 'UNIUSDT') {
+    console.log(`[grid-strategy] ========== findOrCreateStrategy 被调用 ==========`);
+    console.log(`[grid-strategy] 交易对: ${trading_pair}`);
+  }
+
+  // 先检查是否已存在
   const existing = await GridStrategy.findOne({
-    where: {
-      api_key: params.api_key,
-      api_secret: params.api_secret,
-      trading_pair: params.trading_pair,
-      position_side: params.position_side,
-    },
+    where: { api_key, api_secret, trading_pair, position_side }
   });
 
   if (existing) {
@@ -111,76 +98,62 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
     if (existing.trading_pair === 'UNIUSDT') {
       console.log(`[grid-strategy] 找到已存在的策略，ID: ${existing.id}`);
     }
-    // 策略已存在，检查是否已有运行实例
+
+    // 已存在，恢复实例
     if (gridMap[existing.id]) {
       if (existing.trading_pair === 'UNIUSDT') {
         console.log(`[grid-strategy] 实例已存在，直接返回`);
       }
-      // 实例已存在，直接返回
-      return { row: existing, created: false };
+      return { row: existing, created: false, instance: gridMap[existing.id] };
     }
 
     if (existing.trading_pair === 'UNIUSDT') {
       console.log(`[grid-strategy] 策略存在但没有运行实例，准备恢复`);
     }
-    // 策略存在但没有运行实例（可能是服务重启后恢复）
-    row = existing;
-    created = false;
 
-    // 使用真实 ID 创建插件实例
-    let infinite_grid_params = { ...valid_params };
-    infinite_grid_params.id = row.id;
-    infinite_grid_params.api_key = params.api_key;
-    infinite_grid_params.secret_key = params.api_secret;
+    // 恢复实例
+    let instance_params = { ...valid_params };
+    instance_params.id = existing.id;
+    instance_params.api_key = api_key;
+    instance_params.secret_key = api_secret;
 
-    wealthySoon = new InfiniteGrid(infinite_grid_params);
+    const instance = new InfiniteGrid(instance_params);
 
-    // 初始化插件实例
+    // 启动插件实例
     try {
-      await wealthySoon.initOrders();
+      await instance.start();
     } catch (error) {
       throw new Error(`网格策略初始化失败：${error.message}`);
     }
 
     // 添加到 gridMap
-    gridMap[row.id] = wealthySoon;
+    gridMap[existing.id] = instance;
 
-    // 不要提前返回，继续执行后面的订阅和事件绑定逻辑
-  } else {
-    // 步骤 2: 策略不存在，创建数据库记录获得真实 ID
-    row = await GridStrategy.create({
-      api_key: params.api_key,
-      api_secret: params.api_secret,
-      trading_pair: params.trading_pair,
-      position_side: params.position_side,
-      ...valid_params
-    });
-    created = true;
-
-    // 步骤 3: 用真实 ID 创建 InfiniteGrid 实例
-    let infinite_grid_params = { ...valid_params };
-    infinite_grid_params.id = row.id;
-    infinite_grid_params.api_key = params.api_key;
-    infinite_grid_params.secret_key = params.api_secret;
-
-    wealthySoon = new InfiniteGrid(infinite_grid_params);
-
-    // 步骤 4: 初始化实例（验证 API Key、创建订单等）
-    try {
-      await wealthySoon.initOrders();
-    } catch (error) {
-      // 初始化失败，抛出错误让用户知道
-      // 注意：数据库记录已创建，保留记录作为失败的证据
-      throw new Error(`网格策略初始化失败：${error.message}`);
-    }
-
-    // 步骤 5: 添加到 gridMap
-    gridMap[row.id] = wealthySoon;
+    return { row: existing, created: false, instance };
   }
 
+  // 不存在，调用插件创建方法（内部负责数据库创建）
+  try {
+    const instance = await InfiniteGrid.create(params.original);
+    gridMap[instance.config.id] = instance;
+
+    // 查询数据库记录
+    const row = await GridStrategy.findByPk(instance.config.id);
+    return { row, created: true, instance };
+  } catch (error) {
+    throw new Error(`网格策略创建失败：${error.message}`);
+  }
+}
+
+/**
+ * 设置订阅
+ * @param {Object} row - 数据库记录
+ * @param {Object} params - 包含 valid_params 和 instance 的对象
+ */
+async function setupSubscription(row, params) {
+  const { valid_params, instance } = params;
   const symbol = valid_params.trading_pair;
 
-  // 步骤 7: 初始化订阅
   if (!gridStrategyRegistry.has(symbol)) {
     gridStrategyRegistry.set(symbol, new Set());
     // 只输出关注交易对的日志
@@ -192,9 +165,9 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
  交易对: ${symbol}
  时间: ${dayjs().format('YYYY-MM-DD HH:mm:ss')}
  策略ID: ${row.id}
- API Key: ${params.api_key?.substring(0, 8)}...
- 持仓方向: ${params.position_side}
- 产品类型: ${params.exchange_type || 'u本位合约'}
+ API Key: ${valid_params.api_key?.substring(0, 8)}...
+ 持仓方向: ${valid_params.position_side}
+ 产品类型: ${valid_params.exchange_type || 'u本位合约'}
 ╚══════════════════════════════════════════════════╝
 `;
       console.log(logMessage);
@@ -202,9 +175,9 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
     UtilRecord.log('[grid-strategy] 新增网格订阅', {
       symbol,
       strategyId: row.id,
-      api_key: params.api_key?.substring(0, 8),
-      positionSide: params.position_side,
-      productType: params.exchange_type || 'u本位合约',
+      api_key: valid_params.api_key?.substring(0, 8),
+      positionSide: valid_params.position_side,
+      productType: valid_params.exchange_type || 'u本位合约',
       action: 'subscribe',
       isReused: false
     });
@@ -220,9 +193,9 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
  交易对: ${symbol}
  时间: ${dayjs().format('YYYY-MM-DD HH:mm:ss')}
  策略ID: ${row.id}
- API Key: ${params.api_key?.substring(0, 8)}...
- 持仓方向: ${params.position_side}
- 产品类型: ${params.exchange_type || 'u本位合约'}
+ API Key: ${valid_params.api_key?.substring(0, 8)}...
+ 持仓方向: ${valid_params.position_side}
+ 产品类型: ${valid_params.exchange_type || 'u本位合约'}
  当前订阅数: ${currentCount + 1}
 ╚══════════════════════════════════════════════════╝
 `;
@@ -231,9 +204,9 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
     UtilRecord.log('[grid-strategy] 复用现有网格订阅', {
       symbol,
       strategyId: row.id,
-      api_key: params.api_key?.substring(0, 8),
-      positionSide: params.position_side,
-      productType: params.exchange_type || 'u本位合约',
+      api_key: valid_params.api_key?.substring(0, 8),
+      positionSide: valid_params.position_side,
+      productType: valid_params.exchange_type || 'u本位合约',
       action: 'subscribe',
       isReused: true,
       currentSubscribers: currentCount
@@ -241,44 +214,19 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
   }
 
   // 添加策略实例
-  gridStrategyRegistry.get(symbol).add({ id: row.id, grid: wealthySoon });
+  gridStrategyRegistry.get(symbol).add({ id: row.id, grid: instance });
+}
 
-  // 绑定全局 WS 分发器（仅绑定一次，避免重复监听）
-  console.log(`[grid-strategy] tickListenerBound 当前值: ${tickListenerBound}`);
-  if (!tickListenerBound) {
-    tickListenerBound = true;
-    UtilRecord.log('[grid-strategy] 绑定全局 tick 事件监听器');
-    global.wsManager.on("tick", ({ symbol, latestPrice }) => {
-      // 只输出关注交易对的日志（UNIUSDT）
-      if (symbol === 'UNIUSDT') {
-        console.log(`[grid-strategy] 收到 tick 事件: ${symbol} @ ${latestPrice}`);
-      }
-      const subs = gridStrategyRegistry.get(symbol);
-      if (!subs || subs.size === 0) {
-        // 静默处理没有订阅者的情况
-        return;
-      }
-      if (symbol === 'UNIUSDT') {
-        console.log(`[grid-strategy] tick 事件分发: ${symbol} @ ${latestPrice}, 订阅者数量: ${subs.size}`);
-      }
-      subs.forEach(({ grid }) => {
-        try {
-          if (symbol === 'UNIUSDT') {
-            console.log(`[grid-strategy] 调用 gridWebsocket for ${symbol}`);
-          }
-          grid.gridWebsocket({ latestPrice });
-        } catch (e) {
-          UtilRecord.error(`[grid-strategy] gridWebsocket 执行错误`, e);
-        }
-      });
-    });
-    console.log(`[grid-strategy] ✅ tick 事件监听器绑定完成`);
-  } else {
-    console.log(`[grid-strategy] ⚠️ tick 事件监听器已经绑定过了，跳过`);
-  }
+/**
+ * 绑定事件处理器
+ * @param {Object} row - 数据库记录
+ * @param {Object} params - 包含 valid_params 和 instance 的对象
+ */
+async function bindEventHandlers(row, params) {
+  const { instance } = params;
 
   // 绑定错误处理事件
-  wealthySoon.onWarn = async function (data) {
+  instance.onWarn = async function (data) {
     UtilRecord.log('[grid-strategy] 网格策略错误', {
       strategyId: this.config.id,
       api_key: this.config.api_key?.substring(0, 8),
@@ -302,20 +250,20 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
   };
 
   // 绑定建仓成功事件
-  wealthySoon.onOpenPosition = async function (data) {
-    const gridTradeQuantity = wealthySoon.config.position_side === 'LONG'
-      ? (wealthySoon.config.grid_long_open_quantity || wealthySoon.config.grid_trade_quantity)
-      : (wealthySoon.config.grid_short_open_quantity || wealthySoon.config.grid_trade_quantity);
+  instance.onOpenPosition = async function (data) {
+    const gridTradeQuantity = instance.config.position_side === 'LONG'
+      ? (instance.config.grid_long_open_quantity || instance.config.grid_trade_quantity)
+      : (instance.config.grid_short_open_quantity || instance.config.grid_trade_quantity);
 
     await createTradeHistory({
       grid_id: data.id,
       trading_pair: data.symbol,
-      api_key: wealthySoon.config.api_key,
-      grid_price_difference: wealthySoon.config.grid_price_difference,
+      api_key: instance.config.api_key,
+      grid_price_difference: instance.config.grid_price_difference,
       grid_trade_quantity: gridTradeQuantity,
-      max_position_quantity: wealthySoon.config.max_open_position_quantity || 0,
-      min_position_quantity: wealthySoon.config.min_open_position_quantity || 0,
-      fall_prevention_coefficient: wealthySoon.config.fall_prevention_coefficient || 0,
+      max_position_quantity: instance.config.max_open_position_quantity || 0,
+      min_position_quantity: instance.config.min_open_position_quantity || 0,
+      fall_prevention_coefficient: instance.config.fall_prevention_coefficient || 0,
       entry_order_id: data.orderId,
       exit_order_id: "",
       grid_level: 0,
@@ -333,7 +281,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
       holding_period: 0,
       exchange: "BINANCE",
       exchange_type: "USDT-M",
-      leverage: wealthySoon.config.leverage || 20,
+      leverage: instance.config.leverage || 20,
       margin_type: "",
       margin_used: 0,
       realized_roe: 0,
@@ -380,7 +328,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
 
     // 记录建仓事件到插件事件管理器
     await usd_m_futures_infinite_grid_event_manager.logEvent({
-      strategyId: parseInt(wealthySoon.config.id),
+      strategyId: parseInt(instance.config.id),
       tradingPair: data.symbol,
       eventType: usd_m_futures_infinite_grid_event_manager.eventTypes.OPEN_POSITION,
       level: 'success',
@@ -396,16 +344,16 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
   };
 
   // 绑定平仓成功事件
-  wealthySoon.onClosePosition = async function (data) {
-    const gridTradeQuantity = wealthySoon.config.position_side === 'LONG'
-      ? (wealthySoon.config.grid_long_close_quantity || wealthySoon.config.grid_trade_quantity)
-      : (wealthySoon.config.grid_short_close_quantity || wealthySoon.config.grid_trade_quantity);
+  instance.onClosePosition = async function (data) {
+    const gridTradeQuantity = instance.config.position_side === 'LONG'
+      ? (instance.config.grid_long_close_quantity || instance.config.grid_trade_quantity)
+      : (instance.config.grid_short_close_quantity || instance.config.grid_trade_quantity);
 
     await createTradeHistory({
       grid_id: data.id,
       trading_pair: data.symbol,
-      api_key: wealthySoon.config.api_key,
-      grid_price_difference: wealthySoon.config.grid_price_difference,
+      api_key: instance.config.api_key,
+      grid_price_difference: instance.config.grid_price_difference,
       grid_trade_quantity: gridTradeQuantity,
       entry_order_id: "",
       exit_order_id: data.orderId,
@@ -424,7 +372,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
       holding_period: 0,
       exchange: "BINANCE",
       exchange_type: "USDT-M",
-      leverage: wealthySoon.config.leverage || 20,
+      leverage: instance.config.leverage || 20,
       margin_type: "",
       margin_used: 0,
       realized_roe: 0,
@@ -450,7 +398,7 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
 
     // 记录平仓事件到插件事件管理器
     await usd_m_futures_infinite_grid_event_manager.logEvent({
-      strategyId: parseInt(wealthySoon.config.id),
+      strategyId: parseInt(instance.config.id),
       tradingPair: data.symbol,
       eventType: usd_m_futures_infinite_grid_event_manager.eventTypes.CLOSE_POSITION,
       level: 'success',
@@ -464,6 +412,90 @@ const createGridStrategy = async (/** @type {{api_key: string, api_secret: strin
       },
     });
   };
+}
+
+/**
+ * 绑定全局 tick 监听器
+ */
+function bindGlobalTickListener() {
+  if (tickListenerBound) {
+    return;
+  }
+
+  tickListenerBound = true;
+  UtilRecord.log('[grid-strategy] 绑定全局 tick 事件监听器');
+  global.wsManager.on("tick", ({ symbol, latestPrice }) => {
+    // 只输出关注交易对的日志（UNIUSDT）
+    if (symbol === 'UNIUSDT') {
+      console.log(`[grid-strategy] 收到 tick 事件: ${symbol} @ ${latestPrice}`);
+    }
+    const subs = gridStrategyRegistry.get(symbol);
+    if (!subs || subs.size === 0) {
+      // 静默处理没有订阅者的情况
+      return;
+    }
+    if (symbol === 'UNIUSDT') {
+      console.log(`[grid-strategy] tick 事件分发: ${symbol} @ ${latestPrice}, 订阅者数量: ${subs.size}`);
+    }
+    subs.forEach(({ grid }) => {
+      try {
+        if (symbol === 'UNIUSDT') {
+          console.log(`[grid-strategy] 调用 gridWebsocket for ${symbol}`);
+        }
+        grid.gridWebsocket({ latestPrice });
+      } catch (e) {
+        UtilRecord.error(`[grid-strategy] gridWebsocket 执行错误`, e);
+      }
+    });
+  });
+  console.log(`[grid-strategy] ✅ tick 事件监听器绑定完成`);
+}
+
+/**
+ * 创建网格交易策略
+ *
+ * 流程：
+ * 1. 验证和清洗参数
+ * 2. 查找或创建策略（核心逻辑）
+ * 3. 设置订阅
+ * 4. 绑定事件处理器
+ * 5. 绑定全局 tick 监听器
+ *
+ * 单用户系统：API Key 即为用户标识，通过 api_key + api_secret 实现数据隔离
+ * @async
+ * @function createGridStrategy
+ * @param {Object} params - 网格策略参数
+ * @param {string} params.api_key - API密钥（用户标识）
+ * @param {string} params.api_secret - API密钥Secret
+ * @param {string} params.trading_pair - 交易对
+ * @param {string} params.position_side - 持仓方向
+ * @returns {Promise<Object>} - 返回创建的策略对象和是否创建成功的标记
+ */
+const createGridStrategy = async (/** @type {{api_key: string, api_secret: string, trading_pair: string, position_side: string, exchange_type?: string}} */ params) => {
+  // 只输出关注交易对的日志
+  if (params.trading_pair === 'UNIUSDT') {
+    console.log(`[grid-strategy] ========== createGridStrategy 被调用 ==========`);
+    console.log(`[grid-strategy] 交易对: ${params.trading_pair}`);
+    console.log(`[grid-strategy] tickListenerBound 当前值: ${tickListenerBound}`);
+  }
+
+  // 步骤1: 验证和清洗参数
+  const valid_params = await validateAndSanitizeParams(params);
+
+  // 步骤2: 查找或创建策略（核心逻辑）
+  const { row, created, instance } = await findOrCreateStrategy({
+    valid_params,
+    original: params
+  });
+
+  // 步骤3: 设置订阅
+  await setupSubscription(row, { valid_params, instance });
+
+  // 步骤4: 绑定事件处理器
+  await bindEventHandlers(row, { valid_params, instance });
+
+  // 步骤5: 绑定全局 tick 监听器
+  bindGlobalTickListener();
 
   return { row, created };
 };
@@ -559,9 +591,9 @@ const updateGridStrategyById = async (updateBody) => {
 
   // 同步更新 execution_status 字段
   if (paused === true) {
-    params.execution_status = 'PAUSED_MANUAL';
+    params.execution_status = execution_status.PAUSED_MANUAL;
   } else if (paused === false) {
-    params.execution_status = 'TRADING';
+    params.execution_status = execution_status.TRADING;
   }
 
   const [affectedCount] = await GridStrategy.update(params, {
@@ -618,10 +650,25 @@ const deleteGridStrategyById = async (updateBody) => {
   });
 
   if (gridMap[id]) {
-    try { gridMap[id].onManualPausedGrid(); } catch (e) {
+    try {
+      // 暂停网格策略
+      gridMap[id].onManualPausedGrid();
+    } catch (e) {
       console.error(`[grid-strategy] 清理策略 ${id} 时出错:`, e);
       // 忽略清理策略时的错误，继续执行删除逻辑
     }
+
+    // 清理事件监听器
+    if (gridMap[id].onWarn) {
+      gridMap[id].onWarn = null;
+    }
+    if (gridMap[id].onOpenPosition) {
+      gridMap[id].onOpenPosition = null;
+    }
+    if (gridMap[id].onClosePosition) {
+      gridMap[id].onClosePosition = null;
+    }
+
     delete gridMap[id];
   }
 

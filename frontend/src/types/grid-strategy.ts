@@ -10,19 +10,64 @@ export type PositionSide = 'LONG' | 'SHORT';
 /** 策略状态类型 */
 export type StrategyStatus = 'running' | 'paused' | 'stopped';
 
+/** 策略执行状态常量（统一定义） */
+export const EXECUTION_STATUS = {
+  TRADING: 'TRADING',
+  PAUSED_MANUAL: 'PAUSED_MANUAL',
+  PRICE_ABOVE_MAX: 'PRICE_ABOVE_MAX',
+  PRICE_BELOW_MIN: 'PRICE_BELOW_MIN',
+  PRICE_ABOVE_OPEN: 'PRICE_ABOVE_OPEN',
+  PRICE_BELOW_OPEN: 'PRICE_BELOW_OPEN',
+  API_KEY_INVALID: 'API_KEY_INVALID',
+  NETWORK_ERROR: 'NETWORK_ERROR',
+  INSUFFICIENT_BALANCE: 'INSUFFICIENT_BALANCE',
+  OTHER_ERROR: 'OTHER_ERROR',
+  INITIALIZING: 'INITIALIZING',
+
+  /** 显示状态映射 */
+  display_status: {
+    TRADING: 'running',
+    PAUSED_MANUAL: 'paused',
+    PRICE_ABOVE_MAX: 'paused',
+    PRICE_BELOW_MIN: 'paused',
+    PRICE_ABOVE_OPEN: 'paused',
+    PRICE_BELOW_OPEN: 'paused',
+    API_KEY_INVALID: 'stopped',
+    NETWORK_ERROR: 'stopped',
+    INSUFFICIENT_BALANCE: 'stopped',
+    OTHER_ERROR: 'stopped',
+    INITIALIZING: 'running',
+  } as const,
+
+  /** 中文描述映射 */
+  label: {
+    TRADING: '正常交易',
+    PAUSED_MANUAL: '手动暂停',
+    PRICE_ABOVE_MAX: '价格超过上限',
+    PRICE_BELOW_MIN: '价格低于下限',
+    PRICE_ABOVE_OPEN: '价格超过开仓价',
+    PRICE_BELOW_OPEN: '价格低于开仓价',
+    API_KEY_INVALID: 'API Key 无效',
+    NETWORK_ERROR: '网络错误',
+    INSUFFICIENT_BALANCE: '余额不足',
+    OTHER_ERROR: '其他错误',
+    INITIALIZING: '初始化中',
+  } as const,
+
+  /** 可暂停操作的状态列表 */
+  can_toggle_pause: [
+    'TRADING',
+    'PAUSED_MANUAL',
+    'PRICE_ABOVE_MAX',
+    'PRICE_BELOW_MIN',
+    'PRICE_ABOVE_OPEN',
+    'PRICE_BELOW_OPEN',
+    'INITIALIZING',
+  ] as const,
+} as const;
+
 /** 策略执行状态类型（后端字段） */
-export type ExecutionStatus =
-  | 'TRADING'                    // 正常交易
-  | 'PAUSED_MANUAL'              // 手动暂停
-  | 'PRICE_ABOVE_MAX'            // 价格超过上限
-  | 'PRICE_BELOW_MIN'            // 价格低于下限
-  | 'PRICE_ABOVE_OPEN'           // 价格超过开仓价
-  | 'PRICE_BELOW_OPEN'           // 价格低于开仓价
-  | 'API_KEY_INVALID'            // API Key 无效
-  | 'NETWORK_ERROR'              // 网络错误
-  | 'INSUFFICIENT_BALANCE'       // 余额不足
-  | 'OTHER_ERROR'                // 其他错误
-  | 'INITIALIZING';              // 初始化中
+export type ExecutionStatus = keyof typeof EXECUTION_STATUS.label;
 
 /** 网格策略配置类型 */
 export interface GridStrategy {
@@ -137,11 +182,11 @@ export interface GridStrategy {
 
 /** 网格策略表单数据类型（用于编辑） */
 export type GridStrategyForm = Omit<GridStrategy, 'id' | 'status' | 'created_at' | 'updated_at' | '_api_key_id' | '_api_key_name'> & {
-    /** 内部字段：选择的 API Key ID（不保存到数据库） */
-    _api_key_id?: number | string;
+  /** 内部字段：选择的 API Key ID（不保存到数据库） */
+  _api_key_id?: number | string;
 
-    /** 内部字段：关联的 API Key 名称（前端维护，用于列表展示） */
-    _api_key_name?: string;
+  /** 内部字段：关联的 API Key 名称（前端维护，用于列表展示） */
+  _api_key_name?: string;
 };
 
 /** 网格策略列表项类型（用于列表展示） */

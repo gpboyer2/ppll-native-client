@@ -40,7 +40,10 @@ export function PluginLogsCard({
 
   // 使用 ref 存储回调，避免 useEffect 依赖变化
   const on_refresh_logs_ref = useRef(on_refresh_logs);
-  on_refresh_logs_ref.current = on_refresh_logs;
+
+  useEffect(() => {
+    on_refresh_logs_ref.current = on_refresh_logs;
+  }, [on_refresh_logs]);
 
   // 计算时间过滤参数
   const getTimeFilterParams = useCallback((): { start_time?: string; end_time?: string } => {
@@ -244,10 +247,10 @@ export function PluginLogsCard({
                 }}
               >
                 {filter === 'all' ? '全部' :
-                 filter === 'init' ? '初始化' :
-                 filter === 'grid' ? '网格' :
-                 filter === 'trade' ? '交易' :
-                 filter === 'error' ? '错误' : '警告'}
+                  filter === 'init' ? '初始化' :
+                    filter === 'grid' ? '网格' :
+                      filter === 'trade' ? '交易' :
+                        filter === 'error' ? '错误' : '警告'}
               </button>
             ))}
           </div>
@@ -269,8 +272,8 @@ export function PluginLogsCard({
                 }}
               >
                 {filter === 'all' ? '全部时间' :
-                 filter === 'today' ? '今天' :
-                 filter === 'week' ? '最近7天' : '最近30天'}
+                  filter === 'today' ? '今天' :
+                    filter === 'week' ? '最近7天' : '最近30天'}
               </button>
             ))}
           </div>

@@ -15,6 +15,7 @@ const binancePrecision = require('../utils/binance-precision');
 const db = require('../models');
 const binanceAccountService = require('../service/binance-account.service.js');
 const GridEventTypes = require('../constants/grid-event-types.js');
+const execution_status = require('../constants/grid-strategy-status-map');
 
 
 /**
@@ -793,7 +794,7 @@ function InfiniteGrid(options) {
 
       // 检查是否是 API Key 失效错误（币安错误码 -2014 或 -2015）
       if (error?.code === -2014 || error?.code === -2015) {
-        this.updateExecutionStatus('API_KEY_INVALID').catch(() => {});
+        this.updateExecutionStatus(execution_status.API_KEY_INVALID).catch(() => {});
       }
 
       // 获取账户信息失败时触发 onWarn 事件
@@ -974,11 +975,11 @@ function InfiniteGrid(options) {
 
     if (Number.isFinite(lt_limitation_price) && latestPrice <= lt_limitation_price) {
       this.logger.sql(GridEventTypes.GRID, `⛔️ 币价${latestPrice}小于等于限制价格${lt_limitation_price}，自动暂停网格`).log();
-      await this.onPausedGrid('PRICE_BELOW_MIN');
+      await this.onPausedGrid(execution_status.PRICE_BELOW_MIN);
     }
     else if (Number.isFinite(gt_limitation_price) && latestPrice >= gt_limitation_price) {
       this.logger.sql(GridEventTypes.GRID, `⛔️ 币价${latestPrice}大于等于限制价格${gt_limitation_price}，自动暂停网格`).log();
-      await this.onPausedGrid('PRICE_ABOVE_MAX');
+      await this.onPausedGrid(execution_status.PRICE_ABOVE_MAX);
     }
     else {
       this.onContinueGrid();
@@ -986,11 +987,11 @@ function InfiniteGrid(options) {
 
     if (latestPrice >= this.trading_pair_info.entryPrice && this.config.is_above_open_price) {
       this.logger.sql(GridEventTypes.GRID, `⛔️ 币价${latestPrice}大于等于开仓价格${this.trading_pair_info.entryPrice}，自动暂停网格`).log();
-      await this.onPausedGrid('PRICE_ABOVE_OPEN');
+      await this.onPausedGrid(execution_status.PRICE_ABOVE_OPEN);
     }
     else if (latestPrice <= this.trading_pair_info.entryPrice && this.config.is_below_open_price) {
       this.logger.sql(GridEventTypes.GRID, `⛔️ 币价${latestPrice}小于等于开仓价格${this.trading_pair_info.entryPrice}，自动暂停网格`).log();
-      await this.onPausedGrid('PRICE_BELOW_OPEN');
+      await this.onPausedGrid(execution_status.PRICE_BELOW_OPEN);
     }
     else {
       // 网格处于 正常的状态(没有暂停), 则可以 继续网格.
@@ -1200,14 +1201,14 @@ function InfiniteGrid(options) {
   /** 手动暂停网格交易(根据用户要求设定网格的暂停状态) */
   this.onManualPausedGrid = async () => {
     this.paused = true;
-    await this.updateExecutionStatus('PAUSED_MANUAL');
+    await this.updateExecutionStatus(execution_status.PAUSED_MANUAL);
   };
 
 
   /** 手动继续网格交易(根据用户要求设定网格的暂停状态) */
   this.onManualContinueGrid = async () => {
     this.paused = false;
-    await this.updateExecutionStatus('TRADING');
+    await this.updateExecutionStatus(execution_status.TRADING);
   };
 
   /**
@@ -1225,13 +1226,13 @@ function InfiniteGrid(options) {
   };
 
   /**
-   * 入口函数
+   * 私有初始化方法
    * 初始化持仓信息, step.1
    *
    */
-  this.initOrders = async () => {
+  this._initOrders = async () => {
     // 设置状态为初始化中
-    await this.updateExecutionStatus('INITIALIZING');
+    await this.updateExecutionStatus(execution_status.INITIALIZING);
     this.onPausedGrid();
 
     // 先获取交易所信息,避免后续精度处理失败
@@ -1272,9 +1273,99 @@ function InfiniteGrid(options) {
     this.logger.sql(GridEventTypes.INIT, `✅ 策略初始化完成，网格已恢复运行`).log();
 
     // 设置状态为正常交易中
-    await this.updateExecutionStatus('TRADING');
+    await this.updateExecutionStatus(execution_status.TRADING);
   };
 }
+
+
+/**
+ * 静态工厂方法：负责完整的创建流程
+ * 使用事务和唯一约束处理并发创建问题
+ * @param {Object} params - 策略参数（不含 id）
+ * @returns {Promise<InfiniteGrid>} - 返回创建的实例
+ */
+InfiniteGrid.create = async function(params) {
+  const db = require('../models');
+  const GridStrategy = db.grid_strategies;
+  const { sanitizeParams } = require('../utils/pick.js');
+
+  // 参数清洗
+  const valid_params = sanitizeParams(params, GridStrategy);
+
+  // 使用事务确保原子性
+  const transaction = await db.transaction();
+
+  try {
+    // 尝试创建数据库记录（如果已存在会失败）
+    const row = await GridStrategy.create({
+      api_key: params.api_key,
+      api_secret: params.api_secret,
+      trading_pair: params.trading_pair,
+      position_side: params.position_side,
+      execution_status: execution_status.INITIALIZING,
+      ...valid_params
+    }, { transaction });
+
+    // 用真实 ID 创建实例
+    const instance = new InfiniteGrid({
+      ...params,
+      ...valid_params,
+      id: row.id
+    });
+
+    // 执行初始化
+    try {
+      await instance._initOrders();
+      await instance.updateExecutionStatus(execution_status.TRADING);
+      await transaction.commit();
+    } catch (error) {
+      // 初始化失败
+      await instance.updateExecutionStatus(execution_status.INIT_FAILED);
+      await transaction.rollback();
+      throw new Error(`网格策略初始化失败：${error.message}`);
+    }
+
+    return instance;
+  } catch (error) {
+    // 处理唯一约束冲突
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      await transaction.rollback();
+
+      // 查询已存在的记录
+      const existing = await GridStrategy.findOne({
+        where: {
+          api_key: params.api_key,
+          api_secret: params.api_secret,
+          trading_pair: params.trading_pair,
+          position_side: params.position_side,
+        },
+      });
+
+      if (existing) {
+        // 返回现有实例
+        const instance = new InfiniteGrid({
+          ...params,
+          ...valid_params,
+          id: existing.id
+        });
+        await instance.start();
+        return instance;
+      }
+    }
+
+    // 其他错误
+    await transaction.rollback();
+    throw error;
+  }
+};
+
+
+/**
+ * 公共启动方法（用于恢复已存在的策略）
+ */
+InfiniteGrid.prototype.start = async function() {
+  await this._initOrders();
+};
 
 
 module.exports = InfiniteGrid;

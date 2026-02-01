@@ -4,6 +4,7 @@
  */
 
 import type { StrategyStatus, ExecutionStatus } from '../types/grid-strategy';
+import { EXECUTION_STATUS } from '../types/grid-strategy';
 
 /**
  * 将后端的执行状态映射为前端的显示状态
@@ -15,38 +16,14 @@ export function getStrategyDisplayStatus(item: {
   execution_status?: ExecutionStatus;
 }): StrategyStatus {
   // 1. 优先使用生命周期状态
-  const lifecycleStatus = item.status?.toUpperCase();
-  if (lifecycleStatus === 'STOPPED' || lifecycleStatus === 'DELETED') {
+  const lifecycle_status = item.status?.toUpperCase();
+  if (lifecycle_status === 'STOPPED' || lifecycle_status === 'DELETED') {
     return 'stopped';
   }
 
-  // 2. 使用执行状态
-  const executionStatus = item.execution_status?.toUpperCase();
-
-  switch (executionStatus) {
-    case 'TRADING':
-    case 'INITIALIZING':
-      return 'running';
-
-    case 'PAUSED_MANUAL':
-      return 'paused';
-
-    case 'PRICE_ABOVE_MAX':
-    case 'PRICE_BELOW_MIN':
-    case 'PRICE_ABOVE_OPEN':
-    case 'PRICE_BELOW_OPEN':
-      return 'running'; // 策略活着但条件不满足
-
-    case 'API_KEY_INVALID':
-    case 'NETWORK_ERROR':
-    case 'INSUFFICIENT_BALANCE':
-    case 'OTHER_ERROR':
-      return 'stopped'; // 错误状态
-
-    default:
-      // 兼容旧逻辑：如果没有 execution_status，默认为运行中
-      return 'running';
-  }
+  // 2. 使用执行状态映射表
+  const execution_status = item.execution_status?.toUpperCase();
+  return EXECUTION_STATUS.display_status[execution_status as ExecutionStatus] || 'running';
 }
 
 /**
@@ -59,30 +36,18 @@ export function getStrategyStatusText(executionStatus?: ExecutionStatus): string
     return '未知';
   }
 
-  switch (executionStatus) {
-    case 'TRADING':
-      return '运行中';
-    case 'PAUSED_MANUAL':
-      return '已暂停';
-    case 'PRICE_ABOVE_MAX':
-      return '价格超上限';
-    case 'PRICE_BELOW_MIN':
-      return '价格超下限';
-    case 'PRICE_ABOVE_OPEN':
-      return '价格超开仓价';
-    case 'PRICE_BELOW_OPEN':
-      return '价格低于开仓价';
-    case 'API_KEY_INVALID':
-      return 'API Key 错误';
-    case 'NETWORK_ERROR':
-      return '网络错误';
-    case 'INSUFFICIENT_BALANCE':
-      return '余额不足';
-    case 'OTHER_ERROR':
-      return '异常';
-    case 'INITIALIZING':
-      return '初始化中';
-    default:
-      return '未知';
+  return EXECUTION_STATUS.label[executionStatus] || '未知';
+}
+
+/**
+ * 判断是否可以切换暂停状态
+ * @param execution_status 执行状态
+ * @returns 是否可以切换暂停状态
+ */
+export function canTogglePause(execution_status?: ExecutionStatus): boolean {
+  if (!execution_status) {
+    return false;
   }
+
+  return (EXECUTION_STATUS.can_toggle_pause as readonly ExecutionStatus[]).includes(execution_status);
 }

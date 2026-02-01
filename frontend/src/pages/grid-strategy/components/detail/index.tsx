@@ -6,6 +6,7 @@ import { GridStrategyApi } from '../../../../api';
 import { ROUTES } from '../../../../router';
 import { showError, showSuccess } from '../../../../utils/api-error';
 import { getStrategyDisplayStatus, getStrategyStatusText } from '../../../../utils/grid-strategy-status';
+import { EXECUTION_STATUS } from '../../../../types/grid-strategy';
 import {
   IconRefresh,
   IconEdit,
@@ -321,7 +322,7 @@ function GridStrategyDetailPage() {
           <button className="action-btn" onClick={handleCopy}>
             <IconCopy size={16} />
           </button>
-          {strategy.execution_status === 'PAUSED_MANUAL' ? (
+          {strategy.execution_status === EXECUTION_STATUS.PAUSED_MANUAL ? (
             <button className="action-btn success" onClick={handleToggleStatus}>
               <IconPlayerPlay size={16} />
             </button>

@@ -13,6 +13,7 @@ const StrategyLog = require('../utils/strategy-log.js');
 const { MainClient } = require('binance');
 const { normalizeDatatypes } = require('../utils/data-types.ts');
 const db = require('../models');
+const execution_status = require('../constants/grid-strategy-status-map');
 
 /**
  * 无限网格策略 - 现货版本
@@ -688,11 +689,11 @@ function InfiniteGridSpot(options) {
     let { ltLimitationPrice, gtLimitationPrice } = this.config;
     if (Number.isFinite(ltLimitationPrice) && latestPrice <= ltLimitationPrice) {
       UtilRecord.log(`⛔️ 币价小于等于限制价格，暂停网格`);
-      await this.onPausedGrid('PRICE_BELOW_MIN');
+      await this.onPausedGrid(execution_status.PRICE_BELOW_MIN);
     }
     else if (Number.isFinite(gtLimitationPrice) && latestPrice >= gtLimitationPrice) {
       UtilRecord.log(`⛔️ 币价大于等于限制价格，暂停网格`);
-      await this.onPausedGrid('PRICE_ABOVE_MAX');
+      await this.onPausedGrid(execution_status.PRICE_ABOVE_MAX);
     }
     else {
       await this.onContinueGrid();
@@ -770,7 +771,7 @@ function InfiniteGridSpot(options) {
       && (this.config.maxBaseAssetQuantity ? this.currentBaseAssetQuantity < this.config.maxBaseAssetQuantity : true)
     ) {
       if (this.currentQuoteAssetBalance < bigNumber(latestPrice).times(buyQuantity).toNumber()) {
-        await this.updateExecutionStatus('INSUFFICIENT_BALANCE');
+        await this.updateExecutionStatus(execution_status.INSUFFICIENT_BALANCE);
         UtilRecord.log(`余额不足，无法执行买入操作`);
         return;
       }
@@ -819,7 +820,7 @@ function InfiniteGridSpot(options) {
       (this.config.maxBaseAssetQuantity ? this.currentBaseAssetQuantity < this.config.maxBaseAssetQuantity : true)
     ) {
       if (this.currentQuoteAssetBalance < bigNumber(latestPrice).times(buyQuantity).toNumber()) {
-        await this.updateExecutionStatus('INSUFFICIENT_BALANCE');
+        await this.updateExecutionStatus(execution_status.INSUFFICIENT_BALANCE);
         UtilRecord.log(`余额不足，无法执行买入操作`);
         return;
       }
@@ -834,7 +835,7 @@ function InfiniteGridSpot(options) {
       this.currentBaseAssetQuantity < this.config.minBaseAssetQuantity
     ) {
       if (this.currentQuoteAssetBalance < bigNumber(latestPrice).times(buyQuantity).toNumber()) {
-        await this.updateExecutionStatus('INSUFFICIENT_BALANCE');
+        await this.updateExecutionStatus(execution_status.INSUFFICIENT_BALANCE);
         UtilRecord.log(`余额不足，无法执行买入操作`);
         return;
       }
@@ -877,13 +878,13 @@ function InfiniteGridSpot(options) {
   /** 手动暂停网格 */
   this.onManualPausedGrid = async () => {
     this.paused = true;
-    await this.updateExecutionStatus('PAUSED_MANUAL');
+    await this.updateExecutionStatus(execution_status.PAUSED_MANUAL);
   };
 
   /** 手动继续网格 */
   this.onManualContinueGrid = async () => {
     this.paused = false;
-    await this.updateExecutionStatus('TRADING');
+    await this.updateExecutionStatus(execution_status.TRADING);
   };
 
   /** 启用日志输出 */
@@ -898,11 +899,11 @@ function InfiniteGridSpot(options) {
   };
 
   /**
-   * 入口函数 - 初始化持仓信息
+   * 私有初始化方法 - 初始化持仓信息
    */
-  this.initOrders = async () => {
+  this._initOrders = async () => {
     // 设置状态为初始化中
-    await this.updateExecutionStatus('INITIALIZING');
+    await this.updateExecutionStatus(execution_status.INITIALIZING);
 
     let isOk = true;
     await this.initAccountInfo().catch(() => { isOk = false; });
@@ -943,8 +944,99 @@ function InfiniteGridSpot(options) {
     UtilRecord.log(`✅ 策略初始化完成，网格已恢复运行`);
 
     // 设置状态为正常交易中
-    await this.updateExecutionStatus('TRADING');
+    await this.updateExecutionStatus(execution_status.TRADING);
   };
 }
+
+
+/**
+ * 静态工厂方法：负责完整的创建流程
+ * 使用事务和唯一约束处理并发创建问题
+ * @param {Object} params - 策略参数（不含 id）
+ * @returns {Promise<InfiniteGridSpot>} - 返回创建的实例
+ */
+InfiniteGridSpot.create = async function(params) {
+  const db = require('../models');
+  const GridStrategy = db.grid_strategies;
+  const { sanitizeParams } = require('../utils/pick.js');
+
+  // 参数清洗
+  const valid_params = sanitizeParams(params, GridStrategy);
+
+  // 使用事务确保原子性
+  const transaction = await db.transaction();
+
+  try {
+    // 尝试创建数据库记录（如果已存在会失败）
+    const row = await GridStrategy.create({
+      api_key: params.api_key,
+      api_secret: params.api_secret,
+      trading_pair: params.trading_pair,
+      position_side: params.position_side,
+      execution_status: execution_status.INITIALIZING,
+      ...valid_params
+    }, { transaction });
+
+    // 用真实 ID 创建实例
+    const instance = new InfiniteGridSpot({
+      ...params,
+      ...valid_params,
+      id: row.id
+    });
+
+    // 执行初始化
+    try {
+      await instance._initOrders();
+      await instance.updateExecutionStatus(execution_status.TRADING);
+      await transaction.commit();
+    } catch (error) {
+      // 初始化失败
+      await instance.updateExecutionStatus(execution_status.INIT_FAILED);
+      await transaction.rollback();
+      throw new Error(`网格策略初始化失败：${error.message}`);
+    }
+
+    return instance;
+  } catch (error) {
+    // 处理唯一约束冲突
+    if (error.name === 'SequelizeUniqueConstraintError') {
+      await transaction.rollback();
+
+      // 查询已存在的记录
+      const existing = await GridStrategy.findOne({
+        where: {
+          api_key: params.api_key,
+          api_secret: params.api_secret,
+          trading_pair: params.trading_pair,
+          position_side: params.position_side,
+        },
+      });
+
+      if (existing) {
+        // 返回现有实例
+        const instance = new InfiniteGridSpot({
+          ...params,
+          ...valid_params,
+          id: existing.id
+        });
+        await instance.start();
+        return instance;
+      }
+    }
+
+    // 其他错误
+    await transaction.rollback();
+    throw error;
+  }
+};
+
+
+/**
+ * 公共启动方法（用于恢复已存在的策略）
+ */
+InfiniteGridSpot.prototype.start = async function() {
+  await this._initOrders();
+};
+
 
 module.exports = InfiniteGridSpot;
