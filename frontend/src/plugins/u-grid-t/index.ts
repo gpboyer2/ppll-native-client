@@ -1,15 +1,15 @@
 import type { Plugin } from '../types';
 import { PluginSaveConfig, PluginGetConfig } from '../../../wailsjs/go/main/App';
 
-// U本位合约做T网格 插件页面骨架
+// U本位合约网格交易策略 插件页面骨架
 // 说明：此处仅展示必需参数占位，不含实盘逻辑
 
 let container: HTMLElement | null = null;
 
 const html = `
   <div>
-    <h2>U本位合约做T网格</h2>
-    <p style="color:#9aa">用于区间做T的网格策略参数配置（占位页面）。</p>
+    <h2>U本位合约网格交易策略</h2>
+    <p style="color:#9aa">U本位合约网格交易策略参数配置（占位页面）。</p>
     <div style="font-size:12px;color:#aaa;margin:6px 0">
       帮助: 1) 交易对如 BTCUSDT; 2) 网格数量>0; 3) 单格资金>0; 保存后将作为默认值持久化。
     </div>
@@ -31,7 +31,7 @@ const html = `
 
 const plugin: Plugin = {
   id: 'u-grid-t',
-  name: 'U本位合约做T网格',
+  name: 'U本位合约网格交易策略',
   async init() {},
   mount(el: HTMLElement) {
     container = el;
@@ -60,10 +60,10 @@ const plugin: Plugin = {
         log().textContent = `[${new Date().toLocaleTimeString()}] [错误] ${err}\n` + (log().textContent || '');
         return;
       }
-      log().textContent = `[${new Date().toLocaleTimeString()}] 启动做T网格（占位）\n` + (log().textContent || '');
+      log().textContent = `[${new Date().toLocaleTimeString()}] 启动网格策略（占位）\n` + (log().textContent || '');
     }));
     void (stopBtn && (stopBtn.onclick = () => {
-      log().textContent = `[${new Date().toLocaleTimeString()}] 停止做T网格（占位）\n` + (log().textContent || '');
+      log().textContent = `[${new Date().toLocaleTimeString()}] 停止网格策略（占位）\n` + (log().textContent || '');
     }));
     void (saveBtn && (saveBtn.onclick = async () => {
       const cfg = {

@@ -74,8 +74,8 @@ export const pluginConfig: Record<string, PluginConfig> = {
     defaultEnable: true
   },
   'u-grid-t': {
-    name: '做T网格',
-    description: '经典网格交易策略，适合震荡行情',
+    name: 'U本位合约网格交易策略',
+    description: 'U本位合约网格交易策略，适合震荡行情',
     icon: '🔄',
     category: '交易策略',
     version: '0.1.0',

@@ -168,7 +168,7 @@ function App() {
               <Route path={ROUTES.DATABASE_MANAGER} element={<DatabaseManagerPage />} />
               <Route path={ROUTES.PLUGINS} element={<PluginsPage />} />
               <Route path={ROUTES.PLUGIN_DETAIL} element={<PluginsPage />} />
-              {/* 做T网格插件重定向到网格策略页面 */}
+              {/* U本位合约网格交易策略插件重定向到网格策略页面 */}
               <Route path="/plugins/u-grid-t" element={<Navigate to={ROUTES.GRID_STRATEGY} replace />} />
               <Route path={ROUTES.GRID_STRATEGY} element={<GridStrategyListPage />} />
               <Route path={ROUTES.GRID_STRATEGY_CREATE} element={<GridStrategyEditPage />} />
