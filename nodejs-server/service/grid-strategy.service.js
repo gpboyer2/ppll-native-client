@@ -7,7 +7,6 @@ const db = require("../models/index.js");
 const fs = require("fs");
 const path = require("path");
 const GridStrategy = db.grid_strategies;
-const InfiniteGrid = require("../plugin/umInfiniteGrid.js");
 const { readLocalFile } = require("../utils/file.js");
 const { sanitizeParams } = require('../utils/pick.js');
 const { createTradeHistory } = require('./grid-trade-history.service.js');
@@ -16,6 +15,26 @@ const UtilRecord = require('../utils/record-log.js');
 const ApiError = require("../utils/api-error");
 const usd_m_futures_infinite_grid_event_manager = require('../managers/usd-m-futures-infinite-grid-event-manager');
 const execution_status = require('../constants/grid-strategy-status-map');
+
+/**
+ * 根据 exchange_type 动态获取网格插件
+ * @param {string} exchange_type - 产品类型 ('binance' 现货, 'binance_futures' U本位合约)
+ * @returns {Object} 网格插件类
+ * @throws {Error} 不支持的 exchange_type 时抛出错误
+ */
+const getGridPlugin = (exchange_type) => {
+  switch (exchange_type) {
+    case 'binance':
+      return require('../plugin/spotInfiniteGrid.js');
+    case 'binance_futures':
+    case undefined:
+    case null:
+    case '':
+      return require('../plugin/umInfiniteGrid.js');
+    default:
+      throw new Error(`不支持的 exchange_type: ${exchange_type}，仅支持 'binance' 和 'binance_futures'`);
+  }
+};
 
 
 global.gridMap = global.gridMap || {}; // 存储所有网格实例：id -> grid 实例
@@ -80,13 +99,17 @@ async function validateAndSanitizeParams(params) {
  */
 async function findOrCreateStrategy(params) {
   const { valid_params } = params;
-  const { api_key, api_secret, trading_pair, position_side } = params.original;
+  const { api_key, api_secret, trading_pair, position_side, exchange_type } = params.original;
 
   // 只输出关注交易对的日志
   if (trading_pair === 'UNIUSDT') {
     console.log(`[grid-strategy] ========== findOrCreateStrategy 被调用 ==========`);
     console.log(`[grid-strategy] 交易对: ${trading_pair}`);
+    console.log(`[grid-strategy] 产品类型: ${exchange_type}`);
   }
+
+  // 根据 exchange_type 选择插件
+  const InfiniteGrid = getGridPlugin(exchange_type);
 
   // 先检查是否已存在
   const existing = await GridStrategy.findOne({

@@ -15,6 +15,21 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       // API Key 本身就是用户标识，通过 api_key + api_secret 实现数据隔离
     }
+
+    /**
+     * 更新策略执行状态
+     * @param {string} newStatus - 新的执行状态
+     * @returns {Promise<void>}
+     */
+    async updateExecutionStatus(newStatus) {
+      try {
+        await this.update({ execution_status: newStatus });
+        console.trace(`策略 ${this.id} 执行状态已更新为: ${newStatus}`);
+      } catch (error) {
+        console.trace(`策略 ${this.id} 更新执行状态失败:`, error);
+        throw error;
+      }
+    }
   }
 
   GridStrategy.init(
