@@ -4,7 +4,7 @@
         "apiSecret": "wKJBlo6l4hxmcibT6VDddChFHCW3BGeYQQs78co8VCUMqOjhlNSlswMTFdjBlAij",
         "tradingPair": "ARUSDT",
         "leverage": "20",
-        "gridPriceDiff": 0.1,
+        "grid_price_difference": 0.1,
         "gridTradeQuantity": 3,
         "isAboveOpenPrice": false,
         "pollingIntervalSecond": "5",

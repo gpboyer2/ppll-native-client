@@ -27,7 +27,7 @@ function HeavenAndEarthStrategy(options) {
     needlePrice: 75000,
     maxOpenPositionQuantity: 20,
     minOpenPositionQuantity: 0.2,
-    gridPriceDiff: 0.2,
+    grid_price_difference: 0.2,
     gridTradeQuantity: 0.2,
     pollingInterval: 10000
   };
@@ -121,13 +121,13 @@ function HeavenAndEarthStrategy(options) {
   };
 
   this.resetTargetPrice = (executionPrice) => {
-    if (!executionPrice || !this.config.gridPriceDiff) {
-      this.logger.warn(`重置期望价格失败，executionPrice: ${executionPrice}, gridPriceDiff: ${this.config.gridPriceDiff}`);
+    if (!executionPrice || !this.config.grid_price_difference) {
+      this.logger.warn(`重置期望价格失败，executionPrice: ${executionPrice}, grid_price_difference: ${this.config.grid_price_difference}`);
       return;
     }
 
-    this.nextExpectedRisePrice = bigNumber(executionPrice).plus(this.config.gridPriceDiff).toNumber();
-    this.nextExpectedFallPrice = bigNumber(executionPrice).minus(this.config.gridPriceDiff).toNumber();
+    this.nextExpectedRisePrice = bigNumber(executionPrice).plus(this.config.grid_price_difference).toNumber();
+    this.nextExpectedFallPrice = bigNumber(executionPrice).minus(this.config.grid_price_difference).toNumber();
   };
 
   this.closePositionOrder = async (positionQuantity) => {

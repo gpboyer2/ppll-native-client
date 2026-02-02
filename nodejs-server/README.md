@@ -170,7 +170,7 @@ const gridConfig = {
   tradingPair: 'BTCUSDT',         // 交易对
   apiKey: 'your_api_key',         // Binance API密钥
   apiSecret: 'your_api_secret',   // Binance API密钥Secret
-  gridPriceDiff: 100,       // 网格价差
+  grid_price_difference: 100,       // 网格价差
   gridTradeQuantity: 0.001,        // 网格交易数量
   maxOpenPositionQuantity: 0.1,   // 最大持仓数量
   minOpenPositionQuantity: 0.01,  // 最小持仓数量
