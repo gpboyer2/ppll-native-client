@@ -386,7 +386,7 @@ function GridStrategyEditPage() {
         quantity_precision: 3,
         name: `${data.position_side} ${data.trading_pair}`,
         margin_type: 'cross',
-        exchange_type: 'binance'
+        trading_mode: data.trading_mode
       };
 
       let response;
@@ -788,6 +788,25 @@ function GridStrategyEditPage() {
           </h2>
 
           <div className="grid-strategy-form-grid">
+            {/* 交易模式 */}
+            <div className="grid-strategy-form-field">
+              <label className="grid-strategy-form-label">
+                                交易模式
+                <span className="grid-strategy-form-required">*</span>
+              </label>
+              <Select
+                placeholder="选择交易模式"
+                data={[
+                  { value: 'spot', label: '现货交易 (SPOT)' },
+                  { value: 'usdt_futures', label: 'U本位合约 (USDT-M)' },
+                  { value: 'coin_futures', label: 'B本位合约 (COIN-M)' }
+                ]}
+                value={formData.trading_mode}
+                onChange={(value: string | null) => value && updateFormField('trading_mode', value as 'spot' | 'usdt_futures' | 'coin_futures')}
+              />
+              <div className="help">选择交易模式：现货、U本位合约或B本位合约</div>
+            </div>
+
             {/* 持仓方向 */}
             <div className="grid-strategy-form-field">
               <label className="grid-strategy-form-label">

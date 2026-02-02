@@ -16,23 +16,23 @@ const ApiError = require("../utils/api-error");
 const usd_m_futures_infinite_grid_event_manager = require('../managers/usd-m-futures-infinite-grid-event-manager');
 const execution_status = require('../constants/grid-strategy-status-map');
 
+
 /**
- * 根据 exchange_type 动态获取网格插件
- * @param {string} exchange_type - 产品类型 ('binance' 现货, 'binance_futures' U本位合约)
+ * 根据 trading_mode 动态获取网格插件
+ * @param {string} trading_mode - 交易模式 ('spot' 现货, 'usdt_futures' U本位合约, 'coin_futures' B本位合约)
  * @returns {Object} 网格插件类
- * @throws {Error} 不支持的 exchange_type 时抛出错误
+ * @throws {Error} 不支持的 trading_mode 时抛出错误
  */
-const getGridPlugin = (exchange_type) => {
-  switch (exchange_type) {
-    case 'binance':
+const getGridPlugin = (trading_mode) => {
+  switch (trading_mode) {
+    case 'spot':
       return require('../plugin/spotInfiniteGrid.js');
-    case 'binance_futures':
-    case undefined:
-    case null:
-    case '':
+    case 'usdt_futures':
       return require('../plugin/umInfiniteGrid.js');
+    case 'coin_futures':
+      return require('../plugin/cmInfiniteGrid.js');
     default:
-      throw new Error(`不支持的 exchange_type: ${exchange_type}，仅支持 'binance' 和 'binance_futures'`);
+      throw new Error(`不支持的 trading_mode: ${trading_mode}，仅支持 'spot'、'usdt_futures' 和 'coin_futures'`);
   }
 };
 
@@ -99,17 +99,22 @@ async function validateAndSanitizeParams(params) {
  */
 async function findOrCreateStrategy(params) {
   const { valid_params } = params;
-  const { api_key, api_secret, trading_pair, position_side, exchange_type } = params.original;
+  const { api_key, api_secret, trading_pair, position_side, trading_mode } = params.original;
 
   // 只输出关注交易对的日志
   if (trading_pair === 'UNIUSDT') {
     console.log(`[grid-strategy] ========== findOrCreateStrategy 被调用 ==========`);
     console.log(`[grid-strategy] 交易对: ${trading_pair}`);
-    console.log(`[grid-strategy] 产品类型: ${exchange_type}`);
+    console.log(`[grid-strategy] 交易模式: ${trading_mode}`);
   }
 
-  // 根据 exchange_type 选择插件
-  const InfiniteGrid = getGridPlugin(exchange_type);
+  // 必填校验
+  if (!trading_mode) {
+    throw new Error('trading_mode 是必填字段');
+  }
+
+  // 根据 trading_mode 选择插件
+  const InfiniteGrid = getGridPlugin(trading_mode);
 
   // 先检查是否已存在
   const existing = await GridStrategy.findOne({
@@ -190,7 +195,7 @@ async function setupSubscription(row, params) {
  策略ID: ${row.id}
  API Key: ${valid_params.api_key?.substring(0, 8)}...
  持仓方向: ${valid_params.position_side}
- 产品类型: ${valid_params.exchange_type || 'u本位合约'}
+ 交易模式: ${valid_params.trading_mode}
 ╚══════════════════════════════════════════════════╝
 `;
       console.log(logMessage);
@@ -200,7 +205,7 @@ async function setupSubscription(row, params) {
       strategyId: row.id,
       api_key: valid_params.api_key?.substring(0, 8),
       positionSide: valid_params.position_side,
-      productType: valid_params.exchange_type || 'u本位合约',
+      productType: valid_params.trading_mode,
       action: 'subscribe',
       isReused: false
     });
@@ -218,7 +223,7 @@ async function setupSubscription(row, params) {
  策略ID: ${row.id}
  API Key: ${valid_params.api_key?.substring(0, 8)}...
  持仓方向: ${valid_params.position_side}
- 产品类型: ${valid_params.exchange_type || 'u本位合约'}
+ 交易模式: ${valid_params.trading_mode}
  当前订阅数: ${currentCount + 1}
 ╚══════════════════════════════════════════════════╝
 `;
@@ -229,7 +234,7 @@ async function setupSubscription(row, params) {
       strategyId: row.id,
       api_key: valid_params.api_key?.substring(0, 8),
       positionSide: valid_params.position_side,
-      productType: valid_params.exchange_type || 'u本位合约',
+      productType: valid_params.trading_mode,
       action: 'subscribe',
       isReused: true,
       currentSubscribers: currentCount
@@ -255,7 +260,7 @@ async function bindEventHandlers(row, params) {
       api_key: this.config.api_key?.substring(0, 8),
       symbol: this.config.trading_pair,
       positionSide: this.config.position_side,
-      productType: this.config.exchange_type || 'u本位合约',
+      productType: this.config.trading_mode,
       error: data,
       timestamp: dayjs().format('YYYY-MM-DD HH:mm:ss')
     });
@@ -303,7 +308,7 @@ async function bindEventHandlers(row, params) {
       exit_time: null,
       holding_period: 0,
       exchange: "BINANCE",
-      exchange_type: "USDT-M",
+      trading_mode: instance.config.trading_mode,
       leverage: instance.config.leverage || 20,
       margin_type: "",
       margin_used: 0,
@@ -394,7 +399,7 @@ async function bindEventHandlers(row, params) {
       exit_time: new Date(data.time),
       holding_period: 0,
       exchange: "BINANCE",
-      exchange_type: "USDT-M",
+      trading_mode: instance.config.trading_mode,
       leverage: instance.config.leverage || 20,
       margin_type: "",
       margin_used: 0,
@@ -494,7 +499,7 @@ function bindGlobalTickListener() {
  * @param {string} params.position_side - 持仓方向
  * @returns {Promise<Object>} - 返回创建的策略对象和是否创建成功的标记
  */
-const createGridStrategy = async (/** @type {{api_key: string, api_secret: string, trading_pair: string, position_side: string, exchange_type?: string}} */ params) => {
+const createGridStrategy = async (/** @type {{api_key: string, api_secret: string, trading_pair: string, position_side: string, trading_mode?: string}} */ params) => {
   // 只输出关注交易对的日志
   if (params.trading_pair === 'UNIUSDT') {
     console.log(`[grid-strategy] ========== createGridStrategy 被调用 ==========`);

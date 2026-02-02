@@ -158,8 +158,8 @@ export interface GridStrategy {
   /** 数量精度 */
   quantity_precision?: number;
 
-  /** 交易所类型 (SPOT/USDT-M/COIN-M) */
-  exchange_type?: string;
+  /** 交易模式 (spot/usdt_futures/coin_futures) */
+  trading_mode?: string;
 
   /** 策略运行状态（前端维护） */
   status?: StrategyStatus;
@@ -225,7 +225,8 @@ export const defaultGridStrategy: GridStrategyForm = {
   priority_close_on_trend: true,
   avg_cost_price_days: 30,
   stop_loss_price: undefined,
-  take_profit_price: undefined
+  take_profit_price: undefined,
+  trading_mode: 'spot'
 };
 
 /** 筛选条件类型 */
@@ -403,7 +404,7 @@ export interface GridStrategyDetail {
   created_at: string;
   updated_at: string;
   exchange?: string;
-  exchange_type?: string;
+  trading_mode?: string;
   margin_type?: string;
   liquidation_price?: number;
   is_above_open_price?: boolean;

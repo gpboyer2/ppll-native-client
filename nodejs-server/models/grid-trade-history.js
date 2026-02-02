@@ -140,11 +140,10 @@ module.exports = (sequelize) => {
         defaultValue: "BINANCE",
         comment: "交易所",
       },
-      exchange_type: {
+      trading_mode: {
         type: DataTypes.STRING(20),
         allowNull: true,
-        defaultValue: "USDT-M",
-        comment: "交易所类型",
+        comment: "交易模式(spot/usdt_futures/coin_futures)",
       },
       leverage: {
         type: DataTypes.INTEGER,

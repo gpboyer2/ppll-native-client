@@ -58,8 +58,8 @@ const create = catchAsync(async (req, res) => {
     is_below_open_price,
     // 顺势仅减仓策略
     priority_close_on_trend,
-    // 交易所类型
-    exchange_type,
+    // 交易模式
+    trading_mode,
   } = req.body;
 
   // 参数验证
@@ -127,8 +127,8 @@ const create = catchAsync(async (req, res) => {
     is_below_open_price,
     // 顺势仅减仓策略
     priority_close_on_trend,
-    // 交易所类型
-    exchange_type,
+    // 交易模式
+    trading_mode,
   };
 
   // 过滤掉 undefined 或 null 的参数
