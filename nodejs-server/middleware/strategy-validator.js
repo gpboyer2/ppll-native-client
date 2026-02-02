@@ -58,13 +58,22 @@ const validateStrategyParams = async (req, res, next) => {
       }
     }
 
-    // 4. 验证最小交易金额（MIN_NOTIONAL）
-    const minNotionalResult = strategyValidator.validateMinNotional(quantitiesToValidate, symbolInfo, trading_pair);
+    // 4. 获取当前价格（用于 MIN_NOTIONAL 验证）
+    let currentPrice = null;
+    if (symbolInfo.bidPrice || symbolInfo.askPrice) {
+      // 使用中间价作为当前价格
+      currentPrice = Number((symbolInfo.bidPrice && symbolInfo.askPrice)
+        ? (Number(symbolInfo.bidPrice) + Number(symbolInfo.askPrice)) / 2
+        : symbolInfo.bidPrice || symbolInfo.askPrice);
+    }
+
+    // 5. 验证最小交易金额（MIN_NOTIONAL）
+    const minNotionalResult = strategyValidator.validateMinNotional(quantitiesToValidate, symbolInfo, trading_pair, currentPrice);
     if (!minNotionalResult.valid) {
       return res.apiError(null, minNotionalResult.message);
     }
 
-    // 5. 验证价格差价
+    // 6. 验证价格差价
     if (grid_price_difference) {
       const priceResult = strategyValidator.validatePriceDifference(grid_price_difference, symbolInfo);
       if (!priceResult.valid) {

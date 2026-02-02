@@ -82,4 +82,53 @@ describe('策略参数验证器', () => {
       expect(result.suggestion).toBe('0.10');
     });
   });
+
+  describe('最小交易金额验证（MIN_NOTIONAL）', () => {
+    const currentPrice = 50000;
+
+    test('应该接受满足最小交易金额的数量', () => {
+      const quantities = ['0.001'];
+      const result = strategyValidator.validateMinNotional(quantities, mockExchangeInfo, 'BTCUSDT', currentPrice);
+
+      expect(result.valid).toBe(true);
+      expect(result.message).toBe('最小交易金额符合要求');
+    });
+
+    test('应该拒绝不满足最小交易金额的数量', () => {
+      const quantities = ['0.0001'];
+      const result = strategyValidator.validateMinNotional(quantities, mockExchangeInfo, 'BTCUSDT', currentPrice);
+
+      expect(result.valid).toBe(false);
+      expect(result.message).toContain('最小单笔交易金额为 10.00 USDT');
+      expect(result.message).toContain('预估价值为 5.00 USDT');
+      expect(result.message).toContain('建议交易数量至少为');
+    });
+
+    test('应该验证多个数量中的每一个', () => {
+      const quantities = ['0.001', '0.0001', '0.002'];
+      const result = strategyValidator.validateMinNotional(quantities, mockExchangeInfo, 'BTCUSDT', currentPrice);
+
+      expect(result.valid).toBe(false);
+      expect(result.message).toContain('0.0001');
+    });
+
+    test('当缺少当前价格时应该返回错误', () => {
+      const quantities = ['0.001'];
+      const result = strategyValidator.validateMinNotional(quantities, mockExchangeInfo, 'BTCUSDT', null);
+
+      expect(result.valid).toBe(false);
+      expect(result.message).toContain('缺少当前价格信息');
+    });
+
+    test('当没有 MIN_NOTIONAL 过滤器时应该跳过验证', () => {
+      const exchangeInfoWithoutFilter = {
+        filters: []
+      };
+      const quantities = ['0.0001'];
+      const result = strategyValidator.validateMinNotional(quantities, exchangeInfoWithoutFilter, 'BTCUSDT', currentPrice);
+
+      expect(result.valid).toBe(true);
+      expect(result.message).toContain('跳过最小交易金额验证');
+    });
+  });
 });
