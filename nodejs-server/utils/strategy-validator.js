@@ -53,6 +53,58 @@ function validateQuantity(quantity, exchangeInfo) {
 }
 
 /**
+ * 验证最小交易金额（MIN_NOTIONAL）
+ * @param {array} quantities - 交易数量数组
+ * @param {object} exchangeInfo - 交易所信息
+ * @param {string} symbol - 交易对符号
+ * @returns {object} 验证结果 {valid, message}
+ */
+function validateMinNotional(quantities, exchangeInfo, symbol) {
+  // 获取 MIN_NOTIONAL 过滤器
+  const minNotionalFilter = exchangeInfo.filters?.find(f => f.filterType === 'MIN_NOTIONAL');
+
+  if (!minNotionalFilter) {
+    // 如果没有 MIN_NOTIONAL 过滤器，则跳过验证
+    return {
+      valid: true,
+      message: '未找到 MIN_NOTIONAL 过滤器，跳过最小交易金额验证'
+    };
+  }
+
+  // 获取最小交易金额（通常是 5, 10 或 100 USDT）
+  const minNotionalRaw = minNotionalFilter.notional ?? minNotionalFilter.minNotional;
+  const minNotional = Number(minNotionalRaw);
+
+  if (minNotional <= 0) {
+    return {
+      valid: true,
+      message: 'MIN_NOTIONAL 值无效，跳过验证'
+    };
+  }
+
+  // 检查是否有足够的信息来估算交易金额
+  // 如果数量是小数（如0.001 BTC），需要估算其价值
+  // 对于BTCUSDT，如果数量小于0.001，很可能低于100 USDT
+  const hasSmallQuantity = quantities.some(q => Number(q) < 0.005);
+
+  if (hasSmallQuantity && minNotional >= 100) {
+    // 如果数量很小且最小交易金额是100或更多，给出警告
+    return {
+      valid: false,
+      message: `根据币安官方要求，${symbol} 最小单笔交易金额为 ${minNotional.toFixed(2)} USDT（币安 MIN_NOTIONAL 限制）。当前设置的交易数量 ${quantities.join(', ')} 可能不满足要求。建议：\n` +
+               `- 如果交易对是 BTCUSDT，建议交易数量至少为 0.0015 BTC（约115 USDT）\n` +
+               `- 如果交易对是 ETHUSDT，建议交易数量至少为 0.03 ETH（约100 USDT）\n` +
+               `- 或使用"智能配置"功能自动计算最优参数`
+    };
+  }
+
+  return {
+    valid: true,
+    message: '最小交易金额符合要求'
+  };
+}
+
+/**
  * 验证价格差价
  * @param {string|number} priceDiff - 价格差价
  * @param {object} exchangeInfo - 交易所信息
@@ -126,5 +178,6 @@ function validatePriceDifference(priceDiff, exchangeInfo) {
 
 module.exports = {
   validateQuantity,
+  validateMinNotional,
   validatePriceDifference
 };
