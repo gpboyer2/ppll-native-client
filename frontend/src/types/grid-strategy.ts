@@ -226,7 +226,7 @@ export const defaultGridStrategy: GridStrategyForm = {
   avg_cost_price_days: 30,
   stop_loss_price: undefined,
   take_profit_price: undefined,
-  trading_mode: 'spot'
+  trading_mode: 'usdt_futures'
 };
 
 /** 筛选条件类型 */
