@@ -22,6 +22,9 @@ process-monitoring/
 # Backup files
 database/
 
+# Database files
+nodejs-server/datum/*.sqlite
+
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
