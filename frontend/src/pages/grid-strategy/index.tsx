@@ -71,7 +71,7 @@ function GridStrategyListPage() {
           current_page: 1,
           page_size: 100,
           api_key: api_key.api_key,
-          secret_key: api_key.secret_key
+          api_secret: api_key.api_secret
         })
       );
 

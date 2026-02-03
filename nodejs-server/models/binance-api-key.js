@@ -30,7 +30,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       comment: 'Binance API Key'
     },
-    secret_key: {
+    api_secret: {
       type: DataTypes.STRING(255),
       allowNull: false,
       comment: 'Binance Secret Key'

@@ -10,21 +10,21 @@ export class BinanceAccountApi {
   /**
    * 获取U本位合约账户
    */
-  static async getUSDMFutures(params: { api_key: string; secret_key: string; include_positions?: boolean }): Promise<Response<any>> {
+  static async getUSDMFutures(params: { api_key: string; api_secret: string; include_positions?: boolean }): Promise<Response<any>> {
     return RequestWrapper.get(`${this.BASE_PATH}/usdm-futures`, params);
   }
 
   /**
    * 获取现货账户
    */
-  static async getSpot(params: { api_key: string; secret_key: string; include_empty_balances?: boolean }): Promise<Response<any>> {
+  static async getSpot(params: { api_key: string; api_secret: string; include_empty_balances?: boolean }): Promise<Response<any>> {
     return RequestWrapper.get(`${this.BASE_PATH}/spot`, params);
   }
 
   /**
    * 获取币本位合约账户
    */
-  static async getCoinMFutures(params: { api_key: string; secret_key: string; include_positions?: boolean }): Promise<Response<any>> {
+  static async getCoinMFutures(params: { api_key: string; api_secret: string; include_positions?: boolean }): Promise<Response<any>> {
     return RequestWrapper.get(`${this.BASE_PATH}/coinm-futures`, params);
   }
 
@@ -33,7 +33,7 @@ export class BinanceAccountApi {
    */
   static async setLeverage(data: {
     api_key: string;
-    secret_key: string;
+    api_secret: string;
     leverage_list: Array<{ symbol: string; leverage: number }>;
     delay?: number;
   }): Promise<Response<any>> {
@@ -59,7 +59,7 @@ export class BinanceAccountApi {
    */
   static async getPositionRisk(params: {
     api_key: string;
-    secret_key: string;
+    api_secret: string;
     symbol: string;
   }): Promise<Response<{ symbol: string; leverage: number }>> {
     return RequestWrapper.get(`${this.BASE_PATH}/position-risk`, params);

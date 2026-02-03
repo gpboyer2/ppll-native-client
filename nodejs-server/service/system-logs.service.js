@@ -17,7 +17,7 @@ const SystemLog = db.system_logs;
  */
 function maskObject(obj) {
   if (!obj || typeof obj !== 'object') return obj;
-  const sensitiveKeys = ['password', 'secret_key', 'secret', 'api_secret', 'privateKey', 'token', 'accessToken', 'api_key', 'auth'];
+  const sensitiveKeys = ['password', 'api_secret', 'secret', 'api_secret', 'privateKey', 'token', 'accessToken', 'api_key', 'auth'];
   const cloned = { ...obj };
   for (const k of sensitiveKeys) {
     if (Object.prototype.hasOwnProperty.call(cloned, k)) cloned[k] = '***';

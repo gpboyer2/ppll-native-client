@@ -15,7 +15,7 @@ const path = require('path');
 const variableMappings = {
   // 通用变量
   'apiKey': 'api_key',
-  'apiSecret': 'secret_key',
+  'apiSecret': 'api_secret',
   'apiUrl': 'api_url',
   'errorMsg': 'error_msg',
   'errorMessage': 'error_message',

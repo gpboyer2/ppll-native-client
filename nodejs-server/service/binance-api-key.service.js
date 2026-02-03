@@ -48,7 +48,7 @@ const createApiKey = async (params) => {
   const keyData = {
     name,
     api_key,
-    secret_key: api_secret,
+    api_secret: api_secret,
     status: status || 2,
     deleted: 0,
     remark,
@@ -146,7 +146,7 @@ const updateApiKeyById = async (api_key_id, updateBody) => {
     updateData.api_key = api_key;
   }
 
-  if (api_secret !== undefined) updateData.secret_key = api_secret;
+  if (api_secret !== undefined) updateData.api_secret = api_secret;
   if (status !== undefined) updateData.status = status;
   if (remark !== undefined) updateData.remark = remark;
   if (vip_expire_at !== undefined) updateData.vip_expire_at = vip_expire_at;

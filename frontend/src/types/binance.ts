@@ -3,7 +3,7 @@
 // API 凭证（使用下划线命名，与后端保持一致）
 export interface BinanceCredentials {
   api_key: string
-  secret_key: string
+  api_secret: string
 }
 
 // 统一API响应结构

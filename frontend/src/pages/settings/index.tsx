@@ -41,7 +41,7 @@ function SettingsPage() {
   const [api_key_form, set_api_key_form] = useState({
     name: '',
     api_key: '',
-    secret_key: '',
+    api_secret: '',
     status: 2,
     remark: ''
   });
@@ -112,7 +112,7 @@ function SettingsPage() {
     set_api_key_form({
       name: '',
       api_key: '',
-      secret_key: '',
+      api_secret: '',
       status: 2,
       remark: ''
     });
@@ -124,7 +124,7 @@ function SettingsPage() {
     set_api_key_form({
       name: '',
       api_key: '',
-      secret_key: '',
+      api_secret: '',
       status: 2,
       remark: ''
     });
@@ -137,7 +137,7 @@ function SettingsPage() {
     set_api_key_form({
       name: api_key.name,
       api_key: api_key.api_key,
-      secret_key: api_key.secret_key,
+      api_secret: api_key.api_secret,
       status: api_key.status,
       remark: api_key.remark || ''
     });
@@ -145,7 +145,7 @@ function SettingsPage() {
   }
 
   async function handleSaveApiKey() {
-    if (!api_key_form.name.trim() || !api_key_form.api_key.trim() || !api_key_form.secret_key.trim()) {
+    if (!api_key_form.name.trim() || !api_key_form.api_key.trim() || !api_key_form.api_secret.trim()) {
       set_api_key_status('error');
       setTimeout(() => set_api_key_status('idle'), 500);
       return;
@@ -158,14 +158,14 @@ function SettingsPage() {
           id: editingApiKey.id,
           name: api_key_form.name,
           api_key: api_key_form.api_key, // 下划线命名
-          secret_key: api_key_form.secret_key, // 下划线命名
+          api_secret: api_key_form.api_secret, // 下划线命名
           status: api_key_form.status,
           remark: api_key_form.remark
         }
         : {
           name: api_key_form.name,
           api_key: api_key_form.api_key, // 下划线命名
-          secret_key: api_key_form.secret_key, // 下划线命名
+          api_secret: api_key_form.api_secret, // 下划线命名
           status: api_key_form.status,
           remark: api_key_form.remark
         };
@@ -313,7 +313,7 @@ function SettingsPage() {
                         </div>
                         <div className="binance-apikey-item-detail">
                           <span className="text-muted">Secret Key:</span>
-                          <span className="binance-apikey-masked">{maskApiKey(item.secret_key)}</span>
+                          <span className="binance-apikey-masked">{maskApiKey(item.api_secret)}</span>
                         </div>
                         <div className="binance-apikey-item-detail">
                           <span className="text-muted">创建时间:</span>
@@ -395,8 +395,8 @@ function SettingsPage() {
                     <label className="label">Secret Key</label>
                     <PasswordInput
                       placeholder="Binance Secret Key"
-                      value={api_key_form.secret_key}
-                      onChange={(value: string) => set_api_key_form(prev => ({ ...prev, secret_key: value }))}
+                      value={api_key_form.api_secret}
+                      onChange={(value: string) => set_api_key_form(prev => ({ ...prev, api_secret: value }))}
                     />
                   </div>
                 </div>

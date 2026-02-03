@@ -77,7 +77,7 @@ export function SmartConfigModal({
       showWarning('请先选择交易对');
       return;
     }
-    if (!default_params?.api_key || !default_params?.secret_key) {
+    if (!default_params?.api_key || !default_params?.api_secret) {
       showWarning('请先选择币安API Key');
       return;
     }
@@ -94,7 +94,7 @@ export function SmartConfigModal({
         max_trade_value: max_trade_value,
         interval,
         api_key: default_params.api_key,
-        secret_key: default_params.secret_key
+        api_secret: default_params.api_secret
       });
 
       if (response.status === 'error') {

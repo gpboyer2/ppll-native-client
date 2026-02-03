@@ -84,7 +84,7 @@ export interface GridStrategy {
   api_key: string;
 
   /** 必填，币安API Secret */
-  secret_key: string;
+  api_secret: string;
 
   /** 初始建仓的价格，不填值时自动按当前价格建仓 */
   initial_fill_price: number | undefined;
@@ -204,7 +204,7 @@ export const defaultGridStrategy: GridStrategyForm = {
   position_side: 'LONG',
   trading_pair: '',
   api_key: '',
-  secret_key: '',
+  api_secret: '',
   initial_fill_price: undefined,
   leverage: 20,
   max_open_position_quantity: undefined,
@@ -355,7 +355,7 @@ export interface SmartConfigModalProps {
     trading_pair?: string;
     position_side?: PositionSide;
     api_key?: string;
-    secret_key?: string;
+    api_secret?: string;
   };
 }
 

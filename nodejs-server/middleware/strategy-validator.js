@@ -13,7 +13,7 @@ const { getCurrentPrice } = require('../utils/binance-order-helper');
  */
 const validateStrategyParams = async (req, res, next) => {
   try {
-    const { api_key, secret_key } = req.apiCredentials;
+    const { api_key, api_secret } = req.apiCredentials;
     const {
       trading_pair,
       grid_trade_quantity,
@@ -79,7 +79,7 @@ const validateStrategyParams = async (req, res, next) => {
 
     if (!currentPrice) {
       try {
-        currentPrice = await getCurrentPrice(trading_pair, api_key, secret_key);
+        currentPrice = await getCurrentPrice(trading_pair, api_key, api_secret);
       } catch (error) {
         console.warn(`获取 ${trading_pair} 实时价格失败:`, error?.message || error);
       }

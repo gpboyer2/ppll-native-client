@@ -151,7 +151,7 @@ export class RequestWrapper {
       if (currentKey) {
         return {
           api_key: currentKey.api_key,
-          secret_key: currentKey.secret_key
+          api_secret: currentKey.api_secret
         };
       }
     } catch (error) {

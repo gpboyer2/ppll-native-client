@@ -8,7 +8,7 @@ export interface BinanceApiKey {
     id: number;
     name: string;
     api_key: string;
-    secret_key: string;
+    api_secret: string;
     status: number;
     remark?: string;
     vip_expire_at?: string;
@@ -55,7 +55,7 @@ interface BinanceStore {
     getApiKeyById: (id: number) => BinanceApiKey | undefined;
     set_active_api_key: (id: string) => void; // 设置当前激活的 API Key
     get_active_api_key: () => BinanceApiKey | null; // 获取当前激活的 API Key
-    getCurrentApiKey: () => { api_key: string; secret_key: string } | null; // 获取当前 API Key 信息
+    getCurrentApiKey: () => { api_key: string; api_secret: string } | null; // 获取当前 API Key 信息
 
     // Ticker 订阅相关
     connectSocket: () => Promise<void>;
@@ -190,10 +190,10 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
     try {
       const params = {
         api_key: active_api_key.api_key,
-        secret_key: active_api_key.secret_key
+        api_secret: active_api_key.api_secret
       };
 
-      // 传递 api_key 和 secret_key 参数
+      // 传递 api_key 和 api_secret 参数
       const response = await BinanceExchangeInfoApi.getExchangeInfo(params);
 
       // 后端响应直接透传，数据在 response.datum.symbols
@@ -239,7 +239,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
     if (!active_key) return null;
     return {
       api_key: active_key.api_key,
-      secret_key: active_key.secret_key
+      api_secret: active_key.api_secret
     };
   },
 

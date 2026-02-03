@@ -24,16 +24,16 @@ const validateVipAccess = async (req, res, next) => {
   try {
     // 从请求体或查询参数中获取API凭证
     const api_key = req.body?.api_key || req.query?.api_key;
-    const secret_key = req.body?.secret_key || req.query?.secret_key;
+    const api_secret = req.body?.api_secret || req.query?.api_secret;
 
     // 如果提供了api_key，进行验证
-    if (api_key && secret_key) {
+    if (api_key && api_secret) {
       try {
         // 验证 binance_api_key 表中是否存在匹配的记录
         const keyRecord = await BinanceApiKey.findOne({
           where: {
             api_key: api_key,
-            secret_key: secret_key,
+            api_secret: api_secret,
             deleted: 0,
           }
         });

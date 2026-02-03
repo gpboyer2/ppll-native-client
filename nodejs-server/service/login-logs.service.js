@@ -13,7 +13,7 @@ function sanitize(record) {
   const data = record.toJSON ? record.toJSON() : record;
   // 移除或脱敏敏感字段
   if (data.password) delete data.password; // 禁止对外返回
-  // 出于安全考虑：对外返回时不暴露 secret_key
+  // 出于安全考虑：对外返回时不暴露 api_secret
   if (data.api_secret) {
     data.api_secret = '***';
   }
@@ -95,7 +95,7 @@ async function detail(id) {
 
 // 写入（可选使用，默认仅允许安全字段）
 async function create(payload = {}) {
-  // 计算登录方式：支持 (username+password) 或 (api_key+secret_key)，两者都存在则标记为组合
+  // 计算登录方式：支持 (username+password) 或 (api_key+api_secret)，两者都存在则标记为组合
   const hasUserPair = Boolean(payload && payload.username && payload.password);
   const hasApiPair = Boolean(payload && payload.api_key && payload.api_secret);
   let inferred_method = 'unknown';
@@ -104,12 +104,12 @@ async function create(payload = {}) {
   else if (hasApiPair) inferred_method = 'api_key';
 
   // 如检测到敏感字段存在，只记录提示日志，不打印具体值
-  // 不再拒绝持久化 secret_key；根据业务要求允许入库
+  // 不再拒绝持久化 api_secret；根据业务要求允许入库
 
   const allow = {
     username: payload.username,
     api_key: payload.api_key,
-    secret_key: payload.api_secret, // 根据需求允许入库
+    api_secret: payload.api_secret, // 根据需求允许入库
     login_time: payload.login_time || new Date(),
     ip: payload.ip,
     location: payload.location,
@@ -129,7 +129,7 @@ async function create(payload = {}) {
   return sanitize(created);
 }
 
-// 更新（仅允许安全字段，禁止更新 secret_key/id）
+// 更新（仅允许安全字段，禁止更新 api_secret/id）
 async function update(payload = {}) {
   const { id } = payload || {};
   if (!id) throw new ApiError(httpStatus.BAD_REQUEST, '缺少参数 id');

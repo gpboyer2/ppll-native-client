@@ -69,23 +69,23 @@ export class BinanceApi {
   /**
    * 验证API凭证格式
    * @param api_key API密钥
-   * @param secret_key API密钥Secret
+   * @param api_secret API密钥Secret
    * @returns 是否有效
    */
-  static validateCredentials(api_key: string, secret_key: string): boolean {
-    return !!(api_key && api_key.trim() && secret_key && secret_key.trim());
+  static validateCredentials(api_key: string, api_secret: string): boolean {
+    return !!(api_key && api_key.trim() && api_secret && api_secret.trim());
   }
 
   /**
    * 构建API凭证对象
    * @param api_key API密钥
-   * @param secret_key API密钥Secret
+   * @param api_secret API密钥Secret
    * @returns API凭证对象
    */
-  static buildCredentials(api_key: string, secret_key: string) {
+  static buildCredentials(api_key: string, api_secret: string) {
     return {
       api_key: api_key.trim(),
-      secret_key: secret_key.trim()
+      api_secret: api_secret.trim()
     };
   }
 

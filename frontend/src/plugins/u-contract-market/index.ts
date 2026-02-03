@@ -151,9 +151,9 @@ const saveCredentials = async () => {
   if (!inputs) return;
 
   const api_key = inputs.api_key_input.value.trim();
-  const secret_key = inputs.api_secret_input.value.trim();
+  const api_secret = inputs.api_secret_input.value.trim();
 
-  if (!api_key || !secret_key) {
+  if (!api_key || !api_secret) {
     showStatus('请输入完整的API密钥信息', 'error');
     return;
   }
@@ -161,10 +161,10 @@ const saveCredentials = async () => {
   try {
     await PluginSaveConfig('u-contract-market', {
       api_key,
-      secret_key,
+      api_secret,
       savedAt: new Date().toISOString()
     } as any);
-    currentCredentials = { api_key, secret_key };
+    currentCredentials = { api_key, api_secret };
     showStatus('API密钥保存成功', 'success');
   } catch (error) {
     showStatus('保存API密钥失败', 'error');
@@ -176,13 +176,13 @@ const loadCredentials = async () => {
   try {
     const res: any = await PluginGetConfig('u-contract-market');
     if (res && res.status === 'success' && res.datum) {
-      const { api_key, secret_key } = res.datum;
-      if (api_key && secret_key) {
+      const { api_key, api_secret } = res.datum;
+      if (api_key && api_secret) {
         const inputs = getCredentialsInputs();
         if (inputs) {
           inputs.api_key_input.value = api_key;
-          inputs.api_secret_input.value = secret_key;
-          currentCredentials = { api_key, secret_key };
+          inputs.api_secret_input.value = api_secret;
+          currentCredentials = { api_key, api_secret };
           showStatus('API密钥加载成功', 'success');
         }
       } else {
@@ -200,9 +200,9 @@ const testCredentials = async () => {
   if (!inputs) return;
 
   const api_key = inputs.api_key_input.value.trim();
-  const secret_key = inputs.api_secret_input.value.trim();
+  const api_secret = inputs.api_secret_input.value.trim();
 
-  if (!BinanceApi.validateCredentials(api_key, secret_key)) {
+  if (!BinanceApi.validateCredentials(api_key, api_secret)) {
     showStatus('请输入有效的API密钥', 'error');
     return;
   }
@@ -210,10 +210,10 @@ const testCredentials = async () => {
   showLoading(true, '测试连接中...');
 
   try {
-    const response = await BinanceApi.getUmAccountInfo({ api_key, secret_key });
+    const response = await BinanceApi.getUmAccountInfo({ api_key, api_secret });
 
     if (response.status === 'success' && response.datum?.status === 'success') {
-      currentCredentials = { api_key, secret_key };
+      currentCredentials = { api_key, api_secret };
       accountData = response.datum.data || null;
       showStatus('API连接测试成功', 'success');
       await refreshAccountInfo();

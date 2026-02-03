@@ -75,8 +75,8 @@ function GridStrategyEditPage() {
   }, [init]);
 
   // 验证账户信息
-  const validateAccountInfo = useCallback(async (api_key: string, secret_key: string) => {
-    if (!api_key || !secret_key) {
+  const validateAccountInfo = useCallback(async (api_key: string, api_secret: string) => {
+    if (!api_key || !api_secret) {
       setAccountValidation({ status: 'idle' });
       return;
     }
@@ -86,7 +86,7 @@ function GridStrategyEditPage() {
     try {
       const response = await BinanceAccountApi.getUSDMFutures({
         api_key,
-        secret_key,
+        api_secret,
         include_positions: true
       });
 
@@ -179,15 +179,15 @@ function GridStrategyEditPage() {
   }, []);
 
   // 获取当前杠杆倍数
-  const fetchCurrentLeverage = useCallback(async (api_key: string, secret_key: string, symbol: string) => {
-    if (!api_key || !secret_key || !symbol) {
+  const fetchCurrentLeverage = useCallback(async (api_key: string, api_secret: string, symbol: string) => {
+    if (!api_key || !api_secret || !symbol) {
       return;
     }
 
     try {
       const response = await BinanceAccountApi.getPositionRisk({
         api_key,
-        secret_key,
+        api_secret,
         symbol
       });
 
@@ -222,8 +222,8 @@ function GridStrategyEditPage() {
           setFormData(formData);
 
           // 立即验证账户信息
-          if (formData.api_key && formData.secret_key) {
-            validateAccountInfo(formData.api_key, formData.secret_key);
+          if (formData.api_key && formData.api_secret) {
+            validateAccountInfo(formData.api_key, formData.api_secret);
           }
         } else {
           showError('未找到该策略');
@@ -264,20 +264,20 @@ function GridStrategyEditPage() {
   // 加载交易所信息（包含过滤器信息）
   const loadExchangeInfo = useCallback(async () => {
     const api_key = formData.api_key;
-    const secret_key = formData.secret_key;
-    if (!api_key || !secret_key) {
+    const api_secret = formData.api_secret;
+    if (!api_key || !api_secret) {
       return;
     }
 
     try {
-      const response = await BinanceExchangeInfoApi.getExchangeInfo({ api_key, secret_key });
+      const response = await BinanceExchangeInfoApi.getExchangeInfo({ api_key, api_secret });
       if (response.status === 'success' && response.datum?.symbols) {
         setExchangeInfo({ symbols: response.datum.symbols });
       }
     } catch (error) {
       console.error('加载交易所信息失败:', error);
     }
-  }, [formData.api_key, formData.secret_key]);
+  }, [formData.api_key, formData.api_secret]);
 
   // 当交易对改变时更新当前符号信息
   useEffect(() => {
@@ -293,18 +293,18 @@ function GridStrategyEditPage() {
 
   // 当 API Key 设置完成后加载交易所信息
   useEffect(() => {
-    if (formData.api_key && formData.secret_key) {
+    if (formData.api_key && formData.api_secret) {
       loadExchangeInfo();
     }
-  }, [formData.api_key, formData.secret_key, loadExchangeInfo]);
+  }, [formData.api_key, formData.api_secret, loadExchangeInfo]);
 
   // 当 API Key 和交易对都就绪时，获取当前杠杆倍数
   useEffect(() => {
     // 只在有 API Key、Secret Key 和交易对时才获取杠杆倍数
-    if (formData.api_key && formData.secret_key && formData.trading_pair) {
-      fetchCurrentLeverage(formData.api_key, formData.secret_key, formData.trading_pair);
+    if (formData.api_key && formData.api_secret && formData.trading_pair) {
+      fetchCurrentLeverage(formData.api_key, formData.api_secret, formData.trading_pair);
     }
-  }, [formData.api_key, formData.secret_key, formData.trading_pair, fetchCurrentLeverage]);
+  }, [formData.api_key, formData.api_secret, formData.trading_pair, fetchCurrentLeverage]);
 
   // 验证字段并更新提示
   const validateField = useCallback((field_name: string, value: string | number) => {
@@ -332,12 +332,12 @@ function GridStrategyEditPage() {
         setFormData((prev: GridStrategyForm) => ({
           ...prev,
           api_key: default_api_key.api_key,
-          secret_key: default_api_key.secret_key,
+          api_secret: default_api_key.api_secret,
           _api_key_id: String(default_api_key.id)
         }));
 
         // 立即验证账户信息
-        validateAccountInfo(default_api_key.api_key, default_api_key.secret_key);
+        validateAccountInfo(default_api_key.api_key, default_api_key.api_secret);
       }
     }
   }, [initialized, api_key_list, is_editing, formData._api_key_id, validateAccountInfo, get_active_api_key]);
@@ -345,7 +345,7 @@ function GridStrategyEditPage() {
   // WebSocket 实时获取标记价格
   useEffect(() => {
     // 如果没有选择交易对或没有 API Key，不获取价格
-    if (!formData.trading_pair || !formData.api_key || !formData.secret_key) {
+    if (!formData.trading_pair || !formData.api_key || !formData.api_secret) {
       setCurrentMarkPrice(null);
       return;
     }
@@ -372,7 +372,7 @@ function GridStrategyEditPage() {
       subscribed = true;
       unsubscribeTicker(formData.trading_pair, 'usdm');
     };
-  }, [formData.trading_pair, formData.api_key, formData.secret_key, connectSocket, subscribeTicker, unsubscribeTicker]);
+  }, [formData.trading_pair, formData.api_key, formData.api_secret, connectSocket, subscribeTicker, unsubscribeTicker]);
 
   // 从 ticker_prices 中获取当前价格
   useEffect(() => {
@@ -430,7 +430,7 @@ function GridStrategyEditPage() {
       showWarning('请选择币安API Key');
       return;
     }
-    if (!formData.secret_key.trim()) {
+    if (!formData.api_secret.trim()) {
       showWarning('请选择币安API Key');
       return;
     }
@@ -518,7 +518,7 @@ function GridStrategyEditPage() {
       setFormData((prev: GridStrategyForm) => ({
         ...prev,
         api_key: '',
-        secret_key: '',
+        api_secret: '',
         _api_key_id: undefined,
         // 清空交易对，因为不同的 API Key 可能支持的交易对不同
         trading_pair: '',
@@ -546,14 +546,14 @@ function GridStrategyEditPage() {
       setFormData((prev: GridStrategyForm) => ({
         ...prev,
         api_key: selected_key.api_key,
-        secret_key: selected_key.secret_key,
+        api_secret: selected_key.api_secret,
         _api_key_id: selected_key.id,
         // 清空交易对，因为不同的 API Key 可能支持的交易对不同
         trading_pair: '',
         // 重置杠杆倍数为默认值，等待交易对选择后自动获取
         leverage: 20
       }));
-      // 清空交易所信息，触发重新获取（loadExchangeInfo 会在 api_key/secret_key 改变时自动调用）
+      // 清空交易所信息，触发重新获取（loadExchangeInfo 会在 api_key/api_secret 改变时自动调用）
       setExchangeInfo(null);
       // 清空当前符号信息
       setCurrentSymbolInfo(null);
@@ -564,12 +564,12 @@ function GridStrategyEditPage() {
       // 选择API Key后自动刷新交易对列表
       refreshTradingPairs();
       // 验证账户信息
-      validateAccountInfo(selected_key.api_key, selected_key.secret_key);
+      validateAccountInfo(selected_key.api_key, selected_key.api_secret);
     } else {
       setFormData((prev: GridStrategyForm) => ({
         ...prev,
         api_key: '',
-        secret_key: '',
+        api_secret: '',
         _api_key_id: undefined,
         trading_pair: '',
         // 重置杠杆倍数为默认值
@@ -589,7 +589,7 @@ function GridStrategyEditPage() {
       position_side: Math.random() > 0.5 ? 'LONG' : 'SHORT',
       trading_pair: usdt_pairs[Math.floor(Math.random() * Math.min(usdt_pairs.length, 10))] || 'ETHUSDT',
       api_key: 'mock_api_key_' + Math.random().toString(36).substring(2, 10),
-      secret_key: 'mock_secret_' + Math.random().toString(36).substring(2, 10),
+      api_secret: 'mock_secret_' + Math.random().toString(36).substring(2, 10),
       leverage: 20,
       initial_fill_price: undefined,
       grid_price_difference: Number((Math.random() * 50 + 10).toFixed(2)),
@@ -623,7 +623,7 @@ function GridStrategyEditPage() {
       showWarning('请先选择币安API Key');
       return;
     }
-    if (!formData.secret_key.trim()) {
+    if (!formData.api_secret.trim()) {
       showWarning('请先选择币安API Key');
       return;
     }
@@ -964,7 +964,7 @@ function GridStrategyEditPage() {
           trading_pair: formData.trading_pair,
           position_side: formData.position_side,
           api_key: formData.api_key,
-          secret_key: formData.secret_key
+          api_secret: formData.api_secret
         }}
       />
 

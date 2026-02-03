@@ -13,7 +13,7 @@ export class GridStrategyApi {
    */
   static async list(params?: PageRequest & {
     api_key?: string
-    secret_key?: string
+    api_secret?: string
   }): Promise<Response<PageData<any>>> {
     return RequestWrapper.get(`${this.BASE_PATH}/`, params);
   }
@@ -23,7 +23,7 @@ export class GridStrategyApi {
    */
   static async query(params?: PageRequest & {
     api_key?: string
-    secret_key?: string
+    api_secret?: string
   }): Promise<Response<PageData<any>>> {
     return RequestWrapper.get(`${this.BASE_PATH}/query`, params);
   }
@@ -82,7 +82,7 @@ export class GridStrategyApi {
     max_trade_value: number
     interval: string
     api_key: string
-    secret_key: string
+    api_secret: string
   }): Promise<Response<any>> {
     return RequestWrapper.post(`${this.BASE_PATH}/optimize`, data);
   }

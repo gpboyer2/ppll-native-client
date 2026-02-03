@@ -9,11 +9,11 @@ const httpStatus = require("http-status");
 const catchAsync = require("../utils/catch-async");
 
 const list = catchAsync(async (req, res) => {
-  let { api_key, secret_key } = req.apiCredentials;
+  let { api_key, api_secret } = req.apiCredentials;
   let { currentPage, pageSize } = req.query;
 
   let grid = await gridStrategyService.getAllGridStrategys(
-    { api_key: api_key, api_secret: secret_key },
+    { api_key: api_key, api_secret: api_secret },
     { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 }
   );
 
@@ -28,7 +28,7 @@ const list = catchAsync(async (req, res) => {
  * 
  */
 const create = catchAsync(async (req, res) => {
-  const { api_key, secret_key } = req.apiCredentials;
+  const { api_key, api_secret } = req.apiCredentials;
   const {
     trading_pair,
     position_side,
@@ -98,7 +98,7 @@ const create = catchAsync(async (req, res) => {
 
   const strategyData = {
     api_key: api_key,
-    api_secret: secret_key,
+    api_secret: api_secret,
     trading_pair,
     position_side,
     grid_price_difference,
@@ -159,7 +159,7 @@ const create = catchAsync(async (req, res) => {
 
 /** 删除网格策略 */
 const deletes = catchAsync(async (req, res) => {
-  let { api_key, secret_key } = req.apiCredentials;
+  let { api_key, api_secret } = req.apiCredentials;
   let { id } = req.body;
   let result = null;
 
@@ -169,7 +169,7 @@ const deletes = catchAsync(async (req, res) => {
 
   result = await gridStrategyService.deleteGridStrategyById({
     api_key: api_key,
-    api_secret: secret_key,
+    api_secret: api_secret,
     id: Number(id)
   });
 
@@ -182,7 +182,7 @@ const deletes = catchAsync(async (req, res) => {
 
 
 const update = catchAsync(async (req, res) => {
-  const { api_key, secret_key } = req.apiCredentials;
+  const { api_key, api_secret } = req.apiCredentials;
   const {
     id,
     grid_price_difference,
@@ -213,7 +213,7 @@ const update = catchAsync(async (req, res) => {
   const updateData = {
     id: Number(id),
     api_key: api_key,
-    api_secret: secret_key,
+    api_secret: api_secret,
     grid_price_difference,
     grid_trade_quantity,
     grid_long_open_quantity,
@@ -254,7 +254,7 @@ const update = catchAsync(async (req, res) => {
 
 /** 更新网格策略状态（暂停或继续） */
 const action = catchAsync(async (req, res) => {
-  let { api_key, secret_key } = req.apiCredentials;
+  let { api_key, api_secret } = req.apiCredentials;
   let { id } = req.body;
 
   if (!id) {
@@ -268,7 +268,7 @@ const action = catchAsync(async (req, res) => {
   const result = await gridStrategyService.updateGridStrategyById({
     paused,
     api_key: api_key,
-    api_secret: secret_key,
+    api_secret: api_secret,
     id: Number(id)
   });
 
@@ -283,11 +283,11 @@ const action = catchAsync(async (req, res) => {
 
 
 const query = catchAsync(async (req, res) => {
-  let { api_key, secret_key } = req.apiCredentials;
+  let { api_key, api_secret } = req.apiCredentials;
   let { currentPage, pageSize } = req.query;
 
   let grid = await gridStrategyService.getAllGridStrategys(
-    { api_key: api_key, api_secret: secret_key },
+    { api_key: api_key, api_secret: api_secret },
     { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 }
   );
 
@@ -300,7 +300,7 @@ const query = catchAsync(async (req, res) => {
  * 根据K线数据自动计算最优网格参数
  */
 const optimize_params = catchAsync(async (req, res) => {
-  const { api_key, secret_key } = req.apiCredentials;
+  const { api_key, api_secret } = req.apiCredentials;
   const {
     symbol,
     interval,
@@ -329,7 +329,7 @@ const optimize_params = catchAsync(async (req, res) => {
       min_trade_value: min_trade_value ? Number(min_trade_value) : 20,
       max_trade_value: max_trade_value ? Number(max_trade_value) : 100,
       api_key: api_key,
-      api_secret: secret_key
+      api_secret: api_secret
     });
 
     return res.apiSuccess(result, "获取优化参数成功");
