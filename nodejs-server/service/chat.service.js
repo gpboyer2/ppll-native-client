@@ -20,11 +20,11 @@ const createChat = async (params) => {
 };
 
 async function latestMessage(params) {
-  const { api_key, secret_key } = params;
+  const { api_key } = params;
 
   const result = await Chat.findOne({
-    where: { api_key, secret_key },
-    order: [["id", "DESC"]], // Assuming there's a created_at field to determine the order
+    where: { api_key },
+    order: [["id", "DESC"]],
     limit: 1,
   });
 
@@ -40,8 +40,8 @@ const getChatById = async (id) => {
   return Chat.findOne({ where: { id } });
 };
 
-const getChatByApiKey = async (api_key, secret_key) => {
-  return Chat.findOne({ where: { api_key, secret_key } });
+const getChatByApiKey = async (api_key) => {
+  return Chat.findOne({ where: { api_key } });
 };
 
 const updateChatById = async (chatId, updateBody) => {

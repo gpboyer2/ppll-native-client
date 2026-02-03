@@ -11,12 +11,12 @@ const binanceApiKeyService = require("../service/binance-api-key.service");
  * POST /v1/binance-api-key/create
  */
 const createApiKey = catchAsync(async (req, res) => {
-  const { name, api_key, secret_key, status, remark, vip_expire_at } = req.body;
+  const { name, api_key, api_secret, status, remark, vip_expire_at } = req.body;
 
   const result = await binanceApiKeyService.createApiKey({
     name,
     api_key,
-    secret_key,
+    api_secret,
     status,
     remark,
     vip_expire_at

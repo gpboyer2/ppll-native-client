@@ -302,7 +302,7 @@ module.exports = router;
  *               api_key:
  *                 type: string
  *                 description: API密钥
- *               secret_key:
+ *               api_secret:
  *                 type: string
  *                 description: API密钥Secret（可选，仅用于判定登录方式，不落库）
  *               login_time:

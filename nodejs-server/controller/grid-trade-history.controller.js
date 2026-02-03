@@ -11,7 +11,7 @@ const service = require("../service/grid-trade-history.service");
  */
 const create = catchAsync(async (req, res) => {
   const body = req.body || {};
-  const { api_key, secret_key } = body;
+  const { api_key, api_secret } = body;
 
   try {
     const row = await service.createTradeHistory(body);
@@ -25,7 +25,7 @@ const create = catchAsync(async (req, res) => {
  * 查询交易历史（分页）
  */
 const query = catchAsync(async (req, res) => {
-  const { api_key, secret_key, currentPage, pageSize, ...filters } = req.query || {};
+  const { api_key, api_secret, currentPage, pageSize, ...filters } = req.query || {};
 
   // 强制把 api_key 放入过滤，避免越权
   const resp = await service.getAllTradeHistories({ ...filters, api_key }, { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 });
@@ -33,11 +33,11 @@ const query = catchAsync(async (req, res) => {
 });
 
 /**
- * 获取详情（需提供 api_key/secret_key，且只能查看自己的记录）
+ * 获取详情（需提供 api_key/api_secret，且只能查看自己的记录）
  */
 const detail = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const { api_key, secret_key } = req.query || {};
+  const { api_key, api_secret } = req.query || {};
   if (!id) return res.apiError(null, "缺少参数: id");
 
   const row = await service.getTradeHistoryById(Number(id));
@@ -52,7 +52,7 @@ const detail = catchAsync(async (req, res) => {
  */
 const update = catchAsync(async (req, res) => {
   const body = req.body || {};
-  const { id, api_key, secret_key } = body;
+  const { id, api_key, api_secret } = body;
   if (!id) return res.apiError(null, "缺少参数: id");
 
   try {
@@ -71,7 +71,7 @@ const update = catchAsync(async (req, res) => {
  * 批量删除
  */
 const deletes = catchAsync(async (req, res) => {
-  const { ids, api_key, secret_key } = req.body || {};
+  const { ids, api_key, api_secret } = req.body || {};
   if (!Array.isArray(ids) || ids.length === 0) {
     return res.apiError(null, "缺少参数: ids");
   }

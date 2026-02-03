@@ -2,18 +2,18 @@ const { USDMClient } = require("binance");
 
 // 傻辉的错误凭证
 const api_key = 'PlmSEpdIXeKyGW5faesIisO1PxjPgmJElj1MQSNykZ3pDjZCiMbyrJQwEYH3BiDb';
-const secret_key = 'a1rHCHoA6OgPEUqD0f20b70NO0zn8iaOBPRQaRYWOOcy8glSwJe4QLAl8Jtrs9AN';
+const api_secret = 'a1rHCHoA6OgPEUqD0f20b70NO0zn8iaOBPRQaRYWOOcy8glSwJe4QLAl8Jtrs9AN';
 
 console.log('\n========== 测试错误处理 - 傻辉账户 ==========');
 console.log('API Key:', api_key.substring(0, 8) + '...');
-console.log('Secret Key:', secret_key.substring(0, 8) + '...');
+console.log('Secret Key:', api_secret.substring(0, 8) + '...');
 console.log('\n调用币安 API...\n');
 
 async function testErrorHandling() {
   try {
     const client = new USDMClient({
       api_key: api_key,
-      api_secret: secret_key,
+      api_secret: api_secret,
       beautify: true,
     }, {
       timeout: 10000,

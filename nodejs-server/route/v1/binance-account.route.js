@@ -254,7 +254,7 @@ module.exports = router;
  *         description: 币安API Key
  *         example: "your_binance_api_key"
  *       - in: query
- *         name: secret_key
+ *         name: api_secret
  *         schema:
  *           type: string
  *         required: true
@@ -386,7 +386,7 @@ module.exports = router;
  *         description: 币安API Key
  *         example: "your_binance_api_key"
  *       - in: query
- *         name: secret_key
+ *         name: api_secret
  *         schema:
  *           type: string
  *         required: true
@@ -494,7 +494,7 @@ module.exports = router;
  *         description: 币安API Key
  *         example: "your_binance_api_key"
  *       - in: query
- *         name: secret_key
+ *         name: api_secret
  *         schema:
  *           type: string
  *         required: true

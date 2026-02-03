@@ -100,11 +100,11 @@ interface ValidationResult {
 ```javascript
 // utils/strategy-validator.js
 const validateStrategyParams = catchAsync(async (req, res, next) => {
-  const { api_key, secret_key } = req.apiCredentials;
+  const { api_key, api_secret } = req.apiCredentials;
   const { trading_pair, grid_trade_quantity, grid_price_difference, leverage } = req.body;
 
   // 1. 获取交易对规则
-  const exchangeInfo = await binanceExchangeInfoService.getExchangeInfo({ api_key, secret_key });
+  const exchangeInfo = await binanceExchangeInfoService.getExchangeInfo({ api_key, api_secret });
   const symbolInfo = exchangeInfo.symbols.find(s => s.symbol === trading_pair);
 
   if (!symbolInfo) {

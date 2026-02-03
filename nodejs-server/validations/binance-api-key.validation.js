@@ -19,10 +19,10 @@ const createApiKey = {
       'string.max': 'API Key 长度不能超过255个字符',
       'any.required': 'API Key 是必填项'
     }),
-    secret_key: Joi.string().min(10).max(255).required().messages({
-      'string.min': 'Secret Key 长度不能少于10个字符',
-      'string.max': 'Secret Key 长度不能超过255个字符',
-      'any.required': 'Secret Key 是必填项'
+    api_secret: Joi.string().min(10).max(255).required().messages({
+      'string.min': 'API Secret 长度不能少于10个字符',
+      'string.max': 'API Secret 长度不能超过255个字符',
+      'any.required': 'API Secret 是必填项'
     }),
     status: Joi.number().integer().valid(1, 2, 3).optional().messages({
       'number.base': '状态必须是数字',
@@ -68,9 +68,9 @@ const updateApiKey = {
       'string.min': 'API Key 长度不能少于10个字符',
       'string.max': 'API Key 长度不能超过255个字符'
     }),
-    secret_key: Joi.string().min(10).max(255).optional().messages({
-      'string.min': 'Secret Key 长度不能少于10个字符',
-      'string.max': 'Secret Key 长度不能超过255个字符'
+    api_secret: Joi.string().min(10).max(255).optional().messages({
+      'string.min': 'API Secret 长度不能少于10个字符',
+      'string.max': 'API Secret 长度不能超过255个字符'
     }),
     status: Joi.number().integer().valid(1, 2, 3).optional().messages({
       'number.base': '状态必须是数字',

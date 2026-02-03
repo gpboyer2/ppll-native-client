@@ -1,5 +1,5 @@
 // API Key 用户标识中间件
-// 从请求中提取 api_key 和 secret_key，作为用户标识用于数据隔离
+// 从请求中提取 api_key 和 api_secret，作为用户标识用于数据隔离
 // 这两个字段由前端拦截器自动注入
 
 const apiKeyIdentity = (req, res, next) => {

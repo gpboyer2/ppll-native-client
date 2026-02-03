@@ -117,21 +117,21 @@ const handleError = (error, res, operation) => {
  * - positions: 持仓详情数组（可选，通过includePositions参数控制）
  */
 const getUSDMFuturesAccount = catchAsync(async (req, res) => {
-  let { api_key, secret_key, includePositions } = extractApiCredentials(req);
+  let { api_key, api_secret, includePositions } = extractApiCredentials(req);
   includePositions = convertToBoolean(includePositions);
 
   // 记录API调用日志
   UtilRecord.debug('获取U本位合约账户信息', `api_key: ${api_key ? api_key.substring(0, 8) + '...' : 'undefined'}`);
 
   // 验证必需参数
-  if (!api_key || !secret_key) {
+  if (!api_key || !api_secret) {
     return res.apiError(null, "缺少必要的API凭证参数");
   }
 
   try {
     const account_info = await binanceAccountService.getUSDMFuturesAccount(
       api_key,
-      secret_key,
+      api_secret,
       includePositions
     );
 
@@ -163,18 +163,18 @@ const getUSDMFuturesAccount = catchAsync(async (req, res) => {
  * - permissions: 权限数组
  */
 const getSpotAccount = catchAsync(async (req, res) => {
-  let { api_key, secret_key, includeEmptyBalances } = extractApiCredentials(req);
+  let { api_key, api_secret, includeEmptyBalances } = extractApiCredentials(req);
   includeEmptyBalances = convertToBoolean(includeEmptyBalances);
 
   // 验证必需参数
-  if (!api_key || !secret_key) {
+  if (!api_key || !api_secret) {
     return res.apiError(null, "缺少必要的API凭证参数");
   }
 
   try {
     const account_info = await binanceAccountService.getSpotAccount(
       api_key,
-      secret_key,
+      api_secret,
       includeEmptyBalances
     );
 
@@ -213,18 +213,18 @@ const getSpotAccount = catchAsync(async (req, res) => {
  * - positions: 持仓详情数组（可选，通过includePositions参数控制）
  */
 const getCoinMFuturesAccount = catchAsync(async (req, res) => {
-  let { api_key, secret_key, includePositions } = extractApiCredentials(req);
+  let { api_key, api_secret, includePositions } = extractApiCredentials(req);
   includePositions = convertToBoolean(includePositions);
 
   // 验证必需参数
-  if (!api_key || !secret_key) {
+  if (!api_key || !api_secret) {
     return res.apiError(null, "缺少必要的API凭证参数");
   }
 
   try {
     const account_info = await binanceAccountService.getCoinMFuturesAccount(
       api_key,
-      secret_key,
+      api_secret,
       includePositions
     );
 
@@ -243,10 +243,10 @@ const getCoinMFuturesAccount = catchAsync(async (req, res) => {
  * 调整U本位合约交易对的杠杆倍数，支持单个或多个交易对
  */
 const setLeverage = catchAsync(async (req, res) => {
-  let { api_key, secret_key, leverageList, delay } = extractApiCredentials(req);
+  let { api_key, api_secret, leverageList, delay } = extractApiCredentials(req);
 
   // 验证必需参数
-  if (!api_key || !secret_key) {
+  if (!api_key || !api_secret) {
     return res.apiError(null, "缺少API凭证");
   }
 
@@ -278,7 +278,7 @@ const setLeverage = catchAsync(async (req, res) => {
     // 立即开始执行批量设置，返回 Promise
     const leverage_promise = binanceAccountService.batchSetLeverage(
       api_key,
-      secret_key,
+      api_secret,
       leverageList,
       delay
     );
@@ -362,10 +362,10 @@ const keepAliveListenKey = catchAsync(async (req, res) => {
  * 获取币安U本位合约中指定交易对的当前杠杆倍数
  */
 const getPositionRisk = catchAsync(async (req, res) => {
-  let { api_key, secret_key, symbol } = extractApiCredentials(req);
+  let { api_key, api_secret, symbol } = extractApiCredentials(req);
 
   // 验证必需参数
-  if (!api_key || !secret_key) {
+  if (!api_key || !api_secret) {
     return res.apiError(null, "缺少必要的API凭证参数");
   }
 
@@ -376,7 +376,7 @@ const getPositionRisk = catchAsync(async (req, res) => {
   try {
     const position_risk = await binanceAccountService.getPositionRisk(
       api_key,
-      secret_key,
+      api_secret,
       symbol
     );
 

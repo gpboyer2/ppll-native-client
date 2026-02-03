@@ -301,7 +301,7 @@ if (activeApiKey) {
   config.data = {
     ...config.data,
     apiKey: activeApiKey.api_key,
-    apiSecret: activeApiKey.secret_key,
+    apiSecret: activeApiKey.api_secret,
   };
 }
 ```

@@ -32,14 +32,14 @@ const logger = {
  * 创建 WebSocket 客户端
  * @param {Object} options - 配置选项
  * @param {string} options.api_key - API 密钥
- * @param {string} options.secret_key - API 密钥
+ * @param {string} options.api_secret - API 密钥
  * @param {boolean} options.beautify - 是否美化输出
  * @returns {WebsocketClient} WebSocket 客户端实例
  */
 function createWsClient(options = {}) {
   const {
     api_key,
-    secret_key,
+    api_secret,
     beautify = true,
   } = options;
 
@@ -49,7 +49,7 @@ function createWsClient(options = {}) {
   return new WebsocketClient(
     {
       api_key: api_key,
-      api_secret: secret_key,
+      api_secret: api_secret,
       beautify: beautify,
       wsOptions,
     },

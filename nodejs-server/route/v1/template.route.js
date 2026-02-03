@@ -26,7 +26,7 @@ router.put('/update', orderController.updateOrder);
  * - current_page: 页码（可选，默认为1）
  * - page_size: 每页数量（可选，默认为10，最大100）
  * - api_key: 币安API密钥（VIP验证用）
- * - secret_key: 币安API密钥Secret（VIP验证用）
+ * - api_secret: 币安API密钥Secret（VIP验证用）
  *
  * 优先级：id > ids > 分页查询所有
  */
@@ -146,7 +146,7 @@ module.exports = router;
  *           type: string
  *           description: 币安API密钥
  *           example: "your_binance_api_key"
- *         secret_key:
+ *         api_secret:
  *           type: string
  *           description: 币安API密钥Secret
  *           example: "your_binance_api_secret"
@@ -253,7 +253,7 @@ module.exports = router;
  *               summary: 限价买单示例
  *               value:
  *                 api_key: "your_binance_api_key"
- *                 secret_key: "your_binance_api_secret"
+ *                 api_secret: "your_binance_api_secret"
  *                 symbol: "BTCUSDT"
  *                 side: "BUY"
  *                 type: "LIMIT"
@@ -265,7 +265,7 @@ module.exports = router;
  *               summary: 市价卖单示例
  *               value:
  *                 api_key: "your_binance_api_key"
- *                 secret_key: "your_binance_api_secret"
+ *                 api_secret: "your_binance_api_secret"
  *                 symbol: "ETHUSDT"
  *                 side: "SELL"
  *                 type: "MARKET"
@@ -275,7 +275,7 @@ module.exports = router;
  *               summary: 网格交易订单示例
  *               value:
  *                 api_key: "your_binance_api_key"
- *                 secret_key: "your_binance_api_secret"
+ *                 api_secret: "your_binance_api_secret"
  *                 symbol: "ADAUSDT"
  *                 side: "BUY"
  *                 type: "LIMIT"
@@ -444,7 +444,7 @@ module.exports = router;
  *                 type: string
  *                 description: 币安API密钥（VIP验证用）
  *                 example: "your_binance_api_key"
- *               secret_key:
+ *               api_secret:
  *                 type: string
  *                 description: 币安API密钥Secret（VIP验证用）
  *                 example: "your_binance_api_secret"
@@ -474,7 +474,7 @@ module.exports = router;
  *               value:
  *                 id: 1001
  *                 api_key: "your_binance_api_key"
- *                 secret_key: "your_binance_api_secret"
+ *                 api_secret: "your_binance_api_secret"
  *                 ordername: "BTC买入订单-已确认"
  *                 active: 1
  *                 status: 2
@@ -615,7 +615,7 @@ module.exports = router;
  *         description: 币安API密钥（VIP验证用）
  *         example: "your_binance_api_key"
  *       - in: query
- *         name: secret_key
+ *         name: api_secret
  *         required: false
  *         schema:
  *           type: string

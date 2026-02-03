@@ -28,12 +28,12 @@ const randomDelay = (s, e) => delay(Math.floor(Math.random() * (e - s + 1)) + s)
  * 通用API凭证提取函数
  * 从请求对象中提取API密钥和密钥Secret，支持从query参数或body参数中获取
  * @param {Object} req - Express请求对象
- * @returns {Object} 包含api_key、secret_key以及其他query和body参数的对象
+ * @returns {Object} 包含api_key、api_secret以及其他query和body参数的对象
  */
 const extractApiCredentials = (req) => {
   return {
     api_key: req.query.api_key || req.body.api_key,
-    secret_key: req.query.secret_key || req.body.secret_key,
+    api_secret: req.query.api_secret || req.body.api_secret,
     ...req.query,
     ...req.body,
   };

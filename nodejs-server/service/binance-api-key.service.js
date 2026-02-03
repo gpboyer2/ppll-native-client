@@ -12,14 +12,14 @@ const BinanceApiKey = db.binance_api_keys;
  * @param {Object} params - 创建 ApiKey 所需的参数对象
  * @param {string} params.name - API Key 名称
  * @param {string} params.api_key - Binance API Key
- * @param {string} params.secret_key - Binance Secret Key
+ * @param {string} params.api_secret - Binance Secret Key
  * @param {number} [params.status=2] - 状态(1:未知,2:启用,3:禁用)
  * @param {string} [params.remark] - 备注信息
  * @param {Date|string} [params.vip_expire_at] - VIP过期时间
  * @returns {Promise<Object>} 创建成功的 ApiKey 信息对象
  */
 const createApiKey = async (params) => {
-  const { name, api_key, secret_key, status = 2, remark, vip_expire_at } = params;
+  const { name, api_key, api_secret, status = 2, remark, vip_expire_at } = params;
 
   // 检查 API Key 是否已存在
   const existingKey = await BinanceApiKey.findOne({
@@ -48,7 +48,7 @@ const createApiKey = async (params) => {
   const keyData = {
     name,
     api_key,
-    secret_key,
+    secret_key: api_secret,
     status: status || 2,
     deleted: 0,
     remark,
@@ -101,7 +101,7 @@ const updateApiKeyById = async (api_key_id, updateBody) => {
   }
 
   // 定义允许修改的字段白名单
-  const ALLOWED_FIELDS = ['name', 'api_key', 'secret_key', 'status', 'remark', 'vip_expire_at'];
+  const ALLOWED_FIELDS = ['name', 'api_key', 'api_secret', 'status', 'remark', 'vip_expire_at'];
 
   // 检查是否有不允许的字段
   const requestFields = Object.keys(updateBody);
@@ -111,7 +111,7 @@ const updateApiKeyById = async (api_key_id, updateBody) => {
     throw new ApiError(httpStatus.FORBIDDEN, `禁止修改以下字段: ${invalidFields.join(', ')}`);
   }
 
-  const { name, api_key, secret_key, status, remark, vip_expire_at } = updateBody;
+  const { name, api_key, api_secret, status, remark, vip_expire_at } = updateBody;
   const updateData = {};
 
   if (name !== undefined) {
@@ -146,7 +146,7 @@ const updateApiKeyById = async (api_key_id, updateBody) => {
     updateData.api_key = api_key;
   }
 
-  if (secret_key !== undefined) updateData.secret_key = secret_key;
+  if (api_secret !== undefined) updateData.secret_key = api_secret;
   if (status !== undefined) updateData.status = status;
   if (remark !== undefined) updateData.remark = remark;
   if (vip_expire_at !== undefined) updateData.vip_expire_at = vip_expire_at;

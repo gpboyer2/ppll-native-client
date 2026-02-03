@@ -19,13 +19,13 @@ const SKIP_SYMBOLS = ["USDCUSDT"]; // 跳过的币种
 /**
  * 创建币安客户端
  * @param {string} api_key - API密钥
- * @param {string} secret_key - API密钥Secret
+ * @param {string} api_secret - API密钥Secret
  * @returns {USDMClient} 币安客户端实例
  */
-const createClient = (api_key, secret_key) => {
+const createClient = (api_key, api_secret) => {
   const options = {
     api_key: api_key,
-    api_secret: secret_key,
+    api_secret: api_secret,
     beautify: true,
   };
 
@@ -46,12 +46,12 @@ const createClient = (api_key, secret_key) => {
 /**
  * 获取账户信息（不检查余额）- 可用于平仓操作
  * @param {string} api_key - API密钥
- * @param {string} secret_key - API密钥Secret
+ * @param {string} api_secret - API密钥Secret
  * @returns {Promise<Object>} 账户信息
  */
-const getAccountInfo = async (api_key, secret_key) => {
+const getAccountInfo = async (api_key, api_secret) => {
   try {
-    const client = createClient(api_key, secret_key);
+    const client = createClient(api_key, api_secret);
     return await client.getAccountInformation();
   } catch (error) {
     if (error instanceof ApiError) throw error;
@@ -63,12 +63,12 @@ const getAccountInfo = async (api_key, secret_key) => {
 /**
  * 获取交易对信息
  * @param {string} api_key - API密钥
- * @param {string} secret_key - API密钥Secret
+ * @param {string} api_secret - API密钥Secret
  * @returns {Promise<Object>} 交易对信息
  */
-const getExchangeInfo = async (api_key, secret_key) => {
+const getExchangeInfo = async (api_key, api_secret) => {
   try {
-    const client = createClient(api_key, secret_key);
+    const client = createClient(api_key, api_secret);
     return await client.getExchangeInfo();
   } catch (error) {
     if (error instanceof ApiError) throw error;
@@ -80,12 +80,12 @@ const getExchangeInfo = async (api_key, secret_key) => {
 /**
  * 获取价格信息（实时更新）
  * @param {string} api_key - API密钥
- * @param {string} secret_key - API密钥Secret
+ * @param {string} api_secret - API密钥Secret
  * @returns {Promise<Array>} 价格信息列表
  */
-const getPriceInfo = async (api_key, secret_key) => {
+const getPriceInfo = async (api_key, api_secret) => {
   try {
-    const client = createClient(api_key, secret_key);
+    const client = createClient(api_key, api_secret);
     return await client.getSymbolPriceTicker();
   } catch (error) {
     if (error instanceof ApiError) throw error;
@@ -97,13 +97,13 @@ const getPriceInfo = async (api_key, secret_key) => {
 /**
  * 获取USDT交易对列表
  * @param {string} api_key - API密钥
- * @param {string} secret_key - API密钥Secret
+ * @param {string} api_secret - API密钥Secret
  * @param {string|Array} customPositions - 自定义交易对列表（JSON字符串或数组）
  * @returns {Promise<Array>} USDT交易对列表
  */
-const getUsdtTradingList = async (api_key, secret_key, customPositions = null) => {
+const getUsdtTradingList = async (api_key, api_secret, customPositions = null) => {
   try {
-    const priceInfo = await getPriceInfo(api_key, secret_key);
+    const priceInfo = await getPriceInfo(api_key, api_secret);
     let usdt_trading_list = priceInfo.filter(item => item.symbol.endsWith('USDT'));
 
     // 自定义建仓币种过滤
@@ -139,25 +139,25 @@ const executeDelay = async (range = 'MEDIUM') => {
 /**
  * 批量建仓（对冲单）
  * @param {string} api_key - API密钥
- * @param {string} secret_key - API密钥Secret
+ * @param {string} api_secret - API密钥Secret
  * @param {number} longAmount - 多单金额
  * @param {number} shortAmount - 空单金额
  * @param {Array} positions - 自定义交易对列表
  * @returns {Promise<Object>} 执行结果
  */
-const batchBuildPosition = async (api_key, secret_key, longAmount, shortAmount, positions = null) => {
+const batchBuildPosition = async (api_key, api_secret, longAmount, shortAmount, positions = null) => {
   try {
     if (!longAmount || !shortAmount) {
       throw new Error('longAmount or shortAmount is not defined');
     }
 
     // 检查账户余额
-    const account_info = await getAccountInfo(api_key, secret_key);
+    const account_info = await getAccountInfo(api_key, api_secret);
     if (new bigNumber(account_info.availableBalance).isLessThan(10)) {
       throw new Error(`当前合约账户余额${account_info.availableBalance}, 不足10u, 请充值`);
     }
-    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
-    const usdt_trading_list = await getUsdtTradingList(api_key, secret_key, positions);
+    const exchangeInfo = await getExchangeInfo(api_key, api_secret);
+    const usdt_trading_list = await getUsdtTradingList(api_key, api_secret, positions);
 
     // 立即返回响应数据，不等待for循环执行
     const responseData = {
@@ -202,7 +202,7 @@ const batchBuildPosition = async (api_key, secret_key, longAmount, shortAmount, 
             const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, currency.symbol, rawQuantity.toString());
 
             try {
-              const client = createClient(api_key, secret_key);
+              const client = createClient(api_key, api_secret);
               await client.submitNewOrder({
                 symbol: currency.symbol,
                 side: 'BUY',
@@ -232,7 +232,7 @@ const batchBuildPosition = async (api_key, secret_key, longAmount, shortAmount, 
             const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, currency.symbol, rawQuantity.toString());
 
             try {
-              const client = createClient(api_key, secret_key);
+              const client = createClient(api_key, api_secret);
               await client.submitNewOrder({
                 symbol: currency.symbol,
                 side: 'SELL',
@@ -280,11 +280,11 @@ const batchBuildPosition = async (api_key, secret_key, longAmount, shortAmount, 
 /**
  * 自定义建仓（对冲单）
  * @param {string} api_key - API密钥
- * @param {string} secret_key - API密钥Secret
+ * @param {string} api_secret - API密钥Secret
  * @param {Array} positions - 自定义交易对列表
  * @returns {Promise<Object>} 执行结果
  */
-const customBuildPosition = async (api_key, secret_key, positions) => {
+const customBuildPosition = async (api_key, api_secret, positions) => {
   try {
     if (!positions?.length) {
       throw new Error('positions 参数异常');
@@ -295,12 +295,12 @@ const customBuildPosition = async (api_key, secret_key, positions) => {
     }
 
     // 检查账户余额
-    const account_info = await getAccountInfo(api_key, secret_key);
+    const account_info = await getAccountInfo(api_key, api_secret);
     if (new bigNumber(account_info.availableBalance).isLessThan(10)) {
       throw new Error(`当前合约账户余额${account_info.availableBalance}, 不足10u, 请充值`);
     }
-    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
-    const priceInfo = await getPriceInfo(api_key, secret_key);
+    const exchangeInfo = await getExchangeInfo(api_key, api_secret);
+    const priceInfo = await getPriceInfo(api_key, api_secret);
 
     // 立即返回响应数据，不等待for循环执行
     const responseData = {
@@ -332,7 +332,7 @@ const customBuildPosition = async (api_key, secret_key, positions) => {
               const rawQuantity = new bigNumber(longAmount).div(price);
               const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity.toString());
 
-              const client = createClient(api_key, secret_key);
+              const client = createClient(api_key, api_secret);
               await client.submitNewOrder({
                 symbol,
                 side: 'BUY',
@@ -357,7 +357,7 @@ const customBuildPosition = async (api_key, secret_key, positions) => {
               const rawQuantity = new bigNumber(shortAmount).div(price);
               const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity.toString());
 
-              const client = createClient(api_key, secret_key);
+              const client = createClient(api_key, api_secret);
               await client.submitNewOrder({
                 symbol,
                 side: 'SELL',
@@ -400,18 +400,18 @@ const customBuildPosition = async (api_key, secret_key, positions) => {
 /**
  * 指定平仓
  * @param {string} api_key - API密钥
- * @param {string} secret_key - API密钥Secret
+ * @param {string} api_secret - API密钥Secret
  * @param {Array} positions - 平仓信息列表
  * @returns {Promise<Object>} 执行结果
  */
-const appointClosePosition = async (api_key, secret_key, positions) => {
+const appointClosePosition = async (api_key, api_secret, positions) => {
   try {
     if (!positions?.length) {
       throw new Error('positions 参数异常');
     }
 
     // 获取交易所信息用于精度处理
-    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
+    const exchangeInfo = await getExchangeInfo(api_key, api_secret);
 
     // 立即返回响应数据，不等待for循环执行
     const responseData = {
@@ -444,7 +444,7 @@ const appointClosePosition = async (api_key, secret_key, positions) => {
               positionSide
             };
 
-            const client = createClient(api_key, secret_key);
+            const client = createClient(api_key, api_secret);
             await client.submitNewOrder(orderParams);
             UtilRecord.log(`${symbol} 平仓成功`);
             results.push({ symbol, action: `CLOSE_${positionSide}`, success: true });
@@ -482,19 +482,19 @@ const appointClosePosition = async (api_key, secret_key, positions) => {
 /**
  * 批量平仓（对冲单）
  * @param {string} api_key - API密钥
- * @param {string} secret_key - API密钥Secret
+ * @param {string} api_secret - API密钥Secret
  * @param {Array} positions - 交易对符号列表
  * @returns {Promise<Object>} 执行结果
  */
-const batchClosePositions = async (api_key, secret_key, positions) => {
+const batchClosePositions = async (api_key, api_secret, positions) => {
   try {
     if (!positions?.length) {
       throw new Error('positions 参数异常');
     }
 
     // 获取账户信息（不检查余额，因为是平仓操作）
-    const account_info = await getAccountInfo(api_key, secret_key);
-    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
+    const account_info = await getAccountInfo(api_key, api_secret);
+    const exchangeInfo = await getExchangeInfo(api_key, api_secret);
     const accountPositions = account_info.positions.filter(poi => positions.includes(poi.symbol));
 
     // 立即返回响应数据，不等待for循环执行
@@ -523,7 +523,7 @@ const batchClosePositions = async (api_key, secret_key, positions) => {
           if (longPosition?.positionAmt) {
             try {
               const adjustedQuantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, longPosition.positionAmt);
-              const client = createClient(api_key, secret_key);
+              const client = createClient(api_key, api_secret);
               await client.submitNewOrder({
                 symbol,
                 side: 'SELL',
@@ -546,7 +546,7 @@ const batchClosePositions = async (api_key, secret_key, positions) => {
             try {
               const rawQuantity = new bigNumber(shortPosition.positionAmt).abs().toString();
               const adjustedQuantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity);
-              const client = createClient(api_key, secret_key);
+              const client = createClient(api_key, api_secret);
               await client.submitNewOrder({
                 symbol,
                 side: 'BUY',
@@ -591,19 +591,19 @@ const batchClosePositions = async (api_key, secret_key, positions) => {
 /**
  * 自定义平仓（多个）- 只平多单
  * @param {string} api_key - API密钥
- * @param {string} secret_key - API密钥Secret
+ * @param {string} api_secret - API密钥Secret
  * @param {Array} positions - 交易对符号列表
  * @returns {Promise<Object>} 执行结果
  */
-const customCloseMultiplePositions = async (api_key, secret_key, positions) => {
+const customCloseMultiplePositions = async (api_key, api_secret, positions) => {
   try {
     if (!positions?.length) {
       throw new Error('positions 参数异常');
     }
 
     // 获取账户信息（不检查余额，因为是平仓操作）
-    const account_info = await getAccountInfo(api_key, secret_key);
-    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
+    const account_info = await getAccountInfo(api_key, api_secret);
+    const exchangeInfo = await getExchangeInfo(api_key, api_secret);
     const accountPositions = account_info.positions.filter(poi => positions.includes(poi.symbol));
 
     // 立即返回响应数据，不等待for循环执行
@@ -639,7 +639,7 @@ const customCloseMultiplePositions = async (api_key, secret_key, positions) => {
 
           // 平多单
           try {
-            const client = createClient(api_key, secret_key);
+            const client = createClient(api_key, api_secret);
             await client.submitNewOrder({
               symbol,
               side: 'SELL',
@@ -684,19 +684,19 @@ const customCloseMultiplePositions = async (api_key, secret_key, positions) => {
 /**
  * 自定义平仓
  * @param {string} api_key - API密钥
- * @param {string} secret_key - API密钥Secret
+ * @param {string} api_secret - API密钥Secret
  * @param {Array} positions - 平仓信息列表
  * @returns {Promise<Object>} 执行结果
  */
-const customClosePositions = async (api_key, secret_key, positions) => {
+const customClosePositions = async (api_key, api_secret, positions) => {
   try {
     if (!positions) {
       throw new Error('positions is not defined');
     }
 
     // 获取交易所信息用于精度处理和验证
-    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
-    const client = createClient(api_key, secret_key);
+    const exchangeInfo = await getExchangeInfo(api_key, api_secret);
+    const client = createClient(api_key, api_secret);
 
     // 过滤有效的平仓请求
     const validPositions = [];
@@ -851,14 +851,14 @@ const customClosePositions = async (api_key, secret_key, positions) => {
 /**
  * 为空单设置原价止盈
  * @param {string} api_key - API密钥
- * @param {string} secret_key - API密钥Secret
+ * @param {string} api_secret - API密钥Secret
  * @param {Array} positions - 持仓列表 [{symbol, stopPrice, closeRatio}]
  * @returns {Promise<Object>} 设置结果
  */
-const setShortTakeProfit = async (api_key, secret_key, positions) => {
+const setShortTakeProfit = async (api_key, api_secret, positions) => {
   try {
-    const exchangeInfo = await getExchangeInfo(api_key, secret_key);
-    const account_info = await getAccountInfo(api_key, secret_key);
+    const exchangeInfo = await getExchangeInfo(api_key, api_secret);
+    const account_info = await getAccountInfo(api_key, api_secret);
 
     // 立即返回响应数据，不等待for循环执行
     const responseData = {
@@ -875,7 +875,7 @@ const setShortTakeProfit = async (api_key, secret_key, positions) => {
       let fail_count = 0;
 
       try {
-        const client = createClient(api_key, secret_key);
+        const client = createClient(api_key, api_secret);
 
         for (let i = 0; i < positions.length; i++) {
           const { symbol, stopPrice, closeRatio } = positions[i];

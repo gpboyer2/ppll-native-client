@@ -15,7 +15,7 @@ const BinanceApiKey = db.binance_api_keys;
  * @param {Function} next - Express下一个中间件函数
  *
  * 验证流程：
- * 1. 从req.body或req.query中提取api_key和secret_key
+ * 1. 从req.body或req.query中提取api_key和api_secret
  * 2. 验证 binance_api_key 表中是否存在匹配的记录
  * 3. 检查 VIP 是否过期
  * 4. 如果验证通过，调用next()继续处理
@@ -69,7 +69,7 @@ const validateVipAccess = async (req, res, next) => {
         return res.apiError(null, '验证失败');
       }
     } else {
-      return res.apiError(null, '缺失参数 api_key 或 secret_key');
+      return res.apiError(null, '缺失参数 api_key 或 api_secret');
     }
 
     // 验证通过，继续处理请求

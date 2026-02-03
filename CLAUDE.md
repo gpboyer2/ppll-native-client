@@ -513,7 +513,7 @@ await updateEndpoints(nodeId, list);
 - 前端类型定义必须与后端返回的字段名完全一致
 
 **后端不同模块的命名风格**：
-- 网格策略相关 API：使用 snake_case（如 `trading_pair`, `position_side`, `grid_price_difference`, `api_key`, `secret_key`）
+- 网格策略相关 API：使用 snake_case（如 `trading_pair`, `position_side`, `grid_price_difference`, `api_key`, `api_secret`）
 - 与第三方交互（如币安）：迁就第三方的命名风格
 
 **前端开发规范**：

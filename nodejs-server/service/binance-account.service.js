@@ -33,10 +33,10 @@ const DB_MODEL_MAP = {
  * binance v3.1.3 已内置正确端点，无需手动设置 baseUrl
  * @param {string} marketType - 市场类型：spot | usdm | coinm
  * @param {string} api_key - 用户API Key
- * @param {string} secret_key - 用户API Secret
+ * @param {string} api_secret - 用户API Secret
  * @returns {MainClient|USDMClient|CoinMClient} 币安客户端实例
  */
-const createClient = (marketType, api_key, secret_key) => {
+const createClient = (marketType, api_key, api_secret) => {
   const ClientClass = CLIENT_MAP[marketType];
   if (!ClientClass) {
     throw new Error(`不支持的市场类型: ${marketType}`);
@@ -45,14 +45,14 @@ const createClient = (marketType, api_key, secret_key) => {
   // 记录客户端创建日志
   UtilRecord.debug(`[createClient] 创建${marketType}客户端`, {
     api_key_prefix: api_key ? api_key.substring(0, 8) + '...' : 'undefined',
-    secret_key_prefix: secret_key ? secret_key.substring(0, 8) + '...' : 'undefined',
+    api_secret_prefix: api_secret ? api_secret.substring(0, 8) + '...' : 'undefined',
     api_key_length: api_key?.length || 0,
-    secret_key_length: secret_key?.length || 0
+    api_secret_length: api_secret?.length || 0
   });
 
   const options = {
     api_key: api_key,
-    api_secret: secret_key,
+    api_secret: api_secret,
     beautify: true,
   };
 
@@ -72,26 +72,26 @@ const createClient = (marketType, api_key, secret_key) => {
 /**
  * 创建现货客户端
  * @param {string} api_key - 用户API Key
- * @param {string} secret_key - 用户API Secret
+ * @param {string} api_secret - 用户API Secret
  * @returns {MainClient} 现货客户端实例
  */
-const createSpotClient = (api_key, secret_key) => /** @type {MainClient} */ (createClient('spot', api_key, secret_key));
+const createSpotClient = (api_key, api_secret) => /** @type {MainClient} */ (createClient('spot', api_key, api_secret));
 
 /**
  * 创建U本位合约客户端
  * @param {string} api_key - 用户API Key
- * @param {string} secret_key - 用户API Secret
+ * @param {string} api_secret - 用户API Secret
  * @returns {USDMClient} U本位合约客户端实例
  */
-const createUSDMClient = (api_key, secret_key) => /** @type {USDMClient} */ (createClient('usdm', api_key, secret_key));
+const createUSDMClient = (api_key, api_secret) => /** @type {USDMClient} */ (createClient('usdm', api_key, api_secret));
 
 /**
  * 创建币本位合约客户端
  * @param {string} api_key - 用户API Key
- * @param {string} secret_key - 用户API Secret
+ * @param {string} api_secret - 用户API Secret
  * @returns {CoinMClient} 币本位合约客户端实例
  */
-const createCoinMClient = (api_key, secret_key) => /** @type {CoinMClient} */ (createClient('coinm', api_key, secret_key));
+const createCoinMClient = (api_key, api_secret) => /** @type {CoinMClient} */ (createClient('coinm', api_key, api_secret));
 
 /**
  * 通用账户信息获取函数（内部使用）
@@ -100,11 +100,11 @@ const createCoinMClient = (api_key, secret_key) => /** @type {CoinMClient} */ (c
  * 使用三层缓存策略: 内存缓存(20秒) -> 数据库缓存(20秒) -> API调用
  * @param {string} marketType - 市场类型：spot | usdm | coinm
  * @param {string} api_key - 用户API Key（用于数据隔离）
- * @param {string} secret_key - 用户API Secret
+ * @param {string} api_secret - 用户API Secret
  * @param {{includePositions?: boolean, includeEmptyBalances?: boolean}} filterOptions - 过滤选项
  * @returns {Promise<Object>} 账户信息
  */
-const getAccountInfo = async (marketType, api_key, secret_key, filterOptions = {}) => {
+const getAccountInfo = async (marketType, api_key, api_secret, filterOptions = {}) => {
   const modelName = DB_MODEL_MAP[marketType];
   const marketLabel = { spot: '现货', usdm: 'U本位合约', coinm: '币本位合约' }[marketType];
 
@@ -112,12 +112,12 @@ const getAccountInfo = async (marketType, api_key, secret_key, filterOptions = {
     // 直接调用币安 API，不使用数据库缓存
     UtilRecord.debug(`[账户服务] 直接调用币安 API: ${marketLabel}`, {
       api_key_prefix: api_key.substring(0, 8) + '...',
-      secret_key_prefix: secret_key.substring(0, 8) + '...',
+      api_secret_prefix: api_secret.substring(0, 8) + '...',
       api_key_length: api_key.length,
-      secret_key_length: secret_key.length
+      api_secret_length: api_secret.length
     });
 
-    const client = createClient(marketType, api_key, secret_key);
+    const client = createClient(marketType, api_key, api_secret);
 
     const account_info = await rateLimiter.execute(
       () => client.getAccountInformation(),
@@ -182,36 +182,36 @@ const applyAccountFilter = (account_info, marketType, filterOptions) => {
  * 获取U本位合约账户信息
  * 单用户系统：通过 api_key 实现数据隔离
  * @param {string} api_key - 用户API Key（用于数据隔离）
- * @param {string} secret_key - 用户API Secret
+ * @param {string} api_secret - 用户API Secret
  * @param {boolean} includePositions - 是否包含持仓信息，默认true
  * @returns {Promise<Object>} U本位合约账户信息
  */
-const getUSDMFuturesAccount = async (api_key, secret_key, includePositions = true) => {
-  return getAccountInfo('usdm', api_key, secret_key, { includePositions, includeEmptyBalances: true });
+const getUSDMFuturesAccount = async (api_key, api_secret, includePositions = true) => {
+  return getAccountInfo('usdm', api_key, api_secret, { includePositions, includeEmptyBalances: true });
 };
 
 /**
  * 获取现货账户信息
  * 单用户系统：通过 api_key 实现数据隔离
  * @param {string} api_key - 用户API Key（用于数据隔离）
- * @param {string} secret_key - 用户API Secret
+ * @param {string} api_secret - 用户API Secret
  * @param {boolean} includeEmptyBalances - 是否包含空余额币种，默认true
  * @returns {Promise<Object>} 现货账户信息
  */
-const getSpotAccount = async (api_key, secret_key, includeEmptyBalances = true) => {
-  return getAccountInfo('spot', api_key, secret_key, { includePositions: true, includeEmptyBalances });
+const getSpotAccount = async (api_key, api_secret, includeEmptyBalances = true) => {
+  return getAccountInfo('spot', api_key, api_secret, { includePositions: true, includeEmptyBalances });
 };
 
 /**
  * 获取币本位合约账户信息
  * 单用户系统：通过 api_key 实现数据隔离
  * @param {string} api_key - 用户API Key（用于数据隔离）
- * @param {string} secret_key - 用户API Secret
+ * @param {string} api_secret - 用户API Secret
  * @param {boolean} includePositions - 是否包含持仓信息，默认true
  * @returns {Promise<Object>} 币本位合约账户信息
  */
-const getCoinMFuturesAccount = async (api_key, secret_key, includePositions = true) => {
-  return getAccountInfo('coinm', api_key, secret_key, { includePositions, includeEmptyBalances: false });
+const getCoinMFuturesAccount = async (api_key, api_secret, includePositions = true) => {
+  return getAccountInfo('coinm', api_key, api_secret, { includePositions, includeEmptyBalances: false });
 };
 
 /**
@@ -298,14 +298,14 @@ const getMaxLeverage = async (client, symbol) => {
  * 使用 binance npm 包提供的 setLeverage 方法批量调整杠杆
  * 如果设置的倍数超过交易对的最大支持倍数，会自动调整为最大支持倍数
  * @param {string} api_key - 用户API Key
- * @param {string} secret_key - 用户API Secret
+ * @param {string} api_secret - 用户API Secret
  * @param {Array} leverageList - 杠杆设置数组，格式为 [{symbol: 'BTCUSDT', leverage: 20}, {symbol: 'ETHUSDT', leverage: 10}]
  * @param {number} delay - 每次请求之间的延迟（毫秒），默认100ms，防止触发API频率限制
  * @returns {Promise<Array>} 返回每个交易对设置结果的数组
  */
-const batchSetLeverage = async (api_key, secret_key, leverageList, delay = 100) => {
+const batchSetLeverage = async (api_key, api_secret, leverageList, delay = 100) => {
   // 创建U本位合约客户端
-  const client = createUSDMClient(api_key, secret_key);
+  const client = createUSDMClient(api_key, api_secret);
   const results = [];
 
   // 遍历所有需要设置的交易对
@@ -391,7 +391,7 @@ const batchSetLeverage = async (api_key, secret_key, leverageList, delay = 100) 
  */
 const generateListenKey = async (api_key) => {
   try {
-    // 创建客户端实例 (不需要 secret_key 也能生成 listen_key，但为了统一这里传入)
+    // 创建客户端实例 (不需要 api_secret 也能生成 listen_key，但为了统一这里传入)
     // 注意：getFuturesUserDataListenKey 不需要参数
     const client = createUSDMClient(api_key, '');
     const response = await client.getFuturesUserDataListenKey();
@@ -425,13 +425,13 @@ const keepAliveListenKey = async (api_key) => {
 /**
  * 获取指定交易对的当前杠杆倍数
  * @param {string} api_key - 用户API Key
- * @param {string} secret_key - 用户API Secret
+ * @param {string} api_secret - 用户API Secret
  * @param {string} symbol - 交易对符号，如 BTCUSDT
  * @returns {Promise<{symbol: string, leverage: number}|null>} 返回杠杆倍数，如果未设置则返回null
  */
-const getPositionRisk = async (api_key, secret_key, symbol) => {
+const getPositionRisk = async (api_key, api_secret, symbol) => {
   try {
-    const client = createUSDMClient(api_key, secret_key);
+    const client = createUSDMClient(api_key, api_secret);
 
     // 获取持仓风险信息
     const positionRisk = await client.getPositionRisk({

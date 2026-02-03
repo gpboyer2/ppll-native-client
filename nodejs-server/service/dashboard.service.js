@@ -10,7 +10,7 @@ const db = require('../models');
 
 /**
  * 账户信息缓存配置
- * 结构: { [api_key]: { data: account_info, timestamp: Date.now(), secret_key: string } }
+ * 结构: { [api_key]: { data: account_info, timestamp: Date.now(), api_secret: string } }
  */
 const accountInfoCache = new Map();
 
@@ -32,18 +32,18 @@ const getDashboard = () => {
 /**
  * 获取合约账户详情（单用户系统）
  * @param {string} api_key - 币安API密钥
- * @param {string} secret_key - 币安API密钥Secret
+ * @param {string} api_secret - 币安API密钥Secret
  * @returns {Promise<Object>} 账户信息结果
  */
-const getAccount = async (api_key, secret_key) => {
+const getAccount = async (api_key, api_secret) => {
   UtilRecord.log('😄 查询账户信息:');
   UtilRecord.log('api_key:', api_key);
-  UtilRecord.log('secret_key:', secret_key);
+  UtilRecord.log('api_secret:', api_secret);
 
   // 检查缓存
   const currentTime = Date.now();
   const cachedInfo = accountInfoCache.get(api_key);
-  const cacheValid = cachedInfo && cachedInfo.secret_key === secret_key;
+  const cacheValid = cachedInfo && cachedInfo.api_secret === api_secret;
   const cacheExpired = cacheValid && (currentTime - cachedInfo.timestamp) >= CACHE_EXPIRY_TIME;
 
   // 缓存有效且未过期，直接返回
@@ -66,7 +66,7 @@ const getAccount = async (api_key, secret_key) => {
   // 创建币安客户端
   const options = {
     api_key: api_key,
-    api_secret: secret_key,
+    api_secret: api_secret,
     beautify: true,
   };
 
@@ -116,7 +116,7 @@ const getAccount = async (api_key, secret_key) => {
   accountInfoCache.set(api_key, {
     data: accountData,
     timestamp: cacheTime,
-    secret_key: secret_key
+    api_secret: api_secret
   });
 
   UtilRecord.log('😄 账户信息已缓存, 缓存时间:', new Date(cacheTime));

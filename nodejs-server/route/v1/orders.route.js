@@ -204,7 +204,7 @@ module.exports = router;
  *             type: object
  *             required:
  *               - api_key
- *               - secret_key
+ *               - api_secret
  *               - longAmount
  *               - shortAmount
  *             properties:
@@ -212,7 +212,7 @@ module.exports = router;
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               secret_key:
+ *               api_secret:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
@@ -276,14 +276,14 @@ module.exports = router;
  *             type: object
  *             required:
  *               - api_key
- *               - secret_key
+ *               - api_secret
  *               - positions
  *             properties:
  *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               secret_key:
+ *               api_secret:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
@@ -330,14 +330,14 @@ module.exports = router;
  *             type: object
  *             required:
  *               - api_key
- *               - secret_key
+ *               - api_secret
  *               - positions
  *             properties:
  *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               secret_key:
+ *               api_secret:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
@@ -393,13 +393,13 @@ module.exports = router;
  *             type: object
  *             required:
  *               - api_key
- *               - secret_key
+ *               - api_secret
  *             properties:
  *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               secret_key:
+ *               api_secret:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
@@ -449,14 +449,14 @@ module.exports = router;
  *             type: object
  *             required:
  *               - api_key
- *               - secret_key
+ *               - api_secret
  *               - positions
  *             properties:
  *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               secret_key:
+ *               api_secret:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
@@ -511,14 +511,14 @@ module.exports = router;
  *             type: object
  *             required:
  *               - api_key
- *               - secret_key
+ *               - api_secret
  *               - positions
  *             properties:
  *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               secret_key:
+ *               api_secret:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
@@ -581,14 +581,14 @@ module.exports = router;
  *             type: object
  *             required:
  *               - api_key
- *               - secret_key
+ *               - api_secret
  *               - positions
  *             properties:
  *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your_binance_api_key"
- *               secret_key:
+ *               api_secret:
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
