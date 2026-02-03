@@ -146,7 +146,6 @@ module.exports = (sequelize, DataTypes) => {
     ip: {
       type: DataTypes.STRING(45),
       allowNull: false,
-      unique: true,
       comment: '被封禁的IP地址'
     },
     reason: {

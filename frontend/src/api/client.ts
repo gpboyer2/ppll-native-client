@@ -12,8 +12,6 @@ export class ApiClient {
     this.config = {
       base_url: '',
       timeout: 10000,
-      retry_count: 3,
-      retry_delay: 1000,
       ...config
     };
   }
@@ -162,19 +160,6 @@ export class ApiClient {
         message: error.message || '请求失败'
       };
 
-      // 如果启用重试且错误允许重试
-      const retryCount = (config as any).__retryCount || 0;
-      if (retryCount < (this.config.retry_count || 0) && this.shouldRetry(error)) {
-        // 延迟后重试
-        await this.delay((config as any).__retryDelay || this.config.retry_delay || 1000);
-        const retryConfig = {
-          ...config,
-          __retryCount: retryCount + 1,
-          __retryDelay: (config as any).__retryDelay || this.config.retry_delay || 1000
-        };
-        return this.request<T>(retryConfig);
-      }
-
       return {
         success: false,
         data: null as any,
@@ -182,21 +167,6 @@ export class ApiClient {
         message: apiError.message
       };
     }
-  }
-
-  /**
-   * 判断是否应该重试
-   */
-  private shouldRetry(error: any): boolean {
-    // 网络错误或超时错误可以重试
-    return error.name === 'TypeError' || error.name === 'AbortError';
-  }
-
-  /**
-   * 延迟函数
-   */
-  private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**

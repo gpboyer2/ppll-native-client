@@ -26,7 +26,7 @@ const execution_status = require('../constants/grid-strategy-status-map');
  * @param {string} options.position_side - 持仓方向，'LONG'（做多）或'SHORT'（做空）
  * @param {string} options.trading_pair - 交易对，例如`BTCUSD_PERP`
  * @param {string} options.api_key - 币安API Key
- * @param {string} options.secret_key - 币安API Secret
+ * @param {string} options.api_secret - 币安API Secret
  * @param {number} [options.initial_fill_price=0] - 初始建仓的数量
  * @param {number} [options.leverage=20] - 杠杆倍数，默认为20
  * @param {number} [options.max_open_position_quantity] - 限制的最大持仓数量
@@ -66,7 +66,7 @@ function InfiniteGrid(options) {
     api_key: ``,
 
     /** 必填，币安API Secret */
-    secret_key: ``,
+    api_secret: ``,
 
     /**
      *  初始建仓的数量；
@@ -175,8 +175,8 @@ function InfiniteGrid(options) {
   // 如果禁用日志输出，则将 UtilRecord.log 设置为空函数
   if (!this.config.enable_log) this.disableLog();
 
-  if (!this.config.api_key || !this.config.secret_key) {
-    UtilRecord.log(`❗️ 必填项'api_key'和'secret_key'不能为空`);
+  if (!this.config.api_key || !this.config.api_secret) {
+    UtilRecord.log(`❗️ 必填项'api_key'和'api_secret'不能为空`);
     return;
   }
 
@@ -257,7 +257,7 @@ function InfiniteGrid(options) {
   this.client = new COINMClient(
     {
       api_key: this.config.api_key,
-      api_secret: this.config.secret_key,
+      api_secret: this.config.api_secret,
     },
     coinmClientConfig
   );
@@ -765,7 +765,7 @@ function InfiniteGrid(options) {
       // 通过 api_key 实现数据隔离
       const accountInfo = await binanceAccountService.getCoinMFuturesAccount(
         this.config.api_key,
-        this.config.secret_key,
+        this.config.api_secret,
         true // includePositions
       );
 

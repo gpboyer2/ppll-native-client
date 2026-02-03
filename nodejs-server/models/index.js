@@ -49,8 +49,8 @@ const sequelizeOptions = {
   logging: false,
   // SQLite 特定配置
   dialectOptions: {
-    // 启用外键约束
-    // 设置 busy timeout 避免并发冲突
+    mode: require('sqlite3').OPEN_READWRITE | require('sqlite3').OPEN_CREATE,
+    busyTimeout: 30000,
   },
   // SQLite 连接池配置（单写模式）
   pool: config.pool || {

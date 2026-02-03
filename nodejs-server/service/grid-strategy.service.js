@@ -143,7 +143,7 @@ async function findOrCreateStrategy(params) {
     let instance_params = { ...valid_params };
     instance_params.id = existing.id;
     instance_params.api_key = api_key;
-    instance_params.secret_key = api_secret;
+    instance_params.api_secret = api_secret;
 
     const instance = new InfiniteGrid(instance_params);
 

@@ -38,7 +38,6 @@ module.exports = (sequelize, DataTypes) => {
     order_id: {
       type: DataTypes.STRING(64),
       allowNull: false,
-      unique: true,
       comment: '订单ID'
     },
     client_order_id: {

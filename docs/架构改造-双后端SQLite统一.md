@@ -284,11 +284,12 @@
 - GetNodejsServiceStatus() - 获取 Node.js 服务状态
 - RestartNodejsService() - 重启 Node.js 服务
 
-**数据库特性：**
+**数据库特性（原始设计，实际由 NodeJS 端完全管理）：**
 - 启用 WAL 模式提高并发性能
 - 设置 30 秒 busy timeout 避免锁冲突
-- 启用外键约束
 - 单写模式（连接池 max: 1）
+
+**注意**：上述特性是原始设计方案，实际实施时 Go 端不负责数据库，所有配置由 NodeJS 端管理。
 
 **Node.js 环境变量：**
 - SQLITE_PATH - 数据库文件路径（由 Go 注入）
