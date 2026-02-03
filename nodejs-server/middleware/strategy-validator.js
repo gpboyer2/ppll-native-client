@@ -5,6 +5,8 @@
 
 const strategyValidator = require('../utils/strategy-validator');
 const binanceExchangeInfoService = require('../service/binance-exchange-info.service');
+const markPriceService = require('../service/mark-price.service');
+const { getCurrentPrice } = require('../utils/binance-order-helper');
 
 /**
  * 验证策略参数中间件
@@ -67,10 +69,31 @@ const validateStrategyParams = async (req, res, next) => {
         : symbolInfo.bidPrice || symbolInfo.askPrice);
     }
 
+    if (!currentPrice) {
+      // 优先读取标记价格缓存，避免频繁调用交易所接口
+      const markPriceRecord = await markPriceService.getMarkPriceBySymbol(trading_pair);
+      if (markPriceRecord?.mark_price) {
+        currentPrice = Number(markPriceRecord.mark_price);
+      }
+    }
+
+    if (!currentPrice) {
+      try {
+        currentPrice = await getCurrentPrice(trading_pair, api_key, secret_key);
+      } catch (error) {
+        console.warn(`获取 ${trading_pair} 实时价格失败:`, error?.message || error);
+      }
+    }
+
     // 5. 验证最小交易金额（MIN_NOTIONAL）
-    const minNotionalResult = strategyValidator.validateMinNotional(quantitiesToValidate, symbolInfo, trading_pair, currentPrice);
-    if (!minNotionalResult.valid) {
-      return res.apiError(null, minNotionalResult.message);
+    // 如果无法获取当前价格，跳过验证（用户已通过 optimize 接口获取参数）
+    if (currentPrice) {
+      const minNotionalResult = strategyValidator.validateMinNotional(quantitiesToValidate, symbolInfo, trading_pair, currentPrice);
+      if (!minNotionalResult.valid) {
+        return res.apiError(null, minNotionalResult.message);
+      }
+    } else {
+      console.warn(`[validateStrategyParams] 无法获取 ${trading_pair} 当前价格，跳过 MIN_NOTIONAL 验证`);
     }
 
     // 6. 验证价格差价

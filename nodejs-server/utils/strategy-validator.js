@@ -68,6 +68,10 @@ function validateMinNotional(quantities, exchangeInfo, symbol, currentPrice) {
   }
 
   const minNotional = Number(minNotionalFilter.notional ?? minNotionalFilter.minNotional);
+  const lotSizeFilter = exchangeInfo.filters?.find(f => f.filterType === 'LOT_SIZE');
+  const stepSizeStr = lotSizeFilter?.stepSize;
+  const stepSize = Number(stepSizeStr);
+  const minQty = Number(lotSizeFilter?.minQty);
 
   if (minNotional <= 0) {
     return { valid: true, message: 'MIN_NOTIONAL 值无效，跳过验证' };
@@ -82,12 +86,23 @@ function validateMinNotional(quantities, exchangeInfo, symbol, currentPrice) {
     const estimatedValue = quantity * currentPrice;
 
     if (estimatedValue < minNotional) {
-      const requiredQty = minNotional / currentPrice;
+      let requiredQty = minNotional / currentPrice;
+      if (!isNaN(stepSize) && stepSize > 0) {
+        requiredQty = Math.ceil(requiredQty / stepSize) * stepSize;
+      }
+      if (!isNaN(minQty) && minQty > 0) {
+        requiredQty = Math.max(requiredQty, minQty);
+      }
+      const stepDecimals = stepSizeStr
+        ? stepSizeStr.replace(/0+$/, '').split('.')[1]?.length || 0
+        : 6;
+      const requiredQtyText = requiredQty.toFixed(stepDecimals || 6);
+      const stepHint = stepSizeStr && stepSize > 0 ? `（按步长 ${stepSizeStr} 向上取整）` : '';
       return {
         valid: false,
         message: `根据币安官方要求，${symbol} 最小单笔交易金额为 ${minNotional.toFixed(2)} USDT。` +
                  `当前交易数量 ${quantity} 的预估价值为 ${estimatedValue.toFixed(2)} USDT，不满足要求。` +
-                 `建议交易数量至少为 ${requiredQty.toFixed(6)} ${symbol.replace('USDT', '')}`
+                 `建议交易数量至少为 ${requiredQtyText} ${symbol.replace('USDT', '')}${stepHint}`
       };
     }
   }

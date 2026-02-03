@@ -307,7 +307,9 @@ const optimizeForProfit = (params) => {
       return value;
     }
 
-    const adjusted = Math.floor(value / step) * step;
+    // 价格向下取整，数量向上取整（确保金额满足 MIN_NOTIONAL）
+    const roundFn = isPrice ? Math.floor : Math.ceil;
+    const adjusted = roundFn(value / step) * step;
 
     // 如果调整后的值小于最小值，返回最小值
     if (!isNaN(adjusted) && adjusted >= minVal) {
@@ -492,7 +494,9 @@ const optimizeForCostReduction = (params) => {
       return value;
     }
 
-    const adjusted = Math.floor(value / step) * step;
+    // 价格向下取整，数量向上取整（确保金额满足 MIN_NOTIONAL）
+    const roundFn = isPrice ? Math.floor : Math.ceil;
+    const adjusted = roundFn(value / step) * step;
 
     // 如果调整后的值小于最小值，返回最小值
     if (!isNaN(adjusted) && adjusted >= minVal) {
@@ -672,7 +676,9 @@ const optimizeForBoundary = (params) => {
       return value;
     }
 
-    const adjusted = Math.floor(value / step) * step;
+    // 价格向下取整，数量向上取整（确保金额满足 MIN_NOTIONAL）
+    const roundFn = isPrice ? Math.floor : Math.ceil;
+    const adjusted = roundFn(value / step) * step;
 
     // 如果调整后的值小于最小值，返回最小值
     if (!isNaN(adjusted) && adjusted >= minVal) {
@@ -901,16 +907,34 @@ const optimizeGridParams = async (options) => {
   const minNotionalFilter = symbolInfo.filters?.find(f => f.filterType === 'MIN_NOTIONAL');
   const minNotionalRaw = minNotionalFilter?.notional ?? minNotionalFilter?.minNotional;
   const minNotional = Number(minNotionalRaw);
-  const minNotionalByQty = effectiveMinQty > 0 && current_price > 0 ? effectiveMinQty * current_price : 0;
-  const requiredMinTradeValue = Math.max(!isNaN(minNotional) ? minNotional : 0, minNotionalByQty);
+
+  // 计算实际最小交易金额：需要同时满足 MIN_NOTIONAL、minQty、stepSize 三个条件
+  let requiredMinTradeValue = 0;
+  let requiredMinQty = 0;
+
+  if (current_price > 0 && !isNaN(minNotional) && minNotional > 0) {
+    // 根据 MIN_NOTIONAL 计算需要的数量
+    let qtyFromNotional = minNotional / current_price;
+
+    // 按 stepSize 向上取整
+    if (stepSize > 0) {
+      qtyFromNotional = Math.ceil(qtyFromNotional / stepSize) * stepSize;
+    }
+
+    // 同时也要满足 minQty
+    requiredMinQty = Math.max(qtyFromNotional, effectiveMinQty);
+
+    // 用调整后的数量计算实际最小交易金额
+    requiredMinTradeValue = requiredMinQty * current_price;
+  } else if (effectiveMinQty > 0 && current_price > 0) {
+    // 如果没有 MIN_NOTIONAL，使用 minQty × price
+    requiredMinTradeValue = effectiveMinQty * current_price;
+  }
 
   if (requiredMinTradeValue > 0) {
     if (min_trade_value < requiredMinTradeValue || max_trade_value < requiredMinTradeValue) {
       const minTradeValueText = new BigNumber(requiredMinTradeValue).toFixed(2);
-      const reasonText = minNotionalByQty >= requiredMinTradeValue && minNotionalByQty > 0
-        ? `（基于最小数量 ${effectiveMinQty} 与当前价格 ${new BigNumber(current_price).toFixed(2)} USDT 计算）`
-        : '（币安 MIN_NOTIONAL 限制）';
-      throw new Error(`根据币安官方要求，${symbol} 最小单笔交易金额为 ${minTradeValueText} USDT ${reasonText}，请调整每笔交易金额范围`);
+      throw new Error(`根据币安官方要求，${symbol} 最小单笔交易金额为 ${minTradeValueText} USDT（基于最小数量 ${requiredMinQty.toFixed(stepSize > 0 ? Math.max(0, Math.floor(-Math.log10(stepSize))) : 3)} BTC 与当前价格 ${new BigNumber(current_price).toFixed(2)} USDT 计算），请调整每笔交易金额范围`);
     }
   }
 
