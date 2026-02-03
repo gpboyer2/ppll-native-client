@@ -151,7 +151,7 @@ const create = catchAsync(async (req, res) => {
     // 如果初始化失败，会直接抛出错误不会到这里
     return res.apiSuccess(row, "网格策略创建成功");
   } catch (err) {
-    console.error("创建网格策略时出错:", err);
+    console.error('[grid-strategy.controller] 创建网格策略时出错:', err);
     return res.apiError(null, err.message || "创建网格策略失败");
   }
 });

@@ -215,7 +215,7 @@ const init = (server, wsManagerInstance) => {
       if (!IS_PRODUCTION) {
         const roomSockets = io.sockets.adapter.rooms.get(room);
         if (roomSockets && roomSockets.size > 0) {
-          UtilRecord.log(`[SocketIO] 发送 ticker_update 到房间 ${room}: ${latestPrice}`);
+          UtilRecord.trace(`[SocketIO] 发送 ticker_update 到房间 ${room}: ${latestPrice}`);
         }
       }
       io.to(room).emit('ticker_update', { symbol, market, price: latestPrice, raw });

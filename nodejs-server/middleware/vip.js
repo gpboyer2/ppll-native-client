@@ -65,7 +65,7 @@ const validateVipAccess = async (req, res, next) => {
           vipExpireAt: keyRecord.vip_expire_at,
         };
       } catch (error) {
-        console.error('VIP验证过程中发生错误:', error);
+        console.error('[vip.middleware] VIP验证过程中发生错误:', error);
         return res.apiError(null, '验证失败');
       }
     } else {
@@ -75,7 +75,7 @@ const validateVipAccess = async (req, res, next) => {
     // 验证通过，继续处理请求
     next();
   } catch (error) {
-    console.error('VIP中间件执行错误:', error);
+    console.error('[vip.middleware] VIP中间件执行错误:', error);
     return res.apiError(null, '验证失败');
   }
 };

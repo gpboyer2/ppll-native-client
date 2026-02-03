@@ -406,13 +406,13 @@ function GridStrategyEditPage() {
         response = await GridStrategyApi.create(request_data);
       }
 
-      if (response.status === 'success') {
+      if (response?.status === 'success') {
         return { success: true, data: response.datum };
       } else {
         return { success: false, error: response.message };
       }
     } catch (error: any) {
-      console.error('保存策略失败:', error);
+      console.error('[saveStrategy] 异常:', error);
       return { success: false, error: error.message || '保存失败' };
     }
   }

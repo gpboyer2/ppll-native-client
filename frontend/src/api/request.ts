@@ -35,14 +35,6 @@ class RequestLogger {
 
     const requestId = ++this.requestId;
 
-    console.log(
-      `[请求 #${requestId}]`,
-      `\n${method} ${url}`
-    );
-
-    console.log(` #${requestId} Params:`, this.truncateLog(params));
-    console.log(` #${requestId} Body:`, this.truncateLog(data));
-
     return requestId;
   }
 
@@ -51,29 +43,6 @@ class RequestLogger {
    */
   static logSuccess(requestId: number, response: any, startTime: number): void {
     if (!this.ENABLED) return;
-
-    const duration = Date.now() - startTime;
-
-    console.log(
-      `[响应 #${requestId}]`,
-      `耗时: ${duration}ms`
-    );
-
-    if (response) {
-      const logData: any = {};
-
-      if (response.status !== undefined) {
-        logData.status = response.status;
-      }
-      if (response.message) {
-        logData.message = response.message;
-      }
-      if (response.datum !== undefined) {
-        logData.datum = response.datum;
-      }
-
-      console.log(`#${requestId} API 响应:`, this.truncateLog(logData));
-    }
   }
 
   /**
@@ -177,8 +146,10 @@ export class RequestWrapper {
 
       // apiClient 返回 ApiResponse<T> 格式: {success, data, code, message}
       // 其中 data 字段才是后端返回的标准 Response<T> 格式
-      return apiResponse.data as Response<T>;
+      const result = apiResponse.data as Response<T>;
+      return result;
     } catch (error: any) {
+      console.error(`[wrapRequest #${requestId}] 请求异常:`, error);
       // 记录错误日志
       RequestLogger.logError(requestId, error, startTime);
 

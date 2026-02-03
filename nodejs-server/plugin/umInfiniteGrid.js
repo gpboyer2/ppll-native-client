@@ -1231,8 +1231,7 @@ function InfiniteGrid(options) {
    *
    */
   this._initOrders = async () => {
-    // 设置状态为初始化中
-    await this.updateExecutionStatus(execution_status.INITIALIZING);
+    // 设置状态为初始化中（注意：记录创建时已经设置为 INITIALIZING，这里不再重复更新）
     this.onPausedGrid();
 
     // 先获取交易所信息,避免后续精度处理失败
@@ -1252,7 +1251,7 @@ function InfiniteGrid(options) {
       throw new Error(errorMsg);
     }
 
-    let { min_open_position_quantity, max_open_position_quantity } = this.config;
+    let { min_open_position_quantity } = this.config;
 
     // 假设不满足最少持仓数量限制，则补仓至-最少持仓数量+对应方向的开仓数量
     if (min_open_position_quantity && this.total_open_position_quantity < min_open_position_quantity) {
@@ -1280,7 +1279,7 @@ function InfiniteGrid(options) {
 
 /**
  * 静态工厂方法：负责完整的创建流程
- * 使用事务和唯一约束处理并发创建问题
+ * 
  * @param {Object} params - 策略参数（不含 id）
  * @returns {Promise<InfiniteGrid>} - 返回创建的实例
  */
@@ -1292,71 +1291,55 @@ InfiniteGrid.create = async function (params) {
   // 参数清洗
   const valid_params = sanitizeParams(params, GridStrategy);
 
-  // 使用事务确保原子性
-  const transaction = await db.sequelize.transaction();
-
-  try {
-    // 尝试创建数据库记录（如果已存在会失败）
-    const row = await GridStrategy.create({
+  // 先检查是否已存在相同策略
+  const existing = await GridStrategy.findOne({
+    where: {
       api_key: params.api_key,
       api_secret: params.api_secret,
       trading_pair: params.trading_pair,
       position_side: params.position_side,
-      execution_status: execution_status.INITIALIZING,
-      ...valid_params
-    }, { transaction });
+    },
+  });
 
-    // 用真实 ID 创建实例
+  if (existing) {
     const instance = new InfiniteGrid({
       ...params,
       ...valid_params,
-      id: row.id
+      id: existing.id
     });
-
-    // 执行初始化
-    try {
-      await instance._initOrders();
-      await instance.updateExecutionStatus(execution_status.TRADING);
-      await transaction.commit();
-    } catch (error) {
-      // 初始化失败
-      await instance.updateExecutionStatus(execution_status.INIT_FAILED);
-      await transaction.rollback();
-      throw new Error(`网格策略初始化失败：${error.message}`);
-    }
-
+    await instance.start();
     return instance;
-  } catch (error) {
-    // 处理唯一约束冲突
-    if (error.name === 'SequelizeUniqueConstraintError') {
-      await transaction.rollback();
-
-      // 查询已存在的记录
-      const existing = await GridStrategy.findOne({
-        where: {
-          api_key: params.api_key,
-          api_secret: params.api_secret,
-          trading_pair: params.trading_pair,
-          position_side: params.position_side,
-        },
-      });
-
-      if (existing) {
-        // 返回现有实例
-        const instance = new InfiniteGrid({
-          ...params,
-          ...valid_params,
-          id: existing.id
-        });
-        await instance.start();
-        return instance;
-      }
-    }
-
-    // 其他错误
-    await transaction.rollback();
-    throw error;
   }
+
+  // 创建新记录
+  const row = await GridStrategy.create({
+    api_key: params.api_key,
+    api_secret: params.api_secret,
+    trading_pair: params.trading_pair,
+    position_side: params.position_side,
+    execution_status: execution_status.INITIALIZING,
+    ...valid_params
+  });
+
+  // 用真实 ID 创建实例
+  const instance = new InfiniteGrid({
+    ...params,
+    ...valid_params,
+    id: row.id
+  });
+
+  // 执行初始化
+  try {
+    await instance._initOrders();
+    // 初始化成功后，更新状态为 TRADING
+    await instance.updateExecutionStatus(execution_status.TRADING);
+  } catch (error) {
+    // 初始化失败
+    await instance.updateExecutionStatus(execution_status.INIT_FAILED);
+    throw new Error(`网格策略初始化失败：${error.message}`);
+  }
+
+  return instance;
 };
 
 

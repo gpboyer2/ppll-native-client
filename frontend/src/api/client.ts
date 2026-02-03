@@ -268,17 +268,7 @@ export class ApiClient {
 // 创建默认API客户端实例
 export const apiClient = new ApiClient();
 
-// 添加日志拦截器（在所有其他拦截器之后执行，记录最终发送的数据）
+// 添加请求拦截器（占位，可在此添加全局请求处理逻辑）
 apiClient.addRequestInterceptor((config: RequestConfig) => {
-  // 打印最终请求信息（包含所有拦截器修改后的数据）
-  if (config.url.startsWith('/api/v1/')) {
-    const requestId = (apiClient as any).__requestId;
-    if (requestId) {
-      console.log(
-        `[请求 #${requestId}] 最终数据:`,
-        JSON.stringify(config.data, null, 2)
-      );
-    }
-  }
   return config;
 });

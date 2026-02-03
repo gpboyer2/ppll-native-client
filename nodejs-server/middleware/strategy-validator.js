@@ -107,7 +107,7 @@ const validateStrategyParams = async (req, res, next) => {
     // 验证通过，继续执行
     next();
   } catch (error) {
-    console.error('策略参数验证失败:', error);
+    console.error('[strategy-validator] 策略参数验证失败:', error);
     return res.apiError(null, '策略参数验证失败，请稍后重试');
   }
 };

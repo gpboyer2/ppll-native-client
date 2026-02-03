@@ -101,13 +101,6 @@ async function findOrCreateStrategy(params) {
   const { valid_params } = params;
   const { api_key, api_secret, trading_pair, position_side, trading_mode } = params.original;
 
-  // 只输出关注交易对的日志
-  if (trading_pair === 'UNIUSDT') {
-    console.log(`[grid-strategy] ========== findOrCreateStrategy 被调用 ==========`);
-    console.log(`[grid-strategy] 交易对: ${trading_pair}`);
-    console.log(`[grid-strategy] 交易模式: ${trading_mode}`);
-  }
-
   // 必填校验
   if (!trading_mode) {
     throw new Error('trading_mode 是必填字段');
@@ -122,21 +115,9 @@ async function findOrCreateStrategy(params) {
   });
 
   if (existing) {
-    // 只输出关注交易对的日志
-    if (existing.trading_pair === 'UNIUSDT') {
-      console.log(`[grid-strategy] 找到已存在的策略，ID: ${existing.id}`);
-    }
-
     // 已存在，恢复实例
     if (gridMap[existing.id]) {
-      if (existing.trading_pair === 'UNIUSDT') {
-        console.log(`[grid-strategy] 实例已存在，直接返回`);
-      }
       return { row: existing, created: false, instance: gridMap[existing.id] };
-    }
-
-    if (existing.trading_pair === 'UNIUSDT') {
-      console.log(`[grid-strategy] 策略存在但没有运行实例，准备恢复`);
     }
 
     // 恢复实例
@@ -151,6 +132,7 @@ async function findOrCreateStrategy(params) {
     try {
       await instance.start();
     } catch (error) {
+      console.error('[grid-strategy.service] 插件实例启动失败:', error);
       throw new Error(`网格策略初始化失败：${error.message}`);
     }
 
@@ -169,6 +151,7 @@ async function findOrCreateStrategy(params) {
     const row = await GridStrategy.findByPk(instance.config.id);
     return { row, created: true, instance };
   } catch (error) {
+    console.error('[grid-strategy.service] InfiniteGrid.create 失败:', error);
     throw new Error(`网格策略创建失败：${error.message}`);
   }
 }
@@ -500,13 +483,6 @@ function bindGlobalTickListener() {
  * @returns {Promise<Object>} - 返回创建的策略对象和是否创建成功的标记
  */
 const createGridStrategy = async (/** @type {{api_key: string, api_secret: string, trading_pair: string, position_side: string, trading_mode?: string}} */ params) => {
-  // 只输出关注交易对的日志
-  if (params.trading_pair === 'UNIUSDT') {
-    console.log(`[grid-strategy] ========== createGridStrategy 被调用 ==========`);
-    console.log(`[grid-strategy] 交易对: ${params.trading_pair}`);
-    console.log(`[grid-strategy] tickListenerBound 当前值: ${tickListenerBound}`);
-  }
-
   // 步骤1: 验证和清洗参数
   const valid_params = await validateAndSanitizeParams(params);
 
