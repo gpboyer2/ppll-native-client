@@ -321,24 +321,26 @@ function GridStrategyEditPage() {
 
   // 当 API Key 列表加载完成后，自动选择当前激活的 API Key 作为默认值并验证账户信息
   useEffect(() => {
-    // 只在新建模式下，且 API Key 列表已加载，且当前未选择 API Key 时设置默认值
-    if (!is_editing && api_key_list.length > 0 && !formData._api_key_id) {
+    // 只在新建模式下，且 store 已初始化，且 API Key 列表已加载，且当前未选择 API Key 时设置默认值
+    if (!is_editing && initialized && api_key_list.length > 0 && !formData._api_key_id) {
       // 优先使用当前激活的 API Key，而不是固定的第一个
       const active_api_key = get_active_api_key();
       const default_api_key = active_api_key || api_key_list[0];
 
-      // 直接设置 API Key 和 Secret
-      setFormData((prev: GridStrategyForm) => ({
-        ...prev,
-        api_key: default_api_key.api_key,
-        secret_key: default_api_key.secret_key,
-        _api_key_id: default_api_key.id
-      }));
+      if (default_api_key) {
+        // 直接设置 API Key 和 Secret
+        setFormData((prev: GridStrategyForm) => ({
+          ...prev,
+          api_key: default_api_key.api_key,
+          secret_key: default_api_key.secret_key,
+          _api_key_id: String(default_api_key.id)
+        }));
 
-      // 立即验证账户信息
-      validateAccountInfo(default_api_key.api_key, default_api_key.secret_key);
+        // 立即验证账户信息
+        validateAccountInfo(default_api_key.api_key, default_api_key.secret_key);
+      }
     }
-  }, [api_key_list, is_editing, formData._api_key_id, validateAccountInfo, get_active_api_key]);
+  }, [initialized, api_key_list, is_editing, formData._api_key_id, validateAccountInfo, get_active_api_key]);
 
   // WebSocket 实时获取标记价格
   useEffect(() => {
@@ -807,7 +809,7 @@ function GridStrategyEditPage() {
                 value={formData.trading_mode}
                 onChange={(value: string | null) => value && updateFormField('trading_mode', value as 'spot' | 'usdt_futures' | 'coin_futures')}
               />
-              <div className="help">选择交易模式：现货、U本位合约或B本位合约</div>
+              <div className="help">选择交易模式：U本位合约、现货或B本位合约</div>
             </div>
 
             {/* 持仓方向 */}
