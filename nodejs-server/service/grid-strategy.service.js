@@ -82,9 +82,6 @@ const cleanupSubscriber = async (symbol, id, remark) => {
 async function validateAndSanitizeParams(params) {
   try {
     const valid_params = sanitizeParams(params, GridStrategy);
-    if (params.trading_pair === 'UNIUSDT') {
-      console.log(`[grid-strategy] ✅ sanitizeParams 成功`);
-    }
     return valid_params;
   } catch (error) {
     console.log(`[grid-strategy] ❌ sanitizeParams 失败:`, error.message);
@@ -167,22 +164,6 @@ async function setupSubscription(row, params) {
 
   if (!gridStrategyRegistry.has(symbol)) {
     gridStrategyRegistry.set(symbol, new Set());
-    // 只输出关注交易对的日志
-    if (symbol === 'UNIUSDT') {
-      const logMessage = `
-╔══════════════════════════════════════════════════╗
-                 🎉 新增一个网格订阅
-╠══════════════════════════════════════════════════╣
- 交易对: ${symbol}
- 时间: ${dayjs().format('YYYY-MM-DD HH:mm:ss')}
- 策略ID: ${row.id}
- API Key: ${valid_params.api_key?.substring(0, 8)}...
- 持仓方向: ${valid_params.position_side}
- 交易模式: ${valid_params.trading_mode}
-╚══════════════════════════════════════════════════╝
-`;
-      console.log(logMessage);
-    }
     UtilRecord.log('[grid-strategy] 新增网格订阅', {
       symbol,
       strategyId: row.id,
@@ -195,23 +176,6 @@ async function setupSubscription(row, params) {
     global.wsManager.subscribeMarkPrice(symbol);
   } else {
     const currentCount = gridStrategyRegistry.get(symbol).size;
-    // 只输出关注交易对的日志
-    if (symbol === 'UNIUSDT') {
-      const logMessage = `
-╔══════════════════════════════════════════════════╗
-                 🔄 复用现有网格订阅
-╠══════════════════════════════════════════════════╣
- 交易对: ${symbol}
- 时间: ${dayjs().format('YYYY-MM-DD HH:mm:ss')}
- 策略ID: ${row.id}
- API Key: ${valid_params.api_key?.substring(0, 8)}...
- 持仓方向: ${valid_params.position_side}
- 交易模式: ${valid_params.trading_mode}
- 当前订阅数: ${currentCount + 1}
-╚══════════════════════════════════════════════════╝
-`;
-      console.log(logMessage);
-    }
     UtilRecord.log('[grid-strategy] 复用现有网格订阅', {
       symbol,
       strategyId: row.id,
@@ -436,23 +400,13 @@ function bindGlobalTickListener() {
   tickListenerBound = true;
   UtilRecord.log('[grid-strategy] 绑定全局 tick 事件监听器');
   global.wsManager.on("tick", ({ symbol, latestPrice }) => {
-    // 只输出关注交易对的日志（UNIUSDT）
-    if (symbol === 'UNIUSDT') {
-      console.log(`[grid-strategy] 收到 tick 事件: ${symbol} @ ${latestPrice}`);
-    }
     const subs = gridStrategyRegistry.get(symbol);
     if (!subs || subs.size === 0) {
       // 静默处理没有订阅者的情况
       return;
     }
-    if (symbol === 'UNIUSDT') {
-      console.log(`[grid-strategy] tick 事件分发: ${symbol} @ ${latestPrice}, 订阅者数量: ${subs.size}`);
-    }
     subs.forEach(({ grid }) => {
       try {
-        if (symbol === 'UNIUSDT') {
-          console.log(`[grid-strategy] 调用 gridWebsocket for ${symbol}`);
-        }
         grid.gridWebsocket({ latestPrice });
       } catch (e) {
         UtilRecord.error(`[grid-strategy] gridWebsocket 执行错误`, e);

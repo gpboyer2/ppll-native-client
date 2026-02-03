@@ -56,11 +56,6 @@ const initMarkPriceStream = async () => {
     // 监听 tick 事件
     wsManager.on('tick', (data) => {
       try {
-        // 只输出关注交易对的日志（UNIUSDT）
-        if (data?.symbol === 'UNIUSDT') {
-          UtilRecord.trace('[markPriceStream] 收到 tick 事件:', data?.symbol, '@', data?.latestPrice);
-        }
-
         if (!data || !data.symbol) {
           return;
         }

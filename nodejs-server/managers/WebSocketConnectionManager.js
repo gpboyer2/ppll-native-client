@@ -204,10 +204,6 @@ class WebSocketConnectionManager extends EventEmitter {
             // market 使用 'usdm' 与前端保持一致
             // 频繁的 tick 事件日志使用 trace 级别
             UtilRecord.trace(`[WSManager] emit tick event: ${symbol} @ ${markPrice}`);
-            // 只输出关注交易对的日志（UNIUSDT）
-            if (symbol === 'UNIUSDT') {
-              UtilRecord.log(`[WSManager] ✅ emit tick 事件: ${symbol} @ ${markPrice}`);
-            }
             this.emit('tick', { market: 'usdm', eventType: 'markPrice', symbol, latestPrice: markPrice, raw: message });
           } else if (message.eventType === 'continuous_kline') {
             const { symbol } = message;
