@@ -650,8 +650,8 @@ function GridStrategyEditPage() {
         grid_short_close_quantity: config.grid_trade_quantity,
         gt_limitation_price: config.gt_limitation_price,
         lt_limitation_price: config.lt_limitation_price,
-        is_above_open_price: !is_long,  // 做多不暂停，做空暂停
-        is_below_open_price: is_long    // 做多暂停，做空不暂停
+        is_above_open_price: !is_long  // 做多不暂停，做空暂停
+        // is_below_open_price 保持原有值不变
       };
     });
 
