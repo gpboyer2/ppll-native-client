@@ -31,10 +31,8 @@ const deleteApiKey = catchAsync(async (req, res) => {
  * POST /v1/binance-api-key/update
  */
 const updateApiKey = catchAsync(async (req, res) => {
-  const { id } = req.body;
-
   // 从 req.body 中提取 id，然后创建不包含 id 的 updateBody
-  const { id: _id, ...updateBody } = req.body;
+  const { id, ...updateBody } = req.body;
 
   const result = await binanceApiKeyService.updateApiKeyById(id, updateBody);
 

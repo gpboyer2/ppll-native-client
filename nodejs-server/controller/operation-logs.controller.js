@@ -8,11 +8,8 @@ const service = require('../service/operation-logs.service.js');
 // 分页查询（单用户系统）
 const list = catchAsync(async (req, res) => {
   // 注意：为避免与分页参数 page 冲突，页面路径过滤参数命名为 page_path
-  const { action, description, page_path, ip, start, end, module, operator, status, currentPage, pageSize } = req.query;
-  const data = await service.list(
-    { action, description, page_path, ip, start, end, module, operator, status },
-    { currentPage, pageSize }
-  );
+  const { currentPage, pageSize, ...filters } = req.query;
+  const data = await service.list(filters, { currentPage, pageSize });
   return res.apiSuccess(data, '获取操作日志列表成功');
 });
 

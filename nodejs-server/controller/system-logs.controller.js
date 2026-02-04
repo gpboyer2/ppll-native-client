@@ -7,11 +7,8 @@ const service = require('../service/system-logs.service.js');
 
 // 分页查询（单用户系统）
 const list = catchAsync(async (req, res) => {
-  const { module, api_endpoint, http_method, status_code, error_code, ip, location, start, end, currentPage, pageSize } = req.query;
-  const result = await service.list(
-    { module, api_endpoint, http_method, status_code, error_code, ip, location, start, end },
-    { currentPage, pageSize }
-  );
+  const { currentPage, pageSize, ...filters } = req.query;
+  const result = await service.list(filters, { currentPage, pageSize });
   return res.apiSuccess({
     list: result.list,
     pagination: result.pagination

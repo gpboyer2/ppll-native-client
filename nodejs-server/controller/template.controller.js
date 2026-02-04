@@ -9,7 +9,6 @@ const catchAsync = require("../utils/catch-async");
 const createOrder = catchAsync(async (req, res) => {
   /** @type {{msg?: string} | null} */
   let error_msg = null;
-  const { api_key, api_secret } = req.body;
 
   const result = await orderService.createOrder(req.body).catch(err => {
     if (typeof err === 'string') {
@@ -28,7 +27,7 @@ const createOrder = catchAsync(async (req, res) => {
 });
 
 const updateOrder = catchAsync(async (req, res) => {
-  const { id, api_key, api_secret, ...updateBody } = req.body;
+  const { id, ...updateBody } = req.body;
 
   // 检查必需参数
   if (!id) {

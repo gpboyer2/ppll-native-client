@@ -8,11 +8,8 @@ const service = require('../service/login-logs.service.js');
 
 // 列表查询（分页 + 过滤）（单用户系统）
 const list = catchAsync(async (req, res) => {
-  const { username, ip, status, login_system, start, end, currentPage, pageSize } = req.query;
-  const data = await service.list(
-    { username, ip, status, login_system, start, end },
-    { currentPage, pageSize }
-  );
+  const { currentPage, pageSize, ...filters } = req.query;
+  const data = await service.list(filters, { currentPage, pageSize });
   return res.apiSuccess(data, '获取登录日志列表成功');
 });
 
