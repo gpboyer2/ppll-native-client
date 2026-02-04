@@ -9,17 +9,8 @@ const FrontendLog = db.frontend_log;
  * @route POST /api/frontend-logs/create
  */
 const create = catchAsync(async (req, res) => {
-  const { log_level, log_message, log_data, page_url, user_agent } = req.body;
-
   // 使用公共函数添加日志（自动清理旧数据）
-  const logs = await add_frontend_log([{
-    log_level,
-    log_message,
-    log_data,
-    page_url,
-    user_agent,
-  }]);
-
+  const logs = await add_frontend_log([Object.assign({}, req.body)]);
   return res.apiSuccess(logs, '日志记录成功');
 });
 

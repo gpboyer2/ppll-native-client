@@ -11,17 +11,7 @@ const binanceApiKeyService = require("../service/binance-api-key.service");
  * POST /v1/binance-api-key/create
  */
 const createApiKey = catchAsync(async (req, res) => {
-  const { name, api_key, api_secret, status, remark, vip_expire_at } = req.body;
-
-  const result = await binanceApiKeyService.createApiKey({
-    name,
-    api_key,
-    api_secret,
-    status,
-    remark,
-    vip_expire_at
-  });
-
+  const result = await binanceApiKeyService.createApiKey(Object.assign({}, req.body));
   return res.apiSuccess(result, '创建 ApiKey 成功');
 });
 

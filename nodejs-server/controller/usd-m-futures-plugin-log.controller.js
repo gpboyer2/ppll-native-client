@@ -32,14 +32,12 @@ const getStatistics = catchAsync(async (req, res) => {
  * 创建插件日志
  */
 const create = catchAsync(async (req, res) => {
-  const { strategy_id, trading_pair, event_type, message, details } = req.body;
-
   const log = await usd_m_futures_infinite_grid_event_manager.logEvent({
-    strategyId: strategy_id,
-    tradingPair: trading_pair,
-    eventType: event_type,
-    message,
-    details
+    strategyId: req.body.strategy_id,
+    tradingPair: req.body.trading_pair,
+    eventType: req.body.event_type,
+    message: req.body.message,
+    details: req.body.details
   });
 
   return res.apiSuccess(log, '创建成功');

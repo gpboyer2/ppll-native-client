@@ -8,128 +8,82 @@ const { validateStrategyParams } = require("../middleware/strategy-validator");
 const httpStatus = require("http-status");
 const catchAsync = require("../utils/catch-async");
 
-const list = catchAsync(async (req, res) => {
-  let { api_key, api_secret } = req.apiCredentials;
-  let { currentPage, pageSize } = req.query;
+/**
+ * 通用辅助函数：准备包含 API 凭证的数据对象
+ * @param {Object} apiCredentials - API 凭证对象
+ * @param {Object} data - 额外数据
+ * @returns {Object} 包含 api_key 和 api_secret 的对象
+ */
+const prepareData = (apiCredentials, data = {}) => ({
+  api_key: apiCredentials.api_key,
+  api_secret: apiCredentials.api_secret,
+  ...data,
+});
 
-  let grid = await gridStrategyService.getAllGridStrategys(
-    { api_key: api_key, api_secret: api_secret },
-    { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 }
-  );
+/**
+ * 通用辅助函数：准备分页参数
+ * @param {Object} query - 请求查询参数
+ * @returns {Object} 包含 currentPage 和 pageSize 的对象
+ */
+const preparePagination = (query) => ({
+  currentPage: Number(query.currentPage) || 1,
+  pageSize: Number(query.pageSize) || 10,
+});
+
+const list = catchAsync(async (req, res) => {
+  const credentials = prepareData(req.apiCredentials);
+  const pagination = preparePagination(req.query);
+
+  const grid = await gridStrategyService.getAllGridStrategys(credentials, pagination);
 
   return res.apiSuccess(grid, '获取网格策略列表成功');
 });
 
 
 /**
+ * 数值参数验证函数
+ * @param {*} value - 待验证的值
+ * @param {string} name - 参数名称
+ * @param {boolean} allowZero - 是否允许为0
+ * @returns {Object} { valid: boolean, message?: string }
+ */
+const validateNumberParam = (value, name, allowZero = false) => {
+  if (value === undefined || value === null) return { valid: true };
+  const num = Number(value);
+  if (isNaN(num)) return { valid: false, message: `${name} 必须是数字` };
+  if (allowZero ? num < 0 : num <= 0) return { valid: false, message: `${name} 必须${allowZero ? '是非负' : '是大于0'}的数字` };
+  return { valid: true };
+};
+
+/**
+ * 创建网格策略
  * - 终止时是否全部平仓
  * - 预测爆仓价格
  * - 是否立即开启/限价开启
- * 
  */
 const create = catchAsync(async (req, res) => {
-  const { api_key, api_secret } = req.apiCredentials;
-  const {
-    trading_pair,
-    position_side,
-    grid_price_difference,
-    grid_trade_quantity,
-    // 分离的开仓/平仓数量
-    grid_long_open_quantity,
-    grid_long_close_quantity,
-    grid_short_open_quantity,
-    grid_short_close_quantity,
-    max_open_position_quantity,
-    min_open_position_quantity,
-    fall_prevention_coefficient,
-    polling_interval,
-    price_precision,
-    quantity_precision,
-    name,
-    leverage,
-    margin_type,
-    stop_loss_price,
-    take_profit_price,
-    // 价格限制参数
-    gt_limitation_price,
-    lt_limitation_price,
-    // 暂停条件参数
-    is_above_open_price,
-    is_below_open_price,
-    // 顺势仅减仓策略
-    priority_close_on_trend,
-    // 交易模式
-    trading_mode,
-  } = req.body;
-
   // 参数验证
-  if (!trading_pair) {
+  if (!req.body.trading_pair) {
     return res.apiError(null, "trading_pair 是必填项");
   }
 
   // 数值参数边界检查
-  if (grid_price_difference && (isNaN(grid_price_difference) || Number(grid_price_difference) <= 0)) {
-    return res.apiError(null, "grid_price_difference 必须是大于0的数字");
+  const validations = [
+    validateNumberParam(req.body.grid_price_difference, "grid_price_difference"),
+    validateNumberParam(req.body.grid_trade_quantity, "grid_trade_quantity"),
+    validateNumberParam(req.body.max_open_position_quantity, "max_open_position_quantity"),
+    validateNumberParam(req.body.min_open_position_quantity, "min_open_position_quantity"),
+    validateNumberParam(req.body.price_precision, "price_precision", true),
+    validateNumberParam(req.body.quantity_precision, "quantity_precision", true),
+    validateNumberParam(req.body.leverage, "leverage"),
+  ];
+
+  for (const { valid, message } of validations) {
+    if (!valid) return res.apiError(null, message);
   }
 
-  if (grid_trade_quantity && (isNaN(grid_trade_quantity) || Number(grid_trade_quantity) <= 0)) {
-    return res.apiError(null, "grid_trade_quantity 必须是大于0的数字");
-  }
-
-  if (max_open_position_quantity && (isNaN(max_open_position_quantity) || Number(max_open_position_quantity) <= 0)) {
-    return res.apiError(null, "max_open_position_quantity 必须是大于0的数字");
-  }
-
-  if (min_open_position_quantity && (isNaN(min_open_position_quantity) || Number(min_open_position_quantity) <= 0)) {
-    return res.apiError(null, "min_open_position_quantity 必须是大于0的数字");
-  }
-
-  if (price_precision && (isNaN(price_precision) || Number(price_precision) < 0)) {
-    return res.apiError(null, "price_precision 必须是非负整数");
-  }
-
-  if (quantity_precision && (isNaN(quantity_precision) || Number(quantity_precision) < 0)) {
-    return res.apiError(null, "quantity_precision 必须是非负整数");
-  }
-
-  if (leverage && (isNaN(leverage) || Number(leverage) <= 0)) {
-    return res.apiError(null, "leverage 必须是大于0的整数");
-  }
-
-  const strategyData = {
-    api_key: api_key,
-    api_secret: api_secret,
-    trading_pair,
-    position_side,
-    grid_price_difference,
-    grid_trade_quantity,
-    // 分离的开仓/平仓数量
-    grid_long_open_quantity,
-    grid_long_close_quantity,
-    grid_short_open_quantity,
-    grid_short_close_quantity,
-    max_open_position_quantity,
-    min_open_position_quantity,
-    fall_prevention_coefficient,
-    polling_interval,
-    price_precision,
-    quantity_precision,
-    name,
-    leverage,
-    margin_type,
-    stop_loss_price,
-    take_profit_price,
-    // 价格限制参数
-    gt_limitation_price,
-    lt_limitation_price,
-    // 暂停条件参数
-    is_above_open_price,
-    is_below_open_price,
-    // 顺势仅减仓策略
-    priority_close_on_trend,
-    // 交易模式
-    trading_mode,
-  };
+  // 合并 API 凭证和请求数据
+  const strategyData = prepareData(req.apiCredentials, req.body);
 
   // 过滤掉 undefined 或 null 的参数
   Object.keys(strategyData).forEach(key => {
@@ -141,14 +95,10 @@ const create = catchAsync(async (req, res) => {
   try {
     const { row, created } = await gridStrategyService.createGridStrategy(strategyData);
 
-    // 检查创建结果
     if (!created) {
-      return res.apiError(null, `已存在该交易对 ${trading_pair} 的网格策略`);
+      return res.apiError(null, `已存在该交易对 ${req.body.trading_pair} 的网格策略`);
     }
 
-    // 创建成功，返回数据
-    // 注意：此时策略已经完成初始化（API Key 验证、账户信息获取、订单创建等）
-    // 如果初始化失败，会直接抛出错误不会到这里
     return res.apiSuccess(row, "网格策略创建成功");
   } catch (err) {
     console.error('[grid-strategy.controller] 创建网格策略时出错:', err);
@@ -159,91 +109,38 @@ const create = catchAsync(async (req, res) => {
 
 /** 删除网格策略 */
 const deletes = catchAsync(async (req, res) => {
-  let { api_key, api_secret } = req.apiCredentials;
-  let { id } = req.body;
-  let result = null;
+  const { id } = req.body;
 
   if (!id) {
     return res.apiError(null, '缺少参数: id');
   }
 
-  // 约定：id 必须是数组格式
   if (!Array.isArray(id)) {
     return res.apiError(null, '参数 id 必须是数组格式');
   }
 
-  // 转换为数字数组
-  const id_number_list = id.map(item => Number(item));
-
-  result = await gridStrategyService.deleteGridStrategyById({
-    api_key: api_key,
-    api_secret: api_secret,
-    id: id_number_list
-  });
+  const result = await gridStrategyService.deleteGridStrategyById(
+    prepareData(req.apiCredentials, { id: id.map(item => Number(item)) })
+  );
 
   if (result?.status) {
     return res.apiSuccess({}, '网格策略删除成功');
-  } else {
-    return res.apiError(null, '网格策略删除失败');
   }
+  return res.apiError(null, '网格策略删除失败');
 });
 
 
 const update = catchAsync(async (req, res) => {
-  const { api_key, api_secret } = req.apiCredentials;
-  const {
-    id,
-    position_side,
-    grid_price_difference,
-    grid_trade_quantity,
-    grid_long_open_quantity,
-    grid_long_close_quantity,
-    grid_short_open_quantity,
-    grid_short_close_quantity,
-    max_open_position_quantity,
-    min_open_position_quantity,
-    fall_prevention_coefficient,
-    polling_interval,
-    leverage,
-    margin_type,
-    stop_loss_price,
-    take_profit_price,
-    gt_limitation_price,
-    lt_limitation_price,
-    is_above_open_price,
-    is_below_open_price,
-    priority_close_on_trend,
-  } = req.body;
+  const { id, ...restBody } = req.body;
 
   if (!id) {
     return res.apiError(null, "缺少参数: id");
   }
 
-  const updateData = {
+  const updateData = prepareData(req.apiCredentials, {
+    ...restBody,
     id: Number(id),
-    api_key: api_key,
-    api_secret: api_secret,
-    position_side,
-    grid_price_difference,
-    grid_trade_quantity,
-    grid_long_open_quantity,
-    grid_long_close_quantity,
-    grid_short_open_quantity,
-    grid_short_close_quantity,
-    max_open_position_quantity,
-    min_open_position_quantity,
-    fall_prevention_coefficient,
-    polling_interval,
-    leverage,
-    margin_type,
-    stop_loss_price,
-    take_profit_price,
-    gt_limitation_price,
-    lt_limitation_price,
-    is_above_open_price,
-    is_below_open_price,
-    priority_close_on_trend,
-  };
+  });
 
   // 过滤掉 undefined 的参数
   Object.keys(updateData).forEach(key => {
@@ -256,50 +153,36 @@ const update = catchAsync(async (req, res) => {
 
   if (result.affectedCount > 0) {
     return res.apiSuccess(result.data, "网格策略更新成功");
-  } else {
-    return res.apiError(null, "网格策略更新失败");
   }
+  return res.apiError(null, "网格策略更新失败");
 });
 
 
 /** 更新网格策略状态（暂停或继续） */
 const action = catchAsync(async (req, res) => {
-  let { api_key, api_secret } = req.apiCredentials;
-  let { id } = req.body;
+  const { id } = req.body;
 
   if (!id) {
     return res.apiError(null, '缺少策略ID');
   }
 
-  // 根据路由路径判断是暂停还是恢复
-  const isPause = req.path.includes('/paused');
-  const paused = isPause;
+  const paused = req.path.includes('/paused');
+  const result = await gridStrategyService.updateGridStrategyById(
+    prepareData(req.apiCredentials, { paused, id: Number(id) })
+  );
 
-  const result = await gridStrategyService.updateGridStrategyById({
-    paused,
-    api_key: api_key,
-    api_secret: api_secret,
-    id: Number(id)
-  });
-
-  // result.affectedCount > 0 表示更新成功
   if (result.affectedCount > 0) {
-    const message = paused ? '策略已暂停' : '策略已恢复运行';
-    return res.apiSuccess(result.data, message);
-  } else {
-    return res.apiError(null, '更新策略失败');
+    return res.apiSuccess(result.data, paused ? '策略已暂停' : '策略已恢复运行');
   }
+  return res.apiError(null, '更新策略失败');
 });
 
 
 const query = catchAsync(async (req, res) => {
-  let { api_key, api_secret } = req.apiCredentials;
-  let { currentPage, pageSize } = req.query;
+  const credentials = prepareData(req.apiCredentials);
+  const pagination = preparePagination(req.query);
 
-  let grid = await gridStrategyService.getAllGridStrategys(
-    { api_key: api_key, api_secret: api_secret },
-    { currentPage: Number(currentPage) || 1, pageSize: Number(pageSize) || 10 }
-  );
+  const grid = await gridStrategyService.getAllGridStrategys(credentials, pagination);
 
   return res.apiSuccess(grid, '查询网格策略成功');
 });
@@ -310,37 +193,29 @@ const query = catchAsync(async (req, res) => {
  * 根据K线数据自动计算最优网格参数
  */
 const optimize_params = catchAsync(async (req, res) => {
-  const { api_key, api_secret } = req.apiCredentials;
-  const {
-    symbol,
-    interval,
-    total_capital,
-    optimize_target,
-    min_trade_value,
-    max_trade_value
-  } = req.body;
+  const { symbol, total_capital, ...restBody } = req.body;
 
-  // 验证必填参数
   if (!symbol) {
     return res.apiError(null, "缺少交易对参数 symbol");
   }
 
-  if (!total_capital || isNaN(total_capital) || Number(total_capital) <= 0) {
-    return res.apiError(null, "总资金必须为大于0的数字");
+  const capitalCheck = validateNumberParam(total_capital, "总资金");
+  if (!capitalCheck.valid) {
+    return res.apiError(null, capitalCheck.message);
   }
 
   try {
-    const result = await gridOptimizerService.optimizeGridParams({
-      symbol,
-      interval: interval || '4h',
-      total_capital: Number(total_capital),
-      optimize_target: optimize_target || 'profit',
-      enable_boundary_defense: false,
-      min_trade_value: min_trade_value ? Number(min_trade_value) : 20,
-      max_trade_value: max_trade_value ? Number(max_trade_value) : 100,
-      api_key: api_key,
-      api_secret: api_secret
-    });
+    const result = await gridOptimizerService.optimizeGridParams(
+      prepareData(req.apiCredentials, {
+        symbol,
+        interval: restBody.interval || '4h',
+        total_capital: Number(total_capital),
+        optimize_target: restBody.optimize_target || 'profit',
+        enable_boundary_defense: false,
+        min_trade_value: restBody.min_trade_value ? Number(restBody.min_trade_value) : 20,
+        max_trade_value: restBody.max_trade_value ? Number(restBody.max_trade_value) : 100,
+      })
+    );
 
     return res.apiSuccess(result, "获取优化参数成功");
   } catch (err) {
