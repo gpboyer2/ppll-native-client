@@ -269,15 +269,30 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
         new_socket.on('connect', () => {
           clearTimeout(timeout);
+          console.log('[binance-store] WebSocket 已连接:', new_socket.id);
+
+          if (get().subscribed_tickers.size > 0) {
+            console.log(`[binance-store] 检测到已有订阅，自动重订阅 ${get().subscribed_tickers.size} 个 ticker`);
+            get().subscribed_tickers.forEach((subKey) => {
+              const [market, symbol] = subKey.split(':');
+              if (!symbol) {
+                return;
+              }
+              console.log(`[binance-store] 自动重订阅 ticker: ${symbol} (${market})`);
+              new_socket.emit('subscribe_ticker', { symbol, market });
+            });
+          }
+
           resolve();
         });
 
-        new_socket.on('disconnect', () => {
-          // WebSocket 断开
+        new_socket.on('disconnect', (reason) => {
+          console.warn('[binance-store] WebSocket 已断开:', reason);
         });
 
         new_socket.on('connect_error', (error) => {
           clearTimeout(timeout);
+          console.error('[binance-store] WebSocket 连接错误:', error);
           reject(error);
         });
 
@@ -332,6 +347,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
       return;
     }
 
+    console.log(`[binance-store] 订阅 ticker: ${symbol} (${market})`);
     socket.emit('subscribe_ticker', { symbol, market });
     set({
       subscribed_tickers: new Set([...subscribed_tickers, subKey])
@@ -350,6 +366,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
       return;
     }
 
+    console.log(`[binance-store] 取消订阅 ticker: ${symbol} (${market})`);
     socket.emit('unsubscribe_ticker', { symbol, market });
 
     const new_tickers = new Set(subscribed_tickers);

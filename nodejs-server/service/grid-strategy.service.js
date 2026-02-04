@@ -550,6 +550,12 @@ const getGridStrategyByApiKey = async (api_key, api_secret) => {
 const updateGridStrategyById = async (updateBody) => {
   let grid_strategy_instance = GridStrategy.build(updateBody);
   let params = grid_strategy_instance.get();
+  const update_keys = Object.keys(updateBody);
+  Object.keys(params).forEach((key) => {
+    if (!update_keys.includes(key)) {
+      delete params[key];
+    }
+  });
   let { id, api_key, api_secret, paused } = params;
 
   const whereCondition = { id, api_key, api_secret };
@@ -579,6 +585,19 @@ const updateGridStrategyById = async (updateBody) => {
   let data = undefined;
   if (affectedCount > 0) {
     data = await GridStrategy.findByPk(id);
+
+    if (gridMap[id]) {
+      Object.keys(updateBody).forEach((key) => {
+        if (key in gridMap[id].config) {
+          gridMap[id].config[key] = updateBody[key];
+        }
+      });
+      UtilRecord.log('[grid-strategy] 已同步更新网格配置', {
+        strategyId: id,
+        is_above_open_price: gridMap[id].config.is_above_open_price,
+        is_below_open_price: gridMap[id].config.is_below_open_price
+      });
+    }
 
     if (paused === true && gridMap[id]) {
       gridMap[id].onManualPausedGrid();

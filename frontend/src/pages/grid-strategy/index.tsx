@@ -161,7 +161,7 @@ function GridStrategyListPage() {
       // 关键词筛选
       if (filter.keyword) {
         const keyword = filter.keyword.toLowerCase();
-        if (!strategy.trading_pair.toLowerCase().includes(keyword)) {
+        if (!(strategy.trading_pair || '').toLowerCase().includes(keyword)) {
           return false;
         }
       }
@@ -356,7 +356,7 @@ function GridStrategyListPage() {
                 <div className="flex items-center space-between mb-12">
                   <div className="flex items-center gap-8">
                     <span
-                      className={`grid-strategy-position-badge ${strategy.position_side.toLowerCase()}`}
+                      className={`grid-strategy-position-badge ${(strategy.position_side || '').toLowerCase()}`}
                     >
                       {getPositionSideText(strategy.position_side)}
                     </span>

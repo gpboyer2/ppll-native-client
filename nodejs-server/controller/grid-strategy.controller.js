@@ -193,6 +193,7 @@ const update = catchAsync(async (req, res) => {
   const { api_key, api_secret } = req.apiCredentials;
   const {
     id,
+    position_side,
     grid_price_difference,
     grid_trade_quantity,
     grid_long_open_quantity,
@@ -222,6 +223,7 @@ const update = catchAsync(async (req, res) => {
     id: Number(id),
     api_key: api_key,
     api_secret: api_secret,
+    position_side,
     grid_price_difference,
     grid_trade_quantity,
     grid_long_open_quantity,
