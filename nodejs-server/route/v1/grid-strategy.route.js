@@ -322,7 +322,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /api/v1/grid-strategy/delete:
+ * /api/v1/grid-strategy/deletes:
  *   post:
  *     summary: 删除策略
  *     description: 根据策略ID删除指定的网格交易策略
