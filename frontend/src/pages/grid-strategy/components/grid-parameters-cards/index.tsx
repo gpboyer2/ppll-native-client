@@ -1,5 +1,6 @@
 import { NumberInput } from '../../../../components/mantine';
 import type { GridStrategyForm } from '../../../../types/grid-strategy';
+import { emptyToUndefined } from '../../../../utils';
 import './index.scss';
 
 
@@ -39,7 +40,7 @@ export function GridParametersCards({
               <span className="grid-strategy-form-required">*</span>
             </label>
             <NumberInput
-              value={formData.grid_price_difference}
+              value={emptyToUndefined(formData.grid_price_difference)}
               onChange={(value) => updateFormField('grid_price_difference', (typeof value === 'number' ? value : parseFloat(value || '0')))}
               decimalScale={2}
               min={0.01}
@@ -55,7 +56,7 @@ export function GridParametersCards({
           <div className={`grid-strategy-form-field ${isLongOnlyField() ? '' : 'grid-strategy-field-hidden'}`}>
             <label className="grid-strategy-form-label">做多开仓数量</label>
             <NumberInput
-              value={formData.grid_long_open_quantity}
+              value={emptyToUndefined(formData.grid_long_open_quantity)}
               onChange={(value) => updateFormField('grid_long_open_quantity', (typeof value === 'number' ? value : parseFloat(value || '0')))}
               decimalScale={3}
               min={0.001}
@@ -70,7 +71,7 @@ export function GridParametersCards({
           <div className={`grid-strategy-form-field ${isLongOnlyField() ? '' : 'grid-strategy-field-hidden'}`}>
             <label className="grid-strategy-form-label">做多平仓数量</label>
             <NumberInput
-              value={formData.grid_long_close_quantity}
+              value={emptyToUndefined(formData.grid_long_close_quantity)}
               onChange={(value) => updateFormField('grid_long_close_quantity', (typeof value === 'number' ? value : parseFloat(value || '0')))}
               decimalScale={3}
               min={0.001}
@@ -85,7 +86,7 @@ export function GridParametersCards({
           <div className={`grid-strategy-form-field ${isShortOnlyField() ? '' : 'grid-strategy-field-hidden'}`}>
             <label className="grid-strategy-form-label">做空开仓数量</label>
             <NumberInput
-              value={formData.grid_short_open_quantity}
+              value={emptyToUndefined(formData.grid_short_open_quantity)}
               onChange={(value) => updateFormField('grid_short_open_quantity', (typeof value === 'number' ? value : parseFloat(value || '0')))}
               decimalScale={3}
               min={0.001}
@@ -100,7 +101,7 @@ export function GridParametersCards({
           <div className={`grid-strategy-form-field ${isShortOnlyField() ? '' : 'grid-strategy-field-hidden'}`}>
             <label className="grid-strategy-form-label">做空平仓数量</label>
             <NumberInput
-              value={formData.grid_short_close_quantity}
+              value={emptyToUndefined(formData.grid_short_close_quantity)}
               onChange={(value) => updateFormField('grid_short_close_quantity', (typeof value === 'number' ? value : parseFloat(value || '0')))}
               decimalScale={3}
               min={0.001}
@@ -125,7 +126,7 @@ export function GridParametersCards({
           <div className="grid-strategy-form-field">
             <label className="grid-strategy-form-label">最大持仓数量</label>
             <NumberInput
-              value={formData.max_open_position_quantity}
+              value={emptyToUndefined(formData.max_open_position_quantity)}
               onChange={(value) => updateFormField('max_open_position_quantity', (typeof value === 'number' ? value : parseFloat(value || '0')))}
               decimalScale={3}
               min={0}
@@ -139,7 +140,7 @@ export function GridParametersCards({
           <div className="grid-strategy-form-field">
             <label className="grid-strategy-form-label">最小持仓数量</label>
             <NumberInput
-              value={formData.min_open_position_quantity}
+              value={emptyToUndefined(formData.min_open_position_quantity)}
               onChange={(value) => updateFormField('min_open_position_quantity', (typeof value === 'number' ? value : parseFloat(value || '0')))}
               decimalScale={3}
               min={0}
@@ -167,7 +168,7 @@ export function GridParametersCards({
           <div className="grid-strategy-form-field">
             <label className="grid-strategy-form-label">价格上限</label>
             <NumberInput
-              value={formData.gt_limitation_price}
+              value={emptyToUndefined(formData.gt_limitation_price)}
               onChange={(value) => updateFormField('gt_limitation_price', (typeof value === 'number' ? value : parseFloat(value || '0')))}
               decimalScale={2}
               min={0}
@@ -181,7 +182,7 @@ export function GridParametersCards({
           <div className="grid-strategy-form-field">
             <label className="grid-strategy-form-label">价格下限</label>
             <NumberInput
-              value={formData.lt_limitation_price}
+              value={emptyToUndefined(formData.lt_limitation_price)}
               onChange={(value) => updateFormField('lt_limitation_price', (typeof value === 'number' ? value : parseFloat(value || '0')))}
               decimalScale={2}
               min={0}

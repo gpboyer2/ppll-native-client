@@ -215,11 +215,20 @@ function GridStrategyEditPage() {
         const strategy = list.find((s: any) => String(s.id) === strategyId);
         if (strategy) {
           // 直接使用后端返回的字段名，不做任何转换
-          const formData: GridStrategyForm = {
-            ...strategy,
-            _api_key_id: undefined,
+          // 使用默认值兜底，避免出现 undefined 导致受控组件警告
+          const normalizedStrategy: GridStrategyForm = {
+            ...defaultGridStrategy,
+            _api_key_id: null
           };
-          setFormData(formData);
+
+          Object.keys(strategy).forEach((key) => {
+            const value = (strategy as Record<string, any>)[key];
+            if (value !== undefined) {
+              (normalizedStrategy as Record<string, any>)[key] = value;
+            }
+          });
+
+          setFormData(normalizedStrategy);
 
           // 立即验证账户信息
           if (formData.api_key && formData.api_secret) {

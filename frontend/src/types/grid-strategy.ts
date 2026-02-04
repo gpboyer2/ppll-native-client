@@ -87,43 +87,43 @@ export interface GridStrategy {
   api_secret: string;
 
   /** 初始建仓的价格，不填值时自动按当前价格建仓 */
-  initial_fill_price: number | undefined;
+  initial_fill_price?: number | null;
 
   /** 杠杆倍数, 默认20(不足20的设为最大倍数) */
   leverage: number;
 
   /** 限制的最大的持仓数量,为null或者undefined则不做限制 eg: 1个ETH */
-  max_open_position_quantity: number | undefined;
+  max_open_position_quantity: number | null;
 
   /** 限制的最少的持仓数量,为null或者undefined则不做限制 eg: 0.2个ETH */
-  min_open_position_quantity: number | undefined;
+  min_open_position_quantity: number | null;
 
   /** 必填，网格之间的价格差价 */
-  grid_price_difference: number | undefined;
+  grid_price_difference: number | null;
 
   /** 网格每次交易的数量（向后兼容，当没有设置分离数量时使用） */
-  grid_trade_quantity: number | undefined;
+  grid_trade_quantity: number | null;
 
   /** 做多方向：每次增加多单持仓的数量 */
-  grid_long_open_quantity: number | undefined;
+  grid_long_open_quantity: number | null;
 
   /** 做多方向：每次减少多单持仓的数量 */
-  grid_long_close_quantity: number | undefined;
+  grid_long_close_quantity: number | null;
 
   /** 做空方向：每次增加空单持仓的数量（开空单） */
-  grid_short_open_quantity: number | undefined;
+  grid_short_open_quantity: number | null;
 
   /** 做空方向：每次减少空单持仓的数量（平空单） */
-  grid_short_close_quantity: number | undefined;
+  grid_short_close_quantity: number | null;
 
   /** 防跌/防涨系数：系数越大，价格变动时的触发价格会下放的更低，为0时固定使用网格差价 */
   fall_prevention_coefficient: number;
 
   /** 大于等于某价格时暂停网格 */
-  gt_limitation_price: number | undefined;
+  gt_limitation_price: number | null;
 
   /** 小于等于某价格时暂停网格 */
-  lt_limitation_price: number | undefined;
+  lt_limitation_price: number | null;
 
   /** 是否开启"当价格大于等于开仓价格时则暂停网格" */
   is_above_open_price: boolean;
@@ -144,10 +144,10 @@ export interface GridStrategy {
   avg_cost_price_days: number;
 
   /** 止损价格 */
-  stop_loss_price?: number;
+  stop_loss_price: number | null;
 
   /** 止盈价格 */
-  take_profit_price?: number;
+  take_profit_price: number | null;
 
   /** 保证金模式 (ISOLATED/CROSS) */
   margin_type?: string;
@@ -214,27 +214,27 @@ export const defaultGridStrategy: GridStrategyForm = {
   trading_pair: '',
   api_key: '',
   api_secret: '',
-  initial_fill_price: undefined,
+  initial_fill_price: null,
   leverage: 20,
-  max_open_position_quantity: undefined,
-  min_open_position_quantity: undefined,
-  grid_price_difference: undefined,
-  grid_trade_quantity: undefined,
-  grid_long_open_quantity: undefined,
-  grid_long_close_quantity: undefined,
-  grid_short_open_quantity: undefined,
-  grid_short_close_quantity: undefined,
+  max_open_position_quantity: null,
+  min_open_position_quantity: null,
+  grid_price_difference: null,
+  grid_trade_quantity: null,
+  grid_long_open_quantity: null,
+  grid_long_close_quantity: null,
+  grid_short_open_quantity: null,
+  grid_short_close_quantity: null,
   fall_prevention_coefficient: 0,
-  gt_limitation_price: undefined,
-  lt_limitation_price: undefined,
+  gt_limitation_price: null,
+  lt_limitation_price: null,
   is_above_open_price: false,
   is_below_open_price: false,
   polling_interval: 10000,
   enable_log: true,
   priority_close_on_trend: true,
   avg_cost_price_days: 30,
-  stop_loss_price: undefined,
-  take_profit_price: undefined,
+  stop_loss_price: null,
+  take_profit_price: null,
   trading_mode: 'usdt_futures'
 };
 

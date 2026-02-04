@@ -359,7 +359,7 @@ module.exports = (sequelize, DataTypes) => {
       initial_fill_price: {
         type: DataTypes.DECIMAL(20, 8),
         allowNull: true,
-        defaultValue: 0,
+        defaultValue: null,
         comment: "初始建仓价格",
       },
       total_open_position_entry_price: {

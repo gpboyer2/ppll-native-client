@@ -7,3 +7,4 @@ export * from './strategy-validation';
 export * from './performance';
 export * from './logger';
 export * from './dom';
+export * from './nil';
