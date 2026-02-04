@@ -313,32 +313,37 @@ function GridStrategyDetailPage() {
           </div>
         </div>
         <div className="detail-header-right">
-          <button className="action-btn" onClick={handleRefresh} disabled={refreshing}>
-            <IconRefresh size={16} />
-          </button>
-          <Link to={`${ROUTES.GRID_STRATEGY_EDIT}?id=${strategy.id}`} className="action-btn">
-            <IconEdit size={16} />
+          <div className="header-action-btn" onClick={handleRefresh}>
+            <span className="header-action-text">刷新</span>
+            <IconRefresh size={14} />
+          </div>
+          <Link to={`${ROUTES.GRID_STRATEGY_EDIT}?id=${strategy.id}`} className="header-action-btn">
+            <span className="header-action-text">编辑</span>
+            <IconEdit size={14} />
           </Link>
-          <button className="action-btn" onClick={handleCopy}>
-            <IconCopy size={16} />
-          </button>
+          <div className="header-action-btn" onClick={handleCopy}>
+            <span className="header-action-text">复制</span>
+            <IconCopy size={14} />
+          </div>
           {strategy.execution_status === EXECUTION_STATUS.PAUSED_MANUAL ? (
-            <button className="action-btn success" onClick={handleToggleStatus}>
-              <IconPlayerPlay size={16} />
-            </button>
+            <div className="header-action-btn success" onClick={handleToggleStatus}>
+              <span className="header-action-text">启动</span>
+              <IconPlayerPlay size={14} />
+            </div>
           ) : (
-            <button
-              className="action-btn warning"
+            <div
+              className="header-action-btn warning"
               onClick={handleToggleStatus}
-              disabled={strategy_status !== 'running'}
               style={{ opacity: strategy_status !== 'running' ? 0.5 : 1 }}
             >
-              <IconPlayerPause size={16} />
-            </button>
+              <span className="header-action-text">暂停</span>
+              <IconPlayerPause size={14} />
+            </div>
           )}
-          <button className="action-btn danger" onClick={handleDelete}>
-            <IconTrash size={16} />
-          </button>
+          <div className="header-action-btn danger" onClick={handleDelete}>
+            <span className="header-action-text">删除</span>
+            <IconTrash size={14} />
+          </div>
         </div>
       </div>
 
