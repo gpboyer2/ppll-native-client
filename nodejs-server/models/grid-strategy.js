@@ -368,6 +368,12 @@ module.exports = (sequelize, DataTypes) => {
         defaultValue: 0,
         comment: "持仓平均开仓价/成本价",
       },
+      break_even_price: {
+        type: DataTypes.DECIMAL(20, 8),
+        allowNull: true,
+        defaultValue: 0,
+        comment: "保本价（考虑手续费后的盈亏平衡价）",
+      },
       next_expected_rise_price: {
         type: DataTypes.DECIMAL(20, 8),
         allowNull: true,

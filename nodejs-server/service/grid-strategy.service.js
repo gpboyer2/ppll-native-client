@@ -504,6 +504,7 @@ const getAllGridStrategys = async (
           total_open_position_quantity: running_instance.total_open_position_quantity ?? row_data.total_open_position_quantity,
           total_open_position_value: running_instance.total_open_position_value ?? row_data.total_open_position_value,
           total_open_position_entry_price: running_instance.total_open_position_entry_price ?? row_data.total_open_position_entry_price,
+          break_even_price: running_instance.break_even_price ?? row_data.break_even_price,
         };
       }
 

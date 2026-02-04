@@ -12,6 +12,15 @@ import { EXECUTION_STATUS } from '../../types/grid-strategy';
 import type { GridStrategy, StrategyFilter, StrategyStatus, PositionSide } from '../../types/grid-strategy';
 
 /**
+ * 使用策略的价格精度格式化价格
+ */
+function formatPrice(value: number | null | undefined, strategy: GridStrategy): string {
+  if (value === undefined || value === null) return '-';
+  const precision = strategy.price_precision ?? 2;
+  return Number(value).toFixed(precision);
+}
+
+/**
  * 网格策略列表页面
  * 显示所有网格策略，支持搜索和筛选功能
  */
@@ -387,7 +396,7 @@ function GridStrategyListPage() {
                   <div className="flex items-center gap-8">
                     <span className="grid-strategy-param-label">网格差价:</span>
                     <span className="grid-strategy-param-value">
-                      {strategy.grid_price_difference ? NumberFormat.truncateDecimal(strategy.grid_price_difference) : '-'}
+                      {formatPrice(strategy.grid_price_difference, strategy)}
                     </span>
                     <span className="grid-strategy-unit-label">USDT</span>
                   </div>
@@ -404,9 +413,16 @@ function GridStrategyListPage() {
                     <span className="grid-strategy-unit-label">{strategy.trading_pair?.replace('USDT', '')}</span>
                   </div>
                   <div className="flex items-center gap-8">
-                    <span className="grid-strategy-param-label">开仓价:</span>
+                    <span className="grid-strategy-param-label">持仓均价:</span>
                     <span className="grid-strategy-param-value">
-                      {strategy.total_open_position_entry_price ? NumberFormat.truncateDecimal(strategy.total_open_position_entry_price) : '-'}
+                      {formatPrice(strategy.total_open_position_entry_price, strategy)}
+                    </span>
+                    <span className="grid-strategy-unit-label">USDT</span>
+                  </div>
+                  <div className="flex items-center gap-8">
+                    <span className="grid-strategy-param-label">保本价:</span>
+                    <span className="grid-strategy-param-value">
+                      {formatPrice(strategy.break_even_price, strategy)}
                     </span>
                     <span className="grid-strategy-unit-label">USDT</span>
                   </div>
@@ -414,7 +430,7 @@ function GridStrategyListPage() {
                     <div className="flex items-center gap-8">
                       <span className="grid-strategy-param-label">价格上限:</span>
                       <span className="grid-strategy-param-value">
-                        {NumberFormat.truncateDecimal(strategy.gt_limitation_price)}
+                        {formatPrice(strategy.gt_limitation_price, strategy)}
                       </span>
                       <span className="grid-strategy-unit-label">USDT</span>
                     </div>
@@ -423,7 +439,7 @@ function GridStrategyListPage() {
                     <div className="flex items-center gap-8">
                       <span className="grid-strategy-param-label">价格下限:</span>
                       <span className="grid-strategy-param-value">
-                        {NumberFormat.truncateDecimal(strategy.lt_limitation_price)}
+                        {formatPrice(strategy.lt_limitation_price, strategy)}
                       </span>
                       <span className="grid-strategy-unit-label">USDT</span>
                     </div>

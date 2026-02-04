@@ -45,8 +45,8 @@ export const EXECUTION_STATUS = {
     PAUSED_MANUAL: '手动暂停',
     PRICE_ABOVE_MAX: '价格超过上限',
     PRICE_BELOW_MIN: '价格低于下限',
-    PRICE_ABOVE_OPEN: '价格超过开仓价',
-    PRICE_BELOW_OPEN: '价格低于开仓价',
+    PRICE_ABOVE_OPEN: '价格超过持仓均价',
+    PRICE_BELOW_OPEN: '价格低于持仓均价',
     API_KEY_INVALID: 'API Key 无效',
     NETWORK_ERROR: '网络错误',
     INSUFFICIENT_BALANCE: '余额不足',
@@ -175,6 +175,9 @@ export interface GridStrategy {
 
   /** 运行时数据：当前持仓均价/成本价 */
   total_open_position_entry_price?: number;
+
+  /** 运行时数据：保本价（考虑手续费后的盈亏平衡价） */
+  break_even_price?: number;
 
   /** 创建时间（前端维护） */
   created_at?: string;

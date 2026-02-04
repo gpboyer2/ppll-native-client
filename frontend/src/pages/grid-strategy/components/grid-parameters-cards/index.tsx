@@ -197,8 +197,8 @@ export function GridParametersCards({
         <div className="grid-strategy-form-toggles">
           <div className="grid-strategy-form-toggle">
             <div className="grid-strategy-form-toggle-info">
-              <label className="grid-strategy-form-label">高于开仓价格时暂停</label>
-              <div className="help">当价格大于等于开仓价格时则暂停网格</div>
+              <label className="grid-strategy-form-label">高于持仓均价时暂停</label>
+              <div className="help">当价格大于等于持仓均价时则暂停网格</div>
             </div>
             <label className="grid-strategy-toggle-switch">
               <input
@@ -212,8 +212,8 @@ export function GridParametersCards({
 
           <div className="grid-strategy-form-toggle">
             <div className="grid-strategy-form-toggle-info">
-              <label className="grid-strategy-form-label">低于开仓价格时暂停</label>
-              <div className="help">当价格低于等于开仓价格时则暂停网格</div>
+              <label className="grid-strategy-form-label">低于持仓均价时暂停</label>
+              <div className="help">当价格低于等于持仓均价时则暂停网格</div>
             </div>
             <label className="grid-strategy-toggle-switch">
               <input
