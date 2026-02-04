@@ -1,5 +1,96 @@
 /* ========== 网格策略列表页面样式 ========== */
 
+/* 页面标题区域 */
+.grid-strategy-page-title {
+  margin: 0 0 4px;
+  color: var(--color-primary);
+}
+
+.grid-strategy-page-desc {
+  margin: 0;
+}
+
+/* 搜索框 */
+.grid-strategy-search-input {
+  flex: 1;
+}
+
+/* 筛选标签 */
+.grid-strategy-filter-label {
+  margin-left: 24px;
+}
+
+/* 统计数值颜色 */
+.grid-strategy-stat-value--success {
+  color: var(--color-success);
+}
+
+.grid-strategy-stat-value--warning {
+  color: var(--color-warning);
+}
+
+.grid-strategy-stat-value--muted {
+  color: var(--color-text-muted);
+}
+
+/* 加载中状态 */
+.grid-strategy-loading {
+  text-align: center;
+  padding: 48px;
+}
+
+/* 策略卡片内容 */
+.grid-strategy-pair-name {
+  font-weight: 600;
+  font-size: var(--text-lg);
+}
+
+.grid-strategy-label-text {
+  font-size: var(--text-sm);
+}
+
+.grid-strategy-param-label {
+  font-size: var(--text-sm);
+  width: 70px;
+}
+
+.grid-strategy-param-value {
+  font-weight: 500;
+}
+
+.grid-strategy-unit-label {
+  font-size: var(--text-sm);
+}
+
+/* 操作按钮区域 */
+.grid-strategy-actions {
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+.grid-strategy-detail-btn {
+  height: 32px;
+  text-decoration: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.grid-strategy-toggle-btn {
+  height: 32px;
+  border: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+
+.grid-strategy-edit-btn {
+  height: 32px;
+  text-decoration: none;
+}
+
+.grid-strategy-delete-btn {
+  height: 32px;
+  padding: 0 16px;
+}
+
 /* 策略统计卡片 */
 .grid-strategy-statistics {
   display: grid;

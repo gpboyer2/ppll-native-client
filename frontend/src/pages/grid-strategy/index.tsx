@@ -236,8 +236,8 @@ function GridStrategyListPage() {
       <div className="surface p-16 mb-16">
         <div className="flex items-center space-between">
           <div>
-            <h1 style={{ margin: '0 0 4px', color: 'var(--color-primary)' }}>网格策略管理</h1>
-            <p className="text-muted" style={{ margin: 0 }}>管理您的网格交易策略配置</p>
+            <h1 className="grid-strategy-page-title">网格策略管理</h1>
+            <p className="text-muted grid-strategy-page-desc">管理您的网格交易策略配置</p>
           </div>
           <Link to={ROUTES.GRID_STRATEGY_CREATE} className="btn btn-primary">
                         新建策略
@@ -252,7 +252,7 @@ function GridStrategyListPage() {
           <div className="flex items-center gap-8">
             <TextInput
               placeholder="搜索交易对，如：ETHUSDT、BTCUSDT"
-              style={{ flex: 1 }}
+              className="grid-strategy-search-input"
               value={filter.keyword}
               onChange={(value: string) => updateFilter('keyword', value)}
             />
@@ -276,7 +276,7 @@ function GridStrategyListPage() {
               })}
             </div>
 
-            <span className="text-muted label" style={{ marginLeft: '24px' }}>状态：</span>
+            <span className="text-muted label grid-strategy-filter-label">状态：</span>
             <div className="flex gap-4">
               {(['all', 'running', 'paused', 'stopped'] as const).map(value => {
                 const label = value === 'all' ? '全部' :
@@ -294,7 +294,7 @@ function GridStrategyListPage() {
               })}
             </div>
 
-            <span className="text-muted label" style={{ marginLeft: '24px' }}>API Key：</span>
+            <span className="text-muted label grid-strategy-filter-label">API Key：</span>
             <div className="flex gap-4">
               <button
                 className={`grid-strategy-filter-button ${filter.api_key_id === 'all' ? 'active' : ''}`}
@@ -323,19 +323,19 @@ function GridStrategyListPage() {
           <div className="text-muted label">总策略数</div>
         </div>
         <div className="grid-strategy-stat-item">
-          <div className="grid-strategy-stat-value" style={{ color: 'var(--color-success)' }}>
+          <div className="grid-strategy-stat-value grid-strategy-stat-value--success">
             {statistics.running}
           </div>
           <div className="text-muted label">运行中</div>
         </div>
         <div className="grid-strategy-stat-item">
-          <div className="grid-strategy-stat-value" style={{ color: 'var(--color-warning)' }}>
+          <div className="grid-strategy-stat-value grid-strategy-stat-value--warning">
             {statistics.paused}
           </div>
           <div className="text-muted label">已暂停</div>
         </div>
         <div className="grid-strategy-stat-item">
-          <div className="grid-strategy-stat-value" style={{ color: 'var(--color-text-muted)' }}>
+          <div className="grid-strategy-stat-value grid-strategy-stat-value--muted">
             {statistics.stopped}
           </div>
           <div className="text-muted label">已停止</div>
@@ -344,7 +344,7 @@ function GridStrategyListPage() {
 
       {/* 策略列表 */}
       {loading ? (
-        <div className="text-muted" style={{ textAlign: 'center', padding: '48px' }}>
+        <div className="text-muted grid-strategy-loading">
                     加载中...
         </div>
       ) : filtered_list.length > 0 ? (
@@ -360,10 +360,10 @@ function GridStrategyListPage() {
                     >
                       {getPositionSideText(strategy.position_side)}
                     </span>
-                    <span style={{ fontWeight: 600, fontSize: 'var(--text-lg)' }}>
+                    <span className="grid-strategy-pair-name">
                       {strategy.trading_pair}
                     </span>
-                    <span className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>
+                    <span className="text-muted grid-strategy-label-text">
                                             x{strategy.leverage}
                     </span>
                   </div>
@@ -378,54 +378,68 @@ function GridStrategyListPage() {
                 <div className="flex flex-col gap-6 mb-12">
                   {strategy._api_key_name && (
                     <div className="flex items-center gap-8">
-                      <span className="text-muted" style={{ fontSize: 'var(--text-sm)', width: '58px' }}>API Key:</span>
-                      <span style={{ fontWeight: 500 }}>
+                      <span className="grid-strategy-param-label">API Key:</span>
+                      <span className="grid-strategy-param-value">
                         {strategy._api_key_name}
                       </span>
                     </div>
                   )}
                   <div className="flex items-center gap-8">
-                    <span className="text-muted" style={{ fontSize: 'var(--text-sm)', width: '58px' }}>网格差价:</span>
-                    <span style={{ fontWeight: 500 }}>
+                    <span className="grid-strategy-param-label">网格差价:</span>
+                    <span className="grid-strategy-param-value">
                       {strategy.grid_price_difference ? NumberFormat.truncateDecimal(strategy.grid_price_difference) : '-'}
                     </span>
+                    <span className="grid-strategy-unit-label">USDT</span>
                   </div>
                   <div className="flex items-center gap-8">
-                    <span className="text-muted" style={{ fontSize: 'var(--text-sm)', width: '58px' }}>交易数量:</span>
-                    <span style={{ fontWeight: 500 }}>
-                      {strategy.grid_trade_quantity ? NumberFormat.truncateDecimal(strategy.grid_trade_quantity) : '-'}
+                    <span className="grid-strategy-param-label">交易数量:</span>
+                    <span className="grid-strategy-param-value">
+                      {(() => {
+                        const quantity = strategy.position_side === 'LONG'
+                          ? (strategy.grid_long_open_quantity || strategy.grid_trade_quantity)
+                          : (strategy.grid_short_open_quantity || strategy.grid_trade_quantity);
+                        return quantity ? NumberFormat.truncateDecimal(quantity) : '-';
+                      })()}
                     </span>
+                    <span className="grid-strategy-unit-label">{strategy.trading_pair?.replace('USDT', '')}</span>
+                  </div>
+                  <div className="flex items-center gap-8">
+                    <span className="grid-strategy-param-label">开仓价:</span>
+                    <span className="grid-strategy-param-value">
+                      {strategy.total_open_position_entry_price ? NumberFormat.truncateDecimal(strategy.total_open_position_entry_price) : '-'}
+                    </span>
+                    <span className="grid-strategy-unit-label">USDT</span>
                   </div>
                   {strategy.gt_limitation_price && (
                     <div className="flex items-center gap-8">
-                      <span className="text-muted" style={{ fontSize: 'var(--text-sm)', width: '58px' }}>价格上限:</span>
-                      <span style={{ fontWeight: 500 }}>
+                      <span className="grid-strategy-param-label">价格上限:</span>
+                      <span className="grid-strategy-param-value">
                         {NumberFormat.truncateDecimal(strategy.gt_limitation_price)}
                       </span>
+                      <span className="grid-strategy-unit-label">USDT</span>
                     </div>
                   )}
                   {strategy.lt_limitation_price && (
                     <div className="flex items-center gap-8">
-                      <span className="text-muted" style={{ fontSize: 'var(--text-sm)', width: '58px' }}>价格下限:</span>
-                      <span style={{ fontWeight: 500 }}>
+                      <span className="grid-strategy-param-label">价格下限:</span>
+                      <span className="grid-strategy-param-value">
                         {NumberFormat.truncateDecimal(strategy.lt_limitation_price)}
                       </span>
+                      <span className="grid-strategy-unit-label">USDT</span>
                     </div>
                   )}
                 </div>
 
                 {/* 操作按钮 */}
-                <div className="flex gap-8" style={{ marginLeft: 'auto', justifyContent: 'flex-end' }}>
+                <div className="flex gap-8 grid-strategy-actions">
                   <Link
                     to={`/grid-strategy/detail?id=${strategy.id}`}
-                    className="btn btn-ghost"
-                    style={{ height: '32px', textDecoration: 'none', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
+                    className="btn btn-ghost grid-strategy-detail-btn"
                   >
                     查看详情
                   </Link>
                   <button
-                    className="btn btn-ghost"
-                    style={{ height: '32px', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
+                    className="btn btn-ghost grid-strategy-toggle-btn"
                     onClick={() => handleToggleStatus(strategy.id, strategy.status ?? 'stopped')}
                     disabled={!canTogglePause(strategy.execution_status)}
                   >
@@ -433,14 +447,12 @@ function GridStrategyListPage() {
                   </button>
                   <Link
                     to={`/grid-strategy/edit?id=${strategy.id}`}
-                    className="btn btn-outline"
-                    style={{ height: '32px', textDecoration: 'none' }}
+                    className="btn btn-outline grid-strategy-edit-btn"
                   >
                     编辑
                   </Link>
                   <button
-                    className="btn btn-danger"
-                    style={{ height: '32px', padding: '0 16px' }}
+                    className="btn btn-danger grid-strategy-delete-btn"
                     onClick={() => handleDeleteStrategy(strategy.id)}
                   >
                     删除

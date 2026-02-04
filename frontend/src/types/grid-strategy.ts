@@ -167,6 +167,15 @@ export interface GridStrategy {
   /** 策略执行状态（后端字段，细粒度状态） */
   execution_status?: ExecutionStatus;
 
+  /** 运行时数据：当前持仓数量 */
+  total_open_position_quantity?: number;
+
+  /** 运行时数据：当前持仓价值 */
+  total_open_position_value?: number;
+
+  /** 运行时数据：当前持仓均价/成本价 */
+  total_open_position_entry_price?: number;
+
   /** 创建时间（前端维护） */
   created_at?: string;
 

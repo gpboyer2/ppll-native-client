@@ -492,8 +492,26 @@ const getAllGridStrategys = async (
       order: [["id", "DESC"]],
     });
 
+    // 合并运行中策略的实时数据
+    const list_with_runtime_data = rows.map(row => {
+      const row_data = row.toJSON();
+      const running_instance = gridMap[row.id];
+
+      if (running_instance) {
+        // 从运行中的插件实例获取实时数据
+        return {
+          ...row_data,
+          total_open_position_quantity: running_instance.total_open_position_quantity ?? row_data.total_open_position_quantity,
+          total_open_position_value: running_instance.total_open_position_value ?? row_data.total_open_position_value,
+          total_open_position_entry_price: running_instance.total_open_position_entry_price ?? row_data.total_open_position_entry_price,
+        };
+      }
+
+      return row_data;
+    });
+
     return {
-      list: rows,
+      list: list_with_runtime_data,
       pagination: {
         total: count,
         currentPage,
