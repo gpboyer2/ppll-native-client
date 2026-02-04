@@ -88,7 +88,7 @@ const IconNetwork = () => (
 - 工作日报过度包装：用户要求输出工作日报给领导看时，你要抓住核心：做了什么、解决了什么问题、带来了什么价值。禁止使用"架构统一性""最后一公里""元数据驱动"等过度包装的技术术语，自问自答地拔高工作意义。直接说清楚问题和解决方案即可。
 - 测试代码中的"默认为成功"：测试的本质是验证，当无法判定响应状态时（如响应格式不符合预期），必须判定为失败，而不是默认成功。任何不确定的情况都应该被视为测试失败，成功必须是明确验证后的结果。
 - MCP 服务器配置格式错误：添加 chrome-devtools MCP 时，错误的配置把参数放在了 `command` 字段中（如 `"command": "chrome-devtools-mcp --browser-url=..."`），导致连接失败。正确做法是 `command` 只包含可执行命令，参数必须放在 `args` 数组中。修复方法：先 `claude mcp remove chrome-devtools` 删除错误的配置，然后用 `claude mcp add chrome-devtools -- npx -y chrome-devtools-mcp@latest --browser-url=http://127.0.0.1:9222` 重新添加。
-- **复用分析缺乏影响范围评估（2026-01-12）**：你给出了"建议抽离 useSnapshotManager"等复用建议，但没有分析：
+- **复用分析缺乏影响范围评估**：你给出了"建议抽离 useSnapshotManager"等复用建议，但没有分析：
   1. 这个函数被哪些组件引用？
   2. 修改后需要同步更新哪些调用点？
   3. 抽离后的迁移路径是什么？
@@ -214,7 +214,7 @@ Vue Router 使用 hash 模式。
 - 例如：`/#/settings/user/:id` 是错误的
 - 正确：`/#/settings/user/detail?id=123`
 
-**前端参数读取规范（重要，2026-01-15 新增）**
+**前端参数读取规范（重要）**
 
 前端不准使用 `route.params`，只能用 `route.query`。
 
@@ -248,7 +248,7 @@ import {ComponentName} from './components/{path/to/component}.vue';
 - 组件引用必须是变量名，不能是字符串
 
 
-## 2.1 组件功能归属原则（重要，2026-01-14 新增）
+## 2.1 组件功能归属原则（重要）
 
 **核心原则：功能只被一个组件使用时，放在该组件内部；被多个组件使用时，才放在父组件或公共模块。**
 
@@ -296,7 +296,7 @@ import {ComponentName} from './components/{path/to/component}.vue';
 | API 请求/响应字段 | snake_case | `{ trading_pair: "BTCUSDT" }` |
 
 
-## 3.1 前端目录组织规范（重要，2026-01-14 新增）
+## 3.1 前端目录组织规范（重要）
 
 **核心原则：按业务划分，独立业务平级，共享组件放 components/**
 
@@ -462,7 +462,7 @@ if (response.status === 'success') {
 - 错误示例：`batchDelete(idList)` - 不要用 batch 前缀
 - 删除接口不要使用路径参数 `/:id`，统一用 `POST /api/xxx/delete` + `{ data: [id1, id2, ...] }`
 
-## 3.7 多团队协作中的接口设计规范（重要，2026-01-14 新增）
+## 3.7 多团队协作中的接口设计规范（重要）
 
 **背景**：本项目是多团队多人协作，不同团队成员水平参差不齐。后端接口设计往往不完整，导致前端代码变得复杂。
 
@@ -521,11 +521,35 @@ await updateEndpoints(nodeId, list);
 - 禁止在前端进行字段名转换（如 `tradingPair` <-> `trading_pair`）
 - 调用后端 API 时直接透传整个对象，不要手动列举每个字段
 
-接口调用规范：
+**接口调用规范**：
+
+前端：
 - 直接透传整个对象，不要手动列举每个字段
 - 错误做法：`await api.update(id, { field1: data.field1, field2: data.field2 })`
 - 正确做法1：`await api.update(id, data)`
 - 正确做法2：`await api.update(id, Object.assign({}, data, {name: 'plq'}))`
+
+后端Controller：
+- 前后端字段名已统一（都是snake_case），直接透传req.body，避免冗余解构
+- 只处理真正需要转换的（如ID从字符串转数值）
+- 避免遗漏风险：解构后新增字段可能忘记传递
+
+错误示例：
+```javascript
+// 一堆解构，冗余且易遗漏
+const { trading_pair, position_side, grid_price_difference } = req.body;
+await create({ trading_pair, position_side, grid_price_difference });
+```
+
+正确示例：
+```javascript
+// 直接透传
+await create(req.body);
+
+// 需要转换时用Object.assign
+const id = parseInt(req.body.id);
+await create(Object.assign({}, req.body, { id }));
+```
 
 多请求操作的用户提示：
 - 全部成功：只显示一次"操作成功"
@@ -620,7 +644,7 @@ tbody {}
 >
 ```
 
-颜色使用规范（2026-01-11 更新）：
+颜色使用规范：
 - 禁止使用硬编码颜色值（如 `#ffffff`、`rgb(255, 255, 255)`、`rgba(0, 0, 0, 0.1)`）
 - 所有颜色必须使用 CSS 变量引用（如 `var(--color-bg-container)`）
 - 全局 CSS 变量统一定义在 `client/src/styles/index.scss` 中的 `:root` 选择器内
@@ -641,7 +665,7 @@ SCSS 模块导入规范：
 - 向前看：不用考虑向后兼容性
 - 同步性：保持样式风格不变，并同步更新或校验其他模块
 
-约定优于配置原则（重要，2026-01-15 新增）：
+约定优于配置原则（重要）：
 
 **核心原则：禁止虚假兼容，约定明确格式，不符合就报错**
 
@@ -680,7 +704,7 @@ return route.query.id;
 - 第三方库的类型定义问题（如 axios、socket.io、binance 等）不需要修复
 - 不增加额外负担：除非是反映实际业务逻辑的问题，否则忽略 TypeScript 错误
 
-#### 函数职责单一原则（接口调用拆分规范，2026-01-15 新增）
+#### 函数职责单一原则（接口调用拆分规范）
 
 **核心原则：一个函数只调用一个接口，多个接口必须拆分**
 
