@@ -104,7 +104,8 @@ const getTableList = async (params = {}) => {
 
 
 // 获取表结构详情
-const getTableDetail = async (tableName) => {
+const getTableDetail = async (params) => {
+  const { tableName } = params;
   try {
     if (!/^[a-zA-Z0-9_]+$/.test(tableName)) {
       throw new Error('表名包含非法字符');

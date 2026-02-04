@@ -20,9 +20,7 @@ const createApiKey = catchAsync(async (req, res) => {
  * POST /v1/binance-api-key/delete
  */
 const deleteApiKey = catchAsync(async (req, res) => {
-  const { id } = req.body;
-
-  const deleted = await binanceApiKeyService.deleteApiKeyById(id);
+  const deleted = await binanceApiKeyService.deleteApiKeyById(req.body.id);
   return res.apiSuccess(deleted, '删除 ApiKey 成功');
 });
 
@@ -31,8 +29,9 @@ const deleteApiKey = catchAsync(async (req, res) => {
  * POST /v1/binance-api-key/update
  */
 const updateApiKey = catchAsync(async (req, res) => {
-  // 从 req.body 中提取 id，然后创建不包含 id 的 updateBody
-  const { id, ...updateBody } = req.body;
+  const { id } = req.body;
+  const updateBody = Object.assign({}, req.body);
+  delete updateBody.id;
 
   const result = await binanceApiKeyService.updateApiKeyById(id, updateBody);
 

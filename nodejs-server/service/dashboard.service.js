@@ -31,11 +31,13 @@ const getDashboard = () => {
 
 /**
  * 获取合约账户详情（单用户系统）
- * @param {string} api_key - 币安API密钥
- * @param {string} api_secret - 币安API密钥Secret
+ * @param {Object} params - 参数对象
+ * @param {string} params.api_key - 币安API密钥
+ * @param {string} params.api_secret - 币安API密钥Secret
  * @returns {Promise<Object>} 账户信息结果
  */
-const getAccount = async (api_key, api_secret) => {
+const getAccount = async (params) => {
+  const { api_key, api_secret } = params;
   UtilRecord.log('😄 查询账户信息:');
   UtilRecord.log('api_key:', api_key);
   UtilRecord.log('api_secret:', api_secret);

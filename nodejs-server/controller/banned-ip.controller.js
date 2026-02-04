@@ -78,7 +78,7 @@ const unbanIp = catchAsync(async (req, res) => {
  * @access Admin
  */
 const banIP = catchAsync(async (req, res) => {
-  const { ip, reason, remark, duration = 24 } = req.body;
+  const { ip, reason, remark, duration } = req.body;
 
   if (!ip || !reason) {
     return res.apiError(null, 'IP地址和封禁原因不能为空');

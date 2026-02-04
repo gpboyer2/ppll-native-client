@@ -120,7 +120,7 @@ const deletes = catchAsync(async (req, res) => {
   }
 
   const result = await gridStrategyService.deleteGridStrategyById(
-    prepareData(req.apiCredentials, { id: id.map(item => Number(item)) })
+    prepareData(req.apiCredentials, req.body)
   );
 
   if (result?.status) {
@@ -131,15 +131,15 @@ const deletes = catchAsync(async (req, res) => {
 
 
 const update = catchAsync(async (req, res) => {
-  const { id, ...restBody } = req.body;
+  const { id } = req.body;
 
   if (!id) {
     return res.apiError(null, "缺少参数: id");
   }
 
   const updateData = prepareData(req.apiCredentials, {
-    ...restBody,
-    id: Number(id),
+    ...req.body,
+    id: Number(req.body.id),
   });
 
   // 过滤掉 undefined 的参数
@@ -168,7 +168,7 @@ const action = catchAsync(async (req, res) => {
 
   const paused = req.path.includes('/paused');
   const result = await gridStrategyService.updateGridStrategyById(
-    prepareData(req.apiCredentials, { paused, id: Number(id) })
+    prepareData(req.apiCredentials, { ...req.body, paused, id: Number(id) })
   );
 
   if (result.affectedCount > 0) {
@@ -193,7 +193,7 @@ const query = catchAsync(async (req, res) => {
  * 根据K线数据自动计算最优网格参数
  */
 const optimize_params = catchAsync(async (req, res) => {
-  const { symbol, total_capital, ...restBody } = req.body;
+  const { symbol, total_capital, interval, optimize_target, min_trade_value, max_trade_value } = req.body;
 
   if (!symbol) {
     return res.apiError(null, "缺少交易对参数 symbol");
@@ -208,12 +208,12 @@ const optimize_params = catchAsync(async (req, res) => {
     const result = await gridOptimizerService.optimizeGridParams(
       prepareData(req.apiCredentials, {
         symbol,
-        interval: restBody.interval || '4h',
+        interval: interval || '4h',
         total_capital: Number(total_capital),
-        optimize_target: restBody.optimize_target || 'profit',
+        optimize_target: optimize_target || 'profit',
         enable_boundary_defense: false,
-        min_trade_value: restBody.min_trade_value ? Number(restBody.min_trade_value) : 20,
-        max_trade_value: restBody.max_trade_value ? Number(restBody.max_trade_value) : 100,
+        min_trade_value: min_trade_value ? Number(min_trade_value) : 20,
+        max_trade_value: max_trade_value ? Number(max_trade_value) : 100,
       })
     );
 

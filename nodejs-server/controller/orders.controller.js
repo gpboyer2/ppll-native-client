@@ -79,8 +79,7 @@ const template = catchAsync(async (req, res) => {
  * 批量建仓（对冲单）
  */
 const batchBuildPosition = catchAsync(async (req, res) => {
-  const { api_key, api_secret, longAmount, shortAmount, positions } = req.body;
-  const result = await ordersService.batchBuildPosition(api_key, api_secret, longAmount, shortAmount, positions);
+  const result = await ordersService.batchBuildPosition(req.body);
   return res.apiSuccess(result, `序列总长 ${result.totalPairs}，建仓完成`);
 });
 
@@ -88,8 +87,8 @@ const batchBuildPosition = catchAsync(async (req, res) => {
  * 自定义建仓（对冲单）
  */
 const customBuildPosition = catchAsync(async (req, res) => {
-  const { api_key, api_secret, positions } = req.body;
-  const result = await ordersService.customBuildPosition(api_key, api_secret, positions);
+  const { positions } = req.body;
+  const result = await ordersService.customBuildPosition(req.body);
   return res.apiSuccess(result, `请等待约 ${positions.length * 1.5} 秒后，在APP查看建仓结果`);
 });
 
@@ -97,8 +96,8 @@ const customBuildPosition = catchAsync(async (req, res) => {
  * 自定义平多单，空单不做任何操作；（看空）
  */
 const customCloseMultiplePosition = catchAsync(async (req, res) => {
-  const { api_key, api_secret, positions } = req.body;
-  const result = await ordersService.customCloseMultiplePositions(api_key, api_secret, positions);
+  const { positions } = req.body;
+  const result = await ordersService.customCloseMultiplePositions(req.body);
 
   // 这里可以异步执行一些后续操作或日志记录
   UtilRecord.log('[自定义平多单] 接口响应 - 已提交后台执行', {
@@ -113,8 +112,8 @@ const customCloseMultiplePosition = catchAsync(async (req, res) => {
  * 批量平仓
  */
 const batchClosePosition = catchAsync(async (req, res) => {
-  const { api_key, api_secret, positions } = req.body;
-  const result = await ordersService.batchClosePositions(api_key, api_secret, positions);
+  const { positions } = req.body;
+  const result = await ordersService.batchClosePositions(req.body);
 
   UtilRecord.log('[批量平仓] 接口响应 - 已提交后台执行', {
     totalPositions: result.totalPositions,
@@ -128,7 +127,7 @@ const batchClosePosition = catchAsync(async (req, res) => {
  * 自定义平仓
  */
 const customClosePosition = catchAsync(async (req, res) => {
-  const { api_key, api_secret, positions } = req.body;
+  const { positions } = req.body;
 
   // 先打印接口请求信息，确保接口日志在业务日志之前输出
   const totalRequestPositions = Array.isArray(positions) ? positions.length : 0;
@@ -136,7 +135,7 @@ const customClosePosition = catchAsync(async (req, res) => {
     `[自定义平仓] 接口请求 - 收到平仓参数，总数: ${totalRequestPositions}`
   );
 
-  const result = await ordersService.customClosePositions(api_key, api_secret, positions);
+  const result = await ordersService.customClosePositions(req.body);
 
   // 再打印接口响应信息
   UtilRecord.log(
@@ -150,8 +149,8 @@ const customClosePosition = catchAsync(async (req, res) => {
  * 指定平仓
  */
 const appointClosePosition = catchAsync(async (req, res) => {
-  const { api_key, api_secret, positions } = req.body;
-  const result = await ordersService.appointClosePosition(api_key, api_secret, positions);
+  const { positions } = req.body;
+  const result = await ordersService.appointClosePosition(req.body);
   return res.apiSuccess(result, result.error || `请等待约 ${positions.length * 1.5} 秒后，在APP查看平仓结果`);
 });
 
@@ -199,8 +198,7 @@ const batchInspect = catchAsync(async (req, res) => {
  * 简化批量建仓（按价值下单）- 新增优化版本
  */
 const simpleBatchBuildPosition = catchAsync(async (req, res) => {
-  const { api_key, api_secret, longAmount, shortAmount, positions } = req.body;
-  const result = await ordersService.batchBuildPosition(api_key, api_secret, longAmount, shortAmount, positions);
+  const result = await ordersService.batchBuildPosition(req.body);
 
   return res.apiSuccess({
     ...result,
@@ -220,8 +218,8 @@ const simpleBatchBuildPosition = catchAsync(async (req, res) => {
  * 简化自定义建仓（按价值下单）- 新增优化版本
  */
 const simpleCustomBuildPosition = catchAsync(async (req, res) => {
-  const { api_key, api_secret, positions } = req.body;
-  const result = await ordersService.customBuildPosition(api_key, api_secret, positions);
+  const { positions } = req.body;
+  const result = await ordersService.customBuildPosition(req.body);
 
   return res.apiSuccess({
     ...result,
@@ -241,8 +239,8 @@ const simpleCustomBuildPosition = catchAsync(async (req, res) => {
  * 为空单设置原价止盈
  */
 const setShortTakeProfit = catchAsync(async (req, res) => {
-  const { api_key, api_secret, positions } = req.body;
-  const result = await ordersService.setShortTakeProfit(api_key, api_secret, positions);
+  const { positions } = req.body;
+  const result = await ordersService.setShortTakeProfit(req.body);
   return res.apiSuccess(result, `请等待约 ${positions.length * 0.5} 秒后，在APP查看止盈设置结果`);
 });
 

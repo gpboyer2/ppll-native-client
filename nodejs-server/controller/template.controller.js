@@ -27,7 +27,7 @@ const createOrder = catchAsync(async (req, res) => {
 });
 
 const updateOrder = catchAsync(async (req, res) => {
-  const { id, ...updateBody } = req.body;
+  const { id } = req.body;
 
   // 检查必需参数
   if (!id) {
@@ -39,6 +39,9 @@ const updateOrder = catchAsync(async (req, res) => {
   if (!existingOrder) {
     return res.apiError(null, '订单不存在');
   }
+
+  const updateBody = Object.assign({}, req.body);
+  delete updateBody.id;
 
   try {
     const result = await orderService.updateOrderById(id, updateBody);

@@ -138,14 +138,16 @@ const executeDelay = async (range = 'MEDIUM') => {
 
 /**
  * 批量建仓（对冲单）
- * @param {string} api_key - API密钥
- * @param {string} api_secret - API密钥Secret
- * @param {number} longAmount - 多单金额
- * @param {number} shortAmount - 空单金额
- * @param {Array} positions - 自定义交易对列表
+ * @param {Object} params - 参数对象
+ * @param {string} params.api_key - API密钥
+ * @param {string} params.api_secret - API密钥Secret
+ * @param {number} params.longAmount - 多单金额
+ * @param {number} params.shortAmount - 空单金额
+ * @param {Array} params.positions - 自定义交易对列表
  * @returns {Promise<Object>} 执行结果
  */
-const batchBuildPosition = async (api_key, api_secret, longAmount, shortAmount, positions = null) => {
+const batchBuildPosition = async (params) => {
+  const { api_key, api_secret, longAmount, shortAmount, positions = null } = params;
   try {
     if (!longAmount || !shortAmount) {
       throw new Error('longAmount or shortAmount is not defined');
@@ -279,12 +281,14 @@ const batchBuildPosition = async (api_key, api_secret, longAmount, shortAmount, 
 
 /**
  * 自定义建仓（对冲单）
- * @param {string} api_key - API密钥
- * @param {string} api_secret - API密钥Secret
- * @param {Array} positions - 自定义交易对列表
+ * @param {Object} params - 参数对象
+ * @param {string} params.api_key - API密钥
+ * @param {string} params.api_secret - API密钥Secret
+ * @param {Array} params.positions - 自定义交易对列表
  * @returns {Promise<Object>} 执行结果
  */
-const customBuildPosition = async (api_key, api_secret, positions) => {
+const customBuildPosition = async (params) => {
+  let { api_key, api_secret, positions } = params;
   try {
     if (!positions?.length) {
       throw new Error('positions 参数异常');
@@ -399,12 +403,14 @@ const customBuildPosition = async (api_key, api_secret, positions) => {
 
 /**
  * 指定平仓
- * @param {string} api_key - API密钥
- * @param {string} api_secret - API密钥Secret
- * @param {Array} positions - 平仓信息列表
+ * @param {Object} params - 参数对象
+ * @param {string} params.api_key - API密钥
+ * @param {string} params.api_secret - API密钥Secret
+ * @param {Array} params.positions - 平仓信息列表
  * @returns {Promise<Object>} 执行结果
  */
-const appointClosePosition = async (api_key, api_secret, positions) => {
+const appointClosePosition = async (params) => {
+  const { api_key, api_secret, positions } = params;
   try {
     if (!positions?.length) {
       throw new Error('positions 参数异常');
@@ -481,12 +487,14 @@ const appointClosePosition = async (api_key, api_secret, positions) => {
 
 /**
  * 批量平仓（对冲单）
- * @param {string} api_key - API密钥
- * @param {string} api_secret - API密钥Secret
- * @param {Array} positions - 交易对符号列表
+ * @param {Object} params - 参数对象
+ * @param {string} params.api_key - API密钥
+ * @param {string} params.api_secret - API密钥Secret
+ * @param {Array} params.positions - 交易对符号列表
  * @returns {Promise<Object>} 执行结果
  */
-const batchClosePositions = async (api_key, api_secret, positions) => {
+const batchClosePositions = async (params) => {
+  const { api_key, api_secret, positions } = params;
   try {
     if (!positions?.length) {
       throw new Error('positions 参数异常');
@@ -590,12 +598,14 @@ const batchClosePositions = async (api_key, api_secret, positions) => {
 
 /**
  * 自定义平仓（多个）- 只平多单
- * @param {string} api_key - API密钥
- * @param {string} api_secret - API密钥Secret
- * @param {Array} positions - 交易对符号列表
+ * @param {Object} params - 参数对象
+ * @param {string} params.api_key - API密钥
+ * @param {string} params.api_secret - API密钥Secret
+ * @param {Array} params.positions - 交易对符号列表
  * @returns {Promise<Object>} 执行结果
  */
-const customCloseMultiplePositions = async (api_key, api_secret, positions) => {
+const customCloseMultiplePositions = async (params) => {
+  const { api_key, api_secret, positions } = params;
   try {
     if (!positions?.length) {
       throw new Error('positions 参数异常');
@@ -683,12 +693,14 @@ const customCloseMultiplePositions = async (api_key, api_secret, positions) => {
 
 /**
  * 自定义平仓
- * @param {string} api_key - API密钥
- * @param {string} api_secret - API密钥Secret
- * @param {Array} positions - 平仓信息列表
+ * @param {Object} params - 参数对象
+ * @param {string} params.api_key - API密钥
+ * @param {string} params.api_secret - API密钥Secret
+ * @param {Array} params.positions - 平仓信息列表
  * @returns {Promise<Object>} 执行结果
  */
-const customClosePositions = async (api_key, api_secret, positions) => {
+const customClosePositions = async (params) => {
+  const { api_key, api_secret, positions } = params;
   try {
     if (!positions) {
       throw new Error('positions is not defined');
@@ -850,12 +862,14 @@ const customClosePositions = async (api_key, api_secret, positions) => {
 
 /**
  * 为空单设置原价止盈
- * @param {string} api_key - API密钥
- * @param {string} api_secret - API密钥Secret
- * @param {Array} positions - 持仓列表 [{symbol, stopPrice, closeRatio}]
+ * @param {Object} params - 参数对象
+ * @param {string} params.api_key - API密钥
+ * @param {string} params.api_secret - API密钥Secret
+ * @param {Array} params.positions - 持仓列表 [{symbol, stopPrice, closeRatio}]
  * @returns {Promise<Object>} 设置结果
  */
-const setShortTakeProfit = async (api_key, api_secret, positions) => {
+const setShortTakeProfit = async (params) => {
+  const { api_key, api_secret, positions } = params;
   try {
     const exchangeInfo = await getExchangeInfo(api_key, api_secret);
     const account_info = await getAccountInfo(api_key, api_secret);

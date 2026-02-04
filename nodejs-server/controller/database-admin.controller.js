@@ -27,7 +27,7 @@ const getTableDetail = catchAsync(async (req, res) => {
   if (!tableName) {
     return res.apiError(null, '表名不能为空');
   }
-  const data = await databaseAdminService.getTableDetail(tableName);
+  const data = await databaseAdminService.getTableDetail(req.body);
   return res.apiSuccess(data, '获取表结构成功');
 });
 

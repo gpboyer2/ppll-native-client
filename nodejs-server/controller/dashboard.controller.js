@@ -19,8 +19,7 @@ const dashboard = catchAsync(async (req, res) => {
  * 获取合约账户详情（单用户系统）
  */
 const account = catchAsync(async (req, res) => {
-  const { api_key, api_secret } = req.body;
-  const result = await dashboardService.getAccount(api_key, api_secret);
+  const result = await dashboardService.getAccount(req.body);
   return res.apiSuccess(result, '获取账户信息成功');
 });
 
