@@ -23,12 +23,40 @@ const filterParams = (params, model) => {
  * @returns {Promise<Object>}
  */
 const createTradeHistory = async (body) => {
-  // 仅保留模型字段，避免非法字段写入
-  const instance = GridTradeHistory.build(body);
-  const valid_params = instance.get();
-  await instance.validate();
-  const row = await GridTradeHistory.create(valid_params);
-  return row;
+  try {
+    console.log('[grid-trade-history] 准备写入交易历史:', {
+      grid_id: body.grid_id,
+      trading_pair: body.trading_pair,
+      position_side: body.position_side,
+      trade_direction: body.trade_direction,
+      remark: body.remark,
+      entry_time: body.entry_time,
+      exit_time: body.exit_time,
+    });
+
+    // 仅保留模型字段，避免非法字段写入
+    const instance = GridTradeHistory.build(body);
+    const valid_params = instance.get();
+
+    // 验证数据
+    await instance.validate();
+
+    // 写入数据库
+    const row = await GridTradeHistory.create(valid_params);
+
+    console.log('[grid-trade-history] 交易历史写入成功, id:', row.id);
+    return row;
+  } catch (error) {
+    console.error('[grid-trade-history] 创建交易历史失败:', {
+      error: error.message,
+      grid_id: body.grid_id,
+      trading_pair: body.trading_pair,
+      position_side: body.position_side,
+      trade_direction: body.trade_direction,
+      remark: body.remark,
+    });
+    throw error;
+  }
 };
 
 /**

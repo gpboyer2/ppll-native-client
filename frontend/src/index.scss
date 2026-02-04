@@ -64,6 +64,9 @@ button {
 :root {
   color-scheme: dark;
 
+  /* 通用颜色 - 深浅主题下保持一致 */
+  --color-white: #ffffff;
+
   /* ========== Z-Index 层级系统 Z-Index Scale ========== */
   /* 系统化的 z-index 管理，所有组件必须使用这些变量 */
   /* 层级从低到高，避免随意使用数字 */

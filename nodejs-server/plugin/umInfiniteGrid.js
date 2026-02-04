@@ -16,6 +16,7 @@ const db = require('../models');
 const binanceAccountService = require('../service/binance-account.service.js');
 const GridEventTypes = require('../constants/grid-event-types.js');
 const execution_status = require('../constants/grid-strategy-status-map');
+const { createTradeHistory } = require('../service/grid-trade-history.service.js');
 
 
 /**
@@ -544,6 +545,98 @@ function InfiniteGrid(options) {
 
 
   /**
+   * 直接写入交易历史到数据库（不依赖事件绑定）
+   * 用于解决竞态条件问题：在事件处理函数绑定之前就可能有交易发生
+   * @param {Object} orderDetail - 订单详情
+   * @param {string} type - 'open' 或 'close'
+   */
+  this.writeTradeHistory = async (orderDetail, type) => {
+    try {
+      const gridTradeQuantity = this.config.position_side === 'LONG'
+        ? (type === 'open'
+          ? (this.config.grid_long_open_quantity || this.config.grid_trade_quantity)
+          : (this.config.grid_long_close_quantity || this.config.grid_trade_quantity))
+        : (type === 'open'
+          ? (this.config.grid_short_open_quantity || this.config.grid_trade_quantity)
+          : (this.config.grid_short_close_quantity || this.config.grid_trade_quantity));
+
+      const tradeData = {
+        grid_id: this.config.id,
+        trading_pair: this.config.trading_pair,
+        api_key: this.config.api_key,
+        grid_price_difference: this.config.grid_price_difference,
+        grid_trade_quantity: gridTradeQuantity,
+        max_position_quantity: this.config.max_open_position_quantity || 0,
+        min_position_quantity: this.config.min_open_position_quantity || 0,
+        fall_prevention_coefficient: this.config.fall_prevention_coefficient || 0,
+        entry_order_id: type === 'open' ? (orderDetail.orderId || '') : '',
+        exit_order_id: type === 'close' ? (orderDetail.orderId || '') : '',
+        grid_level: 0,
+        entry_price: type === 'open' ? (orderDetail.avgPrice || 0) : 0,
+        exit_price: type === 'close' ? (orderDetail.avgPrice || 0) : 0,
+        position_quantity: orderDetail.executedQty || orderDetail.cumQty || 0,
+        profit_loss: 0,
+        profit_loss_percentage: 0,
+        entry_fee: 0,
+        exit_fee: 0,
+        total_fee: 0,
+        fee_asset: 'USDT',
+        entry_time: type === 'open' ? new Date(orderDetail.time || Date.now()) : null,
+        exit_time: type === 'close' ? new Date(orderDetail.time || Date.now()) : null,
+        holding_period: 0,
+        exchange: 'BINANCE',
+        trading_mode: this.config.trading_mode,
+        leverage: this.config.leverage || 20,
+        margin_type: '',
+        margin_used: 0,
+        realized_roe: 0,
+        unrealized_pnl: 0,
+        liquidation_price: 0,
+        market_price: 0,
+        market_volume: 0,
+        funding_rate: 0,
+        execution_delay: 0,
+        slippage: 0,
+        retry_count: 0,
+        error_message: '',
+        trade_direction: orderDetail.side || '',
+        position_side: this.config.position_side || null,
+        order_type: orderDetail.type || 'MARKET',
+        time_in_force: orderDetail.timeInForce || 'GTC',
+        avg_entry_price: type === 'open' ? (orderDetail.avgPrice || 0) : 0,
+        avg_exit_price: type === 'close' ? (orderDetail.avgPrice || 0) : 0,
+        price_difference: 0,
+        price_difference_percentage: 0,
+        max_drawdown: 0,
+        risk_reward_ratio: 0,
+        win_rate: 0,
+        initial_margin: 0,
+        maintenance_margin: 0,
+        funding_fee: 0,
+        commission_asset: 'USDT',
+        market_trend: '',
+        volatility: 0,
+        volume_ratio: 0,
+        rsi_entry: 0,
+        rsi_exit: 0,
+        ma_signal: '',
+        execution_quality: 'NORMAL',
+        latency: 0,
+        partial_fill_count: 0,
+        cancel_count: 0,
+        execution_type: 'WEBSOCKET',
+        status: 'COMPLETED',
+        remark: type === 'open' ? 'Open position' : 'Close position'
+      };
+
+      await createTradeHistory(tradeData);
+      this.logger.debug(`[数据库写入成功] ${type === 'open' ? '建仓' : '平仓'}交易历史已写入, orderId=${orderDetail.orderId}`);
+    } catch (error) {
+      this.logger.error(`[数据库写入失败] ${type === 'open' ? '建仓' : '平仓'}交易历史写入失败:`, error.message);
+    }
+  };
+
+  /**
    * 重置期望价格, 通过防跌系数计算出预期价格(即下一次可以建仓的价格)
    * @param {Number|String} executionPrice 成交价格
    */
@@ -732,6 +825,11 @@ function InfiniteGrid(options) {
     this.logs.push(orderDetail);
     // 用真实订单数据替换占位符（而不是 push）
     this.position_open_history[this.position_open_history.length - 1] = orderDetail;
+
+    // 直接写入交易历史到数据库，不依赖事件绑定（解决竞态条件问题）
+    await this.writeTradeHistory(orderDetail, 'open');
+
+    // 触发事件（如果已绑定）
     if (typeof this.onOpenPosition === 'function') this.onOpenPosition({ id: this.config.id, ...orderDetail });
     this.logger.sql(GridEventTypes.ORDER, `🎉 建仓成功`).log();
     this.resetTargetPrice(Number(orderDetail.avgPrice));
@@ -775,6 +873,11 @@ function InfiniteGrid(options) {
 
     this.logs.push(orderDetail);
     this.position_open_history.pop();
+
+    // 直接写入交易历史到数据库，不依赖事件绑定（解决竞态条件问题）
+    await this.writeTradeHistory(orderDetail, 'close');
+
+    // 触发事件（如果已绑定）
     if (typeof this.onClosePosition === 'function') this.onClosePosition({ id: this.config.id, ...orderDetail });
     this.logger.sql(GridEventTypes.ORDER, `🎉 平仓成功`).log();
     this.resetTargetPrice(Number(orderDetail.avgPrice));

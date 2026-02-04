@@ -163,66 +163,77 @@ export function GridParametersCards({
             />
             <div className="help">系数越大，价格变动时的触发价格会下放得更低，为0时固定使用网格差价</div>
           </div>
+        </div>
 
-          {/* 价格上限 */}
-          <div className="grid-strategy-form-field">
-            <label className="grid-strategy-form-label">价格上限</label>
-            <NumberInput
-              value={emptyToUndefined(formData.gt_limitation_price)}
-              onChange={(value) => updateFormField('gt_limitation_price', (typeof value === 'number' ? value : parseFloat(value || '0')))}
-              decimalScale={2}
-              min={0}
-              step={0.01}
-              placeholder="例如：3000"
-            />
-            <div className="help">大于等于此价格时暂停网格，为空则不限制</div>
-          </div>
+        {/* 价格边界限制分组 */}
+        <div className="grid-strategy-risk-subsection">
+          <h3 className="grid-strategy-risk-subsection-title">价格边界限制</h3>
+          <p className="grid-strategy-risk-subsection-desc">设置具体的绝对价格值作为网格运行的上限和下限</p>
+          <div className="grid-strategy-form-grid">
+            {/* 价格上限 */}
+            <div className="grid-strategy-form-field">
+              <label className="grid-strategy-form-label">价格上限</label>
+              <NumberInput
+                value={emptyToUndefined(formData.gt_limitation_price)}
+                onChange={(value) => updateFormField('gt_limitation_price', (typeof value === 'number' ? value : parseFloat(value || '0')))}
+                decimalScale={2}
+                min={0}
+                step={0.01}
+                placeholder="例如：3000"
+              />
+              <div className="help">大于等于此价格时暂停网格，为空则不限制</div>
+            </div>
 
-          {/* 价格下限 */}
-          <div className="grid-strategy-form-field">
-            <label className="grid-strategy-form-label">价格下限</label>
-            <NumberInput
-              value={emptyToUndefined(formData.lt_limitation_price)}
-              onChange={(value) => updateFormField('lt_limitation_price', (typeof value === 'number' ? value : parseFloat(value || '0')))}
-              decimalScale={2}
-              min={0}
-              step={0.01}
-              placeholder="例如：2000"
-            />
-            <div className="help">小于等于此价格时暂停网格，为空则不限制</div>
+            {/* 价格下限 */}
+            <div className="grid-strategy-form-field">
+              <label className="grid-strategy-form-label">价格下限</label>
+              <NumberInput
+                value={emptyToUndefined(formData.lt_limitation_price)}
+                onChange={(value) => updateFormField('lt_limitation_price', (typeof value === 'number' ? value : parseFloat(value || '0')))}
+                decimalScale={2}
+                min={0}
+                step={0.01}
+                placeholder="例如：2000"
+              />
+              <div className="help">小于等于此价格时暂停网格，为空则不限制</div>
+            </div>
           </div>
         </div>
 
-        {/* 价格限制开关 */}
-        <div className="grid-strategy-form-toggles">
-          <div className="grid-strategy-form-toggle">
-            <div className="grid-strategy-form-toggle-info">
-              <label className="grid-strategy-form-label">高于持仓均价时暂停</label>
-              <div className="help">当价格大于等于持仓均价时则暂停网格</div>
+        {/* 持仓均价限制分组 */}
+        <div className="grid-strategy-risk-subsection">
+          <h3 className="grid-strategy-risk-subsection-title">持仓均价限制</h3>
+          <p className="grid-strategy-risk-subsection-desc">以持仓均价为基准，根据价格相对位置决定是否暂停</p>
+          <div className="grid-strategy-form-toggles">
+            <div className="grid-strategy-form-toggle">
+              <div className="grid-strategy-form-toggle-info">
+                <label className="grid-strategy-form-label">高于持仓均价时暂停</label>
+                <div className="help">当价格大于等于持仓均价时则暂停网格</div>
+              </div>
+              <label className="grid-strategy-toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={formData.is_above_open_price}
+                  onChange={e => updateFormField('is_above_open_price', e.target.checked)}
+                />
+                <span></span>
+              </label>
             </div>
-            <label className="grid-strategy-toggle-switch">
-              <input
-                type="checkbox"
-                checked={formData.is_above_open_price}
-                onChange={e => updateFormField('is_above_open_price', e.target.checked)}
-              />
-              <span></span>
-            </label>
-          </div>
 
-          <div className="grid-strategy-form-toggle">
-            <div className="grid-strategy-form-toggle-info">
-              <label className="grid-strategy-form-label">低于持仓均价时暂停</label>
-              <div className="help">当价格低于等于持仓均价时则暂停网格</div>
+            <div className="grid-strategy-form-toggle">
+              <div className="grid-strategy-form-toggle-info">
+                <label className="grid-strategy-form-label">低于持仓均价时暂停</label>
+                <div className="help">当价格小于等于持仓均价时则暂停网格</div>
+              </div>
+              <label className="grid-strategy-toggle-switch">
+                <input
+                  type="checkbox"
+                  checked={formData.is_below_open_price}
+                  onChange={e => updateFormField('is_below_open_price', e.target.checked)}
+                />
+                <span></span>
+              </label>
             </div>
-            <label className="grid-strategy-toggle-switch">
-              <input
-                type="checkbox"
-                checked={formData.is_below_open_price}
-                onChange={e => updateFormField('is_below_open_price', e.target.checked)}
-              />
-              <span></span>
-            </label>
           </div>
         </div>
       </div>

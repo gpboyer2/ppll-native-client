@@ -12,6 +12,17 @@ import { EXECUTION_STATUS } from '../../types/grid-strategy';
 import type { GridStrategy, StrategyFilter, StrategyStatus, PositionSide } from '../../types/grid-strategy';
 
 /**
+ * 获取当前价格的显示文本
+ * @param trading_pair - 交易对
+ * @param ticker_prices - ticker 价格数据
+ * @returns 当前价格或加载中
+ */
+function getCurrentPriceText(trading_pair: string, ticker_prices: Record<string, any>): string {
+  const ticker = ticker_prices[trading_pair];
+  return ticker?.price ? Number(ticker.price).toFixed(2) : '--';
+}
+
+/**
  * 使用策略的价格精度格式化价格
  */
 function formatPrice(value: number | null | undefined, strategy: GridStrategy): string {
@@ -31,9 +42,11 @@ function GridStrategyListPage() {
 
   // 防止 StrictMode 双重渲染导致重复请求
   const has_loaded_ref = useRef(false);
+  // 定时刷新引用
+  const interval_ref = useRef<NodeJS.Timeout | null>(null);
 
-  // 获取 binance-store 初始化状态
-  const { initialized: binance_initialized } = useBinanceStore();
+  // 获取 binance-store 初始化状态和 ticker 数据
+  const { initialized: binance_initialized, ticker_prices, connectSocket, subscribeTicker, unsubscribeTicker } = useBinanceStore();
 
   // 筛选状态
   const [filter, setFilter] = useState<StrategyFilter>({
@@ -57,48 +70,61 @@ function GridStrategyListPage() {
 
     has_loaded_ref.current = true;
     loadStrategyList();
+
+    // 设置定时刷新，每 5 秒刷新一次策略状态
+    interval_ref.current = setInterval(() => {
+      loadStrategyListInternal();
+    }, 5000);
+
+    // 组件卸载时清除定时器
+    return () => {
+      if (interval_ref.current) {
+        clearInterval(interval_ref.current);
+        interval_ref.current = null;
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [binance_initialized]);
 
-  // 从后端 API 加载策略列表
-  async function loadStrategyList() {
-    setLoading(true);
+  // 从后端 API 加载策略列表（内部实现，不显示 loading）
+  async function loadStrategyListInternal() {
     try {
       // 获取所有 API Key
       const { api_key_list } = useBinanceStore.getState();
 
-      // 如果没有 API Key,提示用户
+      // 如果没有 API Key,直接返回
       if (!api_key_list || api_key_list.length === 0) {
-        showError('请先在币安 API Key 管理中添加 API Key');
-        setLoading(false);
         return;
       }
 
-      // 并发请求所有 API Key 的策略列表
-      const requests = api_key_list.map(api_key =>
-        GridStrategyApi.list({
+      // 并发请求所有 API Key 的策略列表，同时记录每个请求对应的 api_key
+      const requests_with_key = api_key_list.map(api_key => ({
+        api_key_value: api_key.api_key,
+        api_key_id: String(api_key.id),
+        api_key_name: api_key.name,
+        request: GridStrategyApi.list({
           current_page: 1,
           page_size: 100,
           api_key: api_key.api_key,
           api_secret: api_key.api_secret
         })
-      );
+      }));
 
-      const responses = await Promise.all(requests);
+      const responses = await Promise.all(requests_with_key.map(r => r.request));
 
-      // 合并所有策略列表
+      // 合并所有策略列表，使用 api_key 值匹配而不是索引
       const all_strategies: GridStrategy[] = [];
       for (let i = 0; i < responses.length; i++) {
         const response = responses[i];
-        const api_key = api_key_list[i];
+        const { api_key_id, api_key_name } = requests_with_key[i];
 
         if (response.status === 'success' && response.datum) {
           const list = response.datum.list || [];
           // 为每个策略添加 api_key_id 信息,方便后续操作
           const strategies_with_key = list.map((item: any): GridStrategy => ({
             ...item,
-            _api_key_id: String(api_key.id),
-            _api_key_name: api_key.name,
+            _api_key_id: api_key_id,
+            _api_key_name: api_key_name,
             status: getStrategyDisplayStatus(item),
           }));
           all_strategies.push(...strategies_with_key);
@@ -106,14 +132,17 @@ function GridStrategyListPage() {
       }
 
       setStrategyList(all_strategies);
+    } catch (error) {
+      // 定时刷新失败时静默处理，不显示错误提示
+      console.error('刷新策略列表失败:', error);
+    }
+  }
 
-      // 如果所有请求都失败,提示用户
-      if (all_strategies.length === 0) {
-        const has_error = responses.some(r => r.status === 'error');
-        if (has_error) {
-          showError('加载策略列表失败,请检查 API Key 配置');
-        }
-      }
+  // 从后端 API 加载策略列表（显示 loading 状态）
+  async function loadStrategyList() {
+    setLoading(true);
+    try {
+      await loadStrategyListInternal();
     } catch (error) {
       console.error('加载策略列表失败:', error);
       showError('加载策略列表失败，请稍后重试');
@@ -121,6 +150,29 @@ function GridStrategyListPage() {
       setLoading(false);
     }
   }
+
+  // 订阅所有策略的交易对 ticker，用于显示当前价格
+  useEffect(() => {
+    if (strategyList.length === 0) return;
+
+    // 连接 WebSocket 并订阅所有交易对
+    connectSocket().then(() => {
+      const unique_pairs = Array.from(new Set(strategyList.map(s => s.trading_pair)));
+      unique_pairs.forEach(pair => {
+        subscribeTicker(pair, 'usdm');
+      });
+    }).catch(error => {
+      console.error('[GridStrategyList] WebSocket 连接失败:', error);
+    });
+
+    // 组件卸载时取消订阅
+    return () => {
+      const unique_pairs = Array.from(new Set(strategyList.map(s => s.trading_pair)));
+      unique_pairs.forEach(pair => {
+        unsubscribeTicker(pair, 'usdm');
+      });
+    };
+  }, [strategyList, connectSocket, subscribeTicker, unsubscribeTicker]);
 
   // 删除策略
   async function handleDeleteStrategy(id: string) {
@@ -416,6 +468,13 @@ function GridStrategyListPage() {
                     <span className="grid-strategy-param-label">持仓均价:</span>
                     <span className="grid-strategy-param-value">
                       {formatPrice(strategy.total_open_position_entry_price, strategy)}
+                    </span>
+                    <span className="grid-strategy-unit-label">USDT</span>
+                  </div>
+                  <div className="flex items-center gap-8">
+                    <span className="grid-strategy-param-label">当前价格:</span>
+                    <span className="grid-strategy-param-value">
+                      {getCurrentPriceText(strategy.trading_pair, ticker_prices)}
                     </span>
                     <span className="grid-strategy-unit-label">USDT</span>
                   </div>

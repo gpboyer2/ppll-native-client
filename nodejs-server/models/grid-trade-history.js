@@ -121,7 +121,7 @@ module.exports = (sequelize) => {
       },
       entry_time: {
         type: DataTypes.DATE,
-        allowNull: false,
+        allowNull: true,
         comment: "开仓时间",
       },
       exit_time: {
