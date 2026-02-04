@@ -218,7 +218,7 @@ function GridStrategyEditPage() {
           // 使用默认值兜底，避免出现 undefined 导致受控组件警告
           const normalizedStrategy: GridStrategyForm = {
             ...defaultGridStrategy,
-            _api_key_id: null
+            _api_key_id: undefined
           };
 
           Object.keys(strategy).forEach((key) => {
@@ -657,8 +657,8 @@ function GridStrategyEditPage() {
         grid_long_close_quantity: config.grid_trade_quantity,
         grid_short_open_quantity: config.grid_trade_quantity,
         grid_short_close_quantity: config.grid_trade_quantity,
-        gt_limitation_price: config.gt_limitation_price,
-        lt_limitation_price: config.lt_limitation_price,
+        gt_limitation_price: config.gt_limitation_price ?? null,
+        lt_limitation_price: config.lt_limitation_price ?? null,
         is_above_open_price: !is_long  // 做多不暂停，做空暂停
         // is_below_open_price 保持原有值不变
       };
@@ -985,10 +985,10 @@ function GridStrategyEditPage() {
           trading_pair: formData.trading_pair,
           position_side: formData.position_side,
           grid_price_difference: formData.grid_price_difference || 0,
-          grid_long_open_quantity: formData.grid_long_open_quantity,
-          grid_long_close_quantity: formData.grid_long_close_quantity,
-          grid_short_open_quantity: formData.grid_short_open_quantity,
-          grid_short_close_quantity: formData.grid_short_close_quantity,
+          grid_long_open_quantity: formData.grid_long_open_quantity ?? undefined,
+          grid_long_close_quantity: formData.grid_long_close_quantity ?? undefined,
+          grid_short_open_quantity: formData.grid_short_open_quantity ?? undefined,
+          grid_short_close_quantity: formData.grid_short_close_quantity ?? undefined,
           // 传递智能配置计算的准确数据
           expected_daily_frequency: commissionData?.expected_daily_frequency,
           expected_daily_profit: commissionData?.expected_daily_profit,
