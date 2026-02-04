@@ -396,8 +396,6 @@ function GridStrategyEditPage() {
       // 准备请求数据，直接使用表单字段名
       const request_data = {
         ...data,
-        price_precision: 2,
-        quantity_precision: 3,
         name: `${data.position_side} ${data.trading_pair}`,
         margin_type: 'cross',
         trading_mode: data.trading_mode

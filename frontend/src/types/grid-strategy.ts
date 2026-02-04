@@ -421,4 +421,5 @@ export interface GridStrategyDetail {
   liquidation_price?: number;
   is_above_open_price?: boolean;
   is_below_open_price?: boolean;
+  break_even_price?: number;
 }

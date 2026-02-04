@@ -359,6 +359,7 @@ function GridStrategyDetailPage() {
               total_open_position_entry_price={strategy.total_open_position_entry_price}
               current_price={currentPrice}
               liquidation_price={strategy.liquidation_price}
+              break_even_price={strategy.break_even_price}
             />
 
             <GridParamsCard

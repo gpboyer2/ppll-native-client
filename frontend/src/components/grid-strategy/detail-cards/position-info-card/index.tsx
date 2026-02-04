@@ -8,6 +8,7 @@ interface PositionInfoCardProps {
   total_open_position_entry_price: number;
   current_price?: number | null;
   liquidation_price?: number;
+  break_even_price?: number;
 }
 
 export function PositionInfoCard({
@@ -15,7 +16,8 @@ export function PositionInfoCard({
   total_open_position_value,
   total_open_position_entry_price,
   current_price,
-  liquidation_price
+  liquidation_price,
+  break_even_price
 }: PositionInfoCardProps) {
   const price_change = current_price && total_open_position_entry_price
     ? ((current_price - total_open_position_entry_price) / total_open_position_entry_price) * 100
@@ -58,6 +60,12 @@ export function PositionInfoCard({
           <div className="info-row">
             <span className="info-label">强平价格</span>
             <span className="info-value warning">{liquidation_price.toFixed(DECIMAL_PLACES.PRICE)}</span>
+          </div>
+        )}
+        {break_even_price && (
+          <div className="info-row">
+            <span className="info-label">保本价格</span>
+            <span className="info-value">{break_even_price.toFixed(DECIMAL_PLACES.PRICE)}</span>
           </div>
         )}
       </div>

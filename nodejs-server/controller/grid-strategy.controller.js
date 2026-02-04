@@ -73,8 +73,6 @@ const create = catchAsync(async (req, res) => {
     validateNumberParam(req.body.grid_trade_quantity, "grid_trade_quantity"),
     validateNumberParam(req.body.max_open_position_quantity, "max_open_position_quantity"),
     validateNumberParam(req.body.min_open_position_quantity, "min_open_position_quantity"),
-    validateNumberParam(req.body.price_precision, "price_precision", true),
-    validateNumberParam(req.body.quantity_precision, "quantity_precision", true),
     validateNumberParam(req.body.leverage, "leverage"),
   ];
 
@@ -84,6 +82,36 @@ const create = catchAsync(async (req, res) => {
 
   // 合并 API 凭证和请求数据
   const strategyData = prepareData(req.apiCredentials, req.body);
+
+  // 从数据库获取 exchangeInfo，自动填充 price_precision 和 quantity_precision
+  try {
+    const db = require("../models");
+    const BinanceExchangeInfo = db.binance_exchange_info;
+
+    const exchangeInfoRecord = await BinanceExchangeInfo.getLatest();
+    if (exchangeInfoRecord && exchangeInfoRecord.exchange_info) {
+      const exchangeInfo = JSON.parse(exchangeInfoRecord.exchange_info);
+      const symbol = exchangeInfo.symbols?.find(s => s.symbol === req.body.trading_pair);
+
+      if (symbol) {
+        // 从 exchangeInfo 获取精度
+        strategyData.price_precision = symbol.pricePrecision ?? 2;
+        strategyData.quantity_precision = symbol.quantityPrecision ?? 3;
+      } else {
+        // 如果找不到对应交易对，使用默认值
+        strategyData.price_precision = 2;
+        strategyData.quantity_precision = 3;
+      }
+    } else {
+      // 如果没有 exchangeInfo 记录，使用默认值
+      strategyData.price_precision = 2;
+      strategyData.quantity_precision = 3;
+    }
+  } catch (error) {
+    console.error('[grid-strategy.controller] 获取 exchangeInfo 失败，使用默认精度:', error);
+    strategyData.price_precision = 2;
+    strategyData.quantity_precision = 3;
+  }
 
   // 过滤掉 undefined 或 null 的参数
   Object.keys(strategyData).forEach(key => {
@@ -141,6 +169,35 @@ const update = catchAsync(async (req, res) => {
     ...req.body,
     id: Number(req.body.id),
   });
+
+  // 如果更新了 trading_pair，从 exchangeInfo 获取新的精度
+  if (updateData.trading_pair) {
+    try {
+      const db = require("../models");
+      const BinanceExchangeInfo = db.binance_exchange_info;
+
+      const exchangeInfoRecord = await BinanceExchangeInfo.getLatest();
+      if (exchangeInfoRecord && exchangeInfoRecord.exchange_info) {
+        const exchangeInfo = JSON.parse(exchangeInfoRecord.exchange_info);
+        const symbol = exchangeInfo.symbols?.find(s => s.symbol === updateData.trading_pair);
+
+        if (symbol) {
+          updateData.price_precision = symbol.pricePrecision ?? 2;
+          updateData.quantity_precision = symbol.quantityPrecision ?? 3;
+        } else {
+          updateData.price_precision = 2;
+          updateData.quantity_precision = 3;
+        }
+      } else {
+        updateData.price_precision = 2;
+        updateData.quantity_precision = 3;
+      }
+    } catch (error) {
+      console.error('[grid-strategy.controller] 获取 exchangeInfo 失败，使用默认精度:', error);
+      updateData.price_precision = 2;
+      updateData.quantity_precision = 3;
+    }
+  }
 
   // 过滤掉 undefined 的参数
   Object.keys(updateData).forEach(key => {
