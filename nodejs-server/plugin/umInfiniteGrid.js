@@ -454,10 +454,10 @@ function InfiniteGrid(options) {
         this.next_expected_fall_price = undefined;
         return true;
 
-      // 可在此处扩展其他错误码的处理逻辑
-      // case -xxxx:
-      //   UtilRecord.log(`⚠️ 处理错误码 -xxxx`);
-      //   return true;
+        // 可在此处扩展其他错误码的处理逻辑
+        // case -xxxx:
+        //   UtilRecord.log(`⚠️ 处理错误码 -xxxx`);
+        //   return true;
 
       default:
         return false;
@@ -575,6 +575,19 @@ function InfiniteGrid(options) {
 
 
   /**
+   * 检查是否有正在进行的订单操作
+   * @returns {boolean} 如果有占位符（正在进行的订单）则返回 true
+   */
+  this.hasPendingOrder = () => {
+    if (this.position_open_history && this.position_open_history.length > 0) {
+      const last = this.position_open_history[this.position_open_history.length - 1];
+      return last && last._placeholder === true;
+    }
+    return false;
+  };
+
+
+  /**
    * 调用平仓位接口
    * @param {Number|String} positionQuantity 操作数量
    */
@@ -681,6 +694,11 @@ function InfiniteGrid(options) {
       return;
     }
     this.order_options.lock = 'opening';
+    this.logger.debug(`开仓锁已设置，lock=${this.order_options.lock}`);
+    // 立即在 position_open_history 中添加占位符，防止竞态条件下重复开仓
+    // 占位符会在订单成功后被真实订单数据替换，失败时被移除
+    const placeholder = { _placeholder: true, timestamp: Date.now() };
+    this.position_open_history.push(placeholder);
     const prePositionQty = this.total_open_position_quantity;
 
     let result = null;
@@ -694,18 +712,26 @@ function InfiniteGrid(options) {
     }
     await new Promise(r => setTimeout(r, 1000));
     this.initAccountInfo().catch(() => { });
-    if (!result) { this.order_options.lock = 'idle'; return; }
+    if (!result) {
+      // 移除占位符
+      this.position_open_history.pop();
+      this.order_options.lock = 'idle';
+      return;
+    }
 
     await new Promise(r => setTimeout(r, 500));
     const orderDetail = await this.queryOrder(result.orderId, prePositionQty, positionQuantity, 'open');
     if (!orderDetail) {
       this.logger.warn(`创建${this.config.position_side === 'LONG' ? '多' : '空'}单后，无法查询订单详情`);
+      // 移除占位符
+      this.position_open_history.pop();
       this.order_options.lock = 'idle';
       return;
     }
 
     this.logs.push(orderDetail);
-    this.position_open_history.push(orderDetail);
+    // 用真实订单数据替换占位符（而不是 push）
+    this.position_open_history[this.position_open_history.length - 1] = orderDetail;
     if (typeof this.onOpenPosition === 'function') this.onOpenPosition({ id: this.config.id, ...orderDetail });
     this.logger.sql(GridEventTypes.ORDER, `🎉 建仓成功`).log();
     this.resetTargetPrice(Number(orderDetail.avgPrice));
@@ -1058,6 +1084,13 @@ function InfiniteGrid(options) {
 
     if (this.config.max_open_position_quantity ? this.total_open_position_quantity > this.config.max_open_position_quantity : false) {
       this.logger.log(`😎 当前方向持有仓位超过最大持仓数量限制`);
+    }
+
+    // 检查是否有正在进行的订单操作（通过占位符判断）
+    // 如果有占位符，说明有订单正在执行中，跳过本次开仓逻辑
+    if (this.hasPendingOrder()) {
+      this.logger.debug(`订单操作正在进行中（检测到占位符），跳过本次网格检查`);
+      return;
     }
 
     // 缓存中没有仓位且没有超过最大持仓数量限制, 创建一个新的仓位;
