@@ -37,7 +37,7 @@ router.post('/paused', vipMiddleware.validateVipAccess, gridStrategyController.a
 router.post('/resume', vipMiddleware.validateVipAccess, gridStrategyController.action);
 
 // 删除策略
-// POST /api/v1/grid-strategy/deletes  body: { data: number[] }
+// POST /api/v1/grid-strategy/deletes  body: { id: number[] }
 router.post('/deletes', vipMiddleware.validateVipAccess, gridStrategyController.deletes);
 
 // 智能优化参数
@@ -322,7 +322,7 @@ module.exports = router;
 
 /**
  * @swagger
- * /api/v1/grid-strategy/deletes:
+ * /api/v1/grid-strategy/delete:
  *   post:
  *     summary: 删除策略
  *     description: 根据策略ID删除指定的网格交易策略
@@ -334,9 +334,9 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - data
+ *               - id
  *             properties:
- *               data:
+ *               id:
  *                 type: array
  *                 items:
  *                   type: integer

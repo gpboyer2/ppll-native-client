@@ -607,69 +607,99 @@ const updateGridStrategyById = async (updateBody) => {
 };
 
 /**
- * 根据ID删除网格策略的sql数据
+ * 根据ID删除网格策略的sql数据（支持批量）
  * 单用户系统：通过 api_key + api_secret 实现数据隔离
  *
  * @param {Object} updateBody - 删除的数据对象
+ * @param {number[]} updateBody.id - 策略ID数组
+ * @param {string} updateBody.api_key - API密钥
+ * @param {string} updateBody.api_secret - API密钥Secret
  * @returns {Promise<Object>} - 返回删除结果
  */
 const deleteGridStrategyById = async (updateBody) => {
-  let grid_strategy_instance = GridStrategy.build(updateBody);
-  let params = grid_strategy_instance.get();
-  let { id, api_key, api_secret } = params;
+  let { id, api_key, api_secret } = updateBody;
 
-  const whereCondition = { id, api_key, api_secret };
+  // id 必须是数组
+  const id_list = Array.isArray(id) ? id : [id];
 
-  const existed = await GridStrategy.findOne({ where: whereCondition });
-  const row = await GridStrategy.destroy({
-    where: whereCondition,
-  });
-
-  if (gridMap[id]) {
-    try {
-      // 暂停网格策略
-      gridMap[id].onManualPausedGrid();
-    } catch (e) {
-      console.error(`[grid-strategy] 清理策略 ${id} 时出错:`, e);
-      // 忽略清理策略时的错误，继续执行删除逻辑
-    }
-
-    // 清理事件监听器
-    if (gridMap[id].onWarn) {
-      gridMap[id].onWarn = null;
-    }
-    if (gridMap[id].onOpenPosition) {
-      gridMap[id].onOpenPosition = null;
-    }
-    if (gridMap[id].onClosePosition) {
-      gridMap[id].onClosePosition = null;
-    }
-
-    delete gridMap[id];
+  if (id_list.length === 0) {
+    return { status: 0 };
   }
 
-  if (row) {
-    const symbol = existed?.trading_pair || existed?.symbol;
+  // 1. 先查询所有要删除的策略记录，用于后续清理订阅
+  const strategies = await GridStrategy.findAll({
+    where: {
+      id: id_list,
+      api_key,
+      api_secret,
+    },
+  });
+
+  if (strategies.length === 0) {
+    return { status: 0 };
+  }
+
+  // 2. 停止所有运行中的策略并清理事件监听器
+  for (const strategy_id of id_list) {
+    if (gridMap[strategy_id]) {
+      try {
+        // 暂停网格策略
+        gridMap[strategy_id].onManualPausedGrid();
+      } catch (e) {
+        console.error(`[grid-strategy] 清理策略 ${strategy_id} 时出错:`, e);
+        // 忽略清理策略时的错误，继续执行删除逻辑
+      }
+
+      // 清理事件监听器
+      if (gridMap[strategy_id].onWarn) {
+        gridMap[strategy_id].onWarn = null;
+      }
+      if (gridMap[strategy_id].onOpenPosition) {
+        gridMap[strategy_id].onOpenPosition = null;
+      }
+      if (gridMap[strategy_id].onClosePosition) {
+        gridMap[strategy_id].onClosePosition = null;
+      }
+
+      delete gridMap[strategy_id];
+    }
+  }
+
+  // 3. 批量删除数据库记录
+  const row = await GridStrategy.destroy({
+    where: {
+      id: id_list,
+      api_key,
+      api_secret,
+    },
+  });
+
+  // 4. 清理订阅
+  for (const strategy of strategies) {
+    const symbol = strategy?.trading_pair || strategy?.symbol;
+    const strategy_id = strategy.id;
+
     UtilRecord.log('[grid-strategy] 删除策略，准备清理订阅', {
-      strategyId: id,
+      strategyId: strategy_id,
       symbol,
       registryHasSymbol: gridStrategyRegistry.has(symbol),
       registrySize: gridStrategyRegistry.get(symbol)?.size || 0
     });
+
     if (symbol) {
       const subs = gridStrategyRegistry.get(symbol);
       if (subs) {
         for (const item of subs) {
-          if (item.id === id) { subs.delete(item); break; }
+          if (item.id === strategy_id) { subs.delete(item); break; }
         }
         UtilRecord.log('[grid-strategy] 清理后订阅者数量', { symbol, remaining: subs.size });
         if (subs.size === 0) {
           gridStrategyRegistry.delete(symbol);
           global.wsManager.unsubscribeMarkPrice(symbol);
-          UtilRecord.log('[grid-strategy] 已取消订阅', { symbol, strategyId: id });
+          UtilRecord.log('[grid-strategy] 已取消订阅', { symbol, strategyId: strategy_id });
         }
       } else {
-        UtilRecord.log('[grid-strategy] registry 中无记录，强制取消订阅', { symbol, strategyId: id });
+        UtilRecord.log('[grid-strategy] registry 中无记录，强制取消订阅', { symbol, strategyId: strategy_id });
         global.wsManager.unsubscribeMarkPrice(symbol);
       }
     }

@@ -52,9 +52,8 @@ export class GridStrategyApi {
   /**
    * 删除网格策略
    */
-  static async delete(data: number | number[]): Promise<Response<any>> {
-    const id_list = Array.isArray(data) ? data : [data];
-    return RequestWrapper.post(`${this.BASE_PATH}/deletes`, { data: id_list });
+  static async delete(id: number[]): Promise<Response<any>> {
+    return RequestWrapper.post(`${this.BASE_PATH}/delete`, { id });
   }
 
   /**

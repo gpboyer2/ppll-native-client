@@ -118,7 +118,7 @@ function GridStrategyListPage() {
     if (!confirm('确认删除此策略？')) return;
 
     try {
-      const response = await GridStrategyApi.delete(Number(id));
+      const response = await GridStrategyApi.delete([Number(id)]);
       if (response.status === 'success') {
         showSuccess('策略删除成功');
         await loadStrategyList();

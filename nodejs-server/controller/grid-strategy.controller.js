@@ -167,10 +167,18 @@ const deletes = catchAsync(async (req, res) => {
     return res.apiError(null, '缺少参数: id');
   }
 
+  // 约定：id 必须是数组格式
+  if (!Array.isArray(id)) {
+    return res.apiError(null, '参数 id 必须是数组格式');
+  }
+
+  // 转换为数字数组
+  const id_number_list = id.map(item => Number(item));
+
   result = await gridStrategyService.deleteGridStrategyById({
     api_key: api_key,
     api_secret: api_secret,
-    id: Number(id)
+    id: id_number_list
   });
 
   if (result?.status) {

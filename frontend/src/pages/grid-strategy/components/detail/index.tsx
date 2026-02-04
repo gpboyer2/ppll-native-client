@@ -136,7 +136,7 @@ function GridStrategyDetailPage() {
     if (!confirm(`确定要删除策略 ${strategy.trading_pair} 吗？`)) return;
 
     try {
-      const response = await GridStrategyApi.delete(strategy.id);
+      const response = await GridStrategyApi.delete([strategy.id]);
       if (response.status === 'success') {
         showSuccess('删除成功');
         navigate(ROUTES.GRID_STRATEGY);
