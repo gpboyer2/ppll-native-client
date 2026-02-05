@@ -4,7 +4,6 @@
  */
 const ipUtil = require('../utils/ip');
 const db = require('../models');
-const SocketIOManager = require('../managers/SocketIOManager');
 
 
 // 服务启动时间
@@ -106,9 +105,9 @@ const getHealth = async () => {
   const cpuUser = cpuUsage.user / 1000000;
   const cpuSystem = cpuUsage.system / 1000000;
 
-  // 连接统计
+  // 连接统计（通过 Global 获取，避免循环依赖）
   const wsStats = global.wsManager?.getStats() || { active: 0, total: 0 };
-  const socketioStats = SocketIOManager.getStats();
+  const socketioStats = global.socketIOStats?.() || { active: 0, total: 0 };
 
   return {
     service: {

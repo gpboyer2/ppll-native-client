@@ -24,6 +24,7 @@ const init = (server, wsManagerInstance) => {
 
   // 暴露到全局，供其他模块使用
   global.socketIOManager = { getIO: () => io };
+  global.socketIOStats = getStats;
 
   io.on('connection', (socket) => {
     // 更新连接统计
