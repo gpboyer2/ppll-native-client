@@ -1,5 +1,6 @@
 import { RequestWrapper } from '../request';
 import { Response } from '../../core/response';
+import { socketio_client } from '../../utils/socketio-client';
 
 /**
  * 系统相关API接口
@@ -15,10 +16,10 @@ export class SystemApi {
   }
 
   /**
-   * 健康检查
+   * 健康检查（通过 WebSocket）
    */
   static async healthCheck(): Promise<Response<any>> {
-    return RequestWrapper.get(`${this.BASE_PATH}/health`);
+    return socketio_client.request('health_check');
   }
 
   /**

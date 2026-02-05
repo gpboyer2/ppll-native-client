@@ -2,6 +2,7 @@ const socketIo = require('socket.io');
 const UtilRecord = require('../utils/record-log.js');
 const db = require('../models');
 const { add_frontend_log } = require('../service/frontend-logs.service');
+const systemService = require('../service/system.service');
 
 // 生产环境标识
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -195,6 +196,20 @@ const init = (server, wsManagerInstance) => {
         }
       } catch (error) {
         UtilRecord.trace(`[SocketIO] 处理前端日志失败: ${error.message}`);
+      }
+    });
+
+    /**
+     * 健康检查
+     * data: {} - 无需参数
+     * 使用 callback 模式返回结果
+     */
+    socket.on('health_check', async (data, callback) => {
+      try {
+        const healthData = await systemService.getHealth();
+        callback({ status: 'success', message: '操作成功', datum: healthData });
+      } catch (error) {
+        callback({ status: 'error', message: error?.message || '健康检查失败', datum: null });
       }
     });
   });
