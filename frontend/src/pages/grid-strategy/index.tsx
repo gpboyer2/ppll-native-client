@@ -86,6 +86,34 @@ function GridStrategyListPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [binance_initialized]);
 
+  // 监听策略状态更新事件（WebSocket 推送）
+  useEffect(() => {
+    const handleStrategyStatusUpdate = (event: CustomEvent) => {
+      const { strategy_id, execution_status } = event.detail;
+      console.log('[GridStrategyList] 收到策略状态更新:', strategy_id, execution_status);
+
+      // 更新本地策略列表中对应策略的状态
+      setStrategyList(prev => prev.map(strategy => {
+        if (String(strategy.id) === String(strategy_id)) {
+          return {
+            ...strategy,
+            execution_status: execution_status,
+            status: getStrategyDisplayStatus({ ...strategy, execution_status: execution_status })
+          };
+        }
+        return strategy;
+      }));
+    };
+
+    // 添加事件监听
+    window.addEventListener('strategy-status-update', handleStrategyStatusUpdate as EventListener);
+
+    // 清理函数
+    return () => {
+      window.removeEventListener('strategy-status-update', handleStrategyStatusUpdate as EventListener);
+    };
+  }, []);
+
   // 从后端 API 加载策略列表（内部实现，不显示 loading）
   async function loadStrategyListInternal() {
     try {

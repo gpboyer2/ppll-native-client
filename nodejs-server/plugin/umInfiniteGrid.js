@@ -17,6 +17,7 @@ const binanceAccountService = require('../service/binance-account.service.js');
 const GridEventTypes = require('../constants/grid-event-types.js');
 const execution_status = require('../constants/grid-strategy-status-map');
 const { createTradeHistory } = require('../service/grid-trade-history.service.js');
+const SocketIOManager = require('../managers/SocketIOManager');
 
 
 /**
@@ -390,6 +391,9 @@ function InfiniteGrid(options) {
         { where: { id: this.config.id } }
       );
       this.logger.debug(`策略执行状态已更新为: ${newStatus}`);
+
+      // 推送状态变化到前端
+      SocketIOManager.emitStrategyStatusUpdate(this.config.id, newStatus);
     } catch (error) {
       this.logger.error(`更新策略执行状态失败:`, error);
     }

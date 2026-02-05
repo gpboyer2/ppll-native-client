@@ -314,6 +314,13 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
           }
         });
 
+        // 监听策略状态更新
+        new_socket.on('strategy_status_update', (data: any) => {
+          console.log('[binance-store] 策略状态更新:', data);
+          // 触发自定义事件，让其他组件能监听到
+          window.dispatchEvent(new CustomEvent('strategy-status-update', { detail: data }));
+        });
+
         set({ socket: new_socket });
       });
 

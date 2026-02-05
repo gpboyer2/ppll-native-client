@@ -22,6 +22,9 @@ const init = (server, wsManagerInstance) => {
     }
   });
 
+  // 暴露到全局，供其他模块使用
+  global.socketIOManager = { getIO: () => io };
+
   io.on('connection', (socket) => {
     // 更新连接统计
     stats.total++;
@@ -269,4 +272,27 @@ const getStats = () => {
   };
 };
 
-module.exports = { init, getStats };
+/**
+ * 推送策略状态更新到所有连接的客户端
+ * @param {number} strategyId - 策略ID
+ * @param {string} executionStatus - 执行状态
+ * @param {object} extraData - 额外数据（可选）
+ */
+const emitStrategyStatusUpdate = (strategyId, executionStatus, extraData = {}) => {
+  if (!io) {
+    UtilRecord.trace('[SocketIO] IO 未初始化，无法推送策略状态更新');
+    return;
+  }
+  // 推送给所有连接的客户端
+  io.emit('strategy_status_update', {
+    strategy_id: strategyId,
+    execution_status: executionStatus,
+    timestamp: Date.now(),
+    ...extraData
+  });
+  if (!IS_PRODUCTION) {
+    UtilRecord.log(`[SocketIO] 推送策略状态更新: strategyId=${strategyId}, status=${executionStatus}`);
+  }
+};
+
+module.exports = { init, getStats, emitStrategyStatusUpdate };
