@@ -1,14 +1,10 @@
 .quick-order-page-title {
-  margin: 0;
-  font-size: var(--text-2xl);
-  font-weight: 600;
-  color: var(--color-text);
+  margin: 0 0 4px;
+  color: var(--color-primary);
 }
 
 .quick-order-page-desc {
-  margin: 4px 0 0 32px;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
+  margin: 0;
 }
 
 .quick-order-error {
@@ -171,13 +167,6 @@
 
 .quick-order-section-short .quick-order-section-label {
   color: var(--color-danger);
-}
-
-.quick-order-section-amount {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  color: var(--color-text);
 }
 
 .quick-order-buttons {

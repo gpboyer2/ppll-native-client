@@ -4,7 +4,6 @@ import {
   IconTrendingDown,
   IconRefresh,
   IconAlertCircle,
-  IconWallet,
   IconX,
   IconScale
 } from '@tabler/icons-react';
@@ -375,11 +374,12 @@ function QuickOrderPage() {
   return (
     <div className="container">
       <div className="surface p-16 mb-16">
-        <div className="flex items-center gap-8">
-          <IconWallet size={24} color="var(--color-primary)" />
-          <h1 className="quick-order-page-title">快捷开单</h1>
+        <div className="flex items-center space-between">
+          <div>
+            <h1 className="quick-order-page-title">快捷开单</h1>
+            <p className="text-muted quick-order-page-desc">快速开仓、平仓、持平操作</p>
+          </div>
         </div>
-        <p className="text-muted quick-order-page-desc">快速开仓、平仓操作</p>
       </div>
 
       {error_msg && (
@@ -471,7 +471,6 @@ function QuickOrderPage() {
               <IconTrendingUp size={16} />
               <span>开多</span>
             </div>
-            <div className="quick-order-section-amount">{total_long_amount.toFixed(2)} U</div>
           </div>
           <div className="quick-order-buttons">
             {QUICK_AMOUNTS.map(amount => (
@@ -515,7 +514,6 @@ function QuickOrderPage() {
               <IconTrendingDown size={16} />
               <span>开空</span>
             </div>
-            <div className="quick-order-section-amount">{total_short_amount.toFixed(2)} U</div>
           </div>
           <div className="quick-order-buttons">
             {QUICK_AMOUNTS.map(amount => (
@@ -573,7 +571,6 @@ function QuickOrderPage() {
               <IconTrendingUp size={14} />
               <span>平多</span>
             </div>
-            <div className="quick-order-section-amount">{total_long_amount.toFixed(2)} U</div>
           </div>
           <div className="quick-order-buttons-close">
             {CLOSE_AMOUNTS.map(amount => (
@@ -625,7 +622,6 @@ function QuickOrderPage() {
               <IconTrendingDown size={14} />
               <span>平空</span>
             </div>
-            <div className="quick-order-section-amount">{total_short_amount.toFixed(2)} U</div>
           </div>
           <div className="quick-order-buttons-close">
             {CLOSE_AMOUNTS.map(amount => (
