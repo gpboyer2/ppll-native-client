@@ -351,61 +351,63 @@ function QuickOrderPage() {
           </Button>
         </div>
 
-        <div className="quick-order-controls">
-          <div className="quick-order-control-group">
-            <label className="quick-order-control-label">交易对</label>
-            <Select
-              placeholder="选择交易对"
-              value={trading_pair}
-              onChange={(value) => setTradingPair(value || 'BTCUSDT')}
-              data={trading_pair_options}
-              className="quick-order-select"
-            />
+        <div className="quick-order-card-content">
+          <div className="quick-order-controls">
+            <div className="quick-order-control-group">
+              <label className="quick-order-control-label">交易对</label>
+              <Select
+                placeholder="选择交易对"
+                value={trading_pair}
+                onChange={(value) => setTradingPair(value || 'BTCUSDT')}
+                data={trading_pair_options}
+                className="quick-order-select"
+              />
+            </div>
+
+            <div className="quick-order-control-group">
+              <label className="quick-order-control-label">杠杆</label>
+              <NumberInput
+                placeholder="杠杆"
+                value={leverage}
+                onChange={(value) => setLeverage(Math.max(1, Math.min(125, parseInt(String(value)) || 1)))}
+                min={1}
+                max={125}
+                className="quick-order-number-input"
+              />
+              <span className="quick-order-control-suffix">x</span>
+            </div>
           </div>
 
-          <div className="quick-order-control-group">
-            <label className="quick-order-control-label">杠杆</label>
-            <NumberInput
-              placeholder="杠杆"
-              value={leverage}
-              onChange={(value) => setLeverage(Math.max(1, Math.min(125, parseInt(String(value)) || 1)))}
-              min={1}
-              max={125}
-              className="quick-order-number-input"
-            />
-            <span className="quick-order-control-suffix">x</span>
+          <div className="quick-order-display">
+            <div className="quick-order-display-item">
+              <span className="quick-order-display-label">当前价格</span>
+              <span className="quick-order-display-value">{getCurrentPriceText(current_price)}</span>
+            </div>
+            <div className="quick-order-display-item">
+              <span className="quick-order-display-label">可用保证金</span>
+              <span className={`quick-order-display-value ${is_balance_low ? 'quick-order-display-value-warning' : ''}`}>
+                {account_data.available_balance.toFixed(2)} U
+              </span>
+            </div>
+            <div className="quick-order-display-item">
+              <span className="quick-order-display-label">净仓</span>
+              <span className={`quick-order-display-value ${net_position > 0 ? 'quick-order-display-value-long' : net_position < 0 ? 'quick-order-display-value-short' : ''}`}>
+                {net_position > 0 ? '+' : ''}{net_position.toFixed(2)} U
+              </span>
+            </div>
+            <div className="quick-order-display-item">
+              <span className="quick-order-display-label">多单</span>
+              <span className="quick-order-display-value quick-order-display-value-long">
+                {total_long_amount.toFixed(2)} U
+              </span>
+            </div>
+            <div className="quick-order-display-item">
+              <span className="quick-order-display-label">空单</span>
+              <span className="quick-order-display-value quick-order-display-value-short">
+                {total_short_amount.toFixed(2)} U
+              </span>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <div className="quick-order-display">
-        <div className="quick-order-display-item">
-          <span className="quick-order-display-label">当前价格</span>
-          <span className="quick-order-display-value">{getCurrentPriceText(current_price)}</span>
-        </div>
-        <div className="quick-order-display-item">
-          <span className="quick-order-display-label">可用保证金</span>
-          <span className={`quick-order-display-value ${is_balance_low ? 'quick-order-display-value-warning' : ''}`}>
-            {account_data.available_balance.toFixed(2)} U
-          </span>
-        </div>
-        <div className="quick-order-display-item">
-          <span className="quick-order-display-label">净仓</span>
-          <span className={`quick-order-display-value ${net_position > 0 ? 'quick-order-display-value-long' : net_position < 0 ? 'quick-order-display-value-short' : ''}`}>
-            {net_position > 0 ? '+' : ''}{net_position.toFixed(2)} U
-          </span>
-        </div>
-        <div className="quick-order-display-item">
-          <span className="quick-order-display-label">多仓</span>
-          <span className="quick-order-display-value quick-order-display-value-long">
-            {total_long_amount.toFixed(2)} U
-          </span>
-        </div>
-        <div className="quick-order-display-item">
-          <span className="quick-order-display-label">空仓</span>
-          <span className="quick-order-display-value quick-order-display-value-short">
-            {total_short_amount.toFixed(2)} U
-          </span>
         </div>
       </div>
 
