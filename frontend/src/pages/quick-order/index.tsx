@@ -1,31 +1,23 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
-  IconTrendingUp,
-  IconTrendingDown,
   IconRefresh,
-  IconAlertCircle,
-  IconX,
-  IconScale
+  IconAlertCircle
 } from '@tabler/icons-react';
-import { Button, Select, NumberInput } from '../../components/mantine';
+import { Button } from '../../components/mantine';
 import { useBinanceStore } from '../../stores/binance-store';
 import { OrdersApi, BinanceAccountApi } from '../../api';
 import type { AccountPosition } from '../../types/binance';
+import { TradeSettings } from './components/trade-settings';
+import { AccountDisplay } from './components/account-display';
+import { ApiKeySelector } from './components/api-key-selector';
+import { OpenPositionSection } from './components/open-position-section';
+import { ClosePositionSection } from './components/close-position-section';
+import { BalanceButton } from './components/balance-button';
 import './index.scss';
 
-const QUICK_AMOUNTS = [100, 200, 500, 1000, 1500, 2000, 3000, 4000, 5000];
-const CLOSE_AMOUNTS = [100, 200, 500, 1000, 1500, 2000, 3000, 4000, 5000];
 const DEFAULT_LEVERAGE = 20;
 
 type CloseSide = 'long' | 'short' | 'both';
-
-/**
- * 获取当前价格的显示文本
- */
-function getCurrentPriceText(price: number | string | undefined): string {
-  if (!price) return '--';
-  return Number(price).toFixed(2);
-}
 
 /**
  * 快捷开单独立页面
@@ -89,7 +81,7 @@ function QuickOrderPage() {
     } finally {
       setAccountLoading(false);
     }
-  }, [get_active_api_key, active_api_key_id]);
+  }, [get_active_api_key]);
 
   const subscribeCurrentSymbol = useCallback(() => {
     subscribeTicker(trading_pair, 'usdm');
@@ -367,12 +359,45 @@ function QuickOrderPage() {
     }
   };
 
-  const is_balance_low = account_data.available_balance < 1000;
-
   const trading_pair_options = usdt_pairs.slice(0, 20).map(pair => ({
     value: pair,
     label: pair
   }));
+
+  const handleLeverageChange = async (value: number) => {
+    const active_api_key = get_active_api_key();
+    if (!active_api_key) {
+      setErrorMsg('请先配置 API Key');
+      return;
+    }
+
+    setErrorMsg(null);
+
+    try {
+      const response = await BinanceAccountApi.setLeverage({
+        api_key: active_api_key.api_key,
+        api_secret: active_api_key.api_secret,
+        leverage_list: [{ symbol: trading_pair, leverage: value }]
+      });
+
+      if (response.status === 'success') {
+        setLeverage(value);
+      } else {
+        setErrorMsg(response.message || '设置杠杆失败');
+      }
+    } catch (err) {
+      console.error('设置杠杆失败:', err);
+      setErrorMsg('设置杠杆失败，请重试');
+    }
+  };
+
+  const handleTradingPairChange = (value: string) => {
+    setTradingPair(value);
+  };
+
+  const handleApiKeySelect = (id: string) => {
+    set_active_api_key(id);
+  };
 
   return (
     <div className="container">
@@ -397,22 +422,11 @@ function QuickOrderPage() {
           <div className="quick-order-card-header-left">
             <div>
               <span className="quick-order-card-title">交易设置</span>
-              {api_key_list.length > 0 && (
-                <div className="quick-order-api-key-selector">
-                  <span className="quick-order-api-key-label">API Key：</span>
-                  <div className="quick-order-api-key-buttons">
-                    {api_key_list.map(api_key => (
-                      <button
-                        key={api_key.id}
-                        className={`quick-order-api-key-button ${active_api_key_id === String(api_key.id) ? 'active' : ''}`}
-                        onClick={() => set_active_api_key(String(api_key.id))}
-                      >
-                        {api_key.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <ApiKeySelector
+                api_key_list={api_key_list}
+                active_api_key_id={active_api_key_id}
+                on_key_select={set_active_api_key}
+              />
             </div>
           </div>
           <Button
@@ -426,267 +440,98 @@ function QuickOrderPage() {
         </div>
 
         <div className="quick-order-card-content">
-          <div className="quick-order-controls">
-            <div className="quick-order-control-group">
-              <label className="quick-order-control-label">交易对</label>
-              <Select
-                placeholder="选择交易对"
-                value={trading_pair}
-                onChange={(value) => setTradingPair(value || 'BTCUSDT')}
-                data={trading_pair_options}
-                className="quick-order-select"
-              />
-            </div>
+          <TradeSettings
+            trading_pair={trading_pair}
+            leverage={leverage}
+            api_key_list={api_key_list}
+            active_api_key_id={active_api_key_id}
+            trading_pair_options={trading_pair_options}
+            on_trading_pair_change={handleTradingPairChange}
+            on_leverage_change={handleLeverageChange}
+            on_api_key_select={handleApiKeySelect}
+          />
 
-            <div className="quick-order-control-group">
-              <label className="quick-order-control-label">杠杆</label>
-              <NumberInput
-                placeholder="杠杆"
-                value={leverage}
-                onChange={(value) => setLeverage(Math.max(1, Math.min(125, parseInt(String(value)) || 1)))}
-                min={1}
-                max={125}
-                className="quick-order-number-input"
-              />
-              <span className="quick-order-control-suffix">x</span>
-            </div>
-          </div>
-
-          <div className="quick-order-display">
-            <div className="quick-order-display-item">
-              <span className="quick-order-display-label">当前价格</span>
-              <span className="quick-order-display-value">{getCurrentPriceText(current_price)}</span>
-            </div>
-            <div className="quick-order-display-item">
-              <span className="quick-order-display-label">可用保证金</span>
-              <span className={`quick-order-display-value ${is_balance_low ? 'quick-order-display-value-warning' : ''}`}>
-                {account_data.available_balance.toFixed(2)} U
-              </span>
-            </div>
-            <div className="quick-order-display-item">
-              <span className="quick-order-display-label">净仓</span>
-              <span className={`quick-order-display-value ${net_position > 0 ? 'quick-order-display-value-long' : net_position < 0 ? 'quick-order-display-value-short' : ''}`}>
-                {net_position > 0 ? '+' : ''}{net_position.toFixed(2)} U
-              </span>
-            </div>
-            <div className="quick-order-display-item">
-              <span className="quick-order-display-label">多单</span>
-              <span className="quick-order-display-value quick-order-display-value-long">
-                {total_long_amount.toFixed(2)} U
-              </span>
-            </div>
-            <div className="quick-order-display-item">
-              <span className="quick-order-display-label">空单</span>
-              <span className="quick-order-display-value quick-order-display-value-short">
-                {total_short_amount.toFixed(2)} U
-              </span>
-            </div>
-          </div>
+          <AccountDisplay
+            current_price={current_price}
+            available_balance={account_data.available_balance}
+            net_position={net_position}
+            total_long_amount={total_long_amount}
+            total_short_amount={total_short_amount}
+          />
         </div>
       </div>
 
       <div className="quick-order-sections">
-        <div className="quick-order-section quick-order-section-long">
-          <div className="quick-order-section-header">
-            <div className="quick-order-section-label">
-              <IconTrendingUp size={16} />
-              <span>开多</span>
-            </div>
-          </div>
-          <div className="quick-order-buttons">
-            {QUICK_AMOUNTS.map(amount => (
-              <Button
-                key={`long-${amount}`}
-                className="quick-order-button quick-order-button-long"
-                onClick={() => handleOpenPosition('long', amount)}
-                disabled={loading || account_loading}
-              >
-                {amount}U
-              </Button>
-            ))}
-          </div>
-          <div className="quick-order-open-actions">
-            <NumberInput
-              placeholder="自定义金额"
-              value={custom_open_long_amount}
-              onChange={(value) => setCustomOpenLongAmount(String(value))}
-              disabled={loading || account_loading}
-              min={0}
-              className="quick-order-open-amount-input"
-            />
-            <Button
-              className="quick-order-button quick-order-button-long quick-order-open-btn"
-              onClick={() => {
-                const amount = parseFloat(custom_open_long_amount);
-                if (amount > 0) {
-                  handleOpenByAmount('long', amount);
-                }
-              }}
-              disabled={loading || account_loading || !custom_open_long_amount}
-            >
-              开多
-            </Button>
-          </div>
-        </div>
+        <OpenPositionSection
+          side="long"
+          loading={loading}
+          account_loading={account_loading}
+          custom_amount={custom_open_long_amount}
+          on_amount_click={(amount) => handleOpenPosition('long', amount)}
+          on_custom_amount_change={setCustomOpenLongAmount}
+          on_open_click={() => {
+            const amount = parseFloat(custom_open_long_amount);
+            if (amount > 0) {
+              handleOpenByAmount('long', amount);
+            }
+          }}
+        />
 
-        <div className="quick-order-section quick-order-section-short">
-          <div className="quick-order-section-header">
-            <div className="quick-order-section-label">
-              <IconTrendingDown size={16} />
-              <span>开空</span>
-            </div>
-          </div>
-          <div className="quick-order-buttons">
-            {QUICK_AMOUNTS.map(amount => (
-              <Button
-                key={`short-${amount}`}
-                className="quick-order-button quick-order-button-short"
-                onClick={() => handleOpenPosition('short', amount)}
-                disabled={loading || account_loading}
-              >
-                {amount}U
-              </Button>
-            ))}
-          </div>
-          <div className="quick-order-open-actions">
-            <NumberInput
-              placeholder="自定义金额"
-              value={custom_open_short_amount}
-              onChange={(value) => setCustomOpenShortAmount(String(value))}
-              disabled={loading || account_loading}
-              min={0}
-              className="quick-order-open-amount-input"
-            />
-            <Button
-              className="quick-order-button quick-order-button-short quick-order-open-btn"
-              onClick={() => {
-                const amount = parseFloat(custom_open_short_amount);
-                if (amount > 0) {
-                  handleOpenByAmount('short', amount);
-                }
-              }}
-              disabled={loading || account_loading || !custom_open_short_amount}
-            >
-              开空
-            </Button>
-          </div>
-        </div>
+        <OpenPositionSection
+          side="short"
+          loading={loading}
+          account_loading={account_loading}
+          custom_amount={custom_open_short_amount}
+          on_amount_click={(amount) => handleOpenPosition('short', amount)}
+          on_custom_amount_change={setCustomOpenShortAmount}
+          on_open_click={() => {
+            const amount = parseFloat(custom_open_short_amount);
+            if (amount > 0) {
+              handleOpenByAmount('short', amount);
+            }
+          }}
+        />
       </div>
 
-      <div className="quick-order-balance">
-        <Button
-          className="quick-order-balance-btn"
-          onClick={handleBalancePosition}
-          disabled={loading || account_loading}
-          title="一键将多空仓位调整为相等"
-        >
-          <IconScale size={16} />
-          <span>多空仓位快速持平</span>
-        </Button>
-      </div>
+      <BalanceButton
+        disabled={loading || account_loading}
+        on_balance_click={handleBalancePosition}
+      />
 
       <div className="quick-order-sections quick-order-sections-close">
-        <div className="quick-order-section quick-order-section-long quick-order-section-close">
-          <div className="quick-order-section-header">
-            <div className="quick-order-section-label">
-              <IconTrendingUp size={14} />
-              <span>平多</span>
-            </div>
-          </div>
-          <div className="quick-order-buttons-close">
-            {CLOSE_AMOUNTS.map(amount => (
-              <Button
-                key={amount}
-                className="quick-order-button quick-order-button-long quick-order-button-close"
-                onClick={() => handleCloseByAmount('long', amount)}
-                disabled={loading || account_loading}
-              >
-                {amount}U
-              </Button>
-            ))}
-          </div>
-          <div className="quick-order-close-actions">
-            <NumberInput
-              placeholder="自定义金额"
-              value={custom_close_long_amount}
-              onChange={(value) => setCustomCloseLongAmount(String(value))}
-              disabled={loading || account_loading}
-              min={0}
-              className="quick-order-close-amount-input"
-            />
-            <Button
-              className="quick-order-button quick-order-button-long quick-order-button-close quick-order-close-btn"
-              onClick={() => {
-                const amount = parseFloat(custom_close_long_amount);
-                if (amount > 0) {
-                  handleCloseByAmount('long', amount);
-                }
-              }}
-              disabled={loading || account_loading || !custom_close_long_amount}
-            >
-              平多
-            </Button>
-            <Button
-              className="quick-order-button quick-order-button-long quick-order-button-close quick-order-all-close-btn"
-              onClick={() => handleCloseByPercentage('long', 100)}
-              disabled={loading || account_loading || long_positions.length === 0}
-            >
-              <IconX size={14} />
-              <span>全平多单</span>
-            </Button>
-          </div>
-        </div>
+        <ClosePositionSection
+          side="long"
+          loading={loading}
+          account_loading={account_loading}
+          position_count={long_positions.length}
+          custom_amount={custom_close_long_amount}
+          on_amount_click={(amount) => handleCloseByAmount('long', amount)}
+          on_custom_amount_change={setCustomCloseLongAmount}
+          on_close_click={() => {
+            const amount = parseFloat(custom_close_long_amount);
+            if (amount > 0) {
+              handleCloseByAmount('long', amount);
+            }
+          }}
+          on_close_all_click={() => handleCloseByPercentage('long', 100)}
+        />
 
-        <div className="quick-order-section quick-order-section-short quick-order-section-close">
-          <div className="quick-order-section-header">
-            <div className="quick-order-section-label">
-              <IconTrendingDown size={14} />
-              <span>平空</span>
-            </div>
-          </div>
-          <div className="quick-order-buttons-close">
-            {CLOSE_AMOUNTS.map(amount => (
-              <Button
-                key={amount}
-                className="quick-order-button quick-order-button-short quick-order-button-close"
-                onClick={() => handleCloseByAmount('short', amount)}
-                disabled={loading || account_loading}
-              >
-                {amount}U
-              </Button>
-            ))}
-          </div>
-          <div className="quick-order-close-actions">
-            <NumberInput
-              placeholder="自定义金额"
-              value={custom_close_short_amount}
-              onChange={(value) => setCustomCloseShortAmount(String(value))}
-              disabled={loading || account_loading}
-              min={0}
-              className="quick-order-close-amount-input"
-            />
-            <Button
-              className="quick-order-button quick-order-button-short quick-order-button-close quick-order-close-btn"
-              onClick={() => {
-                const amount = parseFloat(custom_close_short_amount);
-                if (amount > 0) {
-                  handleCloseByAmount('short', amount);
-                }
-              }}
-              disabled={loading || account_loading || !custom_close_short_amount}
-            >
-              平空
-            </Button>
-            <Button
-              className="quick-order-button quick-order-button-short quick-order-button-close quick-order-all-close-btn"
-              onClick={() => handleCloseByPercentage('short', 100)}
-              disabled={loading || account_loading || short_positions.length === 0}
-            >
-              <IconX size={14} />
-              <span>全平空单</span>
-            </Button>
-          </div>
-        </div>
+        <ClosePositionSection
+          side="short"
+          loading={loading}
+          account_loading={account_loading}
+          position_count={short_positions.length}
+          custom_amount={custom_close_short_amount}
+          on_amount_click={(amount) => handleCloseByAmount('short', amount)}
+          on_custom_amount_change={setCustomCloseShortAmount}
+          on_close_click={() => {
+            const amount = parseFloat(custom_close_short_amount);
+            if (amount > 0) {
+              handleCloseByAmount('short', amount);
+            }
+          }}
+          on_close_all_click={() => handleCloseByPercentage('short', 100)}
+        />
       </div>
     </div>
   );
