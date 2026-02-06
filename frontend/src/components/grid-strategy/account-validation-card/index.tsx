@@ -3,10 +3,10 @@ import { IpRestrictionTip } from './ip-restriction-tip';
 import { NetworkErrorTip } from './network-error-tip';
 import './index.scss';
 
-// 币安U本位合约账户信息接口
+// 币安U本位合约账户信息接口（使用币安API的camelCase字段）
 interface BinancePosition {
   symbol: string;
-  positionAmount: string;
+  positionAmt: string;
   entryPrice: string;
   unrealizedProfit: string;
 }
@@ -137,7 +137,7 @@ export function AccountValidationCard({
             {data.positions && (
               <div className="account-card-item">
                 <span className="account-card-label">持仓数量</span>
-                <span className="account-card-value">{data.positions.filter(p => parseFloat(p.positionAmount) !== 0).length} 个</span>
+                <span className="account-card-value">{data.positions.filter(p => parseFloat(p.positionAmt) !== 0).length} 个</span>
               </div>
             )}
           </div>

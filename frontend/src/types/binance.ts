@@ -27,18 +27,18 @@ export interface BinanceErrorResponse {
 // 账户详情请求
 export type AccountInfoRequest = BinanceCredentials;
 
-// 账户详情响应数据（具体结构根据币安API返回调整）
+// 账户详情响应数据（币安API返回的camelCase字段）
 export interface AccountInfo {
   // 账户余额信息
-  total_wallet_balance?: string
-  total_unrealized_profit?: string
-  total_margin_balance?: string
-  total_position_initial_margin?: string
-  total_open_order_initial_margin?: string
-  total_cross_wallet_balance?: string
-  total_cross_un_pnl?: string
-  available_balance?: string
-  max_withdraw_amount?: string
+  totalWalletBalance?: string
+  totalUnrealizedProfit?: string
+  totalMarginBalance?: string
+  totalPositionInitialMargin?: string
+  totalOpenOrderInitialMargin?: string
+  totalCrossWalletBalance?: string
+  totalCrossUnPnl?: string
+  availableBalance?: string
+  maxWithdrawAmount?: string
 
   // 资产列表
   assets?: AccountAsset[]
@@ -47,50 +47,50 @@ export interface AccountInfo {
   positions?: AccountPosition[]
 
   // 其他账户信息
-  can_trade?: boolean
-  can_deposit?: boolean
-  can_withdraw?: boolean
-  fee_tier?: number
-  update_time?: number
+  canTrade?: boolean
+  canDeposit?: boolean
+  canWithdraw?: boolean
+  feeTier?: number
+  updateTime?: number
 }
 
-// 账户资产
+// 账户资产（币安API返回的camelCase字段）
 export interface AccountAsset {
   asset: string
-  wallet_balance: string
-  unrealized_profit: string
-  margin_balance: string
-  maint_margin: string
-  initial_margin: string
-  position_initial_margin: string
-  open_order_initial_margin: string
-  cross_wallet_balance: string
-  cross_un_pnl: string
-  available_balance: string
-  max_withdraw_amount: string
-  margin_available: boolean
-  update_time: number
+  walletBalance: string
+  unrealizedProfit: string
+  marginBalance: string
+  maintMargin: string
+  initialMargin: string
+  positionInitialMargin: string
+  openOrderInitialMargin: string
+  crossWalletBalance: string
+  crossUnPnl: string
+  availableBalance: string
+  maxWithdrawAmount: string
+  marginAvailable: boolean
+  updateTime: number
 }
 
-// 账户持仓
+// 账户持仓（币安API返回的camelCase字段）
 export interface AccountPosition {
   symbol: string
-  initial_margin: string
-  maint_margin: string
-  unrealized_profit: string
-  position_initial_margin: string
-  open_order_initial_margin: string
+  initialMargin: string
+  maintMargin: string
+  unrealizedProfit: string
+  positionInitialMargin: string
+  openOrderInitialMargin: string
   leverage: string
   isolated: boolean
-  entry_price: string
-  max_notional: string
-  position_side: 'BOTH' | 'LONG' | 'SHORT'
-  position_amt: string
+  entryPrice: string
+  maxNotional: string
+  positionSide: 'BOTH' | 'LONG' | 'SHORT'
+  positionAmt: string
   notional: string
-  isolated_wallet: string
-  update_time: number
-  bid_notional: string
-  ask_notional: string
+  isolatedWallet: string
+  updateTime: number
+  bidNotional: string
+  askNotional: string
 }
 
 // ==================== 建仓相关 ====================

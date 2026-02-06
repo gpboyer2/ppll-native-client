@@ -291,13 +291,13 @@ const displayAccountInfo = () => {
       <div class="positions-section">
         <h4>持仓信息</h4>
         <div class="positions-list">
-          ${accountData.positions.filter(pos => parseFloat(pos.position_amt) !== 0).map(pos => `
+          ${accountData.positions.filter(pos => parseFloat(pos.positionAmt) !== 0).map(pos => `
             <div class="position-row">
               <span class="symbol">${pos.symbol}</span>
-              <span class="side ${pos.position_side.toLowerCase()}">${pos.position_side}</span>
-              <span class="amount">${formatNumber(pos.position_amt)}</span>
-              <span class="pnl ${parseFloat(pos.unrealized_profit) >= 0 ? 'positive' : 'negative'}">
-                ${formatNumber(pos.unrealized_profit)} USDT
+              <span class="side ${pos.positionSide.toLowerCase()}">${pos.positionSide}</span>
+              <span class="amount">${formatNumber(pos.positionAmt)}</span>
+              <span class="pnl ${parseFloat(pos.unrealizedProfit) >= 0 ? 'positive' : 'negative'}">
+                ${formatNumber(pos.unrealizedProfit)} USDT
               </span>
             </div>
           `).join('')}

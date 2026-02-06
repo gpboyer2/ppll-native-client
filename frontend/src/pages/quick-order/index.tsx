@@ -74,9 +74,9 @@ function QuickOrderPage() {
       });
 
       if (response.status === 'success' && response.datum) {
-        const data = response.datum.data || response.datum;
+        const data = response.datum;
         setAccountData({
-          available_balance: parseFloat(data.available_wallet_balance || data.total_wallet_balance || '0'),
+          available_balance: parseFloat(data.availableBalance || data.totalWalletBalance || '0'),
           positions: data.positions || []
         });
       } else {
@@ -108,10 +108,10 @@ function QuickOrderPage() {
   }, [subscribeCurrentSymbol]);
 
   const long_positions = account_data.positions.filter(
-    p => parseFloat(p.position_amt) > 0 && (p.position_side === 'LONG' || p.position_side === 'BOTH')
+    p => parseFloat(p.positionAmt) > 0 && (p.positionSide === 'LONG' || p.positionSide === 'BOTH')
   );
   const short_positions = account_data.positions.filter(
-    p => parseFloat(p.position_amt) < 0 && (p.position_side === 'SHORT' || p.position_side === 'BOTH')
+    p => parseFloat(p.positionAmt) < 0 && (p.positionSide === 'SHORT' || p.positionSide === 'BOTH')
   );
 
   const total_long_amount = long_positions.reduce((sum, p) => sum + Math.abs(parseFloat(p.notional)), 0);
@@ -182,7 +182,7 @@ function QuickOrderPage() {
 
     try {
       const close_positions = target_positions.map(p => {
-        const position_amt = parseFloat(p.position_amt);
+        const position_amt = parseFloat(p.positionAmt);
         const close_quantity = Math.abs(position_amt) * (percentage / 100);
         return {
           symbol: p.symbol,
@@ -245,7 +245,7 @@ function QuickOrderPage() {
 
       const ratio = amount / target_amount;
       const close_positions = target_positions.map(p => {
-        const position_amt = parseFloat(p.position_amt);
+        const position_amt = parseFloat(p.positionAmt);
         const close_quantity = Math.abs(position_amt) * ratio;
         return {
           symbol: p.symbol,
