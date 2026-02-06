@@ -2,7 +2,7 @@ import './index.scss';
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { notifications } from '../../notifications/store';
-import { getPluginList, type PluginItem } from '../../router';
+import { getPluginList, type PluginItem, ROUTES } from '../../router';
 
 function HomePage() {
   const [notifyList, setNotifyList] = useState(notifications.list);
@@ -72,6 +72,26 @@ function HomePage() {
         </div>
 
       </div>
+
+      {/* 快捷开单入口 */}
+      <Link
+        to={ROUTES.QUICK_ORDER}
+        className="card home-page-quick-order-card"
+        style={{ textDecoration: 'none', display: 'block', marginBottom: '16px' }}
+      >
+        <div className="card-content">
+          <div className="flex items-center space-between">
+            <div className="flex items-center gap-12">
+              <div style={{ fontSize: '32px' }}>⚡</div>
+              <div>
+                <div style={{ fontSize: 'var(--text-lg)', fontWeight: 600, color: 'var(--color-text)' }}>快捷开单</div>
+                <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>快速开仓、平仓、持平操作</div>
+              </div>
+            </div>
+            <div className="btn btn-primary">打开</div>
+          </div>
+        </div>
+      </Link>
 
       {/* 主要功能区域 */}
       <div className="flex gap-16" style={{ flexWrap: 'wrap' }}>

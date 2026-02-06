@@ -4,16 +4,21 @@ import { PPLLMantineProvider } from '../../core/MantineProvider';
 
 /**
  * PPLL 项目专用的 Mantine 按钮组件
- * 
+ *
  * 特性：
  * - 自动包装 MantineProvider，样式隔离
  * - 适配币安风格主题
  * - 与项目现有按钮样式共存
  */
 
-export interface PPLLButtonProps extends ButtonProps {
+export interface PPLLButtonProps extends Omit<ButtonProps, 'onClick'> {
   /** 是否使用币安风格的主要按钮样式 */
   binanceStyle?: boolean;
+  /** 点击事件 */
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  /** 原生按钮属性 */
+  title?: string;
+  key?: React.Key;
 }
 
 export function Button({ binanceStyle = false, ...props }: PPLLButtonProps) {

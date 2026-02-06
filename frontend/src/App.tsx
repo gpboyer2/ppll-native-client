@@ -13,6 +13,7 @@ import PluginsPage from './pages/plugins';
 import GridStrategyListPage from './pages/grid-strategy';
 import GridStrategyEditPage from './pages/grid-strategy/components/edit';
 import GridStrategyDetailPage from './pages/grid-strategy/components/detail';
+import QuickOrderPage from './pages/quick-order';
 import { navItems, ROUTES } from './router';
 import { ThemeToggle } from './components/theme-toggle';
 import { useThemeStore } from './stores/theme-store';
@@ -170,6 +171,9 @@ function App() {
               <Route path={ROUTES.PLUGIN_DETAIL} element={<PluginsPage />} />
               {/* U本位合约网格交易策略插件重定向到网格策略页面 */}
               <Route path="/plugins/u-grid-t" element={<Navigate to={ROUTES.GRID_STRATEGY} replace />} />
+              {/* 快捷开单插件重定向 */}
+              <Route path="/plugins/quick-order" element={<Navigate to={ROUTES.QUICK_ORDER} replace />} />
+              <Route path={ROUTES.QUICK_ORDER} element={<QuickOrderPage />} />
               <Route path={ROUTES.GRID_STRATEGY} element={<GridStrategyListPage />} />
               <Route path={ROUTES.GRID_STRATEGY_CREATE} element={<GridStrategyEditPage />} />
               <Route path={ROUTES.GRID_STRATEGY_EDIT} element={<GridStrategyEditPage />} />

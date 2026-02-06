@@ -8,6 +8,7 @@ export const ROUTES = {
   DATABASE_MANAGER: '/database-manager',
   PLUGINS: '/plugins',
   PLUGIN_DETAIL: '/plugins/:id',
+  QUICK_ORDER: '/quick-order',
   GRID_STRATEGY: '/grid-strategy',
   GRID_STRATEGY_CREATE: '/grid-strategy/create',
   GRID_STRATEGY_EDIT: '/grid-strategy/edit',
@@ -19,6 +20,7 @@ export const pageComponents = {
   HomePage: '../pages/home-page',
   SettingsPage: '../pages/SettingsPage',
   PluginsPage: '../pages/PluginsPage',
+  QuickOrderPage: '../pages/quick-order',
   GridStrategyListPage: '../pages/GridStrategy',
   GridStrategyEditPage: '../pages/GridStrategy/edit',
   GridStrategyDetailPage: '../pages/grid-strategy/components/detail'
@@ -65,6 +67,14 @@ export interface PluginConfig {
 }
 
 export const pluginConfig: Record<string, PluginConfig> = {
+  'quick-order': {
+    name: '快捷开单',
+    description: '快速开仓、平仓、持平操作',
+    icon: '⚡',
+    category: '交易工具',
+    version: '0.1.0',
+    defaultEnable: true
+  },
   'u-contract-market': {
     name: 'U本位合约超市',
     description: '浏览与管理策略模板，支持搜索和收藏功能',

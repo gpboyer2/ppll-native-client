@@ -208,3 +208,16 @@
 .horizontal-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--color-primary);
 }
+
+/* 快捷开单入口卡片 */
+.home-page-quick-order-card {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 10%, var(--color-surface)) 0%, var(--color-surface) 100%);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
+  transition: all 0.2s ease;
+}
+
+.home-page-quick-order-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--color-primary);
+}
