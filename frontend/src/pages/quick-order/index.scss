@@ -234,7 +234,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 32px;
+  padding: 0 32px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -276,43 +276,57 @@
   color: var(--color-text-muted);
 }
 
-.quick-order-close-tabs {
+.quick-order-close-sections {
   display: flex;
-  gap: 8px;
+  gap: 16px;
 }
 
-.quick-order-close-tab {
+.quick-order-close-section {
   flex: 1;
-  padding: 10px 16px;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius-md);
+}
+
+.quick-order-close-section-long {
+  background: color-mix(in srgb, var(--color-success) 5%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-success) 20%, var(--color-border));
+}
+
+.quick-order-close-section-short {
+  background: color-mix(in srgb, var(--color-danger) 5%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-danger) 20%, var(--color-border));
+}
+
+.quick-order-close-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quick-order-close-section-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: var(--text-sm);
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: all 0.15s ease;
+  font-weight: 500;
 }
 
-.quick-order-close-tab:hover {
-  background: var(--color-bg-muted);
-}
-
-.quick-order-close-tab-long {
-  background: color-mix(in srgb, var(--color-success) 15%, var(--color-bg));
-  border-color: color-mix(in srgb, var(--color-success) 40%, var(--color-border));
+.quick-order-close-section-long .quick-order-close-section-label {
   color: var(--color-success);
 }
 
-.quick-order-close-tab-short {
-  background: color-mix(in srgb, var(--color-danger) 15%, var(--color-bg));
-  border-color: color-mix(in srgb, var(--color-danger) 40%, var(--color-border));
+.quick-order-close-section-short .quick-order-close-section-label {
   color: var(--color-danger);
 }
 
-.quick-order-close-tab-both {
-  background: color-mix(in srgb, var(--color-warning) 15%, var(--color-bg));
-  border-color: color-mix(in srgb, var(--color-warning) 40%, var(--color-border));
-  color: var(--color-warning);
+.quick-order-close-section-amount {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: var(--color-text);
 }
 
 .quick-order-close-percentage {
@@ -336,6 +350,16 @@
 .quick-order-close-percentage-btn:hover:not(:disabled) {
   background: var(--color-bg-muted);
   border-color: var(--color-primary);
+}
+
+.quick-order-close-percentage-btn-long:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-success) 20%, var(--color-bg));
+  border-color: var(--color-success);
+}
+
+.quick-order-close-percentage-btn-short:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-danger) 20%, var(--color-bg));
+  border-color: var(--color-danger);
 }
 
 .quick-order-close-percentage-btn:disabled {
@@ -369,21 +393,54 @@
   border-color: var(--color-primary);
 }
 
+.quick-order-close-amount-btn-long:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-success) 20%, var(--color-bg));
+  border-color: var(--color-success);
+}
+
+.quick-order-close-amount-btn-short:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-danger) 20%, var(--color-bg));
+  border-color: var(--color-danger);
+}
+
 .quick-order-close-amount-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.quick-order-footer {
+.quick-order-close-footer {
   display: flex;
   justify-content: center;
-  padding-top: 16px;
+  padding-top: 12px;
   border-top: 1px solid var(--color-border);
 }
 
 .quick-order-close-all-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   max-width: 240px;
+  padding: 12px 24px;
+  background: color-mix(in srgb, var(--color-danger) 15%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, var(--color-border));
+  border-radius: var(--radius-sm);
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-danger);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.quick-order-close-all-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-danger) 25%, var(--color-bg));
+  border-color: var(--color-danger);
+}
+
+.quick-order-close-all-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 @keyframes spin {
@@ -419,6 +476,10 @@
 
   .quick-order-buttons {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .quick-order-close-sections {
+    flex-direction: column;
   }
 
   .quick-order-close-percentage {
