@@ -243,23 +243,23 @@ const getCoinMFuturesAccount = catchAsync(async (req, res) => {
  * 调整U本位合约交易对的杠杆倍数，支持单个或多个交易对
  */
 const setLeverage = catchAsync(async (req, res) => {
-  let { api_key, api_secret, leverageList, delay } = extractApiCredentials(req);
+  let { api_key, api_secret, leverage_list, delay } = extractApiCredentials(req);
 
   // 验证必需参数
   if (!api_key || !api_secret) {
     return res.apiError(null, "缺少API凭证");
   }
 
-  if (!leverageList || !Array.isArray(leverageList)) {
-    return res.apiError(null, "leverageList 必须是一个数组，格式为 [{symbol: 'BTCUSDT', leverage: 20}, {symbol: 'ETHUSDT', leverage: 10}]");
+  if (!leverage_list || !Array.isArray(leverage_list)) {
+    return res.apiError(null, "leverage_list 必须是一个数组，格式为 [{symbol: 'BTCUSDT', leverage: 20}, {symbol: 'ETHUSDT', leverage: 10}]");
   }
 
-  if (leverageList.length === 0) {
-    return res.apiError(null, "leverageList 不能为空数组");
+  if (leverage_list.length === 0) {
+    return res.apiError(null, "leverage_list 不能为空数组");
   }
 
   // 验证每个交易对的杠杆倍数
-  for (const item of leverageList) {
+  for (const item of leverage_list) {
     if (!item || typeof item !== 'object') {
       return res.apiError(null, "数组中的每个元素必须是包含 symbol 和 leverage 属性的对象");
     }
@@ -274,12 +274,12 @@ const setLeverage = catchAsync(async (req, res) => {
   }
 
   try {
-    const is_small_batch = leverageList.length <= 5;
+    const is_small_batch = leverage_list.length <= 5;
     // 立即开始执行批量设置，返回 Promise
     const leverage_promise = binanceAccountService.batchSetLeverage(
       api_key,
       api_secret,
-      leverageList,
+      leverage_list,
       delay
     );
 
@@ -292,9 +292,9 @@ const setLeverage = catchAsync(async (req, res) => {
       return res.apiSuccess({
         results: [],
         summary: {
-          total: leverageList.length,
+          total: leverage_list.length,
         },
-      }, `已提交 ${leverageList.length} 个交易对的杠杆设置任务，请稍后查看账户信息确认结果`);
+      }, `已提交 ${leverage_list.length} 个交易对的杠杆设置任务，请稍后查看账户信息确认结果`);
     }
 
     // 如果请求数量较少（<=5），等待结果再返回

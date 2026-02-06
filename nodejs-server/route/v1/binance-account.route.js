@@ -611,19 +611,19 @@ module.exports = router;
  *           schema:
  *             type: object
  *             required:
- *               - apiKey
- *               - apiSecret
- *               - leverageList
+ *               - api_key
+ *               - api_secret
+ *               - leverage_list
  *             properties:
- *               apiKey:
+ *               api_key:
  *                 type: string
  *                 description: 币安API密钥
  *                 example: "your-api-key-here"
- *               apiSecret:
+ *               api_secret:
  *                 type: string
  *                 description: 币安API密钥对应的Secret
  *                 example: "your-api-secret-here"
- *               leverageList:
+ *               leverage_list:
  *                 type: array
  *                 description: 杠杆设置列表
  *                 minItems: 1
@@ -700,7 +700,7 @@ module.exports = router;
  *                   example: 400
  *                 message:
  *                   type: string
- *                   example: "leverageList 必须是一个数组，格式为 [{symbol: \"BTCUSDT\", leverage: 20}]"
+ *                   example: "leverage_list 必须是一个数组，格式为 [{symbol: \"BTCUSDT\", leverage: 20}]"
  *       401:
  *         description: 未授权访问
  *         content:

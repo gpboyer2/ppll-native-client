@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   IconRefresh,
   IconAlertCircle
@@ -7,6 +8,7 @@ import { Button } from '../../components/mantine';
 import { useBinanceStore } from '../../stores/binance-store';
 import { OrdersApi, BinanceAccountApi } from '../../api';
 import type { AccountPosition } from '../../types/binance';
+import { ROUTES } from '../../router';
 import { TradeSettings } from './components/trade-settings';
 import { AccountDisplay } from './components/account-display';
 import { ApiKeySelector } from './components/api-key-selector';
@@ -24,6 +26,7 @@ type CloseSide = 'long' | 'short' | 'both';
  * 支持快速开仓、平仓、持平操作
  */
 function QuickOrderPage() {
+  const navigate = useNavigate();
   const [trading_pair, setTradingPair] = useState('BTCUSDT');
   const [leverage, setLeverage] = useState(DEFAULT_LEVERAGE);
   const [loading, setLoading] = useState(false);
@@ -49,10 +52,14 @@ function QuickOrderPage() {
     positions: AccountPosition[];
   }>({ available_balance: 0, positions: [] });
 
+  const navigateToSettings = useCallback(() => {
+    navigate(ROUTES.SETTINGS);
+  }, [navigate]);
+
   const loadAccountData = useCallback(async () => {
     const active_api_key = get_active_api_key();
     if (!active_api_key) {
-      setErrorMsg('请先配置 API Key');
+      navigateToSettings();
       return;
     }
 
@@ -81,15 +88,20 @@ function QuickOrderPage() {
     } finally {
       setAccountLoading(false);
     }
-  }, [get_active_api_key]);
+  }, [get_active_api_key, navigateToSettings]);
 
   const subscribeCurrentSymbol = useCallback(() => {
     subscribeTicker(trading_pair, 'usdm');
   }, [trading_pair, subscribeTicker]);
 
   useEffect(() => {
+    const active_api_key = get_active_api_key();
+    if (!active_api_key) {
+      navigateToSettings();
+      return;
+    }
     loadAccountData();
-  }, [loadAccountData]);
+  }, [get_active_api_key, navigateToSettings, loadAccountData]);
 
   useEffect(() => {
     subscribeCurrentSymbol();
@@ -109,7 +121,7 @@ function QuickOrderPage() {
   const handleOpenPosition = async (side: 'long' | 'short', amount: number) => {
     const active_api_key = get_active_api_key();
     if (!active_api_key) {
-      setErrorMsg('请先配置 API Key');
+      navigateToSettings();
       return;
     }
 
@@ -150,7 +162,7 @@ function QuickOrderPage() {
   const handleCloseByPercentage = async (side: CloseSide, percentage: number) => {
     const active_api_key = get_active_api_key();
     if (!active_api_key) {
-      setErrorMsg('请先配置 API Key');
+      navigateToSettings();
       return;
     }
 
@@ -201,7 +213,7 @@ function QuickOrderPage() {
   const handleCloseByAmount = async (side: CloseSide, amount: number) => {
     const active_api_key = get_active_api_key();
     if (!active_api_key) {
-      setErrorMsg('请先配置 API Key');
+      navigateToSettings();
       return;
     }
 
@@ -270,7 +282,7 @@ function QuickOrderPage() {
   const handleOpenByAmount = async (side: 'long' | 'short', amount: number) => {
     const active_api_key = get_active_api_key();
     if (!active_api_key) {
-      setErrorMsg('请先配置 API Key');
+      navigateToSettings();
       return;
     }
 
@@ -317,7 +329,7 @@ function QuickOrderPage() {
   const handleBalancePosition = async () => {
     const active_api_key = get_active_api_key();
     if (!active_api_key) {
-      setErrorMsg('请先配置 API Key');
+      navigateToSettings();
       return;
     }
 
@@ -367,7 +379,7 @@ function QuickOrderPage() {
   const handleLeverageChange = async (value: number) => {
     const active_api_key = get_active_api_key();
     if (!active_api_key) {
-      setErrorMsg('请先配置 API Key');
+      navigateToSettings();
       return;
     }
 
