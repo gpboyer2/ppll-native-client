@@ -375,6 +375,10 @@ function QuickOrderPage() {
     value: pair,
     label: pair
   }));
+  
+  if (!trading_pair_options.some(o => o.value === 'BTCUSDT')) {
+    trading_pair_options.unshift({ value: 'BTCUSDT', label: 'BTCUSDT' });
+  }
 
   const handleLeverageChange = async (value: number) => {
     const active_api_key = get_active_api_key();
