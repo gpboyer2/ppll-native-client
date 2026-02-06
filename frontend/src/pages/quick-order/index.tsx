@@ -6,8 +6,7 @@ import {
   IconAlertCircle,
   IconWallet,
   IconScale,
-  IconX,
-  IconCheck
+  IconX
 } from '@tabler/icons-react';
 import { Button, Select, NumberInput } from '../../components/mantine';
 import { useBinanceStore } from '../../stores/binance-store';
@@ -147,43 +146,6 @@ function QuickOrderPage() {
     } catch (err) {
       console.error('开仓失败:', err);
       setErrorMsg('开仓失败，请重试');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCloseAllPositions = async () => {
-    const active_api_key = get_active_api_key();
-    if (!active_api_key) {
-      setErrorMsg('请先配置 API Key');
-      return;
-    }
-
-    if (account_data.positions.length === 0) {
-      setErrorMsg('当前没有持仓');
-      return;
-    }
-
-    setLoading(true);
-    setErrorMsg(null);
-
-    try {
-      const symbols = Array.from(new Set(account_data.positions.map(p => p.symbol)));
-
-      const response = await OrdersApi.batchClosePosition({
-        api_key: active_api_key.api_key,
-        api_secret: active_api_key.api_secret,
-        positions: symbols
-      });
-
-      if (response.status === 'success') {
-        await loadAccountData();
-      } else {
-        setErrorMsg(response.message || '平仓失败');
-      }
-    } catch (err) {
-      console.error('平仓失败:', err);
-      setErrorMsg('平仓失败，请重试');
     } finally {
       setLoading(false);
     }
@@ -505,110 +467,108 @@ function QuickOrderPage() {
         </Button>
       </div>
 
-      <div className="quick-order-close">
-        <div className="quick-order-close-title">
-          <IconX size={14} />
-          <span>快捷平仓</span>
-        </div>
-
-        <div className="quick-order-close-sections">
-          <div className="quick-order-close-section quick-order-close-section-long">
-            <div className="quick-order-close-section-header">
-              <div className="quick-order-close-section-label">
-                <IconTrendingUp size={14} />
-                <span>平多</span>
-              </div>
-              <div className="quick-order-close-section-amount">{total_long_amount.toFixed(2)} U</div>
+      <div className="quick-order-sections quick-order-sections-close">
+        <div className="quick-order-section quick-order-section-long quick-order-section-close">
+          <div className="quick-order-section-header">
+            <div className="quick-order-section-label">
+              <IconTrendingUp size={14} />
+              <span>平多</span>
             </div>
-            <div className="quick-order-close-percentage">
-              {CLOSE_PERCENTAGES.map(pct => (
-                <Button
-                  key={pct}
-                  className="quick-order-close-percentage-btn quick-order-close-percentage-btn-long"
-                  onClick={() => handleCloseByPercentage('long', pct)}
-                  disabled={loading || account_loading}
-                >
-                  {pct}%
-                </Button>
-              ))}
-            </div>
-            <div className="quick-order-close-custom">
-              <NumberInput
-                placeholder="自定义金额"
-                value={custom_close_long_amount}
-                onChange={(value) => setCustomCloseLongAmount(String(value))}
-                disabled={loading || account_loading}
-                min={0}
-                className="quick-order-close-amount-input"
-              />
-              <Button
-                className="quick-order-close-amount-btn quick-order-close-amount-btn-long"
-                onClick={() => {
-                  const amount = parseFloat(custom_close_long_amount);
-                  if (amount > 0) {
-                    handleCloseByAmount('long', amount);
-                  }
-                }}
-                disabled={loading || account_loading || !custom_close_long_amount}
-              >
-                平多
-              </Button>
-            </div>
+            <div className="quick-order-section-amount">{total_long_amount.toFixed(2)} U</div>
           </div>
-
-          <div className="quick-order-close-section quick-order-close-section-short">
-            <div className="quick-order-close-section-header">
-              <div className="quick-order-close-section-label">
-                <IconTrendingDown size={14} />
-                <span>平空</span>
-              </div>
-              <div className="quick-order-close-section-amount">{total_short_amount.toFixed(2)} U</div>
-            </div>
-            <div className="quick-order-close-percentage">
-              {CLOSE_PERCENTAGES.map(pct => (
-                <Button
-                  key={pct}
-                  className="quick-order-close-percentage-btn quick-order-close-percentage-btn-short"
-                  onClick={() => handleCloseByPercentage('short', pct)}
-                  disabled={loading || account_loading}
-                >
-                  {pct}%
-                </Button>
-              ))}
-            </div>
-            <div className="quick-order-close-custom">
-              <NumberInput
-                placeholder="自定义金额"
-                value={custom_close_short_amount}
-                onChange={(value) => setCustomCloseShortAmount(String(value))}
-                disabled={loading || account_loading}
-                min={0}
-                className="quick-order-close-amount-input"
-              />
+          <div className="quick-order-buttons quick-order-buttons-close">
+            {CLOSE_PERCENTAGES.map(pct => (
               <Button
-                className="quick-order-close-amount-btn quick-order-close-amount-btn-short"
-                onClick={() => {
-                  const amount = parseFloat(custom_close_short_amount);
-                  if (amount > 0) {
-                    handleCloseByAmount('short', amount);
-                  }
-                }}
-                disabled={loading || account_loading || !custom_close_short_amount}
+                key={pct}
+                className="quick-order-button quick-order-button-long quick-order-button-close"
+                onClick={() => handleCloseByPercentage('long', pct)}
+                disabled={loading || account_loading}
               >
-                平空
+                {pct}%
               </Button>
-            </div>
+            ))}
           </div>
-        </div>
-
-        <div className="quick-order-close-footer">
+          <div className="quick-order-close-custom">
+            <NumberInput
+              placeholder="自定义金额"
+              value={custom_close_long_amount}
+              onChange={(value) => setCustomCloseLongAmount(String(value))}
+              disabled={loading || account_loading}
+              min={0}
+              className="quick-order-close-amount-input"
+            />
+            <Button
+              className="quick-order-button quick-order-button-long quick-order-button-close"
+              onClick={() => {
+                const amount = parseFloat(custom_close_long_amount);
+                if (amount > 0) {
+                  handleCloseByAmount('long', amount);
+                }
+              }}
+              disabled={loading || account_loading || !custom_close_long_amount}
+            >
+              平多
+            </Button>
+          </div>
           <Button
-            className="quick-order-close-all-btn"
-            onClick={handleCloseAllPositions}
-            disabled={loading || account_loading || account_data.positions.length === 0}
+            className="quick-order-button quick-order-button-long quick-order-button-all-close"
+            onClick={() => handleCloseByPercentage('long', 100)}
+            disabled={loading || account_loading || long_positions.length === 0}
           >
-            <IconCheck size={16} />
-            <span>一键全平</span>
+            <IconX size={14} />
+            <span>一键全平多单</span>
+          </Button>
+        </div>
+
+        <div className="quick-order-section quick-order-section-short quick-order-section-close">
+          <div className="quick-order-section-header">
+            <div className="quick-order-section-label">
+              <IconTrendingDown size={14} />
+              <span>平空</span>
+            </div>
+            <div className="quick-order-section-amount">{total_short_amount.toFixed(2)} U</div>
+          </div>
+          <div className="quick-order-buttons quick-order-buttons-close">
+            {CLOSE_PERCENTAGES.map(pct => (
+              <Button
+                key={pct}
+                className="quick-order-button quick-order-button-short quick-order-button-close"
+                onClick={() => handleCloseByPercentage('short', pct)}
+                disabled={loading || account_loading}
+              >
+                {pct}%
+              </Button>
+            ))}
+          </div>
+          <div className="quick-order-close-custom">
+            <NumberInput
+              placeholder="自定义金额"
+              value={custom_close_short_amount}
+              onChange={(value) => setCustomCloseShortAmount(String(value))}
+              disabled={loading || account_loading}
+              min={0}
+              className="quick-order-close-amount-input"
+            />
+            <Button
+              className="quick-order-button quick-order-button-short quick-order-button-close"
+              onClick={() => {
+                const amount = parseFloat(custom_close_short_amount);
+                if (amount > 0) {
+                  handleCloseByAmount('short', amount);
+                }
+              }}
+              disabled={loading || account_loading || !custom_close_short_amount}
+            >
+              平空
+            </Button>
+          </div>
+          <Button
+            className="quick-order-button quick-order-button-short quick-order-button-all-close"
+            onClick={() => handleCloseByPercentage('short', 100)}
+            disabled={loading || account_loading || short_positions.length === 0}
+          >
+            <IconX size={14} />
+            <span>一键全平空单</span>
           </Button>
         </div>
       </div>

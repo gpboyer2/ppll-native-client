@@ -256,115 +256,68 @@
   cursor: not-allowed;
 }
 
-.quick-order-close {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 16px;
-  margin-bottom: 16px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+.quick-order-sections-close {
+  margin-top: 16px;
 }
 
-.quick-order-close-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--text-md);
-  font-weight: 500;
-  color: var(--color-text-muted);
+.quick-order-section-close {
+  gap: 10px;
 }
 
-.quick-order-close-sections {
-  display: flex;
-  gap: 16px;
-}
-
-.quick-order-close-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  border-radius: var(--radius-md);
-}
-
-.quick-order-close-section-long {
-  background: color-mix(in srgb, var(--color-success) 5%, var(--color-bg));
-  border: 1px solid color-mix(in srgb, var(--color-success) 20%, var(--color-border));
-}
-
-.quick-order-close-section-short {
-  background: color-mix(in srgb, var(--color-danger) 5%, var(--color-bg));
-  border: 1px solid color-mix(in srgb, var(--color-danger) 20%, var(--color-border));
-}
-
-.quick-order-close-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.quick-order-close-section-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--text-sm);
-  font-weight: 500;
-}
-
-.quick-order-close-section-long .quick-order-close-section-label {
-  color: var(--color-success);
-}
-
-.quick-order-close-section-short .quick-order-close-section-label {
-  color: var(--color-danger);
-}
-
-.quick-order-close-section-amount {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  color: var(--color-text);
-}
-
-.quick-order-close-percentage {
-  display: grid;
+.quick-order-buttons-close {
   grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
 }
 
-.quick-order-close-percentage-btn {
+.quick-order-button-close {
   height: 40px;
   background: var(--color-bg);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
   font-size: var(--text-sm);
   font-weight: 500;
   color: var(--color-text);
-  cursor: pointer;
-  transition: all 0.15s ease;
 }
 
-.quick-order-close-percentage-btn:hover:not(:disabled) {
+.quick-order-button-close:hover:not(:disabled) {
   background: var(--color-bg-muted);
   border-color: var(--color-primary);
 }
 
-.quick-order-close-percentage-btn-long:hover:not(:disabled) {
+.quick-order-button-long.quick-order-button-close:hover:not(:disabled) {
   background: color-mix(in srgb, var(--color-success) 20%, var(--color-bg));
   border-color: var(--color-success);
 }
 
-.quick-order-close-percentage-btn-short:hover:not(:disabled) {
+.quick-order-button-short.quick-order-button-close:hover:not(:disabled) {
   background: color-mix(in srgb, var(--color-danger) 20%, var(--color-bg));
   border-color: var(--color-danger);
 }
 
-.quick-order-close-percentage-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.quick-order-button-all-close {
+  padding: 10px 16px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+
+.quick-order-button-long.quick-order-button-all-close {
+  background: color-mix(in srgb, var(--color-success) 15%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-success) 40%, var(--color-border));
+  color: var(--color-success);
+}
+
+.quick-order-button-short.quick-order-button-all-close {
+  background: color-mix(in srgb, var(--color-danger) 15%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, var(--color-border));
+  color: var(--color-danger);
+}
+
+.quick-order-button-long.quick-order-button-all-close:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-success) 25%, var(--color-bg));
+  border-color: var(--color-success);
+}
+
+.quick-order-button-short.quick-order-button-all-close:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-danger) 25%, var(--color-bg));
+  border-color: var(--color-danger);
 }
 
 .quick-order-close-custom {
@@ -374,73 +327,6 @@
 
 .quick-order-close-amount-input {
   flex: 1;
-}
-
-.quick-order-close-amount-btn {
-  padding: 8px 24px;
-  background: var(--color-bg);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  color: var(--color-text);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.quick-order-close-amount-btn:hover:not(:disabled) {
-  background: var(--color-bg-muted);
-  border-color: var(--color-primary);
-}
-
-.quick-order-close-amount-btn-long:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-success) 20%, var(--color-bg));
-  border-color: var(--color-success);
-}
-
-.quick-order-close-amount-btn-short:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-danger) 20%, var(--color-bg));
-  border-color: var(--color-danger);
-}
-
-.quick-order-close-amount-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.quick-order-close-footer {
-  display: flex;
-  justify-content: center;
-  padding-top: 12px;
-  border-top: 1px solid var(--color-border);
-}
-
-.quick-order-close-all-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  max-width: 240px;
-  padding: 12px 24px;
-  background: color-mix(in srgb, var(--color-danger) 15%, var(--color-bg));
-  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, var(--color-border));
-  border-radius: var(--radius-sm);
-  font-size: var(--text-md);
-  font-weight: 600;
-  color: var(--color-danger);
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.quick-order-close-all-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-danger) 25%, var(--color-bg));
-  border-color: var(--color-danger);
-}
-
-.quick-order-close-all-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 @keyframes spin {
@@ -478,11 +364,7 @@
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .quick-order-close-sections {
-    flex-direction: column;
-  }
-
-  .quick-order-close-percentage {
+  .quick-order-buttons-close {
     grid-template-columns: repeat(2, 1fr);
   }
 }
