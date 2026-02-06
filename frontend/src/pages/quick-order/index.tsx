@@ -14,8 +14,8 @@ import { OrdersApi, BinanceAccountApi } from '../../api';
 import type { AccountPosition } from '../../types/binance';
 import './index.scss';
 
-const QUICK_AMOUNTS = [1000, 2000, 3000, 4000];
-const CLOSE_PERCENTAGES = [25, 50, 75, 100];
+const QUICK_AMOUNTS = [100, 200, 500, 1000, 1500, 2000, 3000, 4000, 5000];
+const CLOSE_AMOUNTS = [100, 200, 500, 1000, 1500, 2000, 3000, 4000, 5000];
 const DEFAULT_LEVERAGE = 20;
 
 type CloseSide = 'long' | 'short' | 'both';
@@ -479,14 +479,14 @@ function QuickOrderPage() {
             <div className="quick-order-section-amount">{total_long_amount.toFixed(2)} U</div>
           </div>
           <div className="quick-order-buttons-close">
-            {CLOSE_PERCENTAGES.map(pct => (
+            {CLOSE_AMOUNTS.map(amount => (
               <Button
-                key={pct}
+                key={amount}
                 className="quick-order-button quick-order-button-long quick-order-button-close"
-                onClick={() => handleCloseByPercentage('long', pct)}
+                onClick={() => handleCloseByAmount('long', amount)}
                 disabled={loading || account_loading}
               >
-                {pct}%
+                {amount}U
               </Button>
             ))}
           </div>
@@ -531,14 +531,14 @@ function QuickOrderPage() {
             <div className="quick-order-section-amount">{total_short_amount.toFixed(2)} U</div>
           </div>
           <div className="quick-order-buttons-close">
-            {CLOSE_PERCENTAGES.map(pct => (
+            {CLOSE_AMOUNTS.map(amount => (
               <Button
-                key={pct}
+                key={amount}
                 className="quick-order-button quick-order-button-short quick-order-button-close"
-                onClick={() => handleCloseByPercentage('short', pct)}
+                onClick={() => handleCloseByAmount('short', amount)}
                 disabled={loading || account_loading}
               >
-                {pct}%
+                {amount}U
               </Button>
             ))}
           </div>
