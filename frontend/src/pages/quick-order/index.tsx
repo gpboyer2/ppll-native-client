@@ -5,8 +5,8 @@ import {
   IconRefresh,
   IconAlertCircle,
   IconWallet,
-  IconScale,
-  IconX
+  IconX,
+  IconScale
 } from '@tabler/icons-react';
 import { Button, Select, NumberInput } from '../../components/mantine';
 import { useBinanceStore } from '../../stores/binance-store';
@@ -40,6 +40,8 @@ function QuickOrderPage() {
   const [error_msg, setErrorMsg] = useState<string | null>(null);
   const [custom_close_long_amount, setCustomCloseLongAmount] = useState('');
   const [custom_close_short_amount, setCustomCloseShortAmount] = useState('');
+  const [custom_open_long_amount, setCustomOpenLongAmount] = useState('');
+  const [custom_open_short_amount, setCustomOpenShortAmount] = useState('');
 
   const usdt_pairs = useBinanceStore(state => state.usdt_pairs);
   const get_active_api_key = useBinanceStore(state => state.get_active_api_key);
@@ -151,51 +153,6 @@ function QuickOrderPage() {
     }
   };
 
-  const handleBalancePosition = async () => {
-    const active_api_key = get_active_api_key();
-    if (!active_api_key) {
-      setErrorMsg('请先配置 API Key');
-      return;
-    }
-
-    const diff = total_long_amount - total_short_amount;
-    if (Math.abs(diff) < 1) {
-      setErrorMsg('多空仓位已平衡');
-      return;
-    }
-
-    setLoading(true);
-    setErrorMsg(null);
-
-    try {
-      const side = diff > 0 ? 'short' : 'long';
-      const amount = Math.abs(diff);
-
-      const position_config = {
-        symbol: trading_pair,
-        long_amount: side === 'long' ? amount : 0,
-        short_amount: side === 'short' ? amount : 0
-      };
-
-      const response = await OrdersApi.customBuildPosition({
-        api_key: active_api_key.api_key,
-        api_secret: active_api_key.api_secret,
-        positions: [position_config]
-      });
-
-      if (response.status === 'success') {
-        await loadAccountData();
-      } else {
-        setErrorMsg(response.message || '持平失败');
-      }
-    } catch (err) {
-      console.error('持平失败:', err);
-      setErrorMsg('持平失败，请重试');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleCloseByPercentage = async (side: CloseSide, percentage: number) => {
     const active_api_key = get_active_api_key();
     if (!active_api_key) {
@@ -299,14 +256,110 @@ function QuickOrderPage() {
 
       if (response.status === 'success') {
         await loadAccountData();
-        if (side === 'long') setCustomCloseLongAmount('');
-        if (side === 'short') setCustomCloseShortAmount('');
+        if (side === 'long') {
+          setCustomCloseLongAmount('');
+        }
+        if (side === 'short') {
+          setCustomCloseShortAmount('');
+        }
       } else {
         setErrorMsg(response.message || '平仓失败');
       }
     } catch (err) {
       console.error('平仓失败:', err);
       setErrorMsg('平仓失败，请重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleOpenByAmount = async (side: 'long' | 'short', amount: number) => {
+    const active_api_key = get_active_api_key();
+    if (!active_api_key) {
+      setErrorMsg('请先配置 API Key');
+      return;
+    }
+
+    if (account_data.available_balance < amount) {
+      setErrorMsg(`可用保证金不足，当前: ${account_data.available_balance.toFixed(2)} USDT`);
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const position_config = {
+        symbol: trading_pair,
+        long_amount: side === 'long' ? amount : 0,
+        short_amount: side === 'short' ? amount : 0
+      };
+
+      const response = await OrdersApi.customBuildPosition({
+        api_key: active_api_key.api_key,
+        api_secret: active_api_key.api_secret,
+        positions: [position_config]
+      });
+
+      if (response.status === 'success') {
+        await loadAccountData();
+        if (side === 'long') {
+          setCustomOpenLongAmount('');
+        }
+        if (side === 'short') {
+          setCustomOpenShortAmount('');
+        }
+      } else {
+        setErrorMsg(response.message || '开仓失败');
+      }
+    } catch (err) {
+      console.error('开仓失败:', err);
+      setErrorMsg('开仓失败，请重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBalancePosition = async () => {
+    const active_api_key = get_active_api_key();
+    if (!active_api_key) {
+      setErrorMsg('请先配置 API Key');
+      return;
+    }
+
+    const long_amount = total_long_amount;
+    const short_amount = total_short_amount;
+    const diff = Math.abs(long_amount - short_amount);
+
+    if (diff === 0) {
+      setErrorMsg('多空仓位已平衡，无需调整');
+      return;
+    }
+
+    setLoading(true);
+    setErrorMsg(null);
+
+    try {
+      const position_config = {
+        symbol: trading_pair,
+        long_amount: long_amount < short_amount ? diff : 0,
+        short_amount: short_amount < long_amount ? diff : 0
+      };
+
+      const response = await OrdersApi.customBuildPosition({
+        api_key: active_api_key.api_key,
+        api_secret: active_api_key.api_secret,
+        positions: [position_config]
+      });
+
+      if (response.status === 'success') {
+        await loadAccountData();
+      } else {
+        setErrorMsg(response.message || '持仓失败');
+      }
+    } catch (err) {
+      console.error('持仓失败:', err);
+      setErrorMsg('持仓失败，请重试');
     } finally {
       setLoading(false);
     }
@@ -326,7 +379,7 @@ function QuickOrderPage() {
           <IconWallet size={24} color="var(--color-primary)" />
           <h1 className="quick-order-page-title">快捷开单</h1>
         </div>
-        <p className="text-muted quick-order-page-desc">快速开仓、平仓、持平操作</p>
+        <p className="text-muted quick-order-page-desc">快速开仓、平仓操作</p>
       </div>
 
       {error_msg && (
@@ -432,6 +485,28 @@ function QuickOrderPage() {
               </Button>
             ))}
           </div>
+          <div className="quick-order-open-actions">
+            <NumberInput
+              placeholder="自定义金额"
+              value={custom_open_long_amount}
+              onChange={(value) => setCustomOpenLongAmount(String(value))}
+              disabled={loading || account_loading}
+              min={0}
+              className="quick-order-open-amount-input"
+            />
+            <Button
+              className="quick-order-button quick-order-button-long quick-order-open-btn"
+              onClick={() => {
+                const amount = parseFloat(custom_open_long_amount);
+                if (amount > 0) {
+                  handleOpenByAmount('long', amount);
+                }
+              }}
+              disabled={loading || account_loading || !custom_open_long_amount}
+            >
+              开多
+            </Button>
+          </div>
         </div>
 
         <div className="quick-order-section quick-order-section-short">
@@ -453,6 +528,28 @@ function QuickOrderPage() {
                 {amount}U
               </Button>
             ))}
+          </div>
+          <div className="quick-order-open-actions">
+            <NumberInput
+              placeholder="自定义金额"
+              value={custom_open_short_amount}
+              onChange={(value) => setCustomOpenShortAmount(String(value))}
+              disabled={loading || account_loading}
+              min={0}
+              className="quick-order-open-amount-input"
+            />
+            <Button
+              className="quick-order-button quick-order-button-short quick-order-open-btn"
+              onClick={() => {
+                const amount = parseFloat(custom_open_short_amount);
+                if (amount > 0) {
+                  handleOpenByAmount('short', amount);
+                }
+              }}
+              disabled={loading || account_loading || !custom_open_short_amount}
+            >
+              开空
+            </Button>
           </div>
         </div>
       </div>
