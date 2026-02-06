@@ -465,7 +465,7 @@ function QuickOrderPage() {
           title="一键将多空仓位调整为相等"
         >
           <IconScale size={16} />
-          <span>快速持平</span>
+          <span>多空仓位快速持平</span>
         </Button>
       </div>
 
