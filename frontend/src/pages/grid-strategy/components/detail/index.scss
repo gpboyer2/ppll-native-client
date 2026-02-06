@@ -438,46 +438,6 @@
     letter-spacing: 0.5px;
   }
 
-  @media (max-width: 1200px) {
-    .detail-content {
-      grid-template-columns: 1fr;
-    }
-
-    .info-cards {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  @media (max-width: 768px) {
-    .strategy-detail-page {
-      padding: 12px;
-    }
-
-    .detail-header {
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .strategy-title {
-      font-size: 18px;
-    }
-
-    .profit-card {
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .profit-divider {
-      width: 100%;
-      height: 1px;
-    }
-
-    .profit-stats {
-      flex-direction: row;
-      flex-wrap: wrap;
-    }
-  }
-
   .detail-card-header-left {
     display: flex;
     align-items: center;

@@ -13,36 +13,6 @@ import { OrdersApi, BinanceAccountApi } from '../../api';
 import type { AccountPosition } from '../../types/binance';
 import './index.scss';
 
-/**
- * API Key 选择器组件
- */
-function ApiKeySelector() {
-  const api_key_list = useBinanceStore(state => state.api_key_list);
-  const active_api_key_id = useBinanceStore(state => state.active_api_key_id);
-  const set_active_api_key = useBinanceStore(state => state.set_active_api_key);
-
-  if (api_key_list.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="quick-order-api-key-selector">
-      <span className="quick-order-api-key-label">API Key：</span>
-      <div className="quick-order-api-key-buttons">
-        {api_key_list.map(api_key => (
-          <button
-            key={api_key.id}
-            className={`quick-order-api-key-button ${active_api_key_id === String(api_key.id) ? 'active' : ''}`}
-            onClick={() => set_active_api_key(String(api_key.id))}
-          >
-            {api_key.name}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 const QUICK_AMOUNTS = [100, 200, 500, 1000, 1500, 2000, 3000, 4000, 5000];
 const CLOSE_AMOUNTS = [100, 200, 500, 1000, 1500, 2000, 3000, 4000, 5000];
 const DEFAULT_LEVERAGE = 20;
@@ -73,8 +43,10 @@ function QuickOrderPage() {
   const [custom_open_short_amount, setCustomOpenShortAmount] = useState('');
 
   const usdt_pairs = useBinanceStore(state => state.usdt_pairs);
+  const api_key_list = useBinanceStore(state => state.api_key_list);
   const get_active_api_key = useBinanceStore(state => state.get_active_api_key);
   const active_api_key_id = useBinanceStore(state => state.active_api_key_id);
+  const set_active_api_key = useBinanceStore(state => state.set_active_api_key);
   const ticker_prices = useBinanceStore(state => state.ticker_prices);
   const subscribeTicker = useBinanceStore(state => state.subscribeTicker);
 
@@ -420,12 +392,28 @@ function QuickOrderPage() {
         </div>
       )}
 
-      <ApiKeySelector />
-
       <div className="quick-order-card">
         <div className="quick-order-card-header">
-          <div className="flex items-center gap-8">
-            <span className="quick-order-card-title">交易设置</span>
+          <div className="quick-order-card-header-left">
+            <div>
+              <span className="quick-order-card-title">交易设置</span>
+              {api_key_list.length > 0 && (
+                <div className="quick-order-api-key-selector">
+                  <span className="quick-order-api-key-label">API Key：</span>
+                  <div className="quick-order-api-key-buttons">
+                    {api_key_list.map(api_key => (
+                      <button
+                        key={api_key.id}
+                        className={`quick-order-api-key-button ${active_api_key_id === String(api_key.id) ? 'active' : ''}`}
+                        onClick={() => set_active_api_key(String(api_key.id))}
+                      >
+                        {api_key.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           <Button
             className="btn-icon"
