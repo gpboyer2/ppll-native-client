@@ -32,7 +32,8 @@ interface DragState {
   initial_top: number;
 }
 
-const DEFAULT_POSITION = { x: 0, y: 200 };
+const PANEL_RIGHT_OFFSET = 340;
+const DEFAULT_Y = 200;
 
 export interface OrderRecordsFloatingPanelRef {
   refresh: () => void;
@@ -41,7 +42,10 @@ export interface OrderRecordsFloatingPanelRef {
 function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: React.Ref<OrderRecordsFloatingPanelRef>) {
   const { get_active_api_key, show_message, is_visible, set_is_visible, ticker_prices } = props;
 
-  const [position, setPosition] = useState(DEFAULT_POSITION);
+  const [position, setPosition] = useState(() => ({
+    x: window.innerWidth - PANEL_RIGHT_OFFSET,
+    y: DEFAULT_Y,
+  }));
   const [order_records, setOrderRecords] = useState<QuickOrderRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [closing_positions, setClosingPositions] = useState<Set<string>>(new Set());
@@ -88,17 +92,6 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
       loadOrderRecords();
     }
   }, [is_visible, loadOrderRecords]);
-
-  const position_initialized_ref = useRef(false);
-
-  useEffect(() => {
-    if (position_initialized_ref.current) return;
-
-    const viewport_width = window.innerWidth;
-    const target_x = viewport_width - 340;
-    setPosition({ x: target_x, y: DEFAULT_POSITION.y });
-    position_initialized_ref.current = true;
-  }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;

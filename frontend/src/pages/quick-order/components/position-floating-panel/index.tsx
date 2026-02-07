@@ -23,12 +23,16 @@ interface DragState {
   initial_top: number;
 }
 
-const DEFAULT_POSITION = { x: 0, y: 200 };
+const PANEL_RIGHT_OFFSET = 340;
+const DEFAULT_Y = 200;
 
 function PositionFloatingPanel(props: PositionFloatingPanelProps) {
   const { positions, ticker_prices, get_active_api_key, show_message, is_visible, set_is_visible } = props;
 
-  const [position, setPosition] = useState(DEFAULT_POSITION);
+  const [position, setPosition] = useState(() => ({
+    x: window.innerWidth - PANEL_RIGHT_OFFSET,
+    y: DEFAULT_Y,
+  }));
   const [closing_positions, setClosingPositions] = useState<Set<string>>(new Set());
   const [close_confirm_modal, setCloseConfirmModal] = useState<{
     opened: boolean;
@@ -147,17 +151,6 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
       });
     }
   }, [get_active_api_key, show_message]);
-
-  const position_initialized_ref = useRef(false);
-
-  useEffect(() => {
-    if (position_initialized_ref.current) return;
-
-    const viewport_width = window.innerWidth;
-    const target_x = viewport_width - 340;
-    setPosition({ x: target_x, y: DEFAULT_POSITION.y });
-    position_initialized_ref.current = true;
-  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
