@@ -59,6 +59,7 @@ const init = (server, wsManagerInstance) => {
 
       try {
         await wsManager.subscribeUserData(apiKey, apiSecret, market);
+
         socket.emit('user_stream_status', { status: 'connected', apiKey, market });
         UtilRecord.log(`[SocketIO] Socket ${socket.id} 订阅用户数据流 ${subKey} 成功`);
         UtilRecord.log(`[SocketIO] Socket 已加入房间: user:${apiKey}:${market}`);
@@ -228,6 +229,7 @@ const init = (server, wsManagerInstance) => {
     wsManager.on('userDataUpdate', ({ apiKey, market, data }) => {
       const room = `user:${apiKey}:${market}`;
       const roomSize = io.sockets.adapter.rooms.get(room)?.size || 0;
+
       UtilRecord.log(`[SocketIO] 收到 userDataUpdate，转发到房间 ${room}, eventType: ${data.eventType}, 房间内客户端数: ${roomSize}`);
       io.to(room).emit('account_update', data);
       UtilRecord.log(`[SocketIO] 已发送 account_update 事件到房间 ${room}, 数据摘要:`, JSON.stringify({

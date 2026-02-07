@@ -193,10 +193,10 @@ const getUSDMFuturesAccount = async (api_key, api_secret, includePositions = tru
     try {
       const client = createUSDMClient(api_key, api_secret);
       const positionRisk = await rateLimiter.execute(
-        () => client.getPositionRisk(),
+        () => client.getPositionsV3(),
         {
           apiKey: api_key,
-          method: 'getPositionRisk',
+          method: 'getPositionsV3',
           params: {},
           useCache: false,
           retries: 3
@@ -474,7 +474,7 @@ const getPositionRisk = async (api_key, api_secret, symbol) => {
     const client = createUSDMClient(api_key, api_secret);
 
     // 获取持仓风险信息
-    const positionRisk = await client.getPositionRisk({
+    const positionRisk = await client.getPositionsV3({
       symbol: symbol
     });
 

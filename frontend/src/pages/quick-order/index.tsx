@@ -340,6 +340,7 @@ function QuickOrderPage() {
                 notional: p.notional !== undefined ? p.notional : fallbackNotional,
                 unrealizedProfit: p.unrealisedPnl !== undefined ? p.unrealisedPnl : (p.unrealizedProfit || '0'),
                 breakEvenPrice: p.bep !== undefined ? p.bep : p.breakEvenPrice,
+                liquidationPrice: p.liquidationPrice || '0',
               };
             });
             console.log('[Account Update] 有效持仓数量:', valid_positions.length);
@@ -532,6 +533,8 @@ function QuickOrderPage() {
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓操作已提交');
         order_records_panel_ref.current?.refresh();
+        // 刷新持仓数据以获取最新的强平价格
+        await loadAccountData();
       } else {
         showMessage(response.message || '开仓失败', 'error');
       }
@@ -589,6 +592,8 @@ function QuickOrderPage() {
 
           if (response.status === 'success' && response.datum) {
             handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓操作已提交');
+            // 刷新持仓数据以获取最新的强平价格
+            await loadAccountData();
           } else {
             showMessage(response.message || '平仓失败', 'error');
           }
@@ -665,6 +670,8 @@ function QuickOrderPage() {
             if (side === 'short') {
               setCustomCloseShortAmount('');
             }
+            // 刷新持仓数据以获取最新的强平价格
+            await loadAccountData();
           } else {
             showMessage(response.message || '平仓失败', 'error');
           }
@@ -718,6 +725,8 @@ function QuickOrderPage() {
         if (side === 'short') {
           setCustomOpenShortAmount('');
         }
+        // 刷新持仓数据以获取最新的强平价格
+        await loadAccountData();
       } else {
         showMessage(response.message || '开仓失败', 'error');
       }
@@ -774,6 +783,8 @@ function QuickOrderPage() {
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓持平完成');
         order_records_panel_ref.current?.refresh();
+        // 刷新持仓数据以获取最新的强平价格
+        await loadAccountData();
       } else {
         showMessage(response.message || '开仓持平失败', 'error');
       }
@@ -853,7 +864,8 @@ function QuickOrderPage() {
 
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓持平完成');
-        // WebSocket 会自动更新账户数据，无需手动调用 loadAccountData
+        // 刷新持仓数据以获取最新的强平价格
+        await loadAccountData();
       } else {
         showMessage(response.message || '平仓持平失败', 'error');
       }

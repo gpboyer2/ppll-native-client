@@ -2,6 +2,8 @@ import { Select, NumberInput } from '../../../../components/mantine';
 import type { AccountPosition } from '../../../../types/binance';
 import './index.scss';
 
+const QUICK_PAIRS = ['BTC', 'ETH', 'HYPE', 'ASTER', 'BNB', 'AVAX'];
+
 export interface TradingPairInfoCardProps {
   trading_pair: string;
   leverage: number;
@@ -72,6 +74,14 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
     return '';
   };
 
+  const handleQuickPairClick = (coin: string) => {
+    on_trading_pair_change(`${coin}USDT`);
+  };
+
+  const getCurrentCoin = () => {
+    return trading_pair?.replace('USDT', '') || '';
+  };
+
   return (
     <div className="trading-pair-info-card">
       <div className="trading-pair-info-card-header">
@@ -80,6 +90,18 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
       <div className="trading-pair-info-card-controls">
         <div className="trading-pair-info-card-control-group">
           <label className="trading-pair-info-card-control-label">交易对</label>
+          <div className="trading-pair-info-card-quick-buttons">
+            {QUICK_PAIRS.map((coin) => (
+              <button
+                key={coin}
+                className={`trading-pair-info-card-quick-button ${getCurrentCoin() === coin ? 'trading-pair-info-card-quick-button-active' : ''}`}
+                onClick={() => handleQuickPairClick(coin)}
+                type="button"
+              >
+                {coin}
+              </button>
+            ))}
+          </div>
           <Select
             placeholder="选择交易对"
             value={trading_pair}
