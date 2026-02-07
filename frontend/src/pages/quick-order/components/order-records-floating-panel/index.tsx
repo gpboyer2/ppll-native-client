@@ -268,6 +268,10 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
                       <span className="order-records-floating-panel-value">{executed_price.toFixed(2)}</span>
                     </div>
                     <div className="order-records-floating-panel-detail-row">
+                      <span className="order-records-floating-panel-label">现价</span>
+                      <span className="order-records-floating-panel-value">{current_price.toFixed(2)}</span>
+                    </div>
+                    <div className="order-records-floating-panel-detail-row">
                       <span className="order-records-floating-panel-label">开仓额</span>
                       <span className="order-records-floating-panel-value">{executed_amount.toFixed(2)} USDT</span>
                     </div>

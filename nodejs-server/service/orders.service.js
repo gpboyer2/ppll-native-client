@@ -257,8 +257,21 @@ const executeSingleOpen = async ({ symbol, side, amount, api_key, api_secret, ex
     // 写入订单记录（如果指定了source）
     if (source && orderResult) {
       try {
+        // 计算实际成交均价
         const avgPrice = orderResult.avgPrice;
-        const executedPrice = (avgPrice && parseFloat(avgPrice) > 0) ? parseFloat(avgPrice) : parseFloat(price);
+        const cumQuote = orderResult.cumQuote;
+        const executedQty = orderResult.executedQty || orderResult.cumQty;
+
+        let executedPrice;
+        if (avgPrice && parseFloat(avgPrice) > 0) {
+          executedPrice = parseFloat(avgPrice);
+        } else if (cumQuote && executedQty && parseFloat(executedQty) > 0) {
+          // 使用 cumQuote / executedQty 计算实际成交均价
+          executedPrice = parseFloat(cumQuote) / parseFloat(executedQty);
+        } else {
+          // 最后回退到下单前的价格
+          executedPrice = parseFloat(price) || 0;
+        }
         await Order.create({
           api_key,
           api_secret,
