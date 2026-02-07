@@ -123,27 +123,21 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
   // 初始化：先获取 API Key 列表，成功获取后才设置 initialized
   init: async () => {
-    const { loading, api_key_list, usdt_pairs, is_initializing, initialized } = get();
-    console.log('[binance-store.init] 方法开始', { loading, api_key_list_length: api_key_list.length, usdt_pairs_length: usdt_pairs.length, is_initializing, initialized });
+    const { loading, api_key_list, usdt_pairs, is_initializing } = get();
     // 如果正在加载、正在初始化或已经成功初始化且有数据，则跳过
     if (loading || is_initializing || (api_key_list.length > 0 && usdt_pairs.length > 0)) {
-      console.log('[binance-store.init] 跳过初始化', { loading, is_initializing, api_key_list_length: api_key_list.length, usdt_pairs_length: usdt_pairs.length });
       return;
     }
 
     set({ loading: true, is_initializing: true });
-    console.log('[binance-store.init] 设置 loading=true, is_initializing=true');
 
     try {
       // 先获取 API Key 列表
-      console.log('[binance-store.init] 准备调用 refreshApiKeys');
       const api_key_loaded = await get().refreshApiKeys();
-      console.log('[binance-store.init] refreshApiKeys 返回', { api_key_loaded, api_key_list_length: get().api_key_list.length });
 
       // 从 localStorage 恢复 active_api_key_id
       const saved_id = localStorage.getItem('active_api_key_id');
       const after_api_keys = get().api_key_list;
-      console.log('[binance-store.init] API Key 列表状态', { api_key_list_length: after_api_keys.length, saved_id });
 
       if (after_api_keys.length > 0) {
         // 优先使用保存的 API Key ID
@@ -161,10 +155,8 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
       // 只有成功获取 API Key 列表后才设置 initialized
       if (api_key_loaded) {
-        console.log('[binance-store.init] 设置 initialized=true, loading=false, is_initializing=false');
         set({ initialized: true, loading: false, is_initializing: false });
       } else {
-        console.log('[binance-store.init] 设置 loading=false, is_initializing=false (api_key_loaded=false)');
         set({ loading: false, is_initializing: false });
       }
     } catch (error) {
@@ -175,26 +167,20 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
   // 刷新 API Key 列表，返回是否成功加载
   refreshApiKeys: async () => {
-    console.log('[binance-store.refreshApiKeys] 方法开始');
     const nodejs_url = await getNodejsUrl();
 
     if (!nodejs_url) {
-      console.log('[binance-store.refreshApiKeys] nodejs_url 为空，返回 false');
       return false;
     }
 
     try {
-      console.log('[binance-store.refreshApiKeys] 准备发送 API 请求 BinanceApiKeyApi.query');
       const response = await BinanceApiKeyApi.query();
-      console.log('[binance-store.refreshApiKeys] API 响应', { status: response.status, hasDatum: !!response.datum, listLength: response.datum?.list?.length });
 
       // 后端返回字段名直接使用，不做任何转换
       if (response.status === 'success' && response.datum?.list) {
-        console.log('[binance-store.refreshApiKeys] 设置 api_key_list, 长度:', response.datum.list.length);
         set({ api_key_list: response.datum.list });
         return true;
       }
-      console.log('[binance-store.refreshApiKeys] 响应 status 不是 success 或没有 list，返回 false');
       return false;
     } catch (error) {
       console.error('[binance-store.refreshApiKeys] 获取 API Key 列表失败:', error);
@@ -295,16 +281,13 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
         new_socket.on('connect', () => {
           clearTimeout(timeout);
-          console.log('[binance-store] WebSocket 已连接:', new_socket.id);
 
           if (get().subscribed_tickers.size > 0) {
-            console.log(`[binance-store] 检测到已有订阅，自动重订阅 ${get().subscribed_tickers.size} 个 ticker`);
             get().subscribed_tickers.forEach((subKey) => {
               const [market, symbol] = subKey.split(':');
               if (!symbol) {
                 return;
               }
-              console.log(`[binance-store] 自动重订阅 ticker: ${symbol} (${market})`);
               new_socket.emit('subscribe_ticker', { symbol, market });
             });
           }
@@ -342,7 +325,6 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
         // 监听策略状态更新
         new_socket.on('strategy_status_update', (data: any) => {
-          console.log('[binance-store] 策略状态更新:', data);
           // 触发自定义事件，让其他组件能监听到
           window.dispatchEvent(new CustomEvent('strategy-status-update', { detail: data }));
         });
@@ -371,7 +353,6 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
   subscribeTicker: (symbol: string, market = 'usdm') => {
     const { socket, subscribed_tickers } = get();
     if (!socket?.connected) {
-      console.warn('[binance-store] WebSocket 未连接，无法订阅 ticker');
       return;
     }
 
@@ -380,7 +361,6 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
       return;
     }
 
-    console.log(`[binance-store] 订阅 ticker: ${symbol} (${market})`);
     socket.emit('subscribe_ticker', { symbol, market });
     set({
       subscribed_tickers: new Set([...subscribed_tickers, subKey])
@@ -399,7 +379,6 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
       return;
     }
 
-    console.log(`[binance-store] 取消订阅 ticker: ${symbol} (${market})`);
     socket.emit('unsubscribe_ticker', { symbol, market });
 
     const new_tickers = new Set(subscribed_tickers);
