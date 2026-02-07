@@ -835,7 +835,7 @@ const getAvgEntryPrice = async (api_key, api_secret, symbol, position_side) => {
       }
 
       try {
-        const trades = await client.getUserTrades({
+        const trades = await client.getAccountTrades({
           symbol,
           startTime: start_time,
           endTime: adjusted_end_time,
