@@ -34,6 +34,31 @@ const formatOpenPositionError = (error) => {
   return rawMessage;
 };
 
+const formatAmount = (value) => new bigNumber(value).toFixed(2);
+
+const formatQuantity = (value) => new bigNumber(value).toFixed(8).replace(/\.?0+$/, '');
+
+const formatAdjustmentMessage = ({ actionLabel, requestedAmount, adjustedAmount, requestedQuantity, adjustedQuantity }) => {
+  const hasAmount = requestedAmount !== undefined && adjustedAmount !== undefined;
+  const hasQuantity = requestedQuantity !== undefined && adjustedQuantity !== undefined;
+  const amountChanged = hasAmount && !new bigNumber(requestedAmount).isEqualTo(adjustedAmount);
+  const quantityChanged = hasQuantity && !new bigNumber(requestedQuantity).isEqualTo(adjustedQuantity);
+
+  if (!amountChanged && !quantityChanged) {
+    return '';
+  }
+
+  const parts = [];
+  if (amountChanged) {
+    parts.push(`金额 ${formatAmount(requestedAmount)} → ${formatAmount(adjustedAmount)} USDT`);
+  }
+  if (quantityChanged) {
+    parts.push(`数量 ${formatQuantity(requestedQuantity)} → ${formatQuantity(adjustedQuantity)}`);
+  }
+
+  return `因交易所精度限制，${actionLabel}已调整：${parts.join('，')}`;
+};
+
 
 /**
  * 创建币安客户端
@@ -203,6 +228,21 @@ const executeSingleOpen = async ({ symbol, side, amount, api_key, api_secret, ex
       return { symbol, side, amount, success: false, error: `由于精度调整，开仓金额需至少 ${MIN_NOTIONAL} USDT，当前计算名义价值为 ${adjustedNotional.toFixed(2)} USDT` };
     }
 
+    const adjustmentMessage = formatAdjustmentMessage({
+      actionLabel: '开仓',
+      requestedAmount: amount,
+      adjustedAmount: adjustedNotional.toNumber(),
+      requestedQuantity: rawQuantity,
+      adjustedQuantity: quantity
+    });
+    const adjustment = adjustmentMessage ? {
+      requestedAmount: amount,
+      adjustedAmount: adjustedNotional.toNumber(),
+      requestedQuantity: rawQuantity.toString(),
+      adjustedQuantity: quantity,
+      message: adjustmentMessage
+    } : undefined;
+
     const client = createClient(api_key, api_secret);
     const orderResult = await client.submitNewOrder({
       symbol,
@@ -217,6 +257,8 @@ const executeSingleOpen = async ({ symbol, side, amount, api_key, api_secret, ex
     // 写入订单记录（如果指定了source）
     if (source && orderResult) {
       try {
+        const avgPrice = orderResult.avgPrice;
+        const executedPrice = (avgPrice && parseFloat(avgPrice) > 0) ? parseFloat(avgPrice) : parseFloat(price);
         await Order.create({
           api_key,
           api_secret,
@@ -230,18 +272,26 @@ const executeSingleOpen = async ({ symbol, side, amount, api_key, api_secret, ex
           price,
           status: 'FILLED',
           executed_qty: quantity,
-          executed_price: orderResult.avgPrice || price,
+          executed_price: executedPrice,
           executed_amount: amount,
           source,
           execution_type: 'WEBSOCKET'
         });
-        UtilRecord.log(`--- 订单记录已写入: ${symbol} ${side} ${amount} USDT`);
+        UtilRecord.log(`--- 订单记录已写入: ${symbol} ${side} ${amount} USDT, 开仓价: ${executedPrice}`);
       } catch (dbError) {
         UtilRecord.error('写入订单记录失败:', dbError);
       }
     }
 
-    return { symbol, side, amount, success: true, orderId: orderResult.orderId };
+    return {
+      symbol,
+      side,
+      amount,
+      quantity,
+      success: true,
+      orderId: orderResult.orderId,
+      adjustment
+    };
   } catch (error) {
     UtilRecord.error('开仓失败:', error);
     const friendlyMessage = formatOpenPositionError(error);

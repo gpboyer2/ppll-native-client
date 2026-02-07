@@ -84,8 +84,10 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
   }), [loadOrderRecords]);
 
   useEffect(() => {
-    loadOrderRecords();
-  }, [loadOrderRecords]);
+    if (is_visible) {
+      loadOrderRecords();
+    }
+  }, [is_visible, loadOrderRecords]);
 
   useEffect(() => {
     const updateDefaultPosition = () => {
@@ -240,10 +242,16 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
               const side = is_long ? '多' : '空';
               const executed_price = parseFloat(String(record.executed_price || 0));
               const executed_amount = parseFloat(String(record.executed_amount || 0));
+              const quantity = parseFloat(String(record.quantity || 0));
               const ticker = ticker_prices[record.symbol];
               const current_price = ticker?.mark_price || ticker?.price || executed_price;
 
               const is_closing = closing_positions.has(record.symbol);
+
+              const pnl = is_long
+                ? (current_price - executed_price) * quantity
+                : (executed_price - current_price) * quantity;
+              const pnl_class = pnl > 0 ? 'profit-positive' : pnl < 0 ? 'profit-negative' : '';
 
               return (
                 <div key={record.id} className="order-records-floating-panel-item">
@@ -264,8 +272,10 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
                       <span className="order-records-floating-panel-value">{executed_amount.toFixed(2)} USDT</span>
                     </div>
                     <div className="order-records-floating-panel-detail-row">
-                      <span className="order-records-floating-panel-label">现价</span>
-                      <span className="order-records-floating-panel-value">{current_price.toFixed(2)}</span>
+                      <span className="order-records-floating-panel-label">盈亏</span>
+                      <span className={`order-records-floating-panel-value ${pnl_class}`}>
+                        {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)} USDT
+                      </span>
                     </div>
                   </div>
 

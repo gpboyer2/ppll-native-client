@@ -123,7 +123,7 @@
 
 .order-records-floating-panel-item-details {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 6px;
   margin-bottom: 8px;
 }
@@ -143,6 +143,14 @@
   font-size: var(--text-xs);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   color: var(--color-text);
+}
+
+.order-records-floating-panel-value.profit-positive {
+  color: var(--color-success);
+}
+
+.order-records-floating-panel-value.profit-negative {
+  color: var(--color-danger);
 }
 
 .order-records-floating-panel-close-btn {

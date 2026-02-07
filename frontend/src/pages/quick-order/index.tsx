@@ -1040,7 +1040,10 @@ function QuickOrderPage() {
       {!show_order_records_panel && (
         <button
           className="order-records-panel-toggle-btn"
-          onClick={() => setShowOrderRecordsPanel(true)}
+          onClick={() => {
+            setShowOrderRecordsPanel(true);
+            order_records_panel_ref.current?.refresh();
+          }}
           title="打开订单记录面板"
         >
           <IconHistory size={18} />
