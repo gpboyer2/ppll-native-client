@@ -165,7 +165,7 @@ const setShortTakeProfit = catchAsync(async (req, res) => {
  * 查询快捷订单记录
  */
 const queryQuickOrderRecords = catchAsync(async (req, res) => {
-  const { api_key } = req.query;
+  const { api_key, api_secret } = req.query;
 
   if (!api_key) {
     return res.apiError(null, 'api_key is not defined');
@@ -180,8 +180,19 @@ const queryQuickOrderRecords = catchAsync(async (req, res) => {
     order: [['created_at', 'DESC']]
   });
 
+  // 补充杠杆和预计手续费信息
+  let enriched_rows = rows;
+  if (api_secret && rows.length > 0) {
+    try {
+      enriched_rows = await ordersService.enrichQuickOrderRecords(rows, api_key, api_secret);
+    } catch (error) {
+      UtilRecord.error('补充快捷订单记录信息失败:', error);
+      enriched_rows = rows;
+    }
+  }
+
   return res.apiSuccess({
-    list: rows,
+    list: enriched_rows,
     pagination: {
       total: count,
       currentPage: 1,

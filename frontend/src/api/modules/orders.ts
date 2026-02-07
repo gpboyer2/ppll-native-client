@@ -106,6 +106,7 @@ export class OrdersApi {
    */
   static async getQuickOrderRecords(params: {
     api_key: string;
+    api_secret?: string;
   }): Promise<Response<any>> {
     return RequestWrapper.get(`${this.BASE_PATH}/quick-order/query`, params);
   }

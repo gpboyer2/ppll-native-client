@@ -14,6 +14,9 @@ interface QuickOrderRecord {
   quantity: number;
   status: string;
   created_at: string;
+  leverage?: number;
+  estimated_fee?: number;
+  avg_entry_price?: number;
 }
 
 interface OrderRecordsFloatingPanelProps {
@@ -67,7 +70,8 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
     setLoading(true);
     try {
       const response = await OrdersApi.getQuickOrderRecords({
-        api_key: api_key.api_key
+        api_key: api_key.api_key,
+        api_secret: api_key.api_secret
       });
 
       if (response.status === 'success' && response.datum) {
@@ -232,6 +236,9 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
               const executed_price = parseFloat(String(record.executed_price || 0));
               const executed_amount = parseFloat(String(record.executed_amount || 0));
               const quantity = parseFloat(String(record.quantity || 0));
+              const leverage = record.leverage || 20;
+              const estimated_fee = record.estimated_fee ?? executed_amount * 0.001;
+              const avg_entry_price = record.avg_entry_price ?? 0;
               const ticker = ticker_prices[record.symbol];
               const current_price = ticker?.mark_price || ticker?.price || executed_price;
 
@@ -257,12 +264,24 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
                       <span className="order-records-floating-panel-value">{executed_price.toFixed(2)}</span>
                     </div>
                     <div className="order-records-floating-panel-detail-row">
+                      <span className="order-records-floating-panel-label">近一个月开仓均价</span>
+                      <span className="order-records-floating-panel-value">{avg_entry_price > 0 ? avg_entry_price.toFixed(2) : '-'}</span>
+                    </div>
+                    <div className="order-records-floating-panel-detail-row">
+                      <span className="order-records-floating-panel-label">持仓额</span>
+                      <span className="order-records-floating-panel-value">{executed_amount.toFixed(2)} USDT</span>
+                    </div>
+                    <div className="order-records-floating-panel-detail-row">
+                      <span className="order-records-floating-panel-label">杠杆</span>
+                      <span className="order-records-floating-panel-value">{leverage}x</span>
+                    </div>
+                    <div className="order-records-floating-panel-detail-row">
                       <span className="order-records-floating-panel-label">现价</span>
                       <span className="order-records-floating-panel-value">{current_price.toFixed(2)}</span>
                     </div>
                     <div className="order-records-floating-panel-detail-row">
-                      <span className="order-records-floating-panel-label">开仓额</span>
-                      <span className="order-records-floating-panel-value">{executed_amount.toFixed(2)} USDT</span>
+                      <span className="order-records-floating-panel-label">预计手续费</span>
+                      <span className="order-records-floating-panel-value">{estimated_fee.toFixed(4)} USDT</span>
                     </div>
                     <div className="order-records-floating-panel-detail-row">
                       <span className="order-records-floating-panel-label">盈亏</span>

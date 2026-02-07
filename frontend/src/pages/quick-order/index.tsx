@@ -108,13 +108,6 @@ function QuickOrderPage() {
     }
     ticker_log_ref.current = now;
     const store = useBinanceStore.getState();
-    console.log('[QuickOrder] Ticker snapshot', {
-      trading_pair,
-      current_price,
-      mark_price,
-      index_price,
-      socket_connected: store.socket?.connected
-    });
   }, [trading_pair, current_price, mark_price, index_price]);
 
 
@@ -414,7 +407,7 @@ function QuickOrderPage() {
   }, [subscribeCurrentSymbol]);
 
   // 切换交易对时更新杠杆
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     const updateLeverageForNewPair = async () => {
       // 优先从持仓数据中获取
@@ -943,7 +936,6 @@ function QuickOrderPage() {
         showMessage(response.message || '设置杠杆失败', 'error');
       }
     } catch (err) {
-      console.error('设置杠杆失败:', err);
       showMessage('设置杠杆失败，请重试', 'error');
     }
   };

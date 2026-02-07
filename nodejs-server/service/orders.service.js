@@ -6,6 +6,7 @@ const binancePrecision = require("../utils/binance-precision");
 const ApiError = require("../utils/api-error");
 const db = require("../models");
 const Order = db.orders;
+const binanceAccountService = require("../service/binance-account.service.js");
 
 
 // 常量定义
@@ -801,6 +802,137 @@ const setShortTakeProfit = async (params) => {
 };
 
 
+/**
+ * 获取近一个月的开仓均价
+ * @param {string} api_key - API密钥
+ * @param {string} api_secret - API密钥Secret
+ * @param {string} symbol - 交易对
+ * @param {string} position_side - 持仓方向 LONG/SHORT
+ * @returns {Promise<number>} 平均开仓价格
+ */
+const getAvgEntryPrice = async (api_key, api_secret, symbol, position_side) => {
+  try {
+    const client = createClient(api_key, api_secret);
+
+    // 计算一个月前的时间戳
+    const now = Date.now();
+    const one_month_ago = now - 30 * 24 * 60 * 60 * 1000;
+
+    // 币安 userTrades API 最多支持7天时间范围，需要分批查询
+    const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+    const all_trades = [];
+
+    // 分批查询：近30天分成5段（每段7天）
+    for (let i = 0; i < 5; i++) {
+      const end_time = one_month_ago + (i + 1) * SEVEN_DAYS;
+      const start_time = one_month_ago + i * SEVEN_DAYS;
+
+      // 确保不超过当前时间
+      const adjusted_end_time = Math.min(end_time, now);
+
+      if (start_time >= now) {
+        break;
+      }
+
+      try {
+        const trades = await client.getUserTrades({
+          symbol,
+          startTime: start_time,
+          endTime: adjusted_end_time,
+          limit: 1000
+        });
+
+        if (trades && Array.isArray(trades)) {
+          all_trades.push(...trades);
+        }
+      } catch (error) {
+        UtilRecord.log(`获取 ${symbol} ${start_time}-${adjusted_end_time} 历史交易失败:`, error.message);
+      }
+    }
+
+    // 根据持仓方向筛选交易并计算均价
+    // LONG: 筛选 BUY 交易; SHORT: 筛选 SELL 交易
+    const side = position_side === 'LONG' ? 'BUY' : 'SELL';
+    const filtered_trades = all_trades.filter(t => t.side === side);
+
+    if (filtered_trades.length === 0) {
+      return 0;
+    }
+
+    // 计算加权平均价格: sum(price * qty) / sum(qty)
+    let total_value = new bigNumber(0);
+    let total_qty = new bigNumber(0);
+
+    for (const trade of filtered_trades) {
+      const price = new bigNumber(trade.price);
+      const qty = new bigNumber(trade.qty);
+      total_value = total_value.plus(price.multipliedBy(qty));
+      total_qty = total_qty.plus(qty);
+    }
+
+    if (total_qty.isZero()) {
+      return 0;
+    }
+
+    return total_value.dividedBy(total_qty).toNumber();
+  } catch (error) {
+    UtilRecord.error('获取近一个月开仓均价失败:', error);
+    return 0;
+  }
+};
+
+/**
+ * 为快捷订单记录补充额外信息（杠杆、历史均价）
+ * @param {Array} records - 订单记录列表
+ * @param {string} api_key - API密钥
+ * @param {string} api_secret - API密钥Secret
+ * @returns {Promise<Array>} 补充后的订单记录列表
+ */
+const enrichQuickOrderRecords = async (records, api_key, api_secret) => {
+  if (!records || records.length === 0) {
+    return records;
+  }
+
+  // 获取所有唯一的交易对
+  const unique_symbols = [...new Set(records.map(r => r.symbol))];
+
+  // 批量获取杠杆信息
+  const leverage_map = {};
+  for (const symbol of unique_symbols) {
+    try {
+      const leverage_info = await binanceAccountService.getPositionRisk(api_key, api_secret, symbol);
+      leverage_map[symbol] = leverage_info?.leverage || 20;
+    } catch (error) {
+      UtilRecord.log(`获取 ${symbol} 杠杆失败，使用默认值:`, error.message);
+      leverage_map[symbol] = 20;
+    }
+  }
+
+  // 为每条记录补充杠杆、历史均价和计算预计手续费
+  const enriched_records = await Promise.all(records.map(async (record) => {
+    const leverage = leverage_map[record.symbol] || 20;
+    const executed_amount = parseFloat(record.executed_amount || 0);
+    const estimated_fee = executed_amount * 0.001;
+
+    // 获取近一个月开仓均价（异步操作，不阻塞其他字段）
+    let avg_entry_price = 0;
+    try {
+      avg_entry_price = await getAvgEntryPrice(api_key, api_secret, record.symbol, record.position_side);
+    } catch (error) {
+      UtilRecord.log(`获取 ${record.symbol} 近一个月开仓均价失败:`, error.message);
+    }
+
+    return {
+      ...record.toJSON ? record.toJSON() : record,
+      leverage,
+      estimated_fee,
+      avg_entry_price
+    };
+  }));
+
+  return enriched_records;
+};
+
 module.exports = {
   getAccountInfo,
   getExchangeInfo,
@@ -810,4 +942,6 @@ module.exports = {
   umOpenPosition,
   umClosePosition,
   setShortTakeProfit,
+  getAvgEntryPrice,
+  enrichQuickOrderRecords,
 };
