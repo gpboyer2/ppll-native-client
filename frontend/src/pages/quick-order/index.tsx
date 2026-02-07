@@ -625,6 +625,7 @@ function QuickOrderPage() {
               current_price={current_price}
               current_pair_long_amount={current_pair_long_amount}
               current_pair_short_amount={current_pair_short_amount}
+              current_pair_positions={current_pair_positions}
               on_trading_pair_change={handleTradingPairChange}
               on_leverage_change={handleLeverageChange}
             />

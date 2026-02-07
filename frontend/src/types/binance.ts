@@ -83,6 +83,8 @@ export interface AccountPosition {
   leverage: string
   isolated: boolean
   entryPrice: string
+  breakEvenPrice: string
+  liquidationPrice: string
   maxNotional: string
   positionSide: 'BOTH' | 'LONG' | 'SHORT'
   positionAmt: string

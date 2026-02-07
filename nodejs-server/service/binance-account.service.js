@@ -187,7 +187,47 @@ const applyAccountFilter = (account_info, marketType, filterOptions) => {
  * @returns {Promise<Object>} U本位合约账户信息
  */
 const getUSDMFuturesAccount = async (api_key, api_secret, includePositions = true) => {
-  return getAccountInfo('usdm', api_key, api_secret, { includePositions, includeEmptyBalances: true });
+  const account_info = await getAccountInfo('usdm', api_key, api_secret, { includePositions, includeEmptyBalances: true });
+
+  if (includePositions && account_info.positions && account_info.positions.length > 0) {
+    try {
+      const client = createUSDMClient(api_key, api_secret);
+      const positionRisk = await rateLimiter.execute(
+        () => client.getPositionRisk(),
+        {
+          apiKey: api_key,
+          method: 'getPositionRisk',
+          params: {},
+          useCache: false,
+          retries: 3
+        }
+      );
+
+      if (positionRisk && Array.isArray(positionRisk)) {
+        const positionRiskMap = {};
+        for (const risk of positionRisk) {
+          const key = `${risk.symbol}_${risk.positionSide}`;
+          positionRiskMap[key] = risk;
+        }
+
+        for (const position of account_info.positions) {
+          const key = `${position.symbol}_${position.positionSide}`;
+          const risk = positionRiskMap[key];
+          if (risk) {
+            position.breakEvenPrice = risk.breakEvenPrice || '0';
+            position.liquidationPrice = risk.liquidationPrice || '0';
+          } else {
+            position.breakEvenPrice = '0';
+            position.liquidationPrice = '0';
+          }
+        }
+      }
+    } catch (error) {
+      UtilRecord.log('获取持仓风险信息失败:', error.message);
+    }
+  }
+
+  return account_info;
 };
 
 /**
