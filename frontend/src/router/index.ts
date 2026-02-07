@@ -68,7 +68,7 @@ export interface PluginConfig {
 
 export const pluginConfig: Record<string, PluginConfig> = {
   'quick-order': {
-    name: '快捷开单',
+    name: 'U本位快捷开单',
     description: '快速开仓、平仓、持平操作',
     icon: '⚡',
     category: '交易工具',

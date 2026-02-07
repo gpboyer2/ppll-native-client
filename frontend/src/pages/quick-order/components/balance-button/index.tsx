@@ -20,7 +20,7 @@ export function BalanceButton(props: BalanceButtonProps): JSX.Element {
           title="通过建仓方式使多空仓位相等"
         >
           <IconArrowUp size={16} />
-          <span>开仓持平</span>
+          <span>开仓持平 (通过建仓方式使多空仓位相等)</span>
         </Button>
         <div className="quick-order-balance-divider" />
         <Button
@@ -30,7 +30,7 @@ export function BalanceButton(props: BalanceButtonProps): JSX.Element {
           title="通过减仓平仓方式使多空仓位相等"
         >
           <IconArrowDown size={16} />
-          <span>平仓持平</span>
+          <span>平仓持平 (通过减仓平仓方式使多空仓位相等)</span>
         </Button>
       </div>
     </div>

@@ -227,8 +227,15 @@ const init = (server, wsManagerInstance) => {
   if (!wsManager.listenerCount('userDataUpdate')) {
     wsManager.on('userDataUpdate', ({ apiKey, market, data }) => {
       const room = `user:${apiKey}:${market}`;
-      UtilRecord.log(`[SocketIO] 收到 userDataUpdate，转发到房间 ${room}, eventType: ${data.eventType}`);
+      const roomSize = io.sockets.adapter.rooms.get(room)?.size || 0;
+      UtilRecord.log(`[SocketIO] 收到 userDataUpdate，转发到房间 ${room}, eventType: ${data.eventType}, 房间内客户端数: ${roomSize}`);
       io.to(room).emit('account_update', data);
+      UtilRecord.log(`[SocketIO] 已发送 account_update 事件到房间 ${room}, 数据摘要:`, JSON.stringify({
+        eventType: data.eventType,
+        transactionTime: data.transactionTime,
+        accountsCount: data.updateData?.updatedBalances?.length || 0,
+        positionsCount: data.updateData?.updatedPositions?.length || 0
+      }));
     });
   }
 

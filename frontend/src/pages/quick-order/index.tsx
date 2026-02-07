@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IconRefresh } from '@tabler/icons-react';
+import { IconRefresh, IconList } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { Button } from '../../components/mantine';
 import { useBinanceStore } from '../../stores/binance-store';
@@ -14,6 +14,7 @@ import { ApiKeySelector } from './components/api-key-selector';
 import { OpenPositionSection } from './components/open-position-section';
 import { ClosePositionSection } from './components/close-position-section';
 import { BalanceButton } from './components/balance-button';
+import PositionFloatingPanel from './components/position-floating-panel';
 import './index.scss';
 
 const DEFAULT_LEVERAGE = 20;
@@ -61,6 +62,7 @@ function QuickOrderPage() {
   const [custom_close_short_amount, setCustomCloseShortAmount] = useState('');
   const [custom_open_long_amount, setCustomOpenLongAmount] = useState('');
   const [custom_open_short_amount, setCustomOpenShortAmount] = useState('');
+  const [show_position_panel, setShowPositionPanel] = useState(true);
 
   const usdt_pairs = useBinanceStore(state => state.usdt_pairs);
   const api_key_list = useBinanceStore(state => state.api_key_list);
@@ -74,10 +76,28 @@ function QuickOrderPage() {
   const initialized = useBinanceStore(state => state.initialized);
   const connectSocket = useBinanceStore(state => state.connectSocket);
   const handle_account_update_ref = useRef<((data: any) => void) | null>(null);
+  const ticker_log_ref = useRef(0);
+  const account_log_ref = useRef(0);
 
   const current_price = ticker_prices[trading_pair]?.price || 0;
   const mark_price = ticker_prices[trading_pair]?.mark_price;
   const index_price = ticker_prices[trading_pair]?.index_price;
+
+  useEffect(() => {
+    const now = Date.now();
+    if (now - ticker_log_ref.current < 2000) {
+      return;
+    }
+    ticker_log_ref.current = now;
+    const store = useBinanceStore.getState();
+    console.log('[QuickOrder] Ticker snapshot', {
+      trading_pair,
+      current_price,
+      mark_price,
+      index_price,
+      socket_connected: store.socket?.connected
+    });
+  }, [trading_pair, current_price, mark_price, index_price]);
 
 
   // 使用 WebSocket 实时数据，如果没有数据则使用空默认值
@@ -96,6 +116,27 @@ function QuickOrderPage() {
     wallet_balance: 0,
     unrealized_profit: 0
   });
+
+  useEffect(() => {
+    const now = Date.now();
+    if (now - account_log_ref.current < 2000) {
+      return;
+    }
+    account_log_ref.current = now;
+    console.log('[QuickOrder] Account snapshot', {
+      available_balance: account_data.available_balance,
+      margin_balance: account_data.margin_balance,
+      wallet_balance: account_data.wallet_balance,
+      unrealized_profit: account_data.unrealized_profit,
+      positions_count: account_data.positions.length
+    });
+  }, [
+    account_data.available_balance,
+    account_data.margin_balance,
+    account_data.wallet_balance,
+    account_data.unrealized_profit,
+    account_data.positions.length
+  ]);
 
   const navigateToSettings = useCallback(() => {
     navigate(ROUTES.SETTINGS);
@@ -160,6 +201,13 @@ function QuickOrderPage() {
 
   const subscribeCurrentSymbol = useCallback(() => {
     const prev_pair = prev_trading_pair_ref.current;
+    const store = useBinanceStore.getState();
+    console.log('[QuickOrder] Subscribe ticker', {
+      trading_pair,
+      prev_pair,
+      socket_connected: store.socket?.connected,
+      subscribed_count: store.subscribed_tickers.size
+    });
     // 先取消旧订阅，再订阅新交易对
     if (prev_pair && prev_pair !== trading_pair) {
       unsubscribeTicker(prev_pair, 'usdm');
@@ -199,17 +247,22 @@ function QuickOrderPage() {
           console.error('[QuickOrder] 订阅失败:', data);
         });
 
+        console.log('[Account Update] 准备绑定 account_update 事件监听器');
         // 先绑定事件监听器（关键修复：必须在订阅前绑定，否则会错过消息）
         const handleAccountUpdate = (data: any) => {
+          console.log('[Account Update] 收到 WebSocket 消息:', JSON.stringify(data));
           if (!data) {
+            console.log('[Account Update] 数据为空，跳过处理');
             return;
           }
 
           // ACCOUNT_UPDATE 事件结构
           if (data.eventType === 'ACCOUNT_UPDATE') {
+            console.log('[Account Update] 确认为 ACCOUNT_UPDATE 事件，开始处理');
             // 币安推送的数据结构是 updateData.updatedBalances 和 updateData.updatedPositions
             const accounts = data.updateData?.updatedBalances || data.accounts || [];
             const positions = data.updateData?.updatedPositions || data.positions || [];
+            console.log('[Account Update] 账户数量:', accounts.length, '持仓数量:', positions.length);
 
             // 提取可用余额（使用 crossWalletBalance 或 walletBalance）
             let available_balance = 0;
@@ -223,6 +276,7 @@ function QuickOrderPage() {
                 available_balance = parseFloat(usdt_account.crossWalletBalance || usdt_account.walletBalance || usdt_account.availableBalance || '0');
                 margin_balance = parseFloat(usdt_account.marginBalance || usdt_account.balance || '0');
                 wallet_balance = parseFloat(usdt_account.walletBalance || usdt_account.balance || '0');
+                console.log('[Account Update] USDT 账户信息:', { available_balance, margin_balance, wallet_balance });
               }
             }
 
@@ -232,6 +286,7 @@ function QuickOrderPage() {
                 const profit = parseFloat(p.unrealisedPnl || p.unrealizedProfit || '0');
                 return sum + profit;
               }, 0);
+              console.log('[Account Update] 计算的未实现盈亏:', unrealized_profit);
             }
 
             // 过滤有效持仓（持仓数量不为0）
@@ -244,17 +299,22 @@ function QuickOrderPage() {
               unrealizedProfit: p.unrealisedPnl !== undefined ? p.unrealisedPnl : (p.unrealizedProfit || '0'),
               breakEvenPrice: p.bep !== undefined ? p.bep : p.breakEvenPrice,
             }));
+            console.log('[Account Update] 有效持仓数量:', valid_positions.length);
 
             // 直接更新本地 state
-            setAccountData({
+            const newAccountData = {
               available_balance,
               positions: valid_positions,
               today_profit_loss: 0,
               margin_balance,
               wallet_balance,
               unrealized_profit
-            });
+            };
+            console.log('[Account Update] 更新账户数据:', newAccountData);
+            setAccountData(newAccountData);
             setAccountLoading(false);
+          } else {
+            console.log('[Account Update] 非 ACCOUNT_UPDATE 事件，eventType:', data.eventType);
           }
         };
 
@@ -263,8 +323,15 @@ function QuickOrderPage() {
 
         // 绑定事件监听器
         store.socket.on('account_update', handleAccountUpdate);
+        console.log('[Account Update] account_update 事件监听器已绑定');
+
+        // 监听订阅状态确认
+        store.socket.on('user_stream_status', (statusData: any) => {
+          console.log('[Account Update] 收到 user_stream_status:', statusData);
+        });
 
         // 再发送订阅请求（关键修复：先绑定监听器，再订阅）
+        console.log('[Account Update] 发送 subscribe_user_stream 请求');
         store.socket.emit('subscribe_user_stream', {
           apiKey: active_api_key.api_key,
           apiSecret: active_api_key.api_secret,
@@ -728,7 +795,7 @@ function QuickOrderPage() {
     value: pair,
     label: pair
   }));
-  
+
   if (!trading_pair_options.some(o => o.value === 'BTCUSDT')) {
     trading_pair_options.unshift({ value: 'BTCUSDT', label: 'BTCUSDT' });
   }
@@ -767,7 +834,7 @@ function QuickOrderPage() {
       <div className="surface p-16 mb-16">
         <div className="flex items-center space-between">
           <div>
-            <h1 className="quick-order-page-title">快捷开单</h1>
+            <h1 className="quick-order-page-title">U本位快捷开单</h1>
             <p className="text-muted quick-order-page-desc">快速开仓、平仓、持平操作</p>
           </div>
         </div>
@@ -866,6 +933,26 @@ function QuickOrderPage() {
         on_balance_by_open_click={handleBalanceByOpenPosition}
         on_balance_by_close_click={handleBalanceByClosePosition}
       />
+
+      <PositionFloatingPanel
+        positions={account_data.positions}
+        ticker_prices={ticker_prices}
+        get_active_api_key={get_active_api_key}
+        show_message={showMessage}
+        is_visible={show_position_panel}
+        set_is_visible={setShowPositionPanel}
+      />
+
+      {!show_position_panel && (
+        <button
+          className="position-panel-toggle-btn"
+          onClick={() => setShowPositionPanel(true)}
+          title="打开持仓面板"
+        >
+          <IconList size={18} />
+          <span>持仓</span>
+        </button>
+      )}
 
       <div className="quick-order-sections quick-order-sections-close">
         <ClosePositionSection

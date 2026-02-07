@@ -381,6 +381,19 @@ class WebSocketConnectionManager extends EventEmitter {
         // listenKeyExpired: listenKey 过期
         if (data.eventType === 'ACCOUNT_UPDATE' || data.eventType === 'ORDER_TRADE_UPDATE') {
           UtilRecord.log(`[WSManager] 用户数据更新 ${subKey}: ${data.eventType}`);
+          // 打印 ACCOUNT_UPDATE 的详细数据
+          if (data.eventType === 'ACCOUNT_UPDATE') {
+            const updateData = data.updateData || {};
+            const balancesCount = updateData.updatedBalances?.length || 0;
+            const positionsCount = updateData.updatedPositions?.length || 0;
+            UtilRecord.log(`[WSManager] ACCOUNT_UPDATE 详情 - 余额数量: ${balancesCount}, 持仓数量: ${positionsCount}`);
+            if (balancesCount > 0) {
+              UtilRecord.log(`[WSManager] ACCOUNT_UPDATE updatedBalances:`, JSON.stringify(updateData.updatedBalances));
+            }
+            if (positionsCount > 0) {
+              UtilRecord.log(`[WSManager] ACCOUNT_UPDATE updatedPositions:`, JSON.stringify(updateData.updatedPositions));
+            }
+          }
           UtilRecord.log(`[WSManager] 转发 userDataUpdate 事件, apiKey: ${apiKey.substring(0, 8)}..., market: ${market}`);
           this.emit('userDataUpdate', { apiKey, market, data });
         } else if (data.eventType === 'listenKeyExpired') {
