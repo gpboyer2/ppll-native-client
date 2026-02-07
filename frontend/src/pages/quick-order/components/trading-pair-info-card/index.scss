@@ -1,7 +1,11 @@
 .trading-pair-info-card {
+  // flex: 1;
+  // background: color-mix(in srgb, var(--color-primary) 5%, var(--color-bg));
+  // border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+  // border-radius: var(--radius-md);
+  // overflow: hidden;
   flex: 1;
-  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-bg));
-  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+  background: var(--color-bg-muted);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
