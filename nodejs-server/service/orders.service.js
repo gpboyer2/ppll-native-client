@@ -241,7 +241,7 @@ const executeSingleOpen = async ({ symbol, side, amount, api_key, api_secret, ex
       }
     }
 
-    return { symbol, side, amount, success: true, order_id: orderResult.orderId };
+    return { symbol, side, amount, success: true, orderId: orderResult.orderId };
   } catch (error) {
     UtilRecord.error('开仓失败:', error);
     const friendlyMessage = formatOpenPositionError(error);
