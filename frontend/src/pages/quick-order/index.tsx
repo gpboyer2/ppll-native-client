@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { IconRefresh } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
@@ -17,6 +17,9 @@ import { BalanceButton } from './components/balance-button';
 import './index.scss';
 
 const DEFAULT_LEVERAGE = 20;
+
+// 账户数据轮询间隔（毫秒）- 币安价格波动不会触发 User Data Stream 推送
+const ACCOUNT_POLL_INTERVAL = 5000;
 
 type CloseSide = 'long' | 'short' | 'both';
 
@@ -69,10 +72,16 @@ function QuickOrderPage() {
   const set_active_api_key = useBinanceStore(state => state.set_active_api_key);
   const ticker_prices = useBinanceStore(state => state.ticker_prices);
   const subscribeTicker = useBinanceStore(state => state.subscribeTicker);
+  const switchTicker = useBinanceStore(state => state.switchTicker);
+  const unsubscribeTicker = useBinanceStore(state => state.unsubscribeTicker);
   const initialized = useBinanceStore(state => state.initialized);
+  const connectSocket = useBinanceStore(state => state.connectSocket);
+  const handle_account_update_ref = useRef<((data: any) => void) | null>(null);
+  const account_poll_timer_ref = useRef<NodeJS.Timeout | null>(null);
 
   const current_price = ticker_prices[trading_pair]?.price || 0;
 
+  // 使用 WebSocket 实时数据，如果没有数据则使用空默认值
   const [account_data, setAccountData] = useState<{
     available_balance: number;
     positions: AccountPosition[];
@@ -98,6 +107,7 @@ function QuickOrderPage() {
     }
   }, []);
 
+  // 初始化加载账户数据（使用 HTTP 获取一次）
   const loadAccountData = useCallback(async () => {
     const active_api_key = get_active_api_key();
     if (!active_api_key) {
@@ -131,13 +141,24 @@ function QuickOrderPage() {
     }
   }, [get_active_api_key, navigateToSettings, showMessage]);
 
-  const subscribeCurrentSymbol = useCallback(() => {
-    subscribeTicker(trading_pair, 'usdm');
-  }, [trading_pair, subscribeTicker]);
+  // 跟踪上一次的交易对，用于切换 ticker 订阅
+  const prev_trading_pair_ref = useRef<string | null>(null);
 
+  const subscribeCurrentSymbol = useCallback(() => {
+    const prev_pair = prev_trading_pair_ref.current;
+    // 先取消旧订阅，再订阅新交易对
+    if (prev_pair && prev_pair !== trading_pair) {
+      unsubscribeTicker(prev_pair, 'usdm');
+    }
+    subscribeTicker(trading_pair, 'usdm');
+    prev_trading_pair_ref.current = trading_pair;
+  }, [trading_pair, subscribeTicker, unsubscribeTicker]);
+
+  // 订阅用户数据流（直接使用 Socket.IO，不经过 Store）
   useEffect(() => {
     // 如果未完成初始化，等待完成
     if (!initialized) {
+      console.log('[QuickOrder] 等待 Binance Store 初始化完成');
       return;
     }
 
@@ -146,9 +167,196 @@ function QuickOrderPage() {
       navigateToSettings();
       return;
     }
-    loadAccountData();
-  }, [active_api_key_id, get_active_api_key, navigateToSettings, loadAccountData, initialized]);
 
+    console.log('[QuickOrder] 开始订阅用户数据流, API Key:', active_api_key.name || active_api_key.api_key?.substring(0, 8) + '...');
+
+    let is_subscribed = true;
+
+    // 连接 WebSocket 并订阅用户数据流
+    const initUserDataStream = async () => {
+      try {
+        await connectSocket();
+
+        // 从 Store 获取 socket 实例
+        const store = useBinanceStore.getState();
+        if (!is_subscribed || !store.socket) {
+          console.log('[QuickOrder] 组件已卸载或 socket 不可用，跳过订阅');
+          return;
+        }
+
+        console.log('[QuickOrder] Socket 已连接，准备绑定事件监听器');
+
+        // 监听所有 socket 消息（调试用）
+        store.socket.onAny((event: string, ...args: any[]) => {
+          const firstArg = args[0];
+          console.log('[QuickOrder] ===== Socket 收到任何事件 =====', {
+            event,
+            argsCount: args.length,
+            firstArgSummary: firstArg ? {
+              hasEventType: !!firstArg.eventType,
+              eventType: firstArg.eventType,
+              hasAccounts: !!firstArg.accounts,
+              hasPositions: !!firstArg.positions,
+              accountsCount: firstArg.accounts?.length || 0,
+              positionsCount: firstArg.positions?.length || 0,
+              keys: Object.keys(firstArg)
+            } : 'undefined',
+            firstArgString: firstArg ? JSON.stringify(firstArg, null, 2) : 'undefined',
+            timestamp: new Date().toISOString()
+          });
+        });
+
+        // 监听订阅成功确认
+        store.socket.on('subscribed_user_stream', (data: any) => {
+          console.log('[QuickOrder] ===== 订阅成功确认 =====', data);
+        });
+
+        // 监听 user_stream_status 事件（订阅状态响应）
+        store.socket.on('user_stream_status', (data: any) => {
+          console.log('[QuickOrder] ===== user_stream_status 事件 =====', JSON.stringify(data, null, 2));
+        });
+
+        // 监听订阅失败
+        store.socket.on('subscribe_error', (data: any) => {
+          console.error('[QuickOrder] ===== 订阅失败 =====', data);
+        });
+
+        // 监听连接状态变化
+        store.socket.on('connect', () => {
+          console.log('[QuickOrder] ===== Socket 连接成功 =====', { socketId: store.socket?.id });
+        });
+
+        store.socket.on('disconnect', (reason: string) => {
+          console.warn('[QuickOrder] ===== Socket 断开连接 =====', reason);
+        });
+
+        store.socket.on('error', (err: any) => {
+          console.error('[QuickOrder] ===== Socket 错误 =====', err);
+        });
+
+        // 检查 socket 连接状态
+        console.log('[QuickOrder] 当前 Socket 连接状态:', {
+          connected: store.socket.connected,
+          socketId: store.socket.id,
+          engine: store.socket.io?.engine?.transport?.name
+        });
+
+        // 先绑定事件监听器（关键修复：必须在订阅前绑定，否则会错过消息）
+        const handleAccountUpdate = (data: any) => {
+          console.log('[QuickOrder] ===== account_update 事件收到数据 =====');
+          console.log('[QuickOrder] eventType:', data?.eventType);
+          console.log('[QuickOrder] 完整数据结构:', JSON.stringify(data, null, 2));
+          console.log('[QuickOrder] 数据摘要:', {
+            hasData: !!data,
+            accountsCount: data?.accounts?.length || 0,
+            positionsCount: data?.positions?.length || 0,
+            timestamp: new Date().toISOString()
+          });
+
+          if (!data) {
+            console.warn('[QuickOrder] account_update 收到空数据');
+            return;
+          }
+
+          // ACCOUNT_UPDATE 事件结构
+          if (data.eventType === 'ACCOUNT_UPDATE') {
+            // 币安推送的数据结构是 updateData.updatedBalances 和 updateData.updatedPositions
+            const accounts = data.updateData?.updatedBalances || data.accounts || [];
+            const positions = data.updateData?.updatedPositions || data.positions || [];
+
+            // 提取可用余额（使用 crossWalletBalance 或 walletBalance）
+            let available_balance = 0;
+            if (accounts && accounts.length > 0) {
+              const usdt_account = accounts.find((acc: any) => acc.asset === 'USDT');
+              if (usdt_account) {
+                available_balance = parseFloat(usdt_account.crossWalletBalance || usdt_account.walletBalance || usdt_account.availableBalance || '0');
+              }
+            }
+
+            // 过滤有效持仓（持仓数量不为0）
+            const valid_positions = (positions || []).filter((p: any) => {
+              const amt = parseFloat(p.positionAmount || p.positionAmt || '0');
+              return amt !== 0;
+            }).map((p: any) => ({
+              ...p,
+              positionAmt: p.positionAmount !== undefined ? p.positionAmount : p.positionAmt,
+              unrealizedProfit: p.unrealisedPnl !== undefined ? p.unrealisedPnl : (p.unrealizedProfit || '0'),
+              breakEvenPrice: p.bep !== undefined ? p.bep : p.breakEvenPrice,
+            }));
+
+            console.log('[QuickOrder] 更新账户数据:', {
+              available_balance,
+              valid_positions_count: valid_positions.length
+            });
+
+            // 直接更新本地 state
+            setAccountData({
+              available_balance,
+              positions: valid_positions
+            });
+            setAccountLoading(false);
+          }
+        };
+
+        // 保存监听器引用到 ref，用于 cleanup
+        handle_account_update_ref.current = handleAccountUpdate;
+
+        // 绑定事件监听器
+        store.socket.on('account_update', handleAccountUpdate);
+        console.log('[QuickOrder] account_update 事件监听器已绑定');
+
+        // 再发送订阅请求（关键修复：先绑定监听器，再订阅）
+        store.socket.emit('subscribe_user_stream', {
+          apiKey: active_api_key.api_key,
+          apiSecret: active_api_key.api_secret,
+          market: 'usdm'
+        });
+        console.log('[QuickOrder] subscribe_user_stream 请求已发送');
+      } catch (err) {
+        console.error('[QuickOrder] 订阅用户数据流失败:', err);
+      }
+    };
+
+    // 初始加载一次数据（避免 WebSocket 初始延迟）
+    loadAccountData();
+    initUserDataStream();
+
+    // 启动定时轮询账户数据
+    // 原因：币安 User Data Stream 只在执行交易、资金划转等事件时推送
+    // 价格波动不会触发 ACCOUNT_UPDATE，因此需要定时轮询来更新持仓盈亏
+    account_poll_timer_ref.current = setInterval(() => {
+      loadAccountData();
+    }, ACCOUNT_POLL_INTERVAL);
+
+    // cleanup 函数
+    return () => {
+      console.log('[QuickOrder] 组件卸载，清理订阅');
+      is_subscribed = false;
+
+      // 清理定时轮询
+      if (account_poll_timer_ref.current) {
+        clearInterval(account_poll_timer_ref.current);
+        account_poll_timer_ref.current = null;
+        console.log('[QuickOrder] 账户数据轮询已停止');
+      }
+
+      const store = useBinanceStore.getState();
+      if (store.socket) {
+        // 只移除当前组件的监听器，不影响其他组件
+        if (handle_account_update_ref.current) {
+          store.socket.off('account_update', handle_account_update_ref.current);
+          console.log('[QuickOrder] account_update 事件监听器已移除');
+        }
+        store.socket.emit('unsubscribe_user_stream', {
+          apiKey: active_api_key.api_key,
+          market: 'usdm'
+        });
+        console.log('[QuickOrder] unsubscribe_user_stream 请求已发送');
+      }
+    };
+  }, [active_api_key_id, initialized, connectSocket, get_active_api_key, navigateToSettings, loadAccountData]);
+
+  // 切换交易对时更新 ticker 订阅
   useEffect(() => {
     subscribeCurrentSymbol();
   }, [subscribeCurrentSymbol]);
@@ -180,6 +388,36 @@ function QuickOrderPage() {
       .filter(p => parseFloat(p.positionAmt) < 0 && (p.positionSide === 'SHORT' || p.positionSide === 'BOTH'))
       .reduce((sum, p) => sum + Math.abs(parseFloat(p.notional)), 0);
   }, [current_pair_positions]);
+
+  // 计算多单实时盈亏（基于当前价格）
+  const long_profit = useMemo(() => {
+    if (!current_price) return null;
+    const long_pos = current_pair_positions.find(
+      p => parseFloat(p.positionAmt) > 0 && (p.positionSide === 'LONG' || p.positionSide === 'BOTH')
+    );
+    if (!long_pos) return null;
+
+    const entryPrice = parseFloat(long_pos.entryPrice);
+    const positionAmt = parseFloat(long_pos.positionAmt);
+    const unrealizedProfit = (current_price - entryPrice) * positionAmt;
+
+    return unrealizedProfit;
+  }, [current_price, current_pair_positions]);
+
+  // 计算空单实时盈亏（基于当前价格）
+  const short_profit = useMemo(() => {
+    if (!current_price) return null;
+    const short_pos = current_pair_positions.find(
+      p => parseFloat(p.positionAmt) < 0 && (p.positionSide === 'SHORT' || p.positionSide === 'BOTH')
+    );
+    if (!short_pos) return null;
+
+    const entryPrice = parseFloat(short_pos.entryPrice);
+    const positionAmt = parseFloat(short_pos.positionAmt);
+    const unrealizedProfit = (entryPrice - current_price) * Math.abs(positionAmt);
+
+    return unrealizedProfit;
+  }, [current_price, current_pair_positions]);
 
   // 当前交易对的多头持仓（用于平仓）
   const current_pair_long_positions = useMemo(() => {
@@ -232,7 +470,7 @@ function QuickOrderPage() {
 
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓操作已提交');
-        await loadAccountData();
+        // WebSocket 会自动更新账户数据，无需手动调用 loadAccountData
       } else {
         showMessage(response.message || '开仓失败', 'error');
       }
@@ -282,7 +520,7 @@ function QuickOrderPage() {
 
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓操作已提交');
-        await loadAccountData();
+        // WebSocket 会自动更新账户数据，无需手动调用 loadAccountData
       } else {
         showMessage(response.message || '平仓失败', 'error');
       }
@@ -344,7 +582,7 @@ function QuickOrderPage() {
 
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓操作已提交');
-        await loadAccountData();
+        // WebSocket 会自动更新账户数据，无需手动调用 loadAccountData
         if (side === 'long') {
           setCustomCloseLongAmount('');
         }
@@ -389,7 +627,7 @@ function QuickOrderPage() {
 
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓操作已提交');
-        await loadAccountData();
+        // WebSocket 会自动更新账户数据，无需手动调用 loadAccountData
         if (side === 'long') {
           setCustomOpenLongAmount('');
         }
@@ -450,7 +688,7 @@ function QuickOrderPage() {
 
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓持平完成');
-        await loadAccountData();
+        // WebSocket 会自动更新账户数据，无需手动调用 loadAccountData
       } else {
         showMessage(response.message || '开仓持平失败', 'error');
       }
@@ -529,7 +767,7 @@ function QuickOrderPage() {
 
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓持平完成');
-        await loadAccountData();
+        // WebSocket 会自动更新账户数据，无需手动调用 loadAccountData
       } else {
         showMessage(response.message || '平仓持平失败', 'error');
       }
@@ -579,10 +817,6 @@ function QuickOrderPage() {
     setTradingPair(value);
   };
 
-  const handleApiKeySelect = (id: string) => {
-    set_active_api_key(id);
-  };
-
   return (
     <div className="container">
       <div className="surface p-16 mb-16">
@@ -626,6 +860,8 @@ function QuickOrderPage() {
               current_pair_long_amount={current_pair_long_amount}
               current_pair_short_amount={current_pair_short_amount}
               current_pair_positions={current_pair_positions}
+              long_profit={long_profit}
+              short_profit={short_profit}
               on_trading_pair_change={handleTradingPairChange}
               on_leverage_change={handleLeverageChange}
             />
@@ -675,7 +911,7 @@ function QuickOrderPage() {
       </div>
 
       <BalanceButton
-        disabled={loading || account_loading}
+        disabled={loading}
         on_balance_by_open_click={handleBalanceByOpenPosition}
         on_balance_by_close_click={handleBalanceByClosePosition}
       />

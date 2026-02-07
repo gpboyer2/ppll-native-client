@@ -45,6 +45,8 @@ const init = (server, wsManagerInstance) => {
     socket.on('subscribe_user_stream', async (data) => {
       const { apiKey, apiSecret, market = 'usdm' } = data;
 
+      UtilRecord.log(`[SocketIO] 收到 subscribe_user_stream 请求, apiKey: ${apiKey ? apiKey.substring(0, 8) + '...' : 'undefined'}, market: ${market}`);
+
       if (!apiKey || !apiSecret) {
         socket.emit('error', { message: '缺少必要参数: apiKey, apiSecret' });
         return;
@@ -58,7 +60,8 @@ const init = (server, wsManagerInstance) => {
       try {
         await wsManager.subscribeUserData(apiKey, apiSecret, market);
         socket.emit('user_stream_status', { status: 'connected', apiKey, market });
-        UtilRecord.log(`[SocketIO] Socket ${socket.id} 订阅用户数据流 ${subKey}`);
+        UtilRecord.log(`[SocketIO] Socket ${socket.id} 订阅用户数据流 ${subKey} 成功`);
+        UtilRecord.log(`[SocketIO] Socket 已加入房间: user:${apiKey}:${market}`);
       } catch (err) {
         UtilRecord.log(`[SocketIO] 订阅用户数据流失败 ${subKey}: ${err?.message || err}`);
         socket.emit('error', { message: `订阅失败: ${err?.message || err}` });
@@ -112,7 +115,7 @@ const init = (server, wsManagerInstance) => {
       // 订阅标记价格
       wsManager.subscribeMarkPrice(symbol);
       socket.emit('ticker_status', { status: 'connected', symbol, market });
-      UtilRecord.log(`[SocketIO] Socket ${socket.id} 订阅 Ticker ${subKey}`);
+      UtilRecord.log(`[SocketIO] Socket ${socket.id} 订阅 Ticker ${subKey}, 房间: ${room}`);
     });
 
     /**
@@ -222,7 +225,9 @@ const init = (server, wsManagerInstance) => {
   // 注意：防止多次绑定
   if (!wsManager.listenerCount('userDataUpdate')) {
     wsManager.on('userDataUpdate', ({ apiKey, market, data }) => {
-      io.to(`user:${apiKey}:${market}`).emit('account_update', data);
+      const room = `user:${apiKey}:${market}`;
+      UtilRecord.log(`[SocketIO] 收到 userDataUpdate，转发到房间 ${room}, eventType: ${data.eventType}`);
+      io.to(room).emit('account_update', data);
     });
   }
 
@@ -230,12 +235,11 @@ const init = (server, wsManagerInstance) => {
   if (!wsManager.listenerCount('tick')) {
     wsManager.on('tick', ({ market, symbol, latestPrice, raw }) => {
       const room = `ticker:${market}:${symbol}`;
-      // 生产环境减少日志输出
-      if (!IS_PRODUCTION) {
-        const roomSockets = io.sockets.adapter.rooms.get(room);
-        if (roomSockets && roomSockets.size > 0) {
-          UtilRecord.trace(`[SocketIO] 发送 ticker_update 到房间 ${room}: ${latestPrice}`);
-        }
+      const roomSockets = io.sockets.adapter.rooms.get(room);
+      const socketCount = roomSockets ? roomSockets.size : 0;
+      // 只在有客户端订阅时输出日志
+      if (socketCount > 0) {
+        UtilRecord.log(`[SocketIO] 发送 ticker_update 到房间 ${room} (${socketCount} 个客户端): ${latestPrice}`);
       }
       io.to(room).emit('ticker_update', { symbol, market, price: latestPrice, raw });
     });

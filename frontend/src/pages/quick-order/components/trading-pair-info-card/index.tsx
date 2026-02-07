@@ -10,6 +10,8 @@ export interface TradingPairInfoCardProps {
   current_pair_long_amount: number;
   current_pair_short_amount: number;
   current_pair_positions: AccountPosition[];
+  long_profit?: number | null;
+  short_profit?: number | null;
   on_trading_pair_change: (value: string) => void;
   on_leverage_change: (value: number) => void;
 }
@@ -23,6 +25,8 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
     current_pair_long_amount,
     current_pair_short_amount,
     current_pair_positions,
+    long_profit,
+    short_profit,
     on_trading_pair_change,
     on_leverage_change
   } = props;
@@ -141,7 +145,9 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
             </div>
             <div className="trading-pair-info-card-price-item">
               <span className="trading-pair-info-card-price-label">盈利</span>
-              <span className={`trading-pair-info-card-price-value ${getProfitClassName(long_position?.unrealizedProfit)}`}>{formatProfit(long_position?.unrealizedProfit)}</span>
+              <span className={`trading-pair-info-card-price-value ${getProfitClassName(typeof long_profit === 'number' ? String(long_profit) : long_position?.unrealizedProfit)}`}>
+                {typeof long_profit === 'number' ? formatProfit(String(long_profit)) : formatProfit(long_position?.unrealizedProfit)}
+              </span>
             </div>
           </div>
         </div>
@@ -162,7 +168,9 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
             </div>
             <div className="trading-pair-info-card-price-item">
               <span className="trading-pair-info-card-price-label">盈利</span>
-              <span className={`trading-pair-info-card-price-value ${getProfitClassName(short_position?.unrealizedProfit)}`}>{formatProfit(short_position?.unrealizedProfit)}</span>
+              <span className={`trading-pair-info-card-price-value ${getProfitClassName(typeof short_profit === 'number' ? String(short_profit) : short_position?.unrealizedProfit)}`}>
+                {typeof short_profit === 'number' ? formatProfit(String(short_profit)) : formatProfit(short_position?.unrealizedProfit)}
+              </span>
             </div>
           </div>
         </div>

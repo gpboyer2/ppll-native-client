@@ -352,6 +352,7 @@ class WebSocketConnectionManager extends EventEmitter {
    */
   async subscribeUserData(apiKey, apiSecret, market = 'usdm') {
     const subKey = `user:${apiKey}:${market}`;
+    UtilRecord.log(`[WSManager] 开始订阅用户数据流, apiKey: ${apiKey.substring(0, 8)}..., market: ${market}`);
 
     // 检查是否已存在订阅
     if (this.userDataSubs.has(subKey)) {
@@ -377,14 +378,15 @@ class WebSocketConnectionManager extends EventEmitter {
     // 监听用户数据流事件
     websocketClient.on('formattedMessage', (data) => {
       try {
+        // 添加日志，记录所有收到的消息（包括非 ACCOUNT_UPDATE 事件）
+        UtilRecord.log(`[WSManager] 收到 formattedMessage: ${subKey}, eventType: ${data.eventType || 'undefined'}`);
+
         // ACCOUNT_UPDATE: 账户余额和持仓更新
         // ORDER_TRADE_UPDATE: 订单更新
         // listenKeyExpired: listenKey 过期
         if (data.eventType === 'ACCOUNT_UPDATE' || data.eventType === 'ORDER_TRADE_UPDATE') {
-          // 生产环境减少日志输出
-          if (!IS_PRODUCTION) {
-            UtilRecord.log(`[WSManager] 用户数据更新 ${subKey}:`, data.eventType);
-          }
+          UtilRecord.log(`[WSManager] 用户数据更新 ${subKey}: ${data.eventType}`);
+          UtilRecord.log(`[WSManager] 转发 userDataUpdate 事件, apiKey: ${apiKey.substring(0, 8)}..., market: ${market}`);
           this.emit('userDataUpdate', { apiKey, market, data });
         } else if (data.eventType === 'listenKeyExpired') {
           UtilRecord.log(`[WSManager] listenKey 已过期 ${subKey}，需要重新订阅`);
@@ -395,19 +397,19 @@ class WebSocketConnectionManager extends EventEmitter {
     });
 
     websocketClient.on('open', (data) => {
-      UtilRecord.log(`[WSManager] 用户数据流已连接 ${subKey} wsKey=${data?.wsKey || ''}`);
+      UtilRecord.log(`[WSManager] 用户数据流 WebSocket 已打开: ${subKey}, wsKey=${data?.wsKey || ''}`);
     });
 
     websocketClient.on('reconnecting', (data) => {
-      UtilRecord.log(`[WSManager] 用户数据流重连中 ${subKey}`);
+      UtilRecord.log(`[WSManager] 用户数据流 WebSocket 重连中: ${subKey}`);
     });
 
     websocketClient.on('reconnected', (data) => {
-      UtilRecord.log(`[WSManager] 用户数据流已重连 ${subKey}`);
+      UtilRecord.log(`[WSManager] 用户数据流 WebSocket 已重连: ${subKey}`);
     });
 
     websocketClient.on('error', (data) => {
-      UtilRecord.log(`[WSManager] 用户数据流错误 ${subKey}:`, data);
+      UtilRecord.log(`[WSManager] 用户数据流 WebSocket 错误: ${subKey}, error:`, data);
       this.emit('error', { key: subKey, data });
     });
 

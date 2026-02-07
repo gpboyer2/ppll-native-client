@@ -35,7 +35,7 @@ export function OpenPositionSection(props: OpenPositionSectionProps): JSX.Elemen
       </div>
       <AmountButtons
         amounts={QUICK_AMOUNTS}
-        disabled={loading || account_loading}
+        disabled={loading}
         button_class_name={button_class}
         on_amount_click={on_amount_click}
       />
@@ -44,14 +44,14 @@ export function OpenPositionSection(props: OpenPositionSectionProps): JSX.Elemen
           placeholder="自定义金额"
           value={custom_amount}
           onChange={(value) => on_custom_amount_change(String(value))}
-          disabled={loading || account_loading}
+          disabled={loading}
           min={0}
           className="quick-order-open-amount-input"
         />
         <Button
           className={`quick-order-button ${button_class} quick-order-open-btn`}
           onClick={on_open_click}
-          disabled={loading || account_loading || !custom_amount}
+          disabled={loading || !custom_amount}
         >
           {label}
         </Button>

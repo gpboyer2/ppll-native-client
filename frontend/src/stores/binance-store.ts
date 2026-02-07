@@ -33,6 +33,7 @@ export interface TickerPrice {
     timestamp: number;
 }
 
+
 interface BinanceStore {
     // 状态
     api_key_list: BinanceApiKey[];
@@ -47,6 +48,7 @@ interface BinanceStore {
     socket: Socket | null;
     ticker_prices: Record<string, TickerPrice>; // symbol -> price
     subscribed_tickers: Set<string>; // 已订阅的 ticker
+
 
     // Actions
     init: () => Promise<void>;
@@ -64,6 +66,7 @@ interface BinanceStore {
     unsubscribeTicker: (symbol: string, market?: string) => void;
     switchTicker: (oldSymbol: string | null, newSymbol: string, market?: string) => void;
     getTickerPrice: (symbol: string) => number | null;
+
 }
 
 
@@ -307,6 +310,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
         // 监听 ticker 更新
         new_socket.on('ticker_update', (data: any) => {
+          console.log('[binance-store] ticker_update 收到:', data);
           const { symbol, price, market } = data;
           if (symbol && price) {
             set({
@@ -320,6 +324,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
                 }
               }
             });
+            console.log('[binance-store] ticker 价格已更新:', symbol, price);
           }
         });
 
@@ -328,6 +333,8 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
           // 触发自定义事件，让其他组件能监听到
           window.dispatchEvent(new CustomEvent('strategy-status-update', { detail: data }));
         });
+
+        // 账户更新事件由组件直接订阅，不在 Store 中处理
 
         set({ socket: new_socket });
       });
@@ -343,9 +350,14 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
   // 断开 WebSocket
   disconnectSocket: () => {
     const { socket } = get();
+
     if (socket) {
       socket.disconnect();
-      set({ socket: null, ticker_prices: {}, subscribed_tickers: new Set() });
+      set({
+        socket: null,
+        ticker_prices: {},
+        subscribed_tickers: new Set()
+      });
     }
   },
 
@@ -393,11 +405,21 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
     });
   },
 
-  // 切换 ticker 订阅
+  // 切换 ticker 订阅（先取消旧的，再订阅新的）
   switchTicker: (oldSymbol: string | null, newSymbol: string, market = 'usdm') => {
-    if (oldSymbol && oldSymbol !== newSymbol) {
+    const { socket, subscribed_tickers } = get();
+    if (!socket?.connected) {
+      return;
+    }
+
+    // 自动取消旧的订阅
+    const oldSubKey = oldSymbol ? `${market}:${oldSymbol}` : null;
+    const newSubKey = `${market}:${newSymbol}`;
+
+    if (oldSymbol && oldSubKey !== newSubKey && oldSubKey !== null && subscribed_tickers.has(oldSubKey)) {
       get().unsubscribeTicker(oldSymbol, market);
     }
+
     get().subscribeTicker(newSymbol, market);
   },
 
