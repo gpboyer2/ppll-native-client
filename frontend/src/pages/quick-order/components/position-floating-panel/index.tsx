@@ -203,7 +203,7 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
               const is_closing = closing_positions.has(p.symbol);
 
               return (
-                <div key={p.symbol} className="position-floating-panel-item">
+                <div key={`${p.symbol}-${p.positionSide}`} className="position-floating-panel-item">
                   <div className="position-floating-panel-item-main">
                     <div className="position-floating-panel-symbol">{p.symbol}</div>
                     <div className={`position-floating-panel-side ${is_long ? 'side-long' : 'side-short'}`}>

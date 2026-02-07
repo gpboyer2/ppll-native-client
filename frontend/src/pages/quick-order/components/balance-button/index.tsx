@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { IconArrowUp, IconArrowDown } from '@tabler/icons-react';
-import { Button } from '../../../../components/mantine';
+import { Button, ConfirmModal } from '../../../../components/mantine';
 
 export interface BalanceButtonProps {
   disabled: boolean;
@@ -10,29 +11,62 @@ export interface BalanceButtonProps {
 export function BalanceButton(props: BalanceButtonProps): JSX.Element {
   const { disabled, on_balance_by_open_click, on_balance_by_close_click } = props;
 
+  const [showOpenConfirm, setShowOpenConfirm] = useState(false);
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+
+  const handleOpenConfirm = () => {
+    setShowOpenConfirm(false);
+    on_balance_by_open_click();
+  };
+
+  const handleCloseConfirm = () => {
+    setShowCloseConfirm(false);
+    on_balance_by_close_click();
+  };
+
   return (
-    <div className="quick-order-balance">
-      <div className="quick-order-balance-buttons-group">
-        <Button
-          className="quick-order-balance-btn quick-order-balance-btn-open"
-          onClick={on_balance_by_open_click}
-          disabled={disabled}
-          title="通过建仓方式使多空仓位相等"
-        >
-          <IconArrowUp size={16} />
-          <span>开仓持平 (通过建仓方式使多空仓位相等)</span>
-        </Button>
-        <div className="quick-order-balance-divider" />
-        <Button
-          className="quick-order-balance-btn quick-order-balance-btn-close"
-          onClick={on_balance_by_close_click}
-          disabled={disabled}
-          title="通过减仓平仓方式使多空仓位相等"
-        >
-          <IconArrowDown size={16} />
-          <span>平仓持平 (通过减仓平仓方式使多空仓位相等)</span>
-        </Button>
+    <>
+      <div className="quick-order-balance">
+        <div className="quick-order-balance-buttons-group">
+          <Button
+            className="quick-order-balance-btn quick-order-balance-btn-open"
+            onClick={() => setShowOpenConfirm(true)}
+            disabled={disabled}
+            title="通过建仓方式使多空仓位相等"
+          >
+            <IconArrowUp size={16} />
+            <span>开仓持平 (通过建仓方式使多空仓位相等)</span>
+          </Button>
+          <div className="quick-order-balance-divider" />
+          <Button
+            className="quick-order-balance-btn quick-order-balance-btn-close"
+            onClick={() => setShowCloseConfirm(true)}
+            disabled={disabled}
+            title="通过减仓平仓方式使多空仓位相等"
+          >
+            <IconArrowDown size={16} />
+            <span>平仓持平 (通过减仓平仓方式使多空仓位相等)</span>
+          </Button>
+        </div>
       </div>
-    </div>
+      <ConfirmModal
+        opened={showOpenConfirm}
+        onClose={() => setShowOpenConfirm(false)}
+        onConfirm={handleOpenConfirm}
+        title="确认开仓持平"
+        content="通过建仓方式使多空仓位相等，是否继续？"
+        confirmText="确认"
+        cancelText="取消"
+      />
+      <ConfirmModal
+        opened={showCloseConfirm}
+        onClose={() => setShowCloseConfirm(false)}
+        onConfirm={handleCloseConfirm}
+        title="确认平仓持平"
+        content="通过减仓平仓方式使多空仓位相等，是否继续？"
+        confirmText="确认"
+        cancelText="取消"
+      />
+    </>
   );
 }

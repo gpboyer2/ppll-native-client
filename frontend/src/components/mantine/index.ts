@@ -17,9 +17,9 @@ export * from './Button';
 export * from './Card';
 export * from './Input';
 export * from './Select';
+export * from './Modal';
 
 // 其他组件可以根据需要逐步添加
-// export * from './Modal';
 // export * from './Notification';
 // export * from './Table';
 // export * from './Form';
