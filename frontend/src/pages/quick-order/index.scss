@@ -413,39 +413,3 @@
 .spinning {
   animation: spin 1s linear infinite;
 }
-
-@media (max-width: 768px) {
-  .quick-order-card-content {
-    flex-direction: column;
-    gap: 16px;
-  }
-
-  .quick-order-controls {
-    width: 100%;
-    flex: none;
-  }
-
-  .quick-order-control-group {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .quick-order-control-suffix {
-    position: absolute;
-    right: 8px;
-    top: 50%;
-    transform: translateY(-50%);
-  }
-
-  .quick-order-display {
-    flex-wrap: wrap;
-  }
-
-  .quick-order-display-item {
-    min-width: calc(50% - 8px);
-  }
-
-  .quick-order-sections {
-    flex-direction: column;
-  }
-}

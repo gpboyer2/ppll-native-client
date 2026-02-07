@@ -49,32 +49,48 @@ function RouteLogger() {
 function ApiKeyGuard({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { api_key_list, initialized, init } = useBinanceStore();
+  const { api_key_list, initialized, loading, is_initializing, init } = useBinanceStore();
   const hasShownNotification = useRef(false);
+
+  console.log('[ApiKeyGuard] 组件渲染', { initialized, api_key_list_length: api_key_list.length, pathname: location.pathname, loading, is_initializing });
 
   useEffect(() => {
     // 初始化 binance store
+    console.log('[ApiKeyGuard] useEffect 触发，准备调用 init()');
     init();
   }, [init]);
 
   useEffect(() => {
-    // 如果未完成初始化，等待完成
-    if (!initialized) {
+    console.log('[ApiKeyGuard.useEffect] 检查触发', { is_initializing, loading, initialized, api_key_list_length: api_key_list.length, pathname: location.pathname });
+
+    // 如果正在初始化中，等待完成
+    if (is_initializing || loading) {
+      console.log('[ApiKeyGuard] 正在初始化中，等待完成', { is_initializing, loading });
       return;
     }
 
+    // 如果未完成初始化，等待完成
+    if (!initialized) {
+      console.log('[ApiKeyGuard] initialized=false，等待初始化完成');
+      return;
+    }
+    console.log('[ApiKeyGuard] initialized=true，检查 API Key 配置');
+
     // 如果当前已经在设置页面，不需要检查和跳转
     if (location.pathname === ROUTES.SETTINGS) {
+      console.log('[ApiKeyGuard] 当前在设置页面，跳过检查');
       return;
     }
 
     // 检查是否已配置 API Key
     if (api_key_list.length === 0) {
+      console.log('[ApiKeyGuard] api_key_list.length=0，准备跳转到设置页面');
       // 跳转到设置页面
       navigate(ROUTES.SETTINGS, { replace: true });
 
       // 显示通知（只显示一次）
       if (!hasShownNotification.current) {
+        console.log('[ApiKeyGuard] 显示 API Key 配置通知');
         notifications.show({
           title: '请先配置 API Key',
           message: '欢迎使用 PPLL 量化交易客户端！为了正常使用系统功能，请先配置 Binance API Key。',
@@ -84,10 +100,11 @@ function ApiKeyGuard({ children }: { children: React.ReactNode }) {
         hasShownNotification.current = true;
       }
     } else {
+      console.log('[ApiKeyGuard] api_key_list.length > 0，重置 hasShownNotification');
       // 重置标志位，以便下次删除所有 API Key 后能再次显示通知
       hasShownNotification.current = false;
     }
-  }, [api_key_list.length, initialized, location.pathname, navigate]);
+  }, [api_key_list.length, initialized, location.pathname, navigate, is_initializing, loading]);
 
   return <>{children}</>;
 }

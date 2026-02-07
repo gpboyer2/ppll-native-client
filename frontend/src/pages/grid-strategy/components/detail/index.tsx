@@ -51,7 +51,7 @@ function GridStrategyDetailPage() {
   const has_loaded_ref = useRef(false);
   const interval_ref = useRef<NodeJS.Timeout | null>(null);
 
-  const { ticker_prices, subscribeTicker, unsubscribeTicker, initialized: binance_initialized, connectSocket } = useBinanceStore();
+  const { ticker_prices, subscribeTicker, unsubscribeTicker, initialized: binance_initialized, connectSocket, is_initializing } = useBinanceStore();
 
   const loadStrategyDetail = useCallback(async () => {
     if (!strategy_id) return;
@@ -59,6 +59,11 @@ function GridStrategyDetailPage() {
     try {
       // 从 binance-store 获取所有 API Key
       const { api_key_list } = useBinanceStore.getState();
+
+      // 如果正在初始化中，等待完成
+      if (is_initializing) {
+        return;
+      }
 
       if (!api_key_list || api_key_list.length === 0) {
         showError('请先在币安 API Key 管理中添加 API Key');
@@ -104,7 +109,7 @@ function GridStrategyDetailPage() {
     } finally {
       setLoading(false);
     }
-  }, [strategy_id, navigate]);
+  }, [strategy_id, navigate, is_initializing]);
 
   const handleRefresh = async () => {
     setRefreshing(true);

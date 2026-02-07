@@ -269,21 +269,21 @@ const displayAccountInfo = () => {
     <div class="account-summary">
       <div class="account-item">
         <label>总钱包余额:</label>
-        <span class="value">${formatNumber(accountData.total_wallet_balance)} USDT</span>
+        <span class="value">${formatNumber(accountData.totalWalletBalance)} USDT</span>
       </div>
       <div class="account-item">
         <label>未实现盈亏:</label>
-        <span class="value ${parseFloat(accountData.total_unrealized_profit || '0') >= 0 ? 'positive' : 'negative'}">
-          ${formatNumber(accountData.total_unrealized_profit)} USDT
+        <span class="value ${parseFloat(accountData.totalUnrealizedProfit || '0') >= 0 ? 'positive' : 'negative'}">
+          ${formatNumber(accountData.totalUnrealizedProfit)} USDT
         </span>
       </div>
       <div class="account-item">
         <label>保证金余额:</label>
-        <span class="value">${formatNumber(accountData.total_margin_balance)} USDT</span>
+        <span class="value">${formatNumber(accountData.totalMarginBalance)} USDT</span>
       </div>
       <div class="account-item">
         <label>可用余额:</label>
-        <span class="value">${formatNumber(accountData.available_balance)} USDT</span>
+        <span class="value">${formatNumber(accountData.availableBalance)} USDT</span>
       </div>
     </div>
 

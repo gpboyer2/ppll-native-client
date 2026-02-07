@@ -50,7 +50,7 @@ interface BinanceStore {
 
     // Actions
     init: () => Promise<void>;
-    refreshApiKeys: () => Promise<void>;
+    refreshApiKeys: () => Promise<boolean>;
     refreshTradingPairs: () => Promise<void>;
     getApiKeyById: (id: number) => BinanceApiKey | undefined;
     set_active_api_key: (id: string) => void; // 设置当前激活的 API Key
@@ -121,21 +121,29 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
   ticker_prices: {},
   subscribed_tickers: new Set(),
 
-  // 初始化：先获取 API Key 列表，成功且有数据时才获取交易对
+  // 初始化：先获取 API Key 列表，成功获取后才设置 initialized
   init: async () => {
-    const { loading, api_key_list, usdt_pairs, is_initializing } = get();
+    const { loading, api_key_list, usdt_pairs, is_initializing, initialized } = get();
+    console.log('[binance-store.init] 方法开始', { loading, api_key_list_length: api_key_list.length, usdt_pairs_length: usdt_pairs.length, is_initializing, initialized });
     // 如果正在加载、正在初始化或已经成功初始化且有数据，则跳过
-    if (loading || is_initializing || (api_key_list.length > 0 && usdt_pairs.length > 0)) return;
+    if (loading || is_initializing || (api_key_list.length > 0 && usdt_pairs.length > 0)) {
+      console.log('[binance-store.init] 跳过初始化', { loading, is_initializing, api_key_list_length: api_key_list.length, usdt_pairs_length: usdt_pairs.length });
+      return;
+    }
 
     set({ loading: true, is_initializing: true });
+    console.log('[binance-store.init] 设置 loading=true, is_initializing=true');
 
     try {
       // 先获取 API Key 列表
-      await get().refreshApiKeys();
+      console.log('[binance-store.init] 准备调用 refreshApiKeys');
+      const api_key_loaded = await get().refreshApiKeys();
+      console.log('[binance-store.init] refreshApiKeys 返回', { api_key_loaded, api_key_list_length: get().api_key_list.length });
 
       // 从 localStorage 恢复 active_api_key_id
       const saved_id = localStorage.getItem('active_api_key_id');
       const after_api_keys = get().api_key_list;
+      console.log('[binance-store.init] API Key 列表状态', { api_key_list_length: after_api_keys.length, saved_id });
 
       if (after_api_keys.length > 0) {
         // 优先使用保存的 API Key ID
@@ -151,28 +159,46 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
         await get().refreshTradingPairs();
       }
 
-      set({ initialized: true, loading: false, is_initializing: false });
+      // 只有成功获取 API Key 列表后才设置 initialized
+      if (api_key_loaded) {
+        console.log('[binance-store.init] 设置 initialized=true, loading=false, is_initializing=false');
+        set({ initialized: true, loading: false, is_initializing: false });
+      } else {
+        console.log('[binance-store.init] 设置 loading=false, is_initializing=false (api_key_loaded=false)');
+        set({ loading: false, is_initializing: false });
+      }
     } catch (error) {
-      console.error('初始化币安数据失败:', error);
+      console.error('[binance-store.init] 初始化币安数据失败:', error);
       set({ loading: false, is_initializing: false });
     }
   },
 
-  // 刷新 API Key 列表（静默模式，不显示错误）
+  // 刷新 API Key 列表，返回是否成功加载
   refreshApiKeys: async () => {
+    console.log('[binance-store.refreshApiKeys] 方法开始');
     const nodejs_url = await getNodejsUrl();
 
-    if (!nodejs_url) return;
+    if (!nodejs_url) {
+      console.log('[binance-store.refreshApiKeys] nodejs_url 为空，返回 false');
+      return false;
+    }
 
     try {
+      console.log('[binance-store.refreshApiKeys] 准备发送 API 请求 BinanceApiKeyApi.query');
       const response = await BinanceApiKeyApi.query();
+      console.log('[binance-store.refreshApiKeys] API 响应', { status: response.status, hasDatum: !!response.datum, listLength: response.datum?.list?.length });
 
       // 后端返回字段名直接使用，不做任何转换
       if (response.status === 'success' && response.datum?.list) {
+        console.log('[binance-store.refreshApiKeys] 设置 api_key_list, 长度:', response.datum.list.length);
         set({ api_key_list: response.datum.list });
+        return true;
       }
+      console.log('[binance-store.refreshApiKeys] 响应 status 不是 success 或没有 list，返回 false');
+      return false;
     } catch (error) {
-      // 静默模式，不显示错误
+      console.error('[binance-store.refreshApiKeys] 获取 API Key 列表失败:', error);
+      return false;
     }
   },
 
