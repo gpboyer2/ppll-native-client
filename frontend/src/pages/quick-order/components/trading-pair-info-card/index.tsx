@@ -1,18 +1,27 @@
+import { Select, NumberInput } from '../../../../components/mantine';
 import './index.scss';
 
 export interface TradingPairInfoCardProps {
-  current_price: number | string;
+  trading_pair: string;
   leverage: number;
+  trading_pair_options: Array<{ value: string; label: string }>;
+  current_price: number | string;
   current_pair_long_amount: number;
   current_pair_short_amount: number;
+  on_trading_pair_change: (value: string) => void;
+  on_leverage_change: (value: number) => void;
 }
 
 export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Element {
   const {
-    current_price,
+    trading_pair,
     leverage,
+    trading_pair_options,
+    current_price,
     current_pair_long_amount,
-    current_pair_short_amount
+    current_pair_short_amount,
+    on_trading_pair_change,
+    on_leverage_change
   } = props;
 
   const price_text = !current_price ? '--' : Number(current_price).toFixed(2);
@@ -22,17 +31,35 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
       <div className="trading-pair-info-card-header">
         <span className="trading-pair-info-card-title">交易对信息</span>
       </div>
+      <div className="trading-pair-info-card-controls">
+        <div className="trading-pair-info-card-control-group">
+          <label className="trading-pair-info-card-control-label">交易对</label>
+          <Select
+            placeholder="选择交易对"
+            value={trading_pair}
+            onChange={(value) => on_trading_pair_change(value || 'BTCUSDT')}
+            data={trading_pair_options}
+            className="trading-pair-info-card-select"
+          />
+        </div>
+        <div className="trading-pair-info-card-control-group">
+          <label className="trading-pair-info-card-control-label">杠杆</label>
+          <NumberInput
+            placeholder="杠杆"
+            value={leverage}
+            onChange={(value) => on_leverage_change(Math.max(1, Math.min(125, parseInt(String(value)) || 1)))}
+            min={1}
+            max={125}
+            className="trading-pair-info-card-number-input"
+          />
+          <span className="trading-pair-info-card-control-suffix">x</span>
+        </div>
+      </div>
       <div className="trading-pair-info-card-content">
         <div className="trading-pair-info-card-item">
           <span className="trading-pair-info-card-label">当前价格</span>
           <span className="trading-pair-info-card-value">
             {price_text}
-          </span>
-        </div>
-        <div className="trading-pair-info-card-item">
-          <span className="trading-pair-info-card-label">杠杆</span>
-          <span className="trading-pair-info-card-value">
-            {leverage}x
           </span>
         </div>
         <div className="trading-pair-info-card-item">

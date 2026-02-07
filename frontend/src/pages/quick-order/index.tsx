@@ -9,8 +9,6 @@ import { useBinanceStore } from '../../stores/binance-store';
 import { OrdersApi, BinanceAccountApi } from '../../api';
 import type { AccountPosition } from '../../types/binance';
 import { ROUTES } from '../../router';
-import { TradeSettings } from './components/trade-settings';
-import { AccountDisplay } from './components/account-display';
 import { AccountInfoCard } from './components/account-info-card';
 import { TradingPairInfoCard } from './components/trading-pair-info-card';
 import { ApiKeySelector } from './components/api-key-selector';
@@ -487,27 +485,27 @@ function QuickOrderPage() {
         </div>
 
         <div className="quick-order-card-content">
-          <TradeSettings
-            trading_pair={trading_pair}
-            leverage={leverage}
-            api_key_list={api_key_list}
-            active_api_key_id={active_api_key_id}
-            trading_pair_options={trading_pair_options}
-            on_trading_pair_change={handleTradingPairChange}
-            on_leverage_change={handleLeverageChange}
-            on_api_key_select={handleApiKeySelect}
-          />
+          <div className="quick-order-card-left">
+            <TradingPairInfoCard
+              trading_pair={trading_pair}
+              leverage={leverage}
+              trading_pair_options={trading_pair_options}
+              current_price={current_price}
+              current_pair_long_amount={current_pair_long_amount}
+              current_pair_short_amount={current_pair_short_amount}
+              on_trading_pair_change={handleTradingPairChange}
+              on_leverage_change={handleLeverageChange}
+            />
+          </div>
 
-          <AccountDisplay
-            available_balance={account_data.available_balance}
-            net_position={net_position}
-            total_long_amount={total_long_amount}
-            total_short_amount={total_short_amount}
-            current_price={current_price}
-            leverage={current_pair_leverage}
-            current_pair_long_amount={current_pair_long_amount}
-            current_pair_short_amount={current_pair_short_amount}
-          />
+          <div className="quick-order-card-right">
+            <AccountInfoCard
+              available_balance={account_data.available_balance}
+              net_position={net_position}
+              total_long_amount={total_long_amount}
+              total_short_amount={total_short_amount}
+            />
+          </div>
         </div>
       </div>
 

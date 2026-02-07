@@ -17,6 +17,40 @@
   color: var(--color-primary);
 }
 
+.trading-pair-info-card-controls {
+  display: flex;
+  padding: 12px;
+  gap: 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 15%, var(--color-border));
+}
+
+.trading-pair-info-card-control-group {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+
+.trading-pair-info-card-control-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.trading-pair-info-card-select {
+  flex: 1;
+}
+
+.trading-pair-info-card-number-input {
+  flex: 1;
+}
+
+.trading-pair-info-card-control-suffix {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
 .trading-pair-info-card-content {
   display: flex;
   padding: 12px;
