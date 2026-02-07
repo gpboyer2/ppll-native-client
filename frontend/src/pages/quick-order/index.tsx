@@ -26,6 +26,27 @@ type CloseSide = 'long' | 'short' | 'both';
 type MessageStatus = 'error' | 'success';
 
 /**
+ * 统一处理持仓操作响应反馈
+ * 单交易对场景显示订单ID或错误信息，多交易对场景显示汇总消息
+ */
+function handlePositionResponse(
+  datum: PositionOperationResponse,
+  showMessage: (msg: string, status: MessageStatus) => void,
+  defaultSuccessMsg: string
+) {
+  if (datum.totalPositions === 1 && datum.results.length > 0) {
+    const result = datum.results[0];
+    if (result.success) {
+      showMessage(`${datum.message}${result.orderId ? ` (订单ID: ${result.orderId})` : ''}`, 'success');
+    } else {
+      showMessage(`${datum.message}: ${result.error || '未知错误'}`, 'error');
+    }
+  } else {
+    showMessage(datum.message || defaultSuccessMsg, datum.success ? 'success' : 'error');
+  }
+}
+
+/**
  * 快捷开单独立页面
  * 支持快速开仓、平仓、持平操作
  */
@@ -212,19 +233,7 @@ function QuickOrderPage() {
       });
 
       if (response.status === 'success' && response.datum) {
-        const datum = response.datum as PositionOperationResponse;
-        // 单交易对场景，显示实际结果
-        if (datum.totalPositions === 1 && datum.results.length > 0) {
-          const result = datum.results[0];
-          if (result.success) {
-            showMessage(`${datum.message}${result.orderId ? ` (订单ID: ${result.orderId})` : ''}`, 'success');
-          } else {
-            showMessage(`${datum.message}: ${result.error || '未知错误'}`, 'error');
-          }
-        } else {
-          // 多交易对场景
-          showMessage(datum.message || '开仓操作已提交', datum.success ? 'success' : 'error');
-        }
+        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓操作已提交');
         await loadAccountData();
       } else {
         showMessage(response.message || '开仓失败', 'error');
@@ -275,19 +284,7 @@ function QuickOrderPage() {
       });
 
       if (response.status === 'success' && response.datum) {
-        const datum = response.datum as PositionOperationResponse;
-        // 单交易对场景，显示实际结果
-        if (datum.totalPositions === 1 && datum.results.length > 0) {
-          const result = datum.results[0];
-          if (result.success) {
-            showMessage(`${datum.message}${result.orderId ? ` (订单ID: ${result.orderId})` : ''}`, 'success');
-          } else {
-            showMessage(`${datum.message}: ${result.error || '未知错误'}`, 'error');
-          }
-        } else {
-          // 多交易对场景
-          showMessage(datum.message || '平仓操作已提交', datum.success ? 'success' : 'error');
-        }
+        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓操作已提交');
         await loadAccountData();
       } else {
         showMessage(response.message || '平仓失败', 'error');
@@ -350,19 +347,7 @@ function QuickOrderPage() {
       });
 
       if (response.status === 'success' && response.datum) {
-        const datum = response.datum as PositionOperationResponse;
-        // 单交易对场景，显示实际结果
-        if (datum.totalPositions === 1 && datum.results.length > 0) {
-          const result = datum.results[0];
-          if (result.success) {
-            showMessage(`${datum.message}${result.orderId ? ` (订单ID: ${result.orderId})` : ''}`, 'success');
-          } else {
-            showMessage(`${datum.message}: ${result.error || '未知错误'}`, 'error');
-          }
-        } else {
-          // 多交易对场景
-          showMessage(datum.message || '平仓操作已提交', datum.success ? 'success' : 'error');
-        }
+        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓操作已提交');
         await loadAccountData();
         if (side === 'long') {
           setCustomCloseLongAmount('');
@@ -408,19 +393,7 @@ function QuickOrderPage() {
       });
 
       if (response.status === 'success' && response.datum) {
-        const datum = response.datum as PositionOperationResponse;
-        // 单交易对场景，显示实际结果
-        if (datum.totalPositions === 1 && datum.results.length > 0) {
-          const result = datum.results[0];
-          if (result.success) {
-            showMessage(`${datum.message}${result.orderId ? ` (订单ID: ${result.orderId})` : ''}`, 'success');
-          } else {
-            showMessage(`${datum.message}: ${result.error || '未知错误'}`, 'error');
-          }
-        } else {
-          // 多交易对场景
-          showMessage(datum.message || '开仓操作已提交', datum.success ? 'success' : 'error');
-        }
+        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓操作已提交');
         await loadAccountData();
         if (side === 'long') {
           setCustomOpenLongAmount('');
@@ -483,8 +456,7 @@ function QuickOrderPage() {
       });
 
       if (response.status === 'success' && response.datum) {
-        const datum = response.datum as PositionOperationResponse;
-        showMessage(datum.message || '持仓操作完成', datum.success ? 'success' : 'error');
+        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '持仓操作完成');
         await loadAccountData();
       } else {
         showMessage(response.message || '持仓失败', 'error');
