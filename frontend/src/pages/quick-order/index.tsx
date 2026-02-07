@@ -147,6 +147,30 @@ function QuickOrderPage() {
       .reduce((sum, p) => sum + Math.abs(parseFloat(p.notional)), 0);
   }, [current_pair_positions]);
 
+  // 当前交易对的多头持仓（用于平仓）
+  const current_pair_long_positions = useMemo(() => {
+    return current_pair_positions.filter(
+      p => parseFloat(p.positionAmt) > 0 && (p.positionSide === 'LONG' || p.positionSide === 'BOTH')
+    );
+  }, [current_pair_positions]);
+
+  // 当前交易对的空头持仓（用于平仓）
+  const current_pair_short_positions = useMemo(() => {
+    return current_pair_positions.filter(
+      p => parseFloat(p.positionAmt) < 0 && (p.positionSide === 'SHORT' || p.positionSide === 'BOTH')
+    );
+  }, [current_pair_positions]);
+
+  // 当前交易对的多头总金额（用于平仓）
+  const current_pair_total_long_amount = useMemo(() => {
+    return current_pair_long_positions.reduce((sum, p) => sum + Math.abs(parseFloat(p.notional)), 0);
+  }, [current_pair_long_positions]);
+
+  // 当前交易对的空头总金额（用于平仓）
+  const current_pair_total_short_amount = useMemo(() => {
+    return current_pair_short_positions.reduce((sum, p) => sum + Math.abs(parseFloat(p.notional)), 0);
+  }, [current_pair_short_positions]);
+
   const handleOpenPosition = async (side: 'long' | 'short', amount: number) => {
     const active_api_key = get_active_api_key();
     if (!active_api_key) {
@@ -196,10 +220,10 @@ function QuickOrderPage() {
     }
 
     const target_positions = side === 'long'
-      ? long_positions
+      ? current_pair_long_positions
       : side === 'short'
-        ? short_positions
-        : [...long_positions, ...short_positions];
+        ? current_pair_short_positions
+        : [...current_pair_long_positions, ...current_pair_short_positions];
 
     if (target_positions.length === 0) {
       setErrorMsg('当前没有对应持仓');
@@ -247,10 +271,10 @@ function QuickOrderPage() {
     }
 
     const target_amount = side === 'long'
-      ? total_long_amount
+      ? current_pair_total_long_amount
       : side === 'short'
-        ? total_short_amount
-        : total_long_amount + total_short_amount;
+        ? current_pair_total_short_amount
+        : current_pair_total_long_amount + current_pair_total_short_amount;
 
     if (target_amount < amount) {
       setErrorMsg(`持仓金额不足，当前: ${target_amount.toFixed(2)} USDT`);
@@ -267,10 +291,10 @@ function QuickOrderPage() {
 
     try {
       const target_positions = side === 'long'
-        ? long_positions
+        ? current_pair_long_positions
         : side === 'short'
-          ? short_positions
-          : [...long_positions, ...short_positions];
+          ? current_pair_short_positions
+          : [...current_pair_long_positions, ...current_pair_short_positions];
 
       const ratio = amount / target_amount;
       const close_positions = target_positions.map(p => {
@@ -362,8 +386,9 @@ function QuickOrderPage() {
       return;
     }
 
-    const long_amount = total_long_amount;
-    const short_amount = total_short_amount;
+    // 使用当前交易对的多空金额进行持平
+    const long_amount = current_pair_total_long_amount;
+    const short_amount = current_pair_total_short_amount;
     const diff = Math.abs(long_amount - short_amount);
 
     if (diff === 0) {
@@ -551,7 +576,7 @@ function QuickOrderPage() {
           side="long"
           loading={loading}
           account_loading={account_loading}
-          position_count={long_positions.length}
+          position_count={current_pair_long_positions.length}
           custom_amount={custom_close_long_amount}
           on_amount_click={(amount) => handleCloseByAmount('long', amount)}
           on_custom_amount_change={setCustomCloseLongAmount}
@@ -568,7 +593,7 @@ function QuickOrderPage() {
           side="short"
           loading={loading}
           account_loading={account_loading}
-          position_count={short_positions.length}
+          position_count={current_pair_short_positions.length}
           custom_amount={custom_close_short_amount}
           on_amount_click={(amount) => handleCloseByAmount('short', amount)}
           on_custom_amount_change={setCustomCloseShortAmount}

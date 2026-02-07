@@ -19,7 +19,7 @@ router.get('/', ordersController.template);
  */
 router.post('/batch-build-position',
   vipMiddleware.validateVipAccess,
-  ordersController.validateParams(['apiKey', 'apiSecret', 'longAmount', 'shortAmount']),
+  ordersController.validateParams(['api_key', 'api_secret', 'long_amount', 'short_amount']),
   ordersController.batchBuildPosition
 );
 
@@ -29,7 +29,7 @@ router.post('/batch-build-position',
  */
 router.post('/custom-build-position',
   vipMiddleware.validateVipAccess,
-  ordersController.validateParams(['apiKey', 'apiSecret', 'positions']),
+  ordersController.validateParams(['api_key', 'api_secret', 'positions']),
   ordersController.customBuildPosition
 );
 
@@ -39,7 +39,7 @@ router.post('/custom-build-position',
  */
 router.post('/custom-close-multiple-position',
   vipMiddleware.validateVipAccess,
-  ordersController.validateParams(['apiKey', 'apiSecret', 'positions']),
+  ordersController.validateParams(['api_key', 'api_secret', 'positions']),
   ordersController.customCloseMultiplePosition
 );
 
@@ -49,7 +49,7 @@ router.post('/custom-close-multiple-position',
  */
 router.post('/batch-close-position',
   vipMiddleware.validateVipAccess,
-  ordersController.validateParams(['apiKey', 'apiSecret', 'positions']),
+  ordersController.validateParams(['api_key', 'api_secret', 'positions']),
   ordersController.batchClosePosition
 );
 
@@ -59,7 +59,7 @@ router.post('/batch-close-position',
  */
 router.post('/custom-close-position',
   vipMiddleware.validateVipAccess,
-  ordersController.validateParams(['apiKey', 'apiSecret', 'positions']),
+  ordersController.validateParams(['api_key', 'api_secret', 'positions']),
   ordersController.customClosePosition
 );
 
@@ -69,7 +69,7 @@ router.post('/custom-close-position',
  */
 router.post('/appoint-close-position',
   vipMiddleware.validateVipAccess,
-  ordersController.validateParams(['apiKey', 'apiSecret', 'positions']),
+  ordersController.validateParams(['api_key', 'api_secret', 'positions']),
   ordersController.appointClosePosition
 );
 
@@ -79,18 +79,18 @@ router.post('/appoint-close-position',
  */
 router.post('/batch-inspect',
   vipMiddleware.validateVipAccess,
-  ordersController.validateParams(['apiKey', 'apiSecret']),
+  ordersController.validateParams(['api_key', 'api_secret']),
   ordersController.batchInspect
 );
 
 /**
  * 为空单设置原价止盈
  * POST /v1/orders/set-short-take-profit
- * body: { apiKey, apiSecret, positions: [{symbol, stopPrice, closeRatio}] }
+ * body: { api_key, api_secret, positions: [{symbol, stopPrice, closeRatio}] }
  */
 router.post('/set-short-take-profit',
   vipMiddleware.validateVipAccess,
-  ordersController.validateParams(['apiKey', 'apiSecret', 'positions']),
+  ordersController.validateParams(['api_key', 'api_secret', 'positions']),
   ordersController.setShortTakeProfit
 );
 
@@ -205,8 +205,8 @@ module.exports = router;
  *             required:
  *               - api_key
  *               - api_secret
- *               - longAmount
- *               - shortAmount
+ *               - long_amount
+ *               - short_amount
  *             properties:
  *               api_key:
  *                 type: string
@@ -216,11 +216,11 @@ module.exports = router;
  *                 type: string
  *                 description: 币安API密钥Secret
  *                 example: "your_binance_api_secret"
- *               longAmount:
+ *               long_amount:
  *                 type: number
  *                 description: 多头建仓金额（USDT）
  *                 example: 100
- *               shortAmount:
+ *               short_amount:
  *                 type: number
  *                 description: 空头建仓金额（USDT）
  *                 example: 100
