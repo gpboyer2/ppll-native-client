@@ -413,6 +413,43 @@ function QuickOrderPage() {
     subscribeCurrentSymbol();
   }, [subscribeCurrentSymbol]);
 
+  // 切换交易对时更新杠杆
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const updateLeverageForNewPair = async () => {
+      // 优先从持仓数据中获取
+      const position = account_data.positions.find(p => p.symbol === trading_pair);
+      if (position) {
+        setLeverage(parseInt(position.leverage, 10));
+        return;
+      }
+
+      // 没有持仓数据时调用 API
+      const active_api_key = get_active_api_key();
+      if (!active_api_key) {
+        return;
+      }
+
+      try {
+        const response = await BinanceAccountApi.getPositionRisk({
+          api_key: active_api_key.api_key,
+          api_secret: active_api_key.api_secret,
+          symbol: trading_pair
+        });
+
+        if (response.status === 'success' && response.datum?.leverage) {
+          setLeverage(response.datum.leverage);
+        } else {
+          setLeverage(DEFAULT_LEVERAGE);
+        }
+      } catch (err) {
+        setLeverage(DEFAULT_LEVERAGE);
+      }
+    };
+
+    updateLeverageForNewPair();
+  }, [trading_pair]);
+
   const long_positions = account_data.positions.filter(
     p => parseFloat(p.positionAmt) > 0 && (p.positionSide === 'LONG' || p.positionSide === 'BOTH')
   );
