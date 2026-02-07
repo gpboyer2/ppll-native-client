@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { IconX, IconGripHorizontal } from '@tabler/icons-react';
 import { OrdersApi } from '../../../../api';
 import type { BinanceApiKey } from '../../../../stores/binance-store';
@@ -34,7 +34,11 @@ interface DragState {
 
 const DEFAULT_POSITION = { x: -0, y: 200 };
 
-function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps) {
+export interface OrderRecordsFloatingPanelRef {
+  refresh: () => void;
+}
+
+function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: React.Ref<OrderRecordsFloatingPanelRef>) {
   const { get_active_api_key, show_message, is_visible, set_is_visible, ticker_prices } = props;
 
   const [position, setPosition] = useState(DEFAULT_POSITION);
@@ -74,6 +78,10 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps) {
       setLoading(false);
     }
   }, [get_active_api_key]);
+
+  useImperativeHandle(ref, () => ({
+    refresh: loadOrderRecords,
+  }), [loadOrderRecords]);
 
   useEffect(() => {
     loadOrderRecords();
@@ -278,4 +286,4 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps) {
   );
 }
 
-export default OrderRecordsFloatingPanel;
+export default forwardRef(OrderRecordsFloatingPanel);

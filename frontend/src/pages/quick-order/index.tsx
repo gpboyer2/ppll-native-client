@@ -17,6 +17,7 @@ import { ClosePositionSection } from './components/close-position-section';
 import { BalanceButton } from './components/balance-button';
 import PositionFloatingPanel from './components/position-floating-panel';
 import OrderRecordsFloatingPanel from './components/order-records-floating-panel';
+import type { OrderRecordsFloatingPanelRef } from './components/order-records-floating-panel';
 import './index.scss';
 
 const DEFAULT_LEVERAGE = 20;
@@ -92,6 +93,7 @@ function QuickOrderPage() {
   const initialized = useBinanceStore(state => state.initialized);
   const connectSocket = useBinanceStore(state => state.connectSocket);
   const handle_account_update_ref = useRef<((data: any) => void) | null>(null);
+  const order_records_panel_ref = useRef<OrderRecordsFloatingPanelRef>(null);
   const ticker_log_ref = useRef(0);
   const account_log_ref = useRef(0);
 
@@ -529,7 +531,7 @@ function QuickOrderPage() {
 
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓操作已提交');
-        // WebSocket 会自动更新账户数据，无需手动调用 loadAccountData
+        order_records_panel_ref.current?.refresh();
       } else {
         showMessage(response.message || '开仓失败', 'error');
       }
@@ -709,7 +711,7 @@ function QuickOrderPage() {
 
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓操作已提交');
-        // WebSocket 会自动更新账户数据，无需手动调用 loadAccountData
+        order_records_panel_ref.current?.refresh();
         if (side === 'long') {
           setCustomOpenLongAmount('');
         }
@@ -771,7 +773,7 @@ function QuickOrderPage() {
 
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓持平完成');
-        // WebSocket 会自动更新账户数据，无需手动调用 loadAccountData
+        order_records_panel_ref.current?.refresh();
       } else {
         showMessage(response.message || '开仓持平失败', 'error');
       }
@@ -1016,6 +1018,7 @@ function QuickOrderPage() {
       />
 
       <OrderRecordsFloatingPanel
+        ref={order_records_panel_ref}
         get_active_api_key={get_active_api_key}
         show_message={showMessage}
         is_visible={show_order_records_panel}
