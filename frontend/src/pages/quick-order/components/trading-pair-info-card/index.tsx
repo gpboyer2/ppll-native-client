@@ -45,6 +45,23 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
     return isNaN(num) ? '--' : num.toFixed(2);
   };
 
+  const formatProfit = (profit: string | undefined) => {
+    if (!profit || profit === '0') return '--';
+    const num = parseFloat(profit);
+    if (isNaN(num)) return '--';
+    const sign = num > 0 ? '+' : '';
+    return `${sign}${num.toFixed(2)} U`;
+  };
+
+  const getProfitClassName = (profit: string | undefined) => {
+    if (!profit || profit === '0') return '';
+    const num = parseFloat(profit);
+    if (isNaN(num)) return '';
+    if (num > 0) return 'trading-pair-info-card-price-value-success';
+    if (num < 0) return 'trading-pair-info-card-price-value-danger';
+    return '';
+  };
+
   return (
     <div className="trading-pair-info-card">
       <div className="trading-pair-info-card-header">
@@ -122,6 +139,10 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
               <span className="trading-pair-info-card-price-label">强平</span>
               <span className="trading-pair-info-card-price-value trading-pair-info-card-price-value-danger">{formatPrice(long_position?.liquidationPrice)}</span>
             </div>
+            <div className="trading-pair-info-card-price-item">
+              <span className="trading-pair-info-card-price-label">盈利</span>
+              <span className={`trading-pair-info-card-price-value ${getProfitClassName(long_position?.unrealizedProfit)}`}>{formatProfit(long_position?.unrealizedProfit)}</span>
+            </div>
           </div>
         </div>
         <div className="trading-pair-info-card-price-section">
@@ -138,6 +159,10 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
             <div className="trading-pair-info-card-price-item">
               <span className="trading-pair-info-card-price-label">强平</span>
               <span className="trading-pair-info-card-price-value trading-pair-info-card-price-value-danger">{formatPrice(short_position?.liquidationPrice)}</span>
+            </div>
+            <div className="trading-pair-info-card-price-item">
+              <span className="trading-pair-info-card-price-label">盈利</span>
+              <span className={`trading-pair-info-card-price-value ${getProfitClassName(short_position?.unrealizedProfit)}`}>{formatProfit(short_position?.unrealizedProfit)}</span>
             </div>
           </div>
         </div>
