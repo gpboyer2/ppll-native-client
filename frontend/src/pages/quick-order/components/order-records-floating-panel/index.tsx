@@ -25,6 +25,7 @@ interface OrderRecordsFloatingPanelProps {
   is_visible: boolean;
   set_is_visible: (value: boolean) => void;
   ticker_prices: Record<string, { price?: number; mark_price?: number }>;
+  subscribe_ticker: (symbol: string, market?: string) => void;
 }
 
 interface DragState {
@@ -43,7 +44,7 @@ export interface OrderRecordsFloatingPanelRef {
 }
 
 function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: React.Ref<OrderRecordsFloatingPanelRef>) {
-  const { get_active_api_key, show_message, is_visible, set_is_visible, ticker_prices } = props;
+  const { get_active_api_key, show_message, is_visible, set_is_visible, ticker_prices, subscribe_ticker } = props;
 
   const [position, setPosition] = useState(() => ({
     x: window.innerWidth - PANEL_RIGHT_OFFSET,
@@ -96,6 +97,26 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
       loadOrderRecords();
     }
   }, [is_visible, loadOrderRecords]);
+
+  const subscribed_symbols_ref = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!is_visible || order_records.length === 0) {
+      return;
+    }
+
+    const new_symbols = order_records
+      .map(record => record.symbol)
+      .filter(symbol => !subscribed_symbols_ref.current.has(symbol));
+
+    if (new_symbols.length > 0) {
+      console.log('[OrderRecordsFloatingPanel] 订阅新交易对 ticker:', new_symbols);
+      new_symbols.forEach(symbol => {
+        subscribe_ticker(symbol, 'usdm');
+        subscribed_symbols_ref.current.add(symbol);
+      });
+    }
+  }, [is_visible, order_records, subscribe_ticker]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;

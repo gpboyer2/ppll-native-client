@@ -1065,6 +1065,7 @@ function QuickOrderPage() {
         is_visible={show_order_records_panel}
         set_is_visible={setShowOrderRecordsPanel}
         ticker_prices={ticker_prices}
+        subscribe_ticker={subscribeTicker}
       />
 
       {!show_position_panel && (
