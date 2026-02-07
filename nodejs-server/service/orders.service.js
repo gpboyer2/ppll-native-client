@@ -296,7 +296,7 @@ const umOpenPosition = async (params) => {
         results: [result],
         processedCount: 1,
         totalPositions: 1,
-        message: result.success ? '开仓成功' : `开仓失败: ${result.error || '未知错误'}`
+        message: result.success ? '开仓成功' : result.error || '开仓失败'
       };
     }
 
@@ -540,7 +540,7 @@ const umClosePosition = async (params) => {
         totalPositions: positions.length,
         validPositions: 1,
         skippedPositions: skippedPositions.length,
-        message: result.success ? '平仓成功' : `平仓失败: ${result.error || '未知错误'}`
+        message: result.success ? '平仓成功' : result.error || '平仓失败'
       };
     }
 

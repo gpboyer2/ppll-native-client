@@ -81,9 +81,8 @@ const template = catchAsync(async (req, res) => {
  * U本位合约开仓
  */
 const umOpenPosition = catchAsync(async (req, res) => {
-  const { positions } = req.body;
   const result = await ordersService.umOpenPosition(req.body);
-  return res.apiSuccess(result, `请等待约 ${positions.length * 1.5} 秒后，在APP查看开仓结果`);
+  return res.apiSuccess(result);
 });
 
 /**
@@ -107,10 +106,10 @@ const umClosePosition = catchAsync(async (req, res) => {
 
   // 判断实际是否有仓位被平掉
   if (result.validPositions === 0 || (result.processedCount === 0 && result.skippedPositions > 0)) {
-    return res.apiError(result, `没有可平仓的仓位，共跳过 ${result.skippedPositions} 个`);
+    return res.apiError(result, result.message || `没有可平仓的仓位，共跳过 ${result.skippedPositions} 个`);
   }
 
-  return res.apiSuccess(result, `请等待约 ${result.totalPositions * 1.5} 秒后，在APP查看平仓结果`);
+  return res.apiSuccess(result);
 });
 
 

@@ -41,8 +41,9 @@ function handlePositionResponse(
       const msg = `${datum.message}${result.orderId ? ` (订单ID: ${result.orderId})` : ''}`;
       showMessage(msg, 'success');
     } else {
-      const msg = `${datum.message}: ${result.error || '未知错误'}`;
-      showMessage(msg, 'error');
+      // datum.message 已经是友好的错误信息，直接使用
+      // result.error 是原始错误信息，不需要额外拼接
+      showMessage(datum.message || '操作失败', 'error');
     }
   } else {
     const msg = datum.message || defaultSuccessMsg;
