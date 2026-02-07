@@ -203,11 +203,14 @@
   margin-top: 16px;
 }
 
+.quick-order-balance-buttons {
+  display: flex;
+  gap: 12px;
+}
+
 .quick-order-balance-btn {
-  width: 100%;
+  flex: 1;
   height: 40px;
-  background: var(--color-primary);
-  color: white;
   font-weight: 600;
   font-size: var(--text-sm);
   border: none;
@@ -215,6 +218,24 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+}
+
+.quick-order-balance-btn-open {
+  background: var(--color-primary);
+  color: white;
+}
+
+.quick-order-balance-btn-open:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.quick-order-balance-btn-close {
+  background: color-mix(in srgb, var(--color-warning) 85%, var(--color-bg));
+  color: white;
+}
+
+.quick-order-balance-btn-close:hover:not(:disabled) {
+  opacity: 0.9;
 }
 
 .quick-order-sections-close {

@@ -407,14 +407,13 @@ function QuickOrderPage() {
     }
   };
 
-  const handleBalancePosition = async () => {
+  const handleBalanceByOpenPosition = async () => {
     const active_api_key = get_active_api_key();
     if (!active_api_key) {
       navigateToSettings();
       return;
     }
 
-    // 使用当前交易对的多空金额进行持平
     const long_amount = current_pair_total_long_amount;
     const short_amount = current_pair_total_short_amount;
     const diff = Math.abs(long_amount - short_amount);
@@ -450,14 +449,93 @@ function QuickOrderPage() {
       });
 
       if (response.status === 'success' && response.datum) {
-        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '持仓操作完成');
+        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓持平完成');
         await loadAccountData();
       } else {
-        showMessage(response.message || '持仓失败', 'error');
+        showMessage(response.message || '开仓持平失败', 'error');
       }
     } catch (err) {
-      console.error('[handleBalancePosition] 持仓异常:', err);
-      showMessage('持仓失败，请重试', 'error');
+      console.error('[handleBalanceByOpenPosition] 开仓持平异常:', err);
+      showMessage('开仓持平失败，请重试', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBalanceByClosePosition = async () => {
+    const active_api_key = get_active_api_key();
+    if (!active_api_key) {
+      navigateToSettings();
+      return;
+    }
+
+    const long_amount = current_pair_total_long_amount;
+    const short_amount = current_pair_total_short_amount;
+    const diff = Math.abs(long_amount - short_amount);
+
+    if (diff === 0) {
+      showMessage('多空仓位已平衡，无需调整', 'error');
+      return;
+    }
+
+    const max_amount = Math.max(long_amount, short_amount);
+    if (max_amount === 0) {
+      showMessage('当前没有持仓，无法通过平仓方式持平', 'error');
+      return;
+    }
+
+    const close_percentage = (diff / max_amount) * 100;
+
+    setLoading(true);
+
+    try {
+      const close_positions: Array<{
+        symbol: string;
+        side: 'LONG' | 'SHORT';
+        percentage: number;
+      }> = [];
+
+      if (long_amount > short_amount) {
+        current_pair_long_positions.forEach(p => {
+          close_positions.push({
+            symbol: p.symbol,
+            side: 'LONG' as const,
+            percentage: close_percentage
+          });
+        });
+      }
+
+      if (short_amount > long_amount) {
+        current_pair_short_positions.forEach(p => {
+          close_positions.push({
+            symbol: p.symbol,
+            side: 'SHORT' as const,
+            percentage: close_percentage
+          });
+        });
+      }
+
+      if (close_positions.length === 0) {
+        showMessage('没有可平仓的持仓', 'error');
+        setLoading(false);
+        return;
+      }
+
+      const response = await OrdersApi.umClosePosition({
+        api_key: active_api_key.api_key,
+        api_secret: active_api_key.api_secret,
+        positions: close_positions
+      });
+
+      if (response.status === 'success' && response.datum) {
+        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓持平完成');
+        await loadAccountData();
+      } else {
+        showMessage(response.message || '平仓持平失败', 'error');
+      }
+    } catch (err) {
+      console.error('[handleBalanceByClosePosition] 平仓持平异常:', err);
+      showMessage('平仓持平失败，请重试', 'error');
     } finally {
       setLoading(false);
     }
@@ -597,7 +675,8 @@ function QuickOrderPage() {
 
       <BalanceButton
         disabled={loading || account_loading}
-        on_balance_click={handleBalancePosition}
+        on_balance_by_open_click={handleBalanceByOpenPosition}
+        on_balance_by_close_click={handleBalanceByClosePosition}
       />
 
       <div className="quick-order-sections quick-order-sections-close">
