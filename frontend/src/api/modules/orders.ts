@@ -47,6 +47,7 @@ export class OrdersApi {
   static async umOpenPosition(data: {
     api_key: string;
     api_secret: string;
+    source?: string;
     positions: Array<{
       symbol: string;
       side: 'LONG' | 'SHORT';
@@ -63,6 +64,7 @@ export class OrdersApi {
   static async umClosePosition(data: {
     api_key: string;
     api_secret: string;
+    source?: string;
     positions: Array<{
       symbol: string;
       side: 'LONG' | 'SHORT';
@@ -97,6 +99,15 @@ export class OrdersApi {
     }>;
   }): Promise<Response<any>> {
     return RequestWrapper.post(`${this.BASE_PATH}/set-short-take-profit`, data);
+  }
+
+  /**
+   * 查询快捷订单记录
+   */
+  static async getQuickOrderRecords(params: {
+    api_key: string;
+  }): Promise<Response<any>> {
+    return RequestWrapper.get(`${this.BASE_PATH}/quick-order/query`, params);
   }
 
 }

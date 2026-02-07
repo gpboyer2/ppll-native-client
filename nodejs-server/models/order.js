@@ -148,7 +148,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     source: {
       type: DataTypes.STRING(20),
-      comment: '订单来源(GRID/MANUAL)'
+      comment: '订单来源(GRID/MANUAL/QUICK_ORDER)'
     },
     execution_type: {
       type: DataTypes.STRING(20),

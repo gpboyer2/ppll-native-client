@@ -5,6 +5,8 @@ const bigNumber = require('bignumber.js');
 const UtilRecord = require("../utils/record-log.js");
 const { USDMClient } = require("binance");
 const proxy = require("../utils/proxy.js");
+const db = require("../models");
+const Order = db.orders;
 
 // 最小余额要求
 const MIN_BALANCE_REQUIRED = 10;
@@ -155,11 +157,41 @@ const setShortTakeProfit = catchAsync(async (req, res) => {
   return res.apiSuccess(result, `请等待约 ${positions.length * 0.5} 秒后，在APP查看止盈设置结果`);
 });
 
+/**
+ * 查询快捷订单记录
+ */
+const queryQuickOrderRecords = catchAsync(async (req, res) => {
+  const { api_key } = req.query;
+
+  if (!api_key) {
+    return res.apiError(null, 'api_key is not defined');
+  }
+
+  const { count, rows } = await Order.findAndCountAll({
+    where: {
+      api_key,
+      source: 'QUICK_ORDER',
+      status: 'FILLED'
+    },
+    order: [['created_at', 'DESC']]
+  });
+
+  return res.apiSuccess({
+    list: rows,
+    pagination: {
+      total: count,
+      currentPage: 1,
+      pageSize: count
+    }
+  }, '操作成功');
+});
+
 module.exports = {
   template,
   umOpenPosition,
   umClosePosition,
   batchInspect,
   setShortTakeProfit,
+  queryQuickOrderRecords,
   validateParams
 };

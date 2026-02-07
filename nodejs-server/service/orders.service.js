@@ -4,6 +4,8 @@ const { getProxyConfig } = require('../utils/proxy.js');
 const UtilRecord = require("../utils/record-log.js");
 const binancePrecision = require("../utils/binance-precision");
 const ApiError = require("../utils/api-error");
+const db = require("../models");
+const Order = db.orders;
 
 
 // 常量定义
@@ -146,9 +148,10 @@ const executeDelay = async (range = 'MEDIUM') => {
  * @param {string} params.api_secret - API密钥Secret
  * @param {Object} params.exchangeInfo - 交易所信息
  * @param {Array} params.priceInfo - 价格信息
+ * @param {string} params.source - 订单来源(如QUICK_ORDER)
  * @returns {Promise<Object>} 执行结果
  */
-const executeSingleOpen = async ({ symbol, side, amount, api_key, api_secret, exchangeInfo, priceInfo }) => {
+const executeSingleOpen = async ({ symbol, side, amount, api_key, api_secret, exchangeInfo, priceInfo, source }) => {
   // 验证参数
   if (!symbol || !side || !amount) {
     return { symbol, side, amount, success: false, error: '参数不完整' };
@@ -171,7 +174,7 @@ const executeSingleOpen = async ({ symbol, side, amount, api_key, api_secret, ex
     const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity.toString());
 
     const client = createClient(api_key, api_secret);
-    await client.submitNewOrder({
+    const orderResult = await client.submitNewOrder({
       symbol,
       side: side === 'LONG' ? 'BUY' : 'SELL',
       type: 'MARKET',
@@ -180,7 +183,35 @@ const executeSingleOpen = async ({ symbol, side, amount, api_key, api_secret, ex
     });
 
     UtilRecord.log(`--- 币种${symbol} 新增${side}持仓 ${amount} usdt`);
-    return { symbol, side, amount, success: true };
+
+    // 写入订单记录（如果指定了source）
+    if (source && orderResult) {
+      try {
+        await Order.create({
+          api_key,
+          api_secret,
+          order_id: String(orderResult.orderId || ''),
+          client_order_id: orderResult.clientOrderId || '',
+          symbol,
+          side: side === 'LONG' ? 'BUY' : 'SELL',
+          position_side: side,
+          type: 'MARKET',
+          quantity,
+          price,
+          status: 'FILLED',
+          executed_qty: quantity,
+          executed_price: orderResult.avgPrice || price,
+          executed_amount: amount,
+          source,
+          execution_type: 'WEBSOCKET'
+        });
+        UtilRecord.log(`--- 订单记录已写入: ${symbol} ${side} ${amount} USDT`);
+      } catch (dbError) {
+        UtilRecord.error('写入订单记录失败:', dbError);
+      }
+    }
+
+    return { symbol, side, amount, success: true, order_id: orderResult.orderId };
   } catch (error) {
     UtilRecord.error('开仓失败:', error);
     return { symbol, side, amount, success: false, error: error?.message || JSON.stringify(error) };
@@ -193,10 +224,11 @@ const executeSingleOpen = async ({ symbol, side, amount, api_key, api_secret, ex
  * @param {string} params.api_key - API密钥
  * @param {string} params.api_secret - API密钥Secret
  * @param {Array} params.positions - 开仓位置列表 [{ symbol, side, amount }]
+ * @param {string} params.source - 订单来源(如QUICK_ORDER)
  * @returns {Promise<Object>} 执行结果
  */
 const umOpenPosition = async (params) => {
-  const { api_key, api_secret, positions } = params;
+  const { api_key, api_secret, positions, source } = params;
   try {
     if (!positions?.length) {
       throw new Error('positions 参数异常');
@@ -219,7 +251,8 @@ const umOpenPosition = async (params) => {
         api_key,
         api_secret,
         exchangeInfo,
-        priceInfo
+        priceInfo,
+        source
       });
 
       UtilRecord.log('U本位开仓单交易对执行完成:', {
@@ -254,7 +287,8 @@ const umOpenPosition = async (params) => {
             api_key,
             api_secret,
             exchangeInfo,
-            priceInfo
+            priceInfo,
+            source
           });
           results.push(result);
           await executeDelay('MEDIUM');
@@ -292,9 +326,10 @@ const umOpenPosition = async (params) => {
  * @param {Object} params.exchangeInfo - 交易所信息
  * @param {Array} params.priceInfo - 价格信息
  * @param {boolean} params.withDelay - 是否添加延迟
+ * @param {string} params.source - 订单来源(如QUICK_ORDER)
  * @returns {Promise<Object>} 执行结果
  */
-const executeSingleClose = async ({ symbol, side, amount, quantity, percentage, positionAmt, api_key, api_secret, exchangeInfo, priceInfo, withDelay = true }) => {
+const executeSingleClose = async ({ symbol, side, amount, quantity, percentage, positionAmt, api_key, api_secret, exchangeInfo, priceInfo, withDelay = true, source }) => {
   try {
     if (withDelay) {
       await executeDelay('SHORT');
@@ -334,6 +369,27 @@ const executeSingleClose = async ({ symbol, side, amount, quantity, percentage, 
     };
 
     const orderResult = await client.submitNewOrder(orderParams);
+
+    // 更新订单记录（如果指定了source）
+    if (source && orderResult) {
+      try {
+        await Order.update(
+          { status: 'CLOSED' },
+          {
+            where: {
+              symbol,
+              position_side: side,
+              source,
+              status: 'FILLED'
+            }
+          }
+        );
+        UtilRecord.log(`--- 订单记录已更新为CLOSED: ${symbol} ${side}`);
+      } catch (dbError) {
+        UtilRecord.error('更新订单记录失败:', dbError);
+      }
+    }
+
     return {
       symbol,
       side,
@@ -357,10 +413,11 @@ const executeSingleClose = async ({ symbol, side, amount, quantity, percentage, 
  * @param {string} params.api_key - API密钥
  * @param {string} params.api_secret - API密钥Secret
  * @param {Array} params.positions - 平仓位置列表 [{ symbol, side, amount?, quantity?, percentage? }]
+ * @param {string} params.source - 订单来源(如QUICK_ORDER)
  * @returns {Promise<Object>} 执行结果
  */
 const umClosePosition = async (params) => {
-  const { api_key, api_secret, positions } = params;
+  const { api_key, api_secret, positions, source } = params;
   try {
     if (!positions) {
       throw new Error('positions is not defined');
@@ -420,7 +477,8 @@ const umClosePosition = async (params) => {
         api_secret,
         exchangeInfo,
         priceInfo,
-        withDelay: false
+        withDelay: false,
+        source
       });
 
       UtilRecord.log('U本位平仓单交易对执行完成:', {
@@ -464,7 +522,8 @@ const umClosePosition = async (params) => {
             api_secret,
             exchangeInfo,
             priceInfo,
-            withDelay: true
+            withDelay: true,
+            source
           });
           results.push(result);
         }

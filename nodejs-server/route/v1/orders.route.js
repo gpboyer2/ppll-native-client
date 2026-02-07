@@ -54,6 +54,14 @@ router.post('/set-short-take-profit',
   ordersController.setShortTakeProfit
 );
 
+/**
+ * 查询快捷订单记录
+ * GET /api/v1/orders/quick-order/query?api_key=xxx
+ */
+router.get('/quick-order/query',
+  ordersController.queryQuickOrderRecords
+);
+
 module.exports = router;
 
 

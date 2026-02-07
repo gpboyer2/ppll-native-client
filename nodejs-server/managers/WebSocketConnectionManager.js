@@ -256,7 +256,7 @@ class WebSocketConnectionManager extends EventEmitter {
       return;
     }
     const client = this._getClient({ market, scope });
-    client.subscribeMarkPrice(symbol, 'usdm');
+    client.subscribeMarkPrice(symbol, 1000, 'usdm');
   }
 
   // 订阅 UM 连续合约 K 线（公共流）

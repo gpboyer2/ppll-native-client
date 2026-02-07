@@ -401,6 +401,33 @@
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
+.order-records-panel-toggle-btn {
+  position: fixed;
+  bottom: 80px;
+  right: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+  z-index: 900;
+}
+
+.order-records-panel-toggle-btn:hover {
+  background: var(--color-bg-muted);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+}
+
 @media (max-width: 768px) {
   .quick-order-card-content {
     flex-direction: column;
@@ -412,6 +439,13 @@
 
   .position-panel-toggle-btn {
     bottom: 16px;
+    right: 16px;
+    padding: 8px 12px;
+    font-size: var(--text-xs);
+  }
+
+  .order-records-panel-toggle-btn {
+    bottom: 72px;
     right: 16px;
     padding: 8px 12px;
     font-size: var(--text-xs);

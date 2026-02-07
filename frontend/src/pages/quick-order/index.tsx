@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IconRefresh, IconList } from '@tabler/icons-react';
+import { IconRefresh, IconList, IconHistory } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { Button } from '../../components/mantine';
 import { useBinanceStore } from '../../stores/binance-store';
@@ -15,6 +15,7 @@ import { OpenPositionSection } from './components/open-position-section';
 import { ClosePositionSection } from './components/close-position-section';
 import { BalanceButton } from './components/balance-button';
 import PositionFloatingPanel from './components/position-floating-panel';
+import OrderRecordsFloatingPanel from './components/order-records-floating-panel';
 import './index.scss';
 
 const DEFAULT_LEVERAGE = 20;
@@ -63,6 +64,7 @@ function QuickOrderPage() {
   const [custom_open_long_amount, setCustomOpenLongAmount] = useState('');
   const [custom_open_short_amount, setCustomOpenShortAmount] = useState('');
   const [show_position_panel, setShowPositionPanel] = useState(true);
+  const [show_order_records_panel, setShowOrderRecordsPanel] = useState(true);
 
   const usdt_pairs = useBinanceStore(state => state.usdt_pairs);
   const api_key_list = useBinanceStore(state => state.api_key_list);
@@ -473,6 +475,7 @@ function QuickOrderPage() {
       const response = await OrdersApi.umOpenPosition({
         api_key: active_api_key.api_key,
         api_secret: active_api_key.api_secret,
+        source: 'QUICK_ORDER',
         positions: [{
           symbol: trading_pair,
           side: side === 'long' ? 'LONG' : 'SHORT',
@@ -527,6 +530,7 @@ function QuickOrderPage() {
       const response = await OrdersApi.umClosePosition({
         api_key: active_api_key.api_key,
         api_secret: active_api_key.api_secret,
+        source: 'QUICK_ORDER',
         positions: close_positions
       });
 
@@ -589,6 +593,7 @@ function QuickOrderPage() {
       const response = await OrdersApi.umClosePosition({
         api_key: active_api_key.api_key,
         api_secret: active_api_key.api_secret,
+        source: 'QUICK_ORDER',
         positions: close_positions
       });
 
@@ -630,6 +635,7 @@ function QuickOrderPage() {
       const response = await OrdersApi.umOpenPosition({
         api_key: active_api_key.api_key,
         api_secret: active_api_key.api_secret,
+        source: 'QUICK_ORDER',
         positions: [{
           symbol: trading_pair,
           side: side === 'long' ? 'LONG' : 'SHORT',
@@ -695,6 +701,7 @@ function QuickOrderPage() {
       const response = await OrdersApi.umOpenPosition({
         api_key: active_api_key.api_key,
         api_secret: active_api_key.api_secret,
+        source: 'QUICK_ORDER',
         positions
       });
 
@@ -774,6 +781,7 @@ function QuickOrderPage() {
       const response = await OrdersApi.umClosePosition({
         api_key: active_api_key.api_key,
         api_secret: active_api_key.api_secret,
+        source: 'QUICK_ORDER',
         positions: close_positions
       });
 
@@ -943,6 +951,14 @@ function QuickOrderPage() {
         set_is_visible={setShowPositionPanel}
       />
 
+      <OrderRecordsFloatingPanel
+        get_active_api_key={get_active_api_key}
+        show_message={showMessage}
+        is_visible={show_order_records_panel}
+        set_is_visible={setShowOrderRecordsPanel}
+        ticker_prices={ticker_prices}
+      />
+
       {!show_position_panel && (
         <button
           className="position-panel-toggle-btn"
@@ -951,6 +967,17 @@ function QuickOrderPage() {
         >
           <IconList size={18} />
           <span>持仓</span>
+        </button>
+      )}
+
+      {!show_order_records_panel && (
+        <button
+          className="order-records-panel-toggle-btn"
+          onClick={() => setShowOrderRecordsPanel(true)}
+          title="打开订单记录面板"
+        >
+          <IconHistory size={18} />
+          <span>订单</span>
         </button>
       )}
 
