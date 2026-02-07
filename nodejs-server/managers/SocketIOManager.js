@@ -113,9 +113,10 @@ const init = (server, wsManagerInstance) => {
       socket.subscribedTickerList.add(subKey);
 
       // 订阅标记价格
+      UtilRecord.log(`[SocketIO] 调用 wsManager.subscribeMarkPrice(${symbol})`);
       wsManager.subscribeMarkPrice(symbol);
       socket.emit('ticker_status', { status: 'connected', symbol, market });
-      UtilRecord.log(`[SocketIO] Socket ${socket.id} 订阅 Ticker ${subKey}, 房间: ${room}`);
+      UtilRecord.log(`[SocketIO] Socket ${socket.id} 订阅 Ticker ${subKey} 成功, 房间: ${room}`);
     });
 
     /**
@@ -235,15 +236,30 @@ const init = (server, wsManagerInstance) => {
   if (!wsManager.listenerCount('tick')) {
     wsManager.on('tick', ({ market, symbol, latestPrice, raw }) => {
       const room = `ticker:${market}:${symbol}`;
-      const roomSockets = io.sockets.adapter.rooms.get(room);
-      const socketCount = roomSockets ? roomSockets.size : 0;
-      // 只在有客户端订阅时输出日志
-      if (socketCount > 0) {
-        UtilRecord.log(`[SocketIO] 发送 ticker_update 到房间 ${room} (${socketCount} 个客户端): ${latestPrice}`);
-      }
       io.to(room).emit('ticker_update', { symbol, market, price: latestPrice, raw });
     });
   }
+
+  // 定期输出房间状态调试信息（每30秒）
+  setInterval(() => {
+    const rooms = io.sockets.adapter.rooms;
+    const tickerRooms = [];
+    for (const [roomName, roomSet] of rooms.entries()) {
+      if (roomName.startsWith('ticker:')) {
+        tickerRooms.push({
+          room: roomName,
+          clients: roomSet.size
+        });
+      }
+    }
+    if (tickerRooms.length > 0) {
+      UtilRecord.log('[SocketIO] ===== Ticker 房间状态 =====');
+      UtilRecord.log(`[SocketIO] 活跃的 Ticker 房间: ${JSON.stringify(tickerRooms, null, 2)}`);
+    } else {
+      UtilRecord.log('[SocketIO] ===== Ticker 房间状态 =====');
+      UtilRecord.log('[SocketIO] 没有活跃的 Ticker 房间');
+    }
+  }, 30000);
 };
 
 /**

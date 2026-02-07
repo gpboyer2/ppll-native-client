@@ -162,7 +162,6 @@ class WebSocketConnectionManager extends EventEmitter {
       if (state) {
         state.lastConnectedAt = Date.now();
       }
-      UtilRecord.log(`[WSClient] 连接已建立 ${clientKey}`);
     });
 
     client.on('reconnecting', (data) => {
@@ -201,9 +200,6 @@ class WebSocketConnectionManager extends EventEmitter {
           // 统一转换为上层可消费的事件
           if (message.eventType === 'markPriceUpdate') {
             const { symbol, markPrice } = message;
-            // market 使用 'usdm' 与前端保持一致
-            // 频繁的 tick 事件日志使用 trace 级别
-            UtilRecord.trace(`[WSManager] emit tick event: ${symbol} @ ${markPrice}`);
             this.emit('tick', { market: 'usdm', eventType: 'markPrice', symbol, latestPrice: markPrice, raw: message });
           } else if (message.eventType === 'continuous_kline') {
             const { symbol } = message;
@@ -255,13 +251,12 @@ class WebSocketConnectionManager extends EventEmitter {
     const scope = 'public';
     const subKey = this._subKey([market, scope, 'markPrice', symbol]);
     const ref = this._incrRef(subKey);
+
     if (ref > 1) {
-      UtilRecord.log(`[WSManager] skip duplicate subscribe ${subKey} (ref=${ref})`);
       return;
     }
     const client = this._getClient({ market, scope });
     client.subscribeMarkPrice(symbol, 'usdm');
-    UtilRecord.log(`[WSManager] subscribed ${subKey}`);
   }
 
   // 订阅 UM 连续合约 K 线（公共流）

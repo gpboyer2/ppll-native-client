@@ -12,13 +12,13 @@
     },
     {
       "name": "🖥️ Wails dev",
-      "command": "cexport PATH=\"$PATH:$HOME/go/bin\" && SKIP_NODEJS_AUTO_START=1 wails dev",
+      "command": "export PATH=\"$PATH:$HOME/go/bin\" && SKIP_NODEJS_AUTO_START=1 wails dev",
       "request": "launch",
       "type": "node-terminal"
     },
     {
       "name": "⚙️ Node.js 后端",
-      "command": "cd nodejs-server && npm run node:dev",
+      "command": "cd nodejs-server && npm run dev",
       "request": "launch",
       "type": "node-terminal"
     }

@@ -262,8 +262,12 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
   connectSocket: async () => {
     const { socket } = get();
     if (socket?.connected) {
+      console.log('[binance-store] ===== Socket 已连接，跳过重连 =====');
+      console.log('[binance-store] socket.id:', socket.id);
       return;
     }
+
+    console.log('[binance-store] ===== 开始连接 WebSocket =====');
 
     try {
       const nodejs_url = await getNodejsUrl();
@@ -284,13 +288,18 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
         new_socket.on('connect', () => {
           clearTimeout(timeout);
+          console.log('[binance-store] ===== Socket 连接成功 =====');
+          console.log('[binance-store] socket.id:', new_socket.id);
+          console.log('[binance-store] 已订阅的 ticker 数量:', get().subscribed_tickers.size);
 
           if (get().subscribed_tickers.size > 0) {
+            console.log('[binance-store] 重新订阅之前的 ticker');
             get().subscribed_tickers.forEach((subKey) => {
               const [market, symbol] = subKey.split(':');
               if (!symbol) {
                 return;
               }
+              console.log('[binance-store] 重新订阅:', symbol, market);
               new_socket.emit('subscribe_ticker', { symbol, market });
             });
           }
@@ -304,27 +313,27 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
         new_socket.on('connect_error', (error) => {
           clearTimeout(timeout);
-          console.error('[binance-store] WebSocket 连接错误:', error);
+          console.error('[binance-store] ===== WebSocket 连接错误 =====');
+          console.error('[binance-store] 错误详情:', error);
           reject(error);
         });
 
         // 监听 ticker 更新
         new_socket.on('ticker_update', (data: any) => {
-          console.log('[binance-store] ticker_update 收到:', data);
           const { symbol, price, market } = data;
           if (symbol && price) {
+            const new_price = parseFloat(price);
             set({
               ticker_prices: {
                 ...get().ticker_prices,
                 [symbol]: {
                   symbol,
-                  price: parseFloat(price),
+                  price: new_price,
                   market: market || 'usdm',
                   timestamp: Date.now()
                 }
               }
             });
-            console.log('[binance-store] ticker 价格已更新:', symbol, price);
           }
         });
 
@@ -364,12 +373,16 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
   // 订阅 ticker
   subscribeTicker: (symbol: string, market = 'usdm') => {
     const { socket, subscribed_tickers } = get();
-    if (!socket?.connected) {
-      return;
-    }
 
     const subKey = `${market}:${symbol}`;
     if (subscribed_tickers.has(subKey)) {
+      return;
+    }
+
+    if (!socket?.connected) {
+      set({
+        subscribed_tickers: new Set([...subscribed_tickers, subKey])
+      });
       return;
     }
 
@@ -382,16 +395,16 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
   // 取消订阅 ticker
   unsubscribeTicker: (symbol: string, market = 'usdm') => {
     const { socket, subscribed_tickers } = get();
-    if (!socket?.connected) {
-      return;
-    }
-
     const subKey = `${market}:${symbol}`;
     if (!subscribed_tickers.has(subKey)) {
       return;
     }
 
-    socket.emit('unsubscribe_ticker', { symbol, market });
+    if (socket?.connected) {
+      socket.emit('unsubscribe_ticker', { symbol, market });
+    } else {
+      console.warn('[binance-store] socket 未连接，先移除本地订阅');
+    }
 
     const new_tickers = new Set(subscribed_tickers);
     new_tickers.delete(subKey);
@@ -407,10 +420,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
   // 切换 ticker 订阅（先取消旧的，再订阅新的）
   switchTicker: (oldSymbol: string | null, newSymbol: string, market = 'usdm') => {
-    const { socket, subscribed_tickers } = get();
-    if (!socket?.connected) {
-      return;
-    }
+    const { subscribed_tickers } = get();
 
     // 自动取消旧的订阅
     const oldSubKey = oldSymbol ? `${market}:${oldSymbol}` : null;
