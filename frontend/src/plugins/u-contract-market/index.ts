@@ -403,9 +403,9 @@ const buildPositions = async () => {
       positions: newPositions
     });
 
-    if (response.status === 'success' && response.datum?.status === 'success') {
-      const result = response.datum.data;
-      showStatus(`建仓操作成功！处理了 ${result?.processed_count}/${result?.total_positions} 个交易对`, 'success');
+    if (response.status === 'success' && response.datum) {
+      const datum = response.datum;
+      showStatus(datum.message || '建仓操作已提交', datum.success ? 'success' : 'error');
       // 3秒后刷新账户信息
       setTimeout(() => {
         refreshAccountInfo();
@@ -455,8 +455,9 @@ const closePositions = async () => {
       positions: closePositions
     });
 
-    if (response.status === 'success' && response.datum?.status === 'success') {
-      showStatus(`平仓操作已开始！${response.datum.data?.message || '请等待约15秒后查看结果'}`, 'success');
+    if (response.status === 'success' && response.datum) {
+      const datum = response.datum;
+      showStatus(datum.message || '平仓操作已提交，请等待约15秒后查看结果', datum.success ? 'success' : 'error');
       // 15秒后刷新账户信息
       setTimeout(() => {
         refreshAccountInfo();

@@ -2,12 +2,14 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   IconRefresh,
-  IconAlertCircle
+  IconAlertCircle,
+  IconCheck
 } from '@tabler/icons-react';
 import { Button } from '../../components/mantine';
 import { useBinanceStore } from '../../stores/binance-store';
 import { OrdersApi, BinanceAccountApi } from '../../api';
 import type { AccountPosition } from '../../types/binance';
+import type { PositionOperationResponse } from '../../api/modules/orders';
 import { ROUTES } from '../../router';
 import { AccountInfoCard } from './components/account-info-card';
 import { TradingPairInfoCard } from './components/trading-pair-info-card';
@@ -21,6 +23,8 @@ const DEFAULT_LEVERAGE = 20;
 
 type CloseSide = 'long' | 'short' | 'both';
 
+type MessageStatus = 'error' | 'success';
+
 /**
  * 快捷开单独立页面
  * 支持快速开仓、平仓、持平操作
@@ -32,6 +36,7 @@ function QuickOrderPage() {
   const [loading, setLoading] = useState(false);
   const [account_loading, setAccountLoading] = useState(false);
   const [error_msg, setErrorMsg] = useState<string | null>(null);
+  const [message_status, setMessageStatus] = useState<MessageStatus>('error');
   const [custom_close_long_amount, setCustomCloseLongAmount] = useState('');
   const [custom_close_short_amount, setCustomCloseShortAmount] = useState('');
   const [custom_open_long_amount, setCustomOpenLongAmount] = useState('');
@@ -58,6 +63,15 @@ function QuickOrderPage() {
     navigate(ROUTES.SETTINGS);
   }, [navigate]);
 
+  const showMessage = useCallback((msg: string, status: MessageStatus = 'error') => {
+    setErrorMsg(msg);
+    setMessageStatus(status);
+    // 3秒后自动清除成功消息
+    if (status === 'success') {
+      setTimeout(() => setErrorMsg(null), 3000);
+    }
+  }, []);
+
   const loadAccountData = useCallback(async () => {
     const active_api_key = get_active_api_key();
     if (!active_api_key) {
@@ -82,15 +96,15 @@ function QuickOrderPage() {
           positions: data.positions || []
         });
       } else {
-        setErrorMsg(response.message || '获取账户信息失败');
+        showMessage(response.message || '获取账户信息失败', 'error');
       }
     } catch (err) {
       console.error('获取账户信息失败:', err);
-      setErrorMsg('获取账户信息失败');
+      showMessage('获取账户信息失败', 'error');
     } finally {
       setAccountLoading(false);
     }
-  }, [get_active_api_key, navigateToSettings]);
+  }, [get_active_api_key, navigateToSettings, showMessage]);
 
   const subscribeCurrentSymbol = useCallback(() => {
     subscribeTicker(trading_pair, 'usdm');
@@ -179,7 +193,7 @@ function QuickOrderPage() {
     }
 
     if (account_data.available_balance < amount) {
-      setErrorMsg(`可用保证金不足，当前: ${account_data.available_balance.toFixed(2)} USDT`);
+      showMessage(`可用保证金不足，当前: ${account_data.available_balance.toFixed(2)} USDT`, 'error');
       return;
     }
 
@@ -197,14 +211,27 @@ function QuickOrderPage() {
         }]
       });
 
-      if (response.status === 'success') {
+      if (response.status === 'success' && response.datum) {
+        const datum = response.datum as PositionOperationResponse;
+        // 单交易对场景，显示实际结果
+        if (datum.totalPositions === 1 && datum.results.length > 0) {
+          const result = datum.results[0];
+          if (result.success) {
+            showMessage(`${datum.message}${result.orderId ? ` (订单ID: ${result.orderId})` : ''}`, 'success');
+          } else {
+            showMessage(`${datum.message}: ${result.error || '未知错误'}`, 'error');
+          }
+        } else {
+          // 多交易对场景
+          showMessage(datum.message || '开仓操作已提交', datum.success ? 'success' : 'error');
+        }
         await loadAccountData();
       } else {
-        setErrorMsg(response.message || '开仓失败');
+        showMessage(response.message || '开仓失败', 'error');
       }
     } catch (err) {
       console.error('开仓失败:', err);
-      setErrorMsg('开仓失败，请重试');
+      showMessage('开仓失败，请重试', 'error');
     } finally {
       setLoading(false);
     }
@@ -224,7 +251,7 @@ function QuickOrderPage() {
         : [...current_pair_long_positions, ...current_pair_short_positions];
 
     if (target_positions.length === 0) {
-      setErrorMsg('当前没有对应持仓');
+      showMessage('当前没有对应持仓', 'error');
       return;
     }
 
@@ -247,14 +274,27 @@ function QuickOrderPage() {
         positions: close_positions
       });
 
-      if (response.status === 'success') {
+      if (response.status === 'success' && response.datum) {
+        const datum = response.datum as PositionOperationResponse;
+        // 单交易对场景，显示实际结果
+        if (datum.totalPositions === 1 && datum.results.length > 0) {
+          const result = datum.results[0];
+          if (result.success) {
+            showMessage(`${datum.message}${result.orderId ? ` (订单ID: ${result.orderId})` : ''}`, 'success');
+          } else {
+            showMessage(`${datum.message}: ${result.error || '未知错误'}`, 'error');
+          }
+        } else {
+          // 多交易对场景
+          showMessage(datum.message || '平仓操作已提交', datum.success ? 'success' : 'error');
+        }
         await loadAccountData();
       } else {
-        setErrorMsg(response.message || '平仓失败');
+        showMessage(response.message || '平仓失败', 'error');
       }
     } catch (err) {
       console.error('平仓失败:', err);
-      setErrorMsg('平仓失败，请重试');
+      showMessage('平仓失败，请重试', 'error');
     } finally {
       setLoading(false);
     }
@@ -274,12 +314,12 @@ function QuickOrderPage() {
         : current_pair_total_long_amount + current_pair_total_short_amount;
 
     if (target_amount < amount) {
-      setErrorMsg(`持仓金额不足，当前: ${target_amount.toFixed(2)} USDT`);
+      showMessage(`持仓金额不足，当前: ${target_amount.toFixed(2)} USDT`, 'error');
       return;
     }
 
     if (target_amount === 0) {
-      setErrorMsg('当前没有对应持仓');
+      showMessage('当前没有对应持仓', 'error');
       return;
     }
 
@@ -309,7 +349,20 @@ function QuickOrderPage() {
         positions: close_positions
       });
 
-      if (response.status === 'success') {
+      if (response.status === 'success' && response.datum) {
+        const datum = response.datum as PositionOperationResponse;
+        // 单交易对场景，显示实际结果
+        if (datum.totalPositions === 1 && datum.results.length > 0) {
+          const result = datum.results[0];
+          if (result.success) {
+            showMessage(`${datum.message}${result.orderId ? ` (订单ID: ${result.orderId})` : ''}`, 'success');
+          } else {
+            showMessage(`${datum.message}: ${result.error || '未知错误'}`, 'error');
+          }
+        } else {
+          // 多交易对场景
+          showMessage(datum.message || '平仓操作已提交', datum.success ? 'success' : 'error');
+        }
         await loadAccountData();
         if (side === 'long') {
           setCustomCloseLongAmount('');
@@ -318,11 +371,11 @@ function QuickOrderPage() {
           setCustomCloseShortAmount('');
         }
       } else {
-        setErrorMsg(response.message || '平仓失败');
+        showMessage(response.message || '平仓失败', 'error');
       }
     } catch (err) {
       console.error('平仓失败:', err);
-      setErrorMsg('平仓失败，请重试');
+      showMessage('平仓失败，请重试', 'error');
     } finally {
       setLoading(false);
     }
@@ -336,7 +389,7 @@ function QuickOrderPage() {
     }
 
     if (account_data.available_balance < amount) {
-      setErrorMsg(`可用保证金不足，当前: ${account_data.available_balance.toFixed(2)} USDT`);
+      showMessage(`可用保证金不足，当前: ${account_data.available_balance.toFixed(2)} USDT`, 'error');
       return;
     }
 
@@ -354,7 +407,20 @@ function QuickOrderPage() {
         }]
       });
 
-      if (response.status === 'success') {
+      if (response.status === 'success' && response.datum) {
+        const datum = response.datum as PositionOperationResponse;
+        // 单交易对场景，显示实际结果
+        if (datum.totalPositions === 1 && datum.results.length > 0) {
+          const result = datum.results[0];
+          if (result.success) {
+            showMessage(`${datum.message}${result.orderId ? ` (订单ID: ${result.orderId})` : ''}`, 'success');
+          } else {
+            showMessage(`${datum.message}: ${result.error || '未知错误'}`, 'error');
+          }
+        } else {
+          // 多交易对场景
+          showMessage(datum.message || '开仓操作已提交', datum.success ? 'success' : 'error');
+        }
         await loadAccountData();
         if (side === 'long') {
           setCustomOpenLongAmount('');
@@ -363,11 +429,11 @@ function QuickOrderPage() {
           setCustomOpenShortAmount('');
         }
       } else {
-        setErrorMsg(response.message || '开仓失败');
+        showMessage(response.message || '开仓失败', 'error');
       }
     } catch (err) {
       console.error('开仓失败:', err);
-      setErrorMsg('开仓失败，请重试');
+      showMessage('开仓失败，请重试', 'error');
     } finally {
       setLoading(false);
     }
@@ -386,7 +452,7 @@ function QuickOrderPage() {
     const diff = Math.abs(long_amount - short_amount);
 
     if (diff === 0) {
-      setErrorMsg('多空仓位已平衡，无需调整');
+      showMessage('多空仓位已平衡，无需调整', 'error');
       return;
     }
 
@@ -416,14 +482,16 @@ function QuickOrderPage() {
         positions
       });
 
-      if (response.status === 'success') {
+      if (response.status === 'success' && response.datum) {
+        const datum = response.datum as PositionOperationResponse;
+        showMessage(datum.message || '持仓操作完成', datum.success ? 'success' : 'error');
         await loadAccountData();
       } else {
-        setErrorMsg(response.message || '持仓失败');
+        showMessage(response.message || '持仓失败', 'error');
       }
     } catch (err) {
       console.error('持仓失败:', err);
-      setErrorMsg('持仓失败，请重试');
+      showMessage('持仓失败，请重试', 'error');
     } finally {
       setLoading(false);
     }
@@ -457,11 +525,11 @@ function QuickOrderPage() {
       if (response.status === 'success') {
         setLeverage(value);
       } else {
-        setErrorMsg(response.message || '设置杠杆失败');
+        showMessage(response.message || '设置杠杆失败', 'error');
       }
     } catch (err) {
       console.error('设置杠杆失败:', err);
-      setErrorMsg('设置杠杆失败，请重试');
+      showMessage('设置杠杆失败，请重试', 'error');
     }
   };
 
@@ -485,8 +553,8 @@ function QuickOrderPage() {
       </div>
 
       {error_msg && (
-        <div className="quick-order-error">
-          <IconAlertCircle size={16} />
+        <div className={`quick-order-message ${message_status === 'success' ? 'quick-order-success' : 'quick-order-error'}`}>
+          {message_status === 'success' ? <IconCheck size={16} /> : <IconAlertCircle size={16} />}
           <span>{error_msg}</span>
         </div>
       )}

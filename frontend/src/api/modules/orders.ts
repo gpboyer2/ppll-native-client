@@ -2,6 +2,32 @@ import { RequestWrapper } from '../request';
 import { Response } from '../../core/response';
 
 /**
+ * 单个交易对操作结果
+ */
+export interface PositionOperationResult {
+  symbol: string;
+  side: 'LONG' | 'SHORT';
+  quantity?: string;
+  amount?: number;
+  success: boolean;
+  orderId?: number;
+  error?: string;
+}
+
+/**
+ * 开仓/平仓操作响应
+ */
+export interface PositionOperationResponse {
+  success: boolean;
+  results: PositionOperationResult[];
+  processedCount: number;
+  totalPositions: number;
+  validPositions?: number;
+  skippedPositions?: number;
+  message: string;
+}
+
+/**
  * 订单管理API接口
  */
 export class OrdersApi {
@@ -26,7 +52,7 @@ export class OrdersApi {
       side: 'LONG' | 'SHORT';
       amount: number;
     }>;
-  }): Promise<Response<any>> {
+  }): Promise<Response<PositionOperationResponse>> {
     return RequestWrapper.post(`${this.BASE_PATH}/um/open-position`, data);
   }
 
@@ -44,7 +70,7 @@ export class OrdersApi {
       quantity?: number;
       percentage?: number;
     }>;
-  }): Promise<Response<any>> {
+  }): Promise<Response<PositionOperationResponse>> {
     return RequestWrapper.post(`${this.BASE_PATH}/um/close-position`, data);
   }
 

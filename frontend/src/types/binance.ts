@@ -119,7 +119,29 @@ export interface CustomBuildPositionRequest extends BinanceCredentials {
   positions: PositionConfig[]
 }
 
-// 操作结果
+// 单个交易对操作结果
+export interface PositionOperationResultItem {
+  symbol: string
+  side: 'LONG' | 'SHORT'
+  quantity?: string
+  amount?: number
+  success: boolean
+  orderId?: number
+  error?: string
+}
+
+// 开仓/平仓操作响应
+export interface PositionOperationResponse {
+  success: boolean
+  results: PositionOperationResultItem[]
+  processedCount: number
+  totalPositions: number
+  validPositions?: number
+  skippedPositions?: number
+  message: string
+}
+
+// 操作结果（旧接口兼容）
 export interface OperationResult {
   success: boolean
   processed_count: number

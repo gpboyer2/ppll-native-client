@@ -6,8 +6,7 @@ import {
   AccountInfo,
   UmOpenPositionRequest,
   UmClosePositionRequest,
-  OperationResult,
-  ClosePositionResponse
+  PositionOperationResponse
 } from '../types/binance';
 
 /**
@@ -42,8 +41,8 @@ export class BinanceApi {
    * @param request 开仓请求参数
    * @returns 开仓操作结果
    */
-  static async umOpenPosition(request: UmOpenPositionRequest): Promise<Response<BinanceApiResponse<OperationResult>>> {
-    return RequestWrapper.post<BinanceApiResponse<OperationResult>>(
+  static async umOpenPosition(request: UmOpenPositionRequest): Promise<Response<PositionOperationResponse>> {
+    return RequestWrapper.post<PositionOperationResponse>(
       `${this.BASE_URL}/api/v1/orders/um/open-position`,
       request
     );
@@ -57,8 +56,8 @@ export class BinanceApi {
    * @param request 平仓请求参数
    * @returns 平仓操作结果
    */
-  static async umClosePosition(request: UmClosePositionRequest): Promise<Response<BinanceApiResponse<ClosePositionResponse>>> {
-    return RequestWrapper.post<BinanceApiResponse<ClosePositionResponse>>(
+  static async umClosePosition(request: UmClosePositionRequest): Promise<Response<PositionOperationResponse>> {
+    return RequestWrapper.post<PositionOperationResponse>(
       `${this.BASE_URL}/api/v1/orders/um/close-position`,
       request
     );
