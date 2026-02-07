@@ -30,12 +30,6 @@ export function AccountInfoCard(props: AccountInfoCardProps): JSX.Element {
           </span>
         </div>
         <div className="account-info-card-item">
-          <span className="account-info-card-label">全局净仓</span>
-          <span className={`account-info-card-value ${net_position > 0 ? 'account-info-card-value-long' : net_position < 0 ? 'account-info-card-value-short' : ''}`}>
-            {net_position > 0 ? '+' : ''}{net_position.toFixed(2)} U
-          </span>
-        </div>
-        <div className="account-info-card-item">
           <span className="account-info-card-label">全局多单</span>
           <span className="account-info-card-value account-info-card-value-long">
             {total_long_amount.toFixed(2)} U
@@ -45,6 +39,12 @@ export function AccountInfoCard(props: AccountInfoCardProps): JSX.Element {
           <span className="account-info-card-label">全局空单</span>
           <span className="account-info-card-value account-info-card-value-short">
             {total_short_amount.toFixed(2)} U
+          </span>
+        </div>
+        <div className="account-info-card-item">
+          <span className="account-info-card-label">全局净仓</span>
+          <span className={`account-info-card-value ${net_position > 0 ? 'account-info-card-value-long' : net_position < 0 ? 'account-info-card-value-short' : ''}`}>
+            {net_position > 0 ? '+' : ''}{net_position.toFixed(2)} U
           </span>
         </div>
       </div>

@@ -29,6 +29,8 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
 
   const price_text = !current_price ? '--' : Number(current_price).toFixed(2);
 
+  const net_position = current_pair_long_amount - current_pair_short_amount;
+
   const long_position = current_pair_positions.find(
     p => parseFloat(p.positionAmt) > 0 && (p.positionSide === 'LONG' || p.positionSide === 'BOTH')
   );
@@ -89,6 +91,18 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
           <span className="trading-pair-info-card-label">当前空单仓位</span>
           <span className="trading-pair-info-card-value trading-pair-info-card-value-short">
             {current_pair_short_amount.toFixed(2)} U
+          </span>
+        </div>
+        <div className="trading-pair-info-card-item">
+          <span className="trading-pair-info-card-label">净仓</span>
+          <span
+            className={`trading-pair-info-card-value ${
+              net_position > 0 ? 'trading-pair-info-card-value-long' :
+              net_position < 0 ? 'trading-pair-info-card-value-short' :
+              ''
+            }`}
+          >
+            {net_position > 0 ? '+' : ''}{net_position.toFixed(2)} U
           </span>
         </div>
       </div>
