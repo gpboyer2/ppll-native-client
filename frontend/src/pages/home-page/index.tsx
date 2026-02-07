@@ -7,7 +7,6 @@ import { getPluginList, type PluginItem, ROUTES } from '../../router';
 function HomePage() {
   const [notifyList, setNotifyList] = useState(notifications.list);
   const [pluginList] = useState<PluginItem[]>(() => getPluginList());
-  const [isEditingShortcuts, setIsEditingShortcuts] = useState(false);
 
   // 通知系统初始化
   useEffect(() => {
@@ -73,74 +72,31 @@ function HomePage() {
 
       </div>
 
-      {/* 快捷开单入口 */}
-      <Link
-        to={ROUTES.QUICK_ORDER}
-        className="card home-page-quick-order-card"
-        style={{ textDecoration: 'none', display: 'block', marginBottom: '16px' }}
-      >
-        <div className="card-content">
-          <div className="flex items-center space-between">
-            <div className="flex items-center gap-12">
-              <div style={{ fontSize: '32px' }}>⚡</div>
-              <div>
-                <div style={{ fontSize: 'var(--text-lg)', fontWeight: 600, color: 'var(--color-text)' }}>快捷开单</div>
-                <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>快速开仓、平仓、持平操作</div>
-              </div>
-            </div>
-            <div className="btn btn-primary">打开</div>
-          </div>
-        </div>
-      </Link>
-
       {/* 主要功能区域 */}
       <div className="flex gap-16" style={{ flexWrap: 'wrap' }}>
         {/* 插件快捷入口 */}
-        <div className="card" style={{ flex: '2', minWidth: '300px' }}>
+        <div className="card shortcut-card">
           <div className="card-header">
-            <div className="flex items-center space-between">
-              <span>插件快捷入口</span>
-              <button
-                className={`btn ${isEditingShortcuts ? 'btn-primary' : 'btn-ghost'}`}
-                style={{ height: '28px', padding: '0 8px', fontSize: 'var(--text-sm)' }}
-                onClick={() => setIsEditingShortcuts(!isEditingShortcuts)}
-              >
-                {isEditingShortcuts ? '完成' : '编辑'}
-              </button>
-            </div>
+            <span>插件快捷入口</span>
           </div>
           <div className="card-content">
             {enabled_plugin_list.length > 0 ? (
               <div className="flex flex-col gap-8">
                 {enabled_plugin_list.map(plugin => (
                   <div key={plugin.id} className="flex items-center space-between p-8 rounded border">
-                    <div>
-                      <div style={{ fontWeight: 600 }}>{plugin.name || plugin.id}</div>
-                      <div className="text-muted" style={{ fontSize: 'var(--text-sm)' }}>v{plugin.version}</div>
+                    <div className="plugin-info">
+                      <div className="plugin-name">{plugin.name || plugin.id}</div>
+                      <div className="text-muted plugin-version">v{plugin.version}</div>
                     </div>
-                    <div className="flex gap-8">
-                      {isEditingShortcuts && (
-                        <button
-                          className="btn btn-danger"
-                          style={{ height: '32px', padding: '0 12px' }}
-                          onClick={() => {
-                            // 这里可以添加从快捷入口移除插件的逻辑
-                            console.log('移除插件快捷入口:', plugin.id);
-                          }}
-                        >
-                                                    移除
-                        </button>
-                      )}
-                      <Link to={`/plugins/${plugin.id}`} className="btn btn-primary" style={{ height: '32px', padding: '0 12px' }}>
-                                                打开
-                      </Link>
-                    </div>
+                    <Link to={`/plugins/${plugin.id}`} className="btn btn-primary btn-open">
+                      打开
+                    </Link>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-muted" style={{ textAlign: 'center', padding: '24px 0' }}>
-                <div style={{ fontSize: '48px', marginBottom: '8px' }}>🔌</div>
+              <div className="text-muted empty-state">
+                <div className="empty-icon">🔌</div>
                 <div>暂无启用的插件</div>
                 <Link to="/plugins" className="btn btn-outline mt-8">前往启用</Link>
               </div>

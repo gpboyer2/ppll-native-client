@@ -44,7 +44,7 @@ function QuickOrderPage() {
   const set_active_api_key = useBinanceStore(state => state.set_active_api_key);
   const ticker_prices = useBinanceStore(state => state.ticker_prices);
   const subscribeTicker = useBinanceStore(state => state.subscribeTicker);
-  const is_initializing = useBinanceStore(state => state.is_initializing);
+  const initialized = useBinanceStore(state => state.initialized);
   const binance_loading = useBinanceStore(state => state.loading);
 
   const current_price = ticker_prices[trading_pair]?.price || 0;
@@ -97,8 +97,8 @@ function QuickOrderPage() {
   }, [trading_pair, subscribeTicker]);
 
   useEffect(() => {
-    // 如果正在初始化中，等待完成
-    if (is_initializing || binance_loading) {
+    // 如果未完成初始化，等待完成
+    if (!initialized) {
       return;
     }
 
@@ -108,7 +108,7 @@ function QuickOrderPage() {
       return;
     }
     loadAccountData();
-  }, [active_api_key_id, get_active_api_key, navigateToSettings, loadAccountData, is_initializing, binance_loading]);
+  }, [active_api_key_id, get_active_api_key, navigateToSettings, loadAccountData, initialized]);
 
   useEffect(() => {
     subscribeCurrentSymbol();

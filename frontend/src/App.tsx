@@ -84,7 +84,7 @@ function ApiKeyGuard({ children }: { children: React.ReactNode }) {
 
     // 检查是否已配置 API Key
     if (api_key_list.length === 0) {
-      console.log('[ApiKeyGuard] api_key_list.length=0，准备跳转到设置页面');
+      console.log('[ApiKeyGuard] api_key_list.length=0，准备跳转到设置页面', { stack_trace: new Error().stack });
       // 跳转到设置页面
       navigate(ROUTES.SETTINGS, { replace: true });
 
@@ -104,7 +104,7 @@ function ApiKeyGuard({ children }: { children: React.ReactNode }) {
       // 重置标志位，以便下次删除所有 API Key 后能再次显示通知
       hasShownNotification.current = false;
     }
-  }, [api_key_list.length, initialized, location.pathname, navigate, is_initializing, loading]);
+  }, [initialized, location.pathname, navigate, is_initializing, loading, api_key_list.length]);
 
   return <>{children}</>;
 }
