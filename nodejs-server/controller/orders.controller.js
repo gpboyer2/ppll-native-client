@@ -105,6 +105,11 @@ const umClosePosition = catchAsync(async (req, res) => {
     `[U本位平仓] 接口响应 - 总仓位: ${result.totalPositions}, 有效: ${result.validPositions || 0}, 跳过: ${result.skippedPositions || 0}`
   );
 
+  // 判断实际是否有仓位被平掉
+  if (result.validPositions === 0 || (result.processedCount === 0 && result.skippedPositions > 0)) {
+    return res.apiError(result, `没有可平仓的仓位，共跳过 ${result.skippedPositions} 个`);
+  }
+
   return res.apiSuccess(result, `请等待约 ${result.totalPositions * 1.5} 秒后，在APP查看平仓结果`);
 });
 

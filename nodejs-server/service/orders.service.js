@@ -466,6 +466,20 @@ const umClosePosition = async (params) => {
 
     UtilRecord.log(`[U本位平仓] 数据过滤完成 - 总数: ${positions.length}, 有效: ${validPositions.length}, 跳过: ${skippedPositions.length}`);
 
+    // 如果没有有效仓位，直接返回失败
+    if (validPositions.length === 0) {
+      return {
+        success: false,
+        results: [],
+        processedCount: 0,
+        totalPositions: positions.length,
+        validPositions: 0,
+        skippedPositions: skippedPositions.length,
+        skippedDetails: skippedPositions,
+        message: `没有可平仓的仓位，共跳过 ${skippedPositions.length} 个`
+      };
+    }
+
     const isSinglePosition = validPositions.length === 1;
 
     // 单交易对：同步执行，返回实际结果
