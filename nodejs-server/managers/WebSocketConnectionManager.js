@@ -193,19 +193,30 @@ class WebSocketConnectionManager extends EventEmitter {
         const messageList = Array.isArray(data) ? data : [data];
 
         messageList.forEach((message) => {
-          if (!message || !message.eventType) {
+          if (!message) {
             return;
           }
 
+          const eventType = message.eventType || message.event_type || message.e;
+          const markPrice = message.markPrice ?? message.mark_price ?? message.p;
+          const hasMarkPrice = message.symbol && markPrice !== undefined;
+
           // 统一转换为上层可消费的事件
-          if (message.eventType === 'markPriceUpdate') {
-            const { symbol, markPrice } = message;
+          if (eventType === 'markPriceUpdate' || hasMarkPrice) {
+            const symbol = message.symbol;
             this.emit('tick', { market: 'usdm', eventType: 'markPrice', symbol, latestPrice: markPrice, raw: message });
-          } else if (message.eventType === 'continuous_kline') {
+            return;
+          }
+
+          if (!eventType) {
+            return;
+          }
+
+          if (eventType === 'continuous_kline') {
             const { symbol } = message;
             const { close } = message.kline || {};
             this.emit('kline', { market: 'um', eventType: 'continuous_kline', symbol, latestPrice: close, raw: message });
-          } else if (message.eventType === 'ACCOUNT_UPDATE' || message.eventType === 'ORDER_TRADE_UPDATE') {
+          } else if (eventType === 'ACCOUNT_UPDATE' || eventType === 'ORDER_TRADE_UPDATE') {
             // User Data Stream events
             // 需要识别是哪个用户的事件，通过 listenKey 关联
             // 但 formattedMessage 中可能没有 listenKey，我们需要在创建 client 时关联

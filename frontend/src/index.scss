@@ -2076,7 +2076,6 @@ nav.surface {
 .modal-content {
   background: var(--color-surface);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 400px;
   max-height: 90vh;
@@ -2213,7 +2212,7 @@ nav.surface {
   background: var(--color-bg-muted);
 }
 
-.index-checkbox-list .checkbox-label input[type="checkbox"]:checked + span {
+.index-checkbox-list .checkbox-label input[type="checkbox"]:checked+span {
   color: var(--color-primary);
   font-weight: 500;
 }

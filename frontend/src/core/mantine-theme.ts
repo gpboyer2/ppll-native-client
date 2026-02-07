@@ -10,6 +10,8 @@ import { MantineTheme, createTheme } from '@mantine/core';
  * 4. 禁用全局样式注入
  */
 export const mantineTheme = createTheme({
+  // 强制使用浅色模式
+  defaultColorScheme: 'light',
   // 主色调配置 - 币安黄色系
   primaryColor: 'yellow',
   
@@ -172,19 +174,38 @@ export const mantineTheme = createTheme({
       defaultProps: {
         radius: 'md',
         overlayProps: {
-          backgroundOpacity: 0.6,
+          backgroundOpacity: 0.5,
           blur: 4,
         }
       },
       styles: {
+        root: {
+          backgroundColor: 'transparent',
+        },
+        inner: {
+          backgroundColor: 'transparent',
+        },
         content: {
-          backgroundColor: '#181a20',
-          borderColor: '#2b3139',
+          backgroundColor: '#ffffff',
+          borderColor: '#e6e8ea',
         },
         header: {
-          backgroundColor: '#181a20',
-          borderBottomColor: '#2b3139',
-        }
+          backgroundColor: '#ffffff',
+          borderBottomColor: '#e6e8ea',
+        },
+        title: {
+          color: '#1e2329',
+        },
+        body: {
+          color: '#707a8a',
+        },
+        close: {
+          color: '#707a8a',
+          '&:hover': {
+            backgroundColor: 'rgba(0, 0, 0, 0.06)',
+            color: '#1e2329',
+          },
+        },
       }
     },
 

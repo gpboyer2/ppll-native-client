@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { IconRefresh, IconList, IconHistory } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { Button } from '../../components/mantine';
+import { ConfirmModal } from '../../components/mantine/Modal';
 import { useBinanceStore } from '../../stores/binance-store';
 import { OrdersApi, BinanceAccountApi } from '../../api';
 import type { AccountPosition } from '../../types/binance';
@@ -63,8 +64,19 @@ function QuickOrderPage() {
   const [custom_close_short_amount, setCustomCloseShortAmount] = useState('');
   const [custom_open_long_amount, setCustomOpenLongAmount] = useState('');
   const [custom_open_short_amount, setCustomOpenShortAmount] = useState('');
-  const [show_position_panel, setShowPositionPanel] = useState(true);
-  const [show_order_records_panel, setShowOrderRecordsPanel] = useState(true);
+  const [show_position_panel, setShowPositionPanel] = useState(false);
+  const [show_order_records_panel, setShowOrderRecordsPanel] = useState(false);
+  const [close_confirm_modal, setCloseConfirmModal] = useState<{
+    opened: boolean;
+    title: string;
+    content: string;
+    onConfirm: () => void;
+  }>({
+    opened: false,
+    title: '',
+    content: '',
+    onConfirm: () => { },
+  });
 
   const usdt_pairs = useBinanceStore(state => state.usdt_pairs);
   const api_key_list = useBinanceStore(state => state.api_key_list);
@@ -158,6 +170,22 @@ function QuickOrderPage() {
         color: 'red',
       });
     }
+  }, []);
+
+  const showCloseConfirm = useCallback((title: string, content: string, onConfirm: () => void) => {
+    setCloseConfirmModal({
+      opened: true,
+      title,
+      content,
+      onConfirm: () => {
+        onConfirm();
+        setCloseConfirmModal(prev => ({ ...prev, opened: false }));
+      },
+    });
+  }, []);
+
+  const handleCloseConfirmModal = useCallback(() => {
+    setCloseConfirmModal(prev => ({ ...prev, opened: false }));
   }, []);
 
   // 初始化加载账户数据（使用 HTTP 获取一次）
@@ -295,12 +323,21 @@ function QuickOrderPage() {
             const valid_positions = (positions || []).filter((p: any) => {
               const amt = parseFloat(p.positionAmount || p.positionAmt || '0');
               return amt !== 0;
-            }).map((p: any) => ({
-              ...p,
-              positionAmt: p.positionAmount !== undefined ? p.positionAmount : p.positionAmt,
-              unrealizedProfit: p.unrealisedPnl !== undefined ? p.unrealisedPnl : (p.unrealizedProfit || '0'),
-              breakEvenPrice: p.bep !== undefined ? p.bep : p.breakEvenPrice,
-            }));
+            }).map((p: any) => {
+              const positionAmtValue = parseFloat(p.positionAmount || p.positionAmt || '0');
+              const entryPriceValue = parseFloat(p.entryPrice || '0');
+              const fallbackNotional = Number.isFinite(positionAmtValue) && Number.isFinite(entryPriceValue)
+                ? String(positionAmtValue * entryPriceValue)
+                : '0';
+              return {
+                ...p,
+                positionAmt: p.positionAmount !== undefined ? p.positionAmount : p.positionAmt,
+                entryPrice: p.entryPrice || '0',
+                notional: p.notional !== undefined ? p.notional : fallbackNotional,
+                unrealizedProfit: p.unrealisedPnl !== undefined ? p.unrealisedPnl : (p.unrealizedProfit || '0'),
+                breakEvenPrice: p.bep !== undefined ? p.bep : p.breakEvenPrice,
+              };
+            });
             console.log('[Account Update] 有效持仓数量:', valid_positions.length);
 
             // 直接更新本地 state
@@ -515,37 +552,45 @@ function QuickOrderPage() {
       return;
     }
 
-    setLoading(true);
+    const side_text = side === 'long' ? '多' : side === 'short' ? '空' : '';
+    const position_text = percentage === 100 ? '全部' : `${percentage}%`;
 
-    try {
-      const close_positions = target_positions.map(p => {
-        const position_amt = parseFloat(p.positionAmt);
-        return {
-          symbol: p.symbol,
-          side: (position_amt > 0 ? 'LONG' : 'SHORT') as 'LONG' | 'SHORT',
-          percentage
-        };
-      });
+    showCloseConfirm(
+      `确认平仓`,
+      `确定要${position_text}平${side_text}单吗？`,
+      async () => {
+        setLoading(true);
 
-      const response = await OrdersApi.umClosePosition({
-        api_key: active_api_key.api_key,
-        api_secret: active_api_key.api_secret,
-        source: 'QUICK_ORDER',
-        positions: close_positions
-      });
+        try {
+          const close_positions = target_positions.map(p => {
+            const position_amt = parseFloat(p.positionAmt);
+            return {
+              symbol: p.symbol,
+              side: (position_amt > 0 ? 'LONG' : 'SHORT') as 'LONG' | 'SHORT',
+              percentage
+            };
+          });
 
-      if (response.status === 'success' && response.datum) {
-        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓操作已提交');
-        // WebSocket 会自动更新账户数据，无需手动调用 loadAccountData
-      } else {
-        showMessage(response.message || '平仓失败', 'error');
+          const response = await OrdersApi.umClosePosition({
+            api_key: active_api_key.api_key,
+            api_secret: active_api_key.api_secret,
+            source: 'QUICK_ORDER',
+            positions: close_positions
+          });
+
+          if (response.status === 'success' && response.datum) {
+            handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓操作已提交');
+          } else {
+            showMessage(response.message || '平仓失败', 'error');
+          }
+        } catch (err) {
+          console.error('[handleCloseByPercentage] 平仓异常:', err);
+          showMessage('平仓失败，请重试', 'error');
+        } finally {
+          setLoading(false);
+        }
       }
-    } catch (err) {
-      console.error('[handleCloseByPercentage] 平仓异常:', err);
-      showMessage('平仓失败，请重试', 'error');
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   const handleCloseByAmount = async (side: CloseSide, amount: number) => {
@@ -571,50 +616,57 @@ function QuickOrderPage() {
       return;
     }
 
-    setLoading(true);
+    const side_text = side === 'long' ? '多' : side === 'short' ? '空' : '';
 
-    try {
-      const target_positions = side === 'long'
-        ? current_pair_long_positions
-        : side === 'short'
-          ? current_pair_short_positions
-          : [...current_pair_long_positions, ...current_pair_short_positions];
+    showCloseConfirm(
+      `确认平仓`,
+      `确定要平${side_text}单 ${amount} USDT 吗？`,
+      async () => {
+        setLoading(true);
 
-      const ratio = amount / target_amount;
-      const close_positions = target_positions.map(p => {
-        const position_amt = parseFloat(p.positionAmt);
-        return {
-          symbol: p.symbol,
-          side: (position_amt > 0 ? 'LONG' : 'SHORT') as 'LONG' | 'SHORT',
-          percentage: ratio * 100
-        };
-      });
+        try {
+          const target_positions = side === 'long'
+            ? current_pair_long_positions
+            : side === 'short'
+              ? current_pair_short_positions
+              : [...current_pair_long_positions, ...current_pair_short_positions];
 
-      const response = await OrdersApi.umClosePosition({
-        api_key: active_api_key.api_key,
-        api_secret: active_api_key.api_secret,
-        source: 'QUICK_ORDER',
-        positions: close_positions
-      });
+          const ratio = amount / target_amount;
+          const close_positions = target_positions.map(p => {
+            const position_amt = parseFloat(p.positionAmt);
+            return {
+              symbol: p.symbol,
+              side: (position_amt > 0 ? 'LONG' : 'SHORT') as 'LONG' | 'SHORT',
+              percentage: ratio * 100
+            };
+          });
 
-      if (response.status === 'success' && response.datum) {
-        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓操作已提交');
-        // WebSocket 会自动更新账户数据，无需手动调用 loadAccountData
-        if (side === 'long') {
-          setCustomCloseLongAmount('');
+          const response = await OrdersApi.umClosePosition({
+            api_key: active_api_key.api_key,
+            api_secret: active_api_key.api_secret,
+            source: 'QUICK_ORDER',
+            positions: close_positions
+          });
+
+          if (response.status === 'success' && response.datum) {
+            handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓操作已提交');
+            if (side === 'long') {
+              setCustomCloseLongAmount('');
+            }
+            if (side === 'short') {
+              setCustomCloseShortAmount('');
+            }
+          } else {
+            showMessage(response.message || '平仓失败', 'error');
+          }
+        } catch (err) {
+          console.error('[handleCloseByAmount] 平仓异常:', err);
+          showMessage('平仓失败，请重试', 'error');
+        } finally {
+          setLoading(false);
         }
-        if (side === 'short') {
-          setCustomCloseShortAmount('');
-        }
-      } else {
-        showMessage(response.message || '平仓失败', 'error');
       }
-    } catch (err) {
-      console.error('[handleCloseByAmount] 平仓异常:', err);
-      showMessage('平仓失败，请重试', 'error');
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   const handleOpenByAmount = async (side: 'long' | 'short', amount: number) => {
@@ -1016,6 +1068,14 @@ function QuickOrderPage() {
           on_close_all_click={() => handleCloseByPercentage('short', 100)}
         />
       </div>
+
+      <ConfirmModal
+        opened={close_confirm_modal.opened}
+        title={close_confirm_modal.title}
+        content={close_confirm_modal.content}
+        onConfirm={close_confirm_modal.onConfirm}
+        onClose={handleCloseConfirmModal}
+      />
     </div>
   );
 }

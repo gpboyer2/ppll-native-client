@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { IconX, IconGripHorizontal } from '@tabler/icons-react';
 import { OrdersApi } from '../../../../api';
+import { ConfirmModal } from '../../../../components/mantine/Modal';
 import type { AccountPosition } from '../../../../types/binance';
 import type { BinanceApiKey } from '../../../../stores/binance-store';
 import './index.scss';
@@ -29,6 +30,17 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
 
   const [position, setPosition] = useState(DEFAULT_POSITION);
   const [closing_positions, setClosingPositions] = useState<Set<string>>(new Set());
+  const [close_confirm_modal, setCloseConfirmModal] = useState<{
+    opened: boolean;
+    title: string;
+    content: string;
+    onConfirm: () => void;
+  }>({
+    opened: false,
+    title: '',
+    content: '',
+    onConfirm: () => {},
+  });
   const drag_state = useRef<DragState>({
     is_dragging: false,
     start_x: 0,
@@ -84,7 +96,19 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
     set_is_visible(false);
   }, [set_is_visible]);
 
-  const handleClosePosition = useCallback(async (position: AccountPosition) => {
+  const handleClosePosition = useCallback(async (position: AccountPosition, confirmed = false) => {
+    if (!confirmed) {
+      const position_amt = parseFloat(position.positionAmt);
+      const side = position_amt > 0 ? '多' : '空';
+      setCloseConfirmModal({
+        opened: true,
+        title: '确认平仓',
+        content: `确定要平掉 ${position.symbol} 的${side}单吗？`,
+        onConfirm: () => handleClosePosition(position, true),
+      });
+      return;
+    }
+
     const api_key = get_active_api_key();
     if (!api_key) {
       show_message('未选择 API Key', 'error');
@@ -245,6 +269,14 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
           </div>
         )}
       </div>
+
+      <ConfirmModal
+        opened={close_confirm_modal.opened}
+        title={close_confirm_modal.title}
+        content={close_confirm_modal.content}
+        onConfirm={close_confirm_modal.onConfirm}
+        onClose={() => setCloseConfirmModal(prev => ({ ...prev, opened: false }))}
+      />
     </div>
   );
 }
