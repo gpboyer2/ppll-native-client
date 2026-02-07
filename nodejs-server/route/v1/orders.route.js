@@ -62,6 +62,14 @@ router.get('/quick-order/query',
   ordersController.queryQuickOrderRecords
 );
 
+/**
+ * 获取近一个月开仓均价
+ * GET /api/v1/orders/avg-entry-price?api_key=xxx&api_secret=xxx&symbol=xxx&position_side=xxx
+ */
+router.get('/avg-entry-price',
+  ordersController.getAvgEntryPrice
+);
+
 module.exports = router;
 
 

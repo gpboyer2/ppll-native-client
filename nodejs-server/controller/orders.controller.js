@@ -201,6 +201,24 @@ const queryQuickOrderRecords = catchAsync(async (req, res) => {
   }, '操作成功');
 });
 
+/**
+ * 获取近一个月开仓均价
+ */
+const getAvgEntryPrice = catchAsync(async (req, res) => {
+  const { api_key, api_secret, symbol, position_side } = req.query;
+
+  if (!api_key || !api_secret || !symbol || !position_side) {
+    return res.apiError(null, '参数不完整');
+  }
+
+  if (!['LONG', 'SHORT'].includes(position_side)) {
+    return res.apiError(null, 'position_side 必须是 LONG 或 SHORT');
+  }
+
+  const avg_price = await ordersService.getAvgEntryPrice(api_key, api_secret, symbol, position_side);
+  return res.apiSuccess({ avg_price }, '操作成功');
+});
+
 module.exports = {
   template,
   umOpenPosition,
@@ -208,5 +226,6 @@ module.exports = {
   batchInspect,
   setShortTakeProfit,
   queryQuickOrderRecords,
+  getAvgEntryPrice,
   validateParams
 };

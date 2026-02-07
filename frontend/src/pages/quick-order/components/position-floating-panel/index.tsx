@@ -6,6 +6,10 @@ import type { AccountPosition } from '../../../../types/binance';
 import type { BinanceApiKey } from '../../../../stores/binance-store';
 import './index.scss';
 
+interface PositionAvgPriceMap {
+  [key: string]: number;
+}
+
 interface PositionFloatingPanelProps {
   positions: AccountPosition[];
   ticker_prices: Record<string, { price?: number; mark_price?: number }>;
@@ -34,17 +38,18 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
     y: DEFAULT_Y,
   }));
   const [closing_positions, setClosingPositions] = useState<Set<string>>(new Set());
+  const [avg_price_map, setAvgPriceMap] = useState<PositionAvgPriceMap>({});
   const [close_confirm_modal, setCloseConfirmModal] = useState<{
     opened: boolean;
     title: string;
     content: string;
     onConfirm: () => void;
-  }>({
-    opened: false,
-    title: '',
-    content: '',
-    onConfirm: () => { },
-  });
+      }>({
+        opened: false,
+        title: '',
+        content: '',
+        onConfirm: () => { },
+      });
   const drag_state = useRef<DragState>({
     is_dragging: false,
     start_x: 0,
@@ -59,6 +64,43 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
   }, [positions]);
 
   const has_positions = valid_positions.length > 0;
+
+  const loadAvgEntryPrices = useCallback(async () => {
+    const api_key = get_active_api_key();
+    if (!api_key || valid_positions.length === 0) {
+      return;
+    }
+
+    const new_avg_price_map: PositionAvgPriceMap = {};
+
+    await Promise.all(valid_positions.map(async (p) => {
+      const position_amt = parseFloat(p.positionAmt);
+      const side: 'LONG' | 'SHORT' = position_amt > 0 ? 'LONG' : 'SHORT';
+      const key = `${p.symbol}-${side}`;
+
+      try {
+        const response = await OrdersApi.getAvgEntryPrice({
+          api_key: api_key.api_key,
+          api_secret: api_key.api_secret,
+          symbol: p.symbol,
+          position_side: side
+        });
+        if (response.status === 'success' && response.datum) {
+          new_avg_price_map[key] = response.datum.avg_price;
+        }
+      } catch (err) {
+        console.error(`[PositionFloatingPanel] 获取 ${p.symbol} 近一个月开仓均价失败:`, err);
+      }
+    }));
+
+    setAvgPriceMap(new_avg_price_map);
+  }, [valid_positions, get_active_api_key]);
+
+  useEffect(() => {
+    if (is_visible && has_positions) {
+      loadAvgEntryPrices();
+    }
+  }, [is_visible, has_positions, loadAvgEntryPrices]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (e.button !== 0) return;
@@ -209,6 +251,9 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
               const leverage = parseInt(p.leverage);
               const ticker = ticker_prices[p.symbol];
               const current_price = ticker?.mark_price || ticker?.price || entry_price;
+              const side_key: 'LONG' | 'SHORT' = position_amt > 0 ? 'LONG' : 'SHORT';
+              const avg_entry_price = avg_price_map[`${p.symbol}-${side_key}`] || 0;
+              const estimated_fee = notional * 0.001;
 
               const unrealized_profit = parseFloat(p.unrealizedProfit);
               const profit_class = unrealized_profit > 0 ? 'profit-positive' : unrealized_profit < 0 ? 'profit-negative' : '';
@@ -230,6 +275,10 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
                       <span className="position-floating-panel-value">{entry_price.toFixed(2)}</span>
                     </div>
                     <div className="position-floating-panel-detail-row">
+                      <span className="position-floating-panel-label">近一个月开仓均价</span>
+                      <span className="position-floating-panel-value">{avg_entry_price > 0 ? avg_entry_price.toFixed(2) : '-'}</span>
+                    </div>
+                    <div className="position-floating-panel-detail-row">
                       <span className="position-floating-panel-label">持仓额</span>
                       <span className="position-floating-panel-value">{notional.toFixed(2)} USDT</span>
                     </div>
@@ -238,7 +287,15 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
                       <span className="position-floating-panel-value">{leverage}x</span>
                     </div>
                     <div className="position-floating-panel-detail-row">
-                      <span className="position-floating-panel-label">盈亏</span>
+                      <span className="position-floating-panel-label">现价</span>
+                      <span className="position-floating-panel-value">{current_price.toFixed(2)}</span>
+                    </div>
+                    <div className="position-floating-panel-detail-row">
+                      <span className="position-floating-panel-label">预计手续费</span>
+                      <span className="position-floating-panel-value">{estimated_fee.toFixed(4)} USDT</span>
+                    </div>
+                    <div className="position-floating-panel-detail-row">
+                      <span className="position-floating-panel-label">当前盈亏</span>
                       <span className={`position-floating-panel-value ${profit_class}`}>
                         {unrealized_profit >= 0 ? '+' : ''}{unrealized_profit.toFixed(2)} USDT
                       </span>

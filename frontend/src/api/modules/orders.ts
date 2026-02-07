@@ -111,4 +111,16 @@ export class OrdersApi {
     return RequestWrapper.get(`${this.BASE_PATH}/quick-order/query`, params);
   }
 
+  /**
+   * 获取近一个月开仓均价
+   */
+  static async getAvgEntryPrice(params: {
+    api_key: string;
+    api_secret: string;
+    symbol: string;
+    position_side: 'LONG' | 'SHORT';
+  }): Promise<Response<{ avg_price: number }>> {
+    return RequestWrapper.get(`${this.BASE_PATH}/avg-entry-price`, params);
+  }
+
 }
