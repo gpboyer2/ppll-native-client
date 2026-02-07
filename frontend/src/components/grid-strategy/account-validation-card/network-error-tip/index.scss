@@ -1,7 +1,7 @@
 .network-error-tip {
   padding: 14px;
-  background: rgba(156, 163, 175, 0.08);
-  border: 1px solid rgba(156, 163, 175, 0.2);
+  background: color-mix(in srgb, var(--color-text-muted) 8%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-text-muted) 20%, var(--color-border));
   border-radius: var(--radius-md);
 }
 
@@ -29,16 +29,18 @@
   gap: 8px;
 }
 
-.network-error-tip-description {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--color-text);
-  line-height: 1.6;
-}
-
+.network-error-tip-description,
 .network-error-tip-note {
   margin: 0;
   font-size: var(--text-sm);
+  line-height: 1.6;
+}
+
+.network-error-tip-description {
+  color: var(--color-text);
+}
+
+.network-error-tip-note {
   color: var(--color-text-muted);
   font-style: italic;
 }
@@ -48,14 +50,14 @@
   justify-content: flex-end;
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(156, 163, 175, 0.2);
+  border-top: 1px solid color-mix(in srgb, var(--color-text-muted) 20%, var(--color-border));
 }
 
 .network-error-tip-refresh-button {
   padding: 8px 14px;
-  background: rgba(59, 130, 246, 0.15);
-  color: rgb(59, 130, 246);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: color-mix(in srgb, var(--color-primary) 15%, var(--color-bg));
+  color: var(--color-primary);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
   font-weight: 600;
@@ -64,6 +66,6 @@
 }
 
 .network-error-tip-refresh-button:hover {
-  background: rgba(59, 130, 246, 0.25);
+  background: color-mix(in srgb, var(--color-primary) 25%, var(--color-bg));
   transform: translateY(-1px);
 }

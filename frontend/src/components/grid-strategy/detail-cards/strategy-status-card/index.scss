@@ -32,7 +32,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 50%, transparent);
 }
 
 .status-row:last-child {
@@ -60,27 +60,23 @@
   font-weight: 600;
 }
 
-.status-badge.status-running {
-  background-color: rgba(16, 185, 129, 0.12);
-  color: rgb(16, 185, 129);
+.status-badge.status-running,
+.status-badge.long {
+  background-color: color-mix(in srgb, var(--color-success) 12%, transparent);
+  color: var(--color-success);
 }
 
 .status-badge.status-paused {
-  background-color: rgba(245, 158, 11, 0.12);
-  color: rgb(245, 158, 11);
+  background-color: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: var(--color-warning);
 }
 
 .status-badge.status-stopped {
-  background-color: rgba(107, 114, 128, 0.12);
-  color: rgb(107, 114, 128);
-}
-
-.status-badge.long {
-  background-color: rgba(16, 185, 129, 0.12);
-  color: rgb(16, 185, 129);
+  background-color: color-mix(in srgb, var(--color-text-muted) 12%, transparent);
+  color: var(--color-text-muted);
 }
 
 .status-badge.short {
-  background-color: rgba(239, 68, 68, 0.12);
-  color: rgb(239, 68, 68);
+  background-color: color-mix(in srgb, var(--color-danger) 12%, transparent);
+  color: var(--color-danger);
 }

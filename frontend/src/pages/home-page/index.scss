@@ -4,37 +4,61 @@
   margin: 0 auto;
 }
 
-/* 欢迎区域 */
-.container section.surface {
+/* 卡片基础样式 */
+.container section.surface,
+.container .flex.gap-16.mb-16 .card,
+.container .flex.gap-16 .card.shortcut-card,
+.container section.surface.p-16.mt-16 {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
+}
+
+.container section.surface {
   padding: 16px;
   margin-bottom: 16px;
 }
 
-.container section.surface .flex.items-center.space-between {
+.container section.surface.p-16.mt-16 {
+  margin-top: 16px;
+}
+
+/* flex items-center space-between 公共样式 */
+.container section.surface .flex.items-center.space-between,
+.container .flex.gap-16.mb-16 .card .card-content .flex.items-center.space-between,
+.container .flex.gap-16 .card .card-content .flex.items-center.space-between.p-8.rounded.border {
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.container section.surface .flex.items-center.space.between {
   margin-bottom: 12px;
 }
 
-.container section.surface .flex.items-center.space-between h1 {
-  margin: 0;
-  color: var(--color-primary);
-  font-size: 28px;
-  font-weight: 600;
-  line-height: var(--leading-tight);
+/* 文字弱化样式 */
+.container section.surface .flex.items-center.space-between .text-muted,
+.container .flex.gap-16.mb-16 .card .card-content .text-muted {
+  color: var(--color-text-muted);
 }
 
 .container section.surface .flex.items-center.space-between .text-muted {
-  color: var(--color-text-muted);
   margin: 4px 0 0;
   font-size: var(--text-md);
 }
 
+.container .flex.gap-16.mb-16 .card .card-content .text-muted {
+  font-size: var(--text-sm);
+}
+
+/* 空状态文字 */
+.container .flex.gap-16 .card .card-content .text-muted {
+  text-align: center;
+  padding: 24px 0;
+}
+
+/* flex gap-8 */
 .container section.surface .flex.gap-8 {
   display: flex;
   gap: 8px;
@@ -49,27 +73,12 @@
 }
 
 .container .flex.gap-16.mb-16 .card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
   flex: 1;
   min-width: 200px;
 }
 
 .container .flex.gap-16.mb-16 .card .card-content {
   padding: 16px;
-}
-
-.container .flex.gap-16.mb-16 .card .card-content .flex.items-center.space-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.container .flex.gap-16.mb-16 .card .card-content .text-muted {
-  color: var(--color-text-muted);
-  font-size: var(--text-sm);
 }
 
 /* 主要功能区域 */
@@ -81,10 +90,6 @@
 
 /* 插件快捷入口卡片 */
 .container .flex.gap-16 .card.shortcut-card {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
   flex: 2;
   min-width: 300px;
 }
@@ -130,19 +135,9 @@
 }
 
 .container .flex.gap-16 .card .card-content .flex.items-center.space-between.p-8.rounded.border {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 8px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
-}
-
-/* 空状态样式 */
-.container .flex.gap-16 .card .card-content .text-muted {
-  color: var(--color-text-muted);
-  text-align: center;
-  padding: 24px 0;
 }
 
 /* 系统通知卡片 */
@@ -160,15 +155,6 @@
 }
 
 /* 快速操作区域 */
-.container section.surface.p-16.mt-16 {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-  padding: 16px;
-  margin-top: 16px;
-}
-
 .container section.surface.p-16.mt-16 h3 {
   margin: 0 0 12px;
   font-size: var(--text-lg);

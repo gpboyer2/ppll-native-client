@@ -27,10 +27,16 @@
   margin-top: 8px;
 }
 
-.ip-restriction-tip-description {
-  margin: 0 0 10px 0;
+.ip-restriction-tip-description,
+.ip-restriction-ip-label,
+.ip-restriction-tip-steps-title,
+.ip-restriction-tip-steps-list {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+}
+
+.ip-restriction-tip-description {
+  margin: 0 0 10px 0;
   line-height: 1.5;
 }
 
@@ -46,8 +52,6 @@
 }
 
 .ip-restriction-ip-label {
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
@@ -95,27 +99,17 @@
 
 .ip-restriction-tip-steps-title {
   margin: 0 0 8px 0;
-  font-size: var(--text-sm);
   font-weight: 500;
-  color: var(--color-text-muted);
 }
 
 .ip-restriction-tip-steps-list {
   margin: 0;
   padding-left: 20px;
-  font-size: var(--text-sm);
-  color: var(--color-text-muted);
   line-height: 1.6;
 }
 
 .ip-restriction-tip-steps-list li {
   margin-bottom: 6px;
-}
-
-.ip-restriction-tip-steps-list li br {
-  content: "";
-  display: block;
-  margin: 2px 0;
 }
 
 .ip-restriction-tip-actions {

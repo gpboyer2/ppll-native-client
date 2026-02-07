@@ -68,12 +68,14 @@
     letter-spacing: 0.5px;
   }
 
-  .position-badge.long {
+  .position-badge.long,
+  .status-badge.long {
     background-color: rgba(16, 185, 129, 0.12);
     color: rgb(16, 185, 129);
   }
 
-  .position-badge.short {
+  .position-badge.short,
+  .status-badge.short {
     background-color: rgba(239, 68, 68, 0.12);
     color: rgb(239, 68, 68);
   }
@@ -315,7 +317,8 @@
   }
 
   .info-card-header svg,
-  .time-card-header svg {
+  .time-card-header svg,
+  .detail-card-header-left svg {
     color: var(--color-text-muted);
   }
 
@@ -415,16 +418,6 @@
     color: rgb(107, 114, 128);
   }
 
-  .status-badge.long {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: rgb(16, 185, 129);
-  }
-
-  .status-badge.short {
-    background-color: rgba(239, 68, 68, 0.12);
-    color: rgb(239, 68, 68);
-  }
-
   .fee-row.total {
     background-color: rgba(0, 0, 0, 0.02);
     font-weight: 600;
@@ -442,10 +435,6 @@
     display: flex;
     align-items: center;
     gap: 8px;
-  }
-
-  .detail-card-header-left svg {
-    color: var(--color-text-muted);
   }
 
   .logs-loading,

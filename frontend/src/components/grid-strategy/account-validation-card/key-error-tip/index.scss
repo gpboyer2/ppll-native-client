@@ -1,7 +1,3 @@
-.key-error-tip {
-  //
-}
-
 .key-error-tip-header {
   display: flex;
   align-items: center;
@@ -17,7 +13,7 @@
 .key-error-tip-title {
   font-size: var(--text-sm);
   font-weight: 600;
-  color: rgb(239, 68, 68);
+  color: var(--color-error, rgb(239, 68, 68));
 }
 
 .key-error-tip-content {
@@ -33,8 +29,8 @@
 
 .key-error-tip-steps {
   padding: 12px;
-  background: rgba(156, 163, 175, 0.05);
-  border: 1px solid rgba(156, 163, 175, 0.15);
+  background: var(--color-bg-tertiary, rgba(156, 163, 175, 0.05));
+  border: 1px solid var(--color-border, rgba(156, 163, 175, 0.15));
   border-radius: var(--radius-sm);
 }
 
@@ -57,27 +53,21 @@
   margin-bottom: 6px;
 }
 
-.key-error-tip-steps-list li br {
-  content: "";
-  display: block;
-  margin: 2px 0;
-}
-
 .key-error-tip-actions {
   display: flex;
   justify-content: flex-end;
   margin-top: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(156, 163, 175, 0.2);
+  border-top: 1px solid var(--color-border, rgba(156, 163, 175, 0.2));
 }
 
 .key-error-tip-action-link {
   display: inline-flex;
   align-items: center;
   padding: 8px 14px;
-  background: rgba(247, 147, 26, 0.15);
-  color: #f7931a;
-  border: 1px solid rgba(247, 147, 26, 0.3);
+  background: var(--color-warning-bg, rgba(247, 147, 26, 0.15));
+  color: var(--color-warning, #f7931a);
+  border: 1px solid var(--color-warning-border, rgba(247, 147, 26, 0.3));
   border-radius: var(--radius-md);
   font-size: var(--text-sm);
   font-weight: 600;
@@ -86,6 +76,6 @@
 }
 
 .key-error-tip-action-link:hover {
-  background: rgba(247, 147, 26, 0.25);
+  background: var(--color-warning-hover, rgba(247, 147, 26, 0.25));
   transform: translateY(-1px);
 }

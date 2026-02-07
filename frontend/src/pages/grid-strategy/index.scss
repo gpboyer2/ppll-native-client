@@ -1,6 +1,5 @@
-/* ========== 网格策略列表页面样式 ========== */
+/* 网格策略列表页面样式 */
 
-/* 页面标题区域 */
 .grid-strategy-page-title {
   margin: 0 0 4px;
   color: var(--color-primary);
@@ -10,17 +9,14 @@
   margin: 0;
 }
 
-/* 搜索框 */
 .grid-strategy-search-input {
   flex: 1;
 }
 
-/* 筛选标签 */
 .grid-strategy-filter-label {
   margin-left: 24px;
 }
 
-/* 统计数值颜色 */
 .grid-strategy-stat-value--success {
   color: var(--color-success);
 }
@@ -33,24 +29,23 @@
   color: var(--color-text-muted);
 }
 
-/* 加载中状态 */
 .grid-strategy-loading {
   text-align: center;
   padding: 48px;
 }
 
-/* 策略卡片内容 */
 .grid-strategy-pair-name {
   font-weight: 600;
   font-size: var(--text-lg);
 }
 
-.grid-strategy-label-text {
+.grid-strategy-label-text,
+.grid-strategy-param-label,
+.grid-strategy-unit-label {
   font-size: var(--text-sm);
 }
 
 .grid-strategy-param-label {
-  font-size: var(--text-sm);
   width: 70px;
 }
 
@@ -58,40 +53,33 @@
   font-weight: 500;
 }
 
-.grid-strategy-unit-label {
-  font-size: var(--text-sm);
-}
-
-/* 操作按钮区域 */
 .grid-strategy-actions {
   margin-left: auto;
   justify-content: flex-end;
 }
 
-.grid-strategy-detail-btn {
+.grid-strategy-detail-btn,
+.grid-strategy-toggle-btn,
+.grid-strategy-edit-btn,
+.grid-strategy-delete-btn {
   height: 32px;
-  text-decoration: none;
-  border: 1px solid var(--color-border);
-  color: var(--color-text);
 }
 
+.grid-strategy-detail-btn,
 .grid-strategy-toggle-btn {
-  height: 32px;
   border: 1px solid var(--color-border);
   color: var(--color-text);
 }
 
+.grid-strategy-detail-btn,
 .grid-strategy-edit-btn {
-  height: 32px;
   text-decoration: none;
 }
 
 .grid-strategy-delete-btn {
-  height: 32px;
   padding: 0 16px;
 }
 
-/* 策略统计卡片 */
 .grid-strategy-statistics {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -112,7 +100,6 @@
   color: var(--color-text);
 }
 
-/* 筛选按钮 */
 .grid-strategy-filter-button {
   padding: 6px 12px;
   border-radius: var(--radius-sm);
@@ -135,7 +122,6 @@
   border-color: var(--color-primary);
 }
 
-/* 策略卡片列表 */
 .grid-strategy-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -151,27 +137,7 @@
   box-shadow: var(--shadow-lg);
 }
 
-/* 持仓方向标签 */
-.grid-strategy-position-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: var(--text-xs);
-  font-weight: 600;
-}
-
-.grid-strategy-position-badge.long {
-  background-color: rgba(16, 185, 129, 0.1);
-  color: rgb(16, 185, 129);
-}
-
-.grid-strategy-position-badge.short {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: rgb(239, 68, 68);
-}
-
-/* 状态标签 */
+.grid-strategy-position-badge,
 .grid-strategy-status-badge {
   display: inline-flex;
   align-items: center;
@@ -181,9 +147,15 @@
   font-weight: 600;
 }
 
+.grid-strategy-position-badge.long,
 .grid-strategy-status-badge.running {
   background-color: rgba(16, 185, 129, 0.1);
   color: rgb(16, 185, 129);
+}
+
+.grid-strategy-position-badge.short {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: rgb(239, 68, 68);
 }
 
 .grid-strategy-status-badge.paused {

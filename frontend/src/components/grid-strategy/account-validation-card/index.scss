@@ -1,6 +1,5 @@
 /* ========== 账户信息验证状态样式 ========== */
 
-/* 独立卡片样式 */
 .account-card-loading {
   display: flex;
   align-items: center;
@@ -21,9 +20,7 @@
 }
 
 @keyframes account-card-spin {
-  to {
-    transform: rotate(360deg);
-  }
+  to { transform: rotate(360deg); }
 }
 
 .account-card-success {
@@ -53,11 +50,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 4px;
   padding: 10px 12px;
   background: rgba(34, 197, 94, 0.06);
   border: 1px solid rgba(34, 197, 94, 0.15);
   border-radius: var(--radius-sm);
-  gap: 4px;
 }
 
 .account-card-item-highlight {
@@ -70,9 +67,7 @@
   flex-shrink: 0;
 }
 
-.account-card-success .account-card-icon {
-  color: #22c55e;
-}
+.account-card-success .account-card-icon { color: #22c55e; }
 
 .account-card-title {
   font-size: var(--text-md);
@@ -80,21 +75,10 @@
   color: #22c55e;
 }
 
-.account-card-permission-granted {
-  color: #22c55e;
-}
-
-.account-card-permission-denied {
-  color: #ef4444;
-}
-
-.account-card-value-positive {
-  color: #22c55e;
-}
-
-.account-card-value-negative {
-  color: #ef4444;
-}
+.account-card-permission-granted { color: #22c55e; }
+.account-card-permission-denied { color: #ef4444; }
+.account-card-value-positive { color: #22c55e; }
+.account-card-value-negative { color: #ef4444; }
 
 .account-card-badge {
   padding: 2px 8px;
@@ -283,9 +267,7 @@
   box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
 }
 
-.account-card-vip-contact-link:active {
-  transform: translateY(0);
-}
+.account-card-vip-contact-link:active { transform: translateY(0); }
 
 .account-card-vip-contact-icon {
   font-size: 20px;
@@ -296,4 +278,3 @@
   font-weight: 600;
   color: #fff;
 }
-

@@ -26,30 +26,27 @@
     position: relative;
     max-height: 90vh;
     overflow-y: auto;
-
-    // Firefox
     scrollbar-width: thin;
     scrollbar-color: var(--color-border) var(--color-surface);
+}
 
-    // Chrome, Safari, Edge
-    &::-webkit-scrollbar {
-        width: 8px;
-    }
+.referral-commission-dialog::-webkit-scrollbar {
+    width: 8px;
+}
 
-    &::-webkit-scrollbar-track {
-        background: var(--color-surface);
-        border-radius: 4px;
-    }
+.referral-commission-dialog::-webkit-scrollbar-track {
+    background: var(--color-surface);
+    border-radius: 4px;
+}
 
-    &::-webkit-scrollbar-thumb {
-        background: var(--color-border);
-        border-radius: 4px;
-        border: 2px solid var(--color-surface);
+.referral-commission-dialog::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+    border: 2px solid var(--color-surface);
+}
 
-        &:hover {
-            background: var(--color-text-muted);
-        }
-    }
+.referral-commission-dialog::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-muted);
 }
 
 // Dialog header
@@ -69,8 +66,8 @@
 
 .referral-commission-dialog-value-proposition {
     font-size: 14px;
-    color: var(--color-primary);
     font-weight: 700;
+    color: var(--color-primary);
 }
 
 .referral-commission-dialog-subtitle {
@@ -289,10 +286,6 @@
     padding: 12px 8px;
     text-align: center;
     color: var(--color-text);
-}
-
-.referral-commission-dialog-table-center {
-    text-align: center !important;
 }
 
 .referral-commission-dialog-table-highlight-text {

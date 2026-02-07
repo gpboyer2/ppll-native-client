@@ -31,7 +31,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 8px 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .info-row:last-child {
@@ -51,13 +51,13 @@
 }
 
 .info-value.positive {
-  color: rgb(16, 185, 129);
+  color: var(--color-success);
 }
 
 .info-value.negative {
-  color: rgb(239, 68, 68);
+  color: var(--color-danger);
 }
 
 .info-value.warning {
-  color: rgb(245, 158, 11);
+  color: var(--color-warning);
 }

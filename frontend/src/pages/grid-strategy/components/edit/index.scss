@@ -1,12 +1,10 @@
-/* ========== 网格策略编辑表单样式 ========== */
+/* 网格策略编辑表单样式 */
 
-/* 策略编辑表单容器 */
 .grid-strategy-form {
   max-width: 900px;
   margin: 0 auto;
 }
 
-/* 表单区块 */
 .grid-strategy-form-section {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -29,14 +27,12 @@
   font-size: 20px;
 }
 
-/* 表单网格布局 */
 .grid-strategy-form-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 16px;
 }
 
-/* 表单字段 */
 .grid-strategy-form-field {
   display: flex;
   flex-direction: column;
@@ -54,12 +50,10 @@
   color: var(--color-danger);
 }
 
-/* 隐藏字段 */
 .grid-strategy-field-hidden {
   display: none;
 }
 
-/* 表单开关区域 */
 .grid-strategy-form-toggles {
   display: flex;
   flex-direction: column;
@@ -79,7 +73,6 @@
   flex: 1;
 }
 
-/* 开关按钮 */
 .grid-strategy-toggle-switch {
   position: relative;
   display: inline-block;
@@ -126,14 +119,13 @@
 
 .grid-strategy-toggle-switch input:checked + span:before {
   transform: translateX(20px);
-  background-color: #fff;
+  background-color: var(--color-surface);
 }
 
 .grid-strategy-toggle-switch input:focus + span {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
-/* 表单操作按钮 */
 .grid-strategy-form-actions {
   display: flex;
   gap: 12px;
@@ -144,7 +136,6 @@
   border-top: 1px solid var(--color-border);
 }
 
-/* 表单消息提示 */
 .grid-strategy-form-message {
   padding: 12px 16px;
   border-radius: var(--radius-sm);

@@ -13,19 +13,23 @@
   gap: 8px;
 }
 
-.detail-card-header-right {
+.detail-card-header h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.flex-center {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.auto-refresh-countdown {
-  font-size: 11px;
-  color: var(--color-text-muted);
-  padding: 2px 8px;
-  background-color: rgba(99, 102, 241, 0.1);
-  border-radius: 4px;
-  font-weight: 500;
+.detail-card-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .detail-card-header-left {
@@ -38,11 +42,13 @@
   color: var(--color-text-muted);
 }
 
-.detail-card-header h3 {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text);
+.auto-refresh-countdown {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  padding: 2px 8px;
+  background-color: var(--color-primary-tint, rgba(99, 102, 241, 0.1));
+  border-radius: 4px;
+  font-weight: 500;
 }
 
 .action-btn {
@@ -63,7 +69,7 @@
 .action-btn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
-  background-color: rgba(99, 102, 241, 0.05);
+  background-color: var(--color-primary-hover-bg, rgba(99, 102, 241, 0.05));
 }
 
 .action-btn:disabled {
@@ -76,12 +82,8 @@
 }
 
 @keyframes rotate {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .detail-card-filters {
@@ -90,7 +92,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  background-color: rgba(99, 102, 241, 0.02);
+  background-color: var(--color-primary-tint, rgba(99, 102, 241, 0.02));
 }
 
 .filter-group {
@@ -135,13 +137,13 @@
 
 .filter-button:hover {
   border-color: var(--color-primary);
-  background-color: rgba(99, 102, 241, 0.05);
+  background-color: var(--color-primary-hover-bg, rgba(99, 102, 241, 0.05));
 }
 
 .filter-button.active {
   border-color: var(--color-primary);
   background-color: var(--color-primary);
-  color: white;
+  color: var(--color-surface);
 }
 
 .filter-count {
@@ -179,13 +181,13 @@
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  background-color: rgba(99, 102, 241, 0.03);
+  background-color: var(--color-primary-tint, rgba(99, 102, 241, 0.03));
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
 .log-group-header:hover {
-  background-color: rgba(99, 102, 241, 0.06);
+  background-color: var(--color-primary-hover-bg, rgba(99, 102, 241, 0.06));
 }
 
 .log-group-header svg {
@@ -221,7 +223,7 @@
 }
 
 .log-item:hover {
-  background-color: rgba(99, 102, 241, 0.02);
+  background-color: var(--color-primary-tint, rgba(99, 102, 241, 0.02));
 }
 
 .log-item-header {
@@ -242,25 +244,11 @@
   align-items: center;
 }
 
-.log-icon.log-level-error {
-  color: var(--color-error);
-}
-
-.log-icon.log-level-warn {
-  color: rgb(234, 179, 8);
-}
-
-.log-icon.log-level-success {
-  color: var(--color-success);
-}
-
-.log-icon.log-level-debug {
-  color: rgb(156, 163, 175);
-}
-
-.log-icon.log-level-info {
-  color: rgb(59, 130, 246);
-}
+.log-icon.log-level-error { color: var(--color-error); }
+.log-icon.log-level-warn { color: var(--color-warn, rgb(234, 179, 8)); }
+.log-icon.log-level-success { color: var(--color-success); }
+.log-icon.log-level-debug { color: var(--color-debug, rgb(156, 163, 175)); }
+.log-icon.log-level-info { color: var(--color-info, rgb(59, 130, 246)); }
 
 .log-type {
   font-size: 12px;
@@ -317,7 +305,7 @@
 
 .logs-pagination .pagination-btn:hover:not(:disabled) {
   border-color: var(--color-primary);
-  background-color: rgba(99, 102, 241, 0.05);
+  background-color: var(--color-primary-hover-bg, rgba(99, 102, 241, 0.05));
 }
 
 .logs-pagination .pagination-btn:disabled {

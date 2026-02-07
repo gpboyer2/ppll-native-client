@@ -120,8 +120,13 @@
   height: 0;
 }
 
-.grid-strategy-toggle-switch span {
+.grid-strategy-toggle-switch span,
+.grid-strategy-toggle-switch span:before {
   position: absolute;
+  transition: 0.3s;
+}
+
+.grid-strategy-toggle-switch span {
   cursor: pointer;
   top: 0;
   left: 0;
@@ -129,19 +134,16 @@
   bottom: 0;
   background-color: var(--color-bg-muted);
   border: 1px solid var(--color-border);
-  transition: 0.3s;
   border-radius: 24px;
 }
 
 .grid-strategy-toggle-switch span:before {
-  position: absolute;
   content: "";
   height: 18px;
   width: 18px;
   left: 2px;
   bottom: 2px;
   background-color: var(--color-text-muted);
-  transition: 0.3s;
   border-radius: 50%;
 }
 

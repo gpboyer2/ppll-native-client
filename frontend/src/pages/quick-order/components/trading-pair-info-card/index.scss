@@ -1,0 +1,52 @@
+.trading-pair-info-card {
+  flex: 1;
+  background: color-mix(in srgb, var(--color-primary) 5%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.trading-pair-info-card-header {
+  padding: 10px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 15%, var(--color-border));
+}
+
+.trading-pair-info-card-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.trading-pair-info-card-content {
+  display: flex;
+  padding: 12px;
+  gap: 12px;
+}
+
+.trading-pair-info-card-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.trading-pair-info-card-label {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.trading-pair-info-card-value {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.trading-pair-info-card-value-long {
+  color: var(--color-success);
+}
+
+.trading-pair-info-card-value-short {
+  color: var(--color-danger);
+}

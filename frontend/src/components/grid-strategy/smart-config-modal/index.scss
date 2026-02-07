@@ -1,9 +1,6 @@
 /* ========== 智能配置弹窗样式 ========== */
 
 /* 弹窗内容区 */
-.smart-config-modal {
-}
-
 .smart-config-content {
   padding: 24px;
 }
@@ -28,9 +25,6 @@
 }
 
 /* ==================== 输入表单 ==================== */
-
-.smart-config-form {
-}
 
 /* 加载状态 */
 .smart-config-loading {
@@ -106,9 +100,6 @@
 }
 
 /* ==================== 结果页面 ==================== */
-
-.smart-config-result {
-}
 
 /* 市场分析 */
 .smart-config-market-analysis {
@@ -214,10 +205,6 @@
   font-size: var(--text-sm);
   color: var(--color-text);
   line-height: 1.6;
-}
-
-.smart-config-range-rule:last-child {
-  margin-bottom: 12px;
 }
 
 .smart-config-range-rule::before {
@@ -423,7 +410,7 @@
   border-bottom: none;
 }
 
-.commission-row-rebate {
+.commission-row-highlight {
   background: rgba(34, 197, 94, 0.1);
   padding: 12px;
   border-radius: var(--radius-md);
@@ -434,12 +421,6 @@
 .commission-label {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
-}
-
-.commission-value {
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--color-text);
 }
 
 .commission-value-highlight {
@@ -489,14 +470,6 @@
   margin: 20px 0;
 }
 
-.commission-card-vertical {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  position: relative;
-}
-
 .commission-upgrade-banner {
   display: flex;
   align-items: center;
@@ -534,13 +507,6 @@
 
 .upgrade-arrow {
   font-size: 24px;
-}
-
-.commission-row-highlight {
-  background: rgba(34, 197, 94, 0.1);
-  padding: 12px;
-  border-radius: var(--radius-md);
-  border-left: 3px solid #22c55e;
 }
 
 .commission-value-large {

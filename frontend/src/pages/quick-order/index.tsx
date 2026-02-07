@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   IconRefresh,
@@ -11,6 +11,8 @@ import type { AccountPosition } from '../../types/binance';
 import { ROUTES } from '../../router';
 import { TradeSettings } from './components/trade-settings';
 import { AccountDisplay } from './components/account-display';
+import { AccountInfoCard } from './components/account-info-card';
+import { TradingPairInfoCard } from './components/trading-pair-info-card';
 import { ApiKeySelector } from './components/api-key-selector';
 import { OpenPositionSection } from './components/open-position-section';
 import { ClosePositionSection } from './components/close-position-section';
@@ -124,6 +126,28 @@ function QuickOrderPage() {
   const total_long_amount = long_positions.reduce((sum, p) => sum + Math.abs(parseFloat(p.notional)), 0);
   const total_short_amount = short_positions.reduce((sum, p) => sum + Math.abs(parseFloat(p.notional)), 0);
   const net_position = total_long_amount - total_short_amount;
+
+  // 当前交易对的持仓数据
+  const current_pair_positions = useMemo(() => {
+    return account_data.positions.filter(p => p.symbol === trading_pair);
+  }, [account_data.positions, trading_pair]);
+
+  const current_pair_leverage = useMemo(() => {
+    const position = current_pair_positions.find(p => p.leverage);
+    return position ? parseInt(position.leverage) : leverage;
+  }, [current_pair_positions, leverage]);
+
+  const current_pair_long_amount = useMemo(() => {
+    return current_pair_positions
+      .filter(p => parseFloat(p.positionAmt) > 0 && (p.positionSide === 'LONG' || p.positionSide === 'BOTH'))
+      .reduce((sum, p) => sum + Math.abs(parseFloat(p.notional)), 0);
+  }, [current_pair_positions]);
+
+  const current_pair_short_amount = useMemo(() => {
+    return current_pair_positions
+      .filter(p => parseFloat(p.positionAmt) < 0 && (p.positionSide === 'SHORT' || p.positionSide === 'BOTH'))
+      .reduce((sum, p) => sum + Math.abs(parseFloat(p.notional)), 0);
+  }, [current_pair_positions]);
 
   const handleOpenPosition = async (side: 'long' | 'short', amount: number) => {
     const active_api_key = get_active_api_key();
@@ -475,11 +499,14 @@ function QuickOrderPage() {
           />
 
           <AccountDisplay
-            current_price={current_price}
             available_balance={account_data.available_balance}
             net_position={net_position}
             total_long_amount={total_long_amount}
             total_short_amount={total_short_amount}
+            current_price={current_price}
+            leverage={current_pair_leverage}
+            current_pair_long_amount={current_pair_long_amount}
+            current_pair_short_amount={current_pair_short_amount}
           />
         </div>
       </div>
