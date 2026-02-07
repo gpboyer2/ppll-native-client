@@ -203,9 +203,12 @@
   margin-top: 16px;
 }
 
-.quick-order-balance-buttons {
+.quick-order-balance-buttons-group {
   display: flex;
-  gap: 12px;
+  gap: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
 .quick-order-balance-btn {
@@ -214,28 +217,47 @@
   font-weight: 600;
   font-size: var(--text-sm);
   border: none;
+  border-radius: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  position: relative;
 }
 
 .quick-order-balance-btn-open {
-  background: var(--color-primary);
-  color: white;
+  background: color-mix(in srgb, var(--color-success) 20%, var(--color-bg));
+  color: var(--color-success);
 }
 
 .quick-order-balance-btn-open:hover:not(:disabled) {
-  opacity: 0.9;
+  background: color-mix(in srgb, var(--color-success) 30%, var(--color-bg));
 }
 
 .quick-order-balance-btn-close {
-  background: color-mix(in srgb, var(--color-warning) 85%, var(--color-bg));
-  color: white;
+  background: color-mix(in srgb, var(--color-danger) 20%, var(--color-bg));
+  color: var(--color-danger);
 }
 
 .quick-order-balance-btn-close:hover:not(:disabled) {
-  opacity: 0.9;
+  background: color-mix(in srgb, var(--color-danger) 30%, var(--color-bg));
+}
+
+.quick-order-balance-divider {
+  width: 1px;
+  position: relative;
+  background: var(--color-border);
+}
+
+.quick-order-balance-divider::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 1px;
+  background: var(--color-border);
+  transform: translate(-50%, -50%) rotate(45deg);
 }
 
 .quick-order-sections-close {

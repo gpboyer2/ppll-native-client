@@ -7,6 +7,8 @@ export interface TradingPairInfoCardProps {
   leverage: number;
   trading_pair_options: Array<{ value: string; label: string }>;
   current_price: number | string;
+  mark_price?: number | null;
+  index_price?: number | null;
   current_pair_long_amount: number;
   current_pair_short_amount: number;
   current_pair_positions: AccountPosition[];
@@ -22,6 +24,8 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
     leverage,
     trading_pair_options,
     current_price,
+    mark_price,
+    index_price,
     current_pair_long_amount,
     current_pair_short_amount,
     current_pair_positions,
@@ -32,6 +36,8 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
   } = props;
 
   const price_text = !current_price ? '--' : Number(current_price).toFixed(2);
+  const display_index_price = index_price ? Number(index_price).toFixed(2) : '--';
+  const display_mark_price = mark_price ? Number(mark_price).toFixed(2) : '--';
 
   const net_position = current_pair_long_amount - current_pair_short_amount;
 
@@ -97,9 +103,9 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
       </div>
       <div className="trading-pair-info-card-content">
         <div className="trading-pair-info-card-item">
-          <span className="trading-pair-info-card-label">当前价格</span>
+          <span className="trading-pair-info-card-label">当前价格(标记价格)</span>
           <span className="trading-pair-info-card-value">
-            {price_text}
+            {display_mark_price}
           </span>
         </div>
         <div className="trading-pair-info-card-item">

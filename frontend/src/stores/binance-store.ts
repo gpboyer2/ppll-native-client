@@ -31,6 +31,8 @@ export interface TickerPrice {
     price: number;
     market: string;
     timestamp: number;
+    mark_price?: number;
+    index_price?: number;
 }
 
 
@@ -320,7 +322,7 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
 
         // 监听 ticker 更新
         new_socket.on('ticker_update', (data: any) => {
-          const { symbol, price, market } = data;
+          const { symbol, price, market, mark_price, index_price } = data;
           if (symbol && price) {
             const new_price = parseFloat(price);
             set({
@@ -330,7 +332,9 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
                   symbol,
                   price: new_price,
                   market: market || 'usdm',
-                  timestamp: Date.now()
+                  timestamp: Date.now(),
+                  mark_price: mark_price ? parseFloat(mark_price) : undefined,
+                  index_price: index_price ? parseFloat(index_price) : undefined
                 }
               }
             });

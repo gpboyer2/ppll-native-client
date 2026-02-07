@@ -1,4 +1,4 @@
-import { IconScale, IconArrowDown } from '@tabler/icons-react';
+import { IconArrowUp, IconArrowDown } from '@tabler/icons-react';
 import { Button } from '../../../../components/mantine';
 
 export interface BalanceButtonProps {
@@ -12,16 +12,17 @@ export function BalanceButton(props: BalanceButtonProps): JSX.Element {
 
   return (
     <div className="quick-order-balance">
-      <div className="quick-order-balance-buttons">
+      <div className="quick-order-balance-buttons-group">
         <Button
           className="quick-order-balance-btn quick-order-balance-btn-open"
           onClick={on_balance_by_open_click}
           disabled={disabled}
           title="通过建仓方式使多空仓位相等"
         >
-          <IconScale size={16} />
-          <span>开仓持平 (通过建仓方式使多空仓位相等)</span>
+          <IconArrowUp size={16} />
+          <span>开仓持平</span>
         </Button>
+        <div className="quick-order-balance-divider" />
         <Button
           className="quick-order-balance-btn quick-order-balance-btn-close"
           onClick={on_balance_by_close_click}
@@ -29,7 +30,7 @@ export function BalanceButton(props: BalanceButtonProps): JSX.Element {
           title="通过减仓平仓方式使多空仓位相等"
         >
           <IconArrowDown size={16} />
-          <span>平仓持平 (通过减仓平仓方式使多空仓位相等)</span>
+          <span>平仓持平</span>
         </Button>
       </div>
     </div>

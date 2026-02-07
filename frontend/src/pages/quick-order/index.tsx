@@ -76,6 +76,8 @@ function QuickOrderPage() {
   const handle_account_update_ref = useRef<((data: any) => void) | null>(null);
 
   const current_price = ticker_prices[trading_pair]?.price || 0;
+  const mark_price = ticker_prices[trading_pair]?.mark_price;
+  const index_price = ticker_prices[trading_pair]?.index_price;
 
 
   // 使用 WebSocket 实时数据，如果没有数据则使用空默认值
@@ -800,6 +802,8 @@ function QuickOrderPage() {
               leverage={leverage}
               trading_pair_options={trading_pair_options}
               current_price={current_price}
+              mark_price={mark_price}
+              index_price={index_price}
               current_pair_long_amount={current_pair_long_amount}
               current_pair_short_amount={current_pair_short_amount}
               current_pair_positions={current_pair_positions}

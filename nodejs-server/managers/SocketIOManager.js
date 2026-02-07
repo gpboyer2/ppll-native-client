@@ -236,7 +236,14 @@ const init = (server, wsManagerInstance) => {
   if (!wsManager.listenerCount('tick')) {
     wsManager.on('tick', ({ market, symbol, latestPrice, raw }) => {
       const room = `ticker:${market}:${symbol}`;
-      io.to(room).emit('ticker_update', { symbol, market, price: latestPrice, raw });
+      io.to(room).emit('ticker_update', {
+        symbol,
+        market,
+        price: latestPrice,
+        mark_price: raw?.markPrice,
+        index_price: raw?.indexPrice,
+        raw
+      });
     });
   }
 
