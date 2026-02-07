@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  IconRefresh,
-  IconAlertCircle,
-  IconCheck
-} from '@tabler/icons-react';
+import { IconRefresh } from '@tabler/icons-react';
+import { notifications } from '@mantine/notifications';
 import { Button } from '../../components/mantine';
 import { useBinanceStore } from '../../stores/binance-store';
 import { OrdersApi, BinanceAccountApi } from '../../api';
@@ -34,15 +31,29 @@ function handlePositionResponse(
   showMessage: (msg: string, status: MessageStatus) => void,
   defaultSuccessMsg: string
 ) {
+  // DEBUG: 打印完整的响应数据
+  console.log('[handlePositionResponse] 响应数据:', JSON.stringify(datum, null, 2));
+  console.log('[handlePositionResponse] totalPositions:', datum.totalPositions);
+  console.log('[handlePositionResponse] results.length:', datum.results.length);
+  console.log('[handlePositionResponse] success:', datum.success);
+
   if (datum.totalPositions === 1 && datum.results.length > 0) {
     const result = datum.results[0];
+    console.log('[handlePositionResponse] 单个结果:', result);
     if (result.success) {
-      showMessage(`${datum.message}${result.orderId ? ` (订单ID: ${result.orderId})` : ''}`, 'success');
+      const msg = `${datum.message}${result.orderId ? ` (订单ID: ${result.orderId})` : ''}`;
+      console.log('[handlePositionResponse] 显示成功消息:', msg);
+      showMessage(msg, 'success');
     } else {
-      showMessage(`${datum.message}: ${result.error || '未知错误'}`, 'error');
+      const msg = `${datum.message}: ${result.error || '未知错误'}`;
+      console.log('[handlePositionResponse] 显示失败消息:', msg);
+      showMessage(msg, 'error');
     }
   } else {
-    showMessage(datum.message || defaultSuccessMsg, datum.success ? 'success' : 'error');
+    const msg = datum.message || defaultSuccessMsg;
+    const status = datum.success ? 'success' : 'error';
+    console.log('[handlePositionResponse] 多交易对消息:', msg, '状态:', status);
+    showMessage(msg, status);
   }
 }
 
@@ -56,8 +67,6 @@ function QuickOrderPage() {
   const [leverage, setLeverage] = useState(DEFAULT_LEVERAGE);
   const [loading, setLoading] = useState(false);
   const [account_loading, setAccountLoading] = useState(false);
-  const [error_msg, setErrorMsg] = useState<string | null>(null);
-  const [message_status, setMessageStatus] = useState<MessageStatus>('error');
   const [custom_close_long_amount, setCustomCloseLongAmount] = useState('');
   const [custom_close_short_amount, setCustomCloseShortAmount] = useState('');
   const [custom_open_long_amount, setCustomOpenLongAmount] = useState('');
@@ -85,11 +94,19 @@ function QuickOrderPage() {
   }, [navigate]);
 
   const showMessage = useCallback((msg: string, status: MessageStatus = 'error') => {
-    setErrorMsg(msg);
-    setMessageStatus(status);
-    // 3秒后自动清除成功消息
+    console.log('[showMessage] 调用 showMessage:', { msg, status });
     if (status === 'success') {
-      setTimeout(() => setErrorMsg(null), 3000);
+      notifications.show({
+        title: '操作成功',
+        message: msg,
+        color: 'green',
+      });
+    } else {
+      notifications.show({
+        title: '操作失败',
+        message: msg,
+        color: 'red',
+      });
     }
   }, []);
 
@@ -101,7 +118,6 @@ function QuickOrderPage() {
     }
 
     setAccountLoading(true);
-    setErrorMsg(null);
 
     try {
       const response = await BinanceAccountApi.getUSDMFutures({
@@ -219,9 +235,9 @@ function QuickOrderPage() {
     }
 
     setLoading(true);
-    setErrorMsg(null);
 
     try {
+      console.log('[handleOpenPosition] 发起开仓请求:', { side, amount, trading_pair });
       const response = await OrdersApi.umOpenPosition({
         api_key: active_api_key.api_key,
         api_secret: active_api_key.api_secret,
@@ -232,14 +248,19 @@ function QuickOrderPage() {
         }]
       });
 
+      console.log('[handleOpenPosition] API 响应:', JSON.stringify(response, null, 2));
+      console.log('[handleOpenPosition] response.status:', response.status);
+      console.log('[handleOpenPosition] response.datum:', response.datum);
+
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓操作已提交');
         await loadAccountData();
       } else {
+        console.log('[handleOpenPosition] 响应失败，显示错误消息');
         showMessage(response.message || '开仓失败', 'error');
       }
     } catch (err) {
-      console.error('开仓失败:', err);
+      console.error('[handleOpenPosition] 开仓异常:', err);
       showMessage('开仓失败，请重试', 'error');
     } finally {
       setLoading(false);
@@ -265,9 +286,9 @@ function QuickOrderPage() {
     }
 
     setLoading(true);
-    setErrorMsg(null);
 
     try {
+      console.log('[handleCloseByPercentage] 发起平仓请求:', { side, percentage });
       const close_positions = target_positions.map(p => {
         const position_amt = parseFloat(p.positionAmt);
         return {
@@ -283,6 +304,7 @@ function QuickOrderPage() {
         positions: close_positions
       });
 
+      console.log('[handleCloseByPercentage] API 响应:', JSON.stringify(response, null, 2));
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓操作已提交');
         await loadAccountData();
@@ -290,7 +312,7 @@ function QuickOrderPage() {
         showMessage(response.message || '平仓失败', 'error');
       }
     } catch (err) {
-      console.error('平仓失败:', err);
+      console.error('[handleCloseByPercentage] 平仓异常:', err);
       showMessage('平仓失败，请重试', 'error');
     } finally {
       setLoading(false);
@@ -321,9 +343,9 @@ function QuickOrderPage() {
     }
 
     setLoading(true);
-    setErrorMsg(null);
 
     try {
+      console.log('[handleCloseByAmount] 发起平仓请求:', { side, amount });
       const target_positions = side === 'long'
         ? current_pair_long_positions
         : side === 'short'
@@ -346,6 +368,7 @@ function QuickOrderPage() {
         positions: close_positions
       });
 
+      console.log('[handleCloseByAmount] API 响应:', JSON.stringify(response, null, 2));
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓操作已提交');
         await loadAccountData();
@@ -359,7 +382,7 @@ function QuickOrderPage() {
         showMessage(response.message || '平仓失败', 'error');
       }
     } catch (err) {
-      console.error('平仓失败:', err);
+      console.error('[handleCloseByAmount] 平仓异常:', err);
       showMessage('平仓失败，请重试', 'error');
     } finally {
       setLoading(false);
@@ -379,9 +402,9 @@ function QuickOrderPage() {
     }
 
     setLoading(true);
-    setErrorMsg(null);
 
     try {
+      console.log('[handleOpenByAmount] 发起开仓请求:', { side, amount });
       const response = await OrdersApi.umOpenPosition({
         api_key: active_api_key.api_key,
         api_secret: active_api_key.api_secret,
@@ -392,6 +415,7 @@ function QuickOrderPage() {
         }]
       });
 
+      console.log('[handleOpenByAmount] API 响应:', JSON.stringify(response, null, 2));
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓操作已提交');
         await loadAccountData();
@@ -405,7 +429,7 @@ function QuickOrderPage() {
         showMessage(response.message || '开仓失败', 'error');
       }
     } catch (err) {
-      console.error('开仓失败:', err);
+      console.error('[handleOpenByAmount] 开仓异常:', err);
       showMessage('开仓失败，请重试', 'error');
     } finally {
       setLoading(false);
@@ -430,9 +454,9 @@ function QuickOrderPage() {
     }
 
     setLoading(true);
-    setErrorMsg(null);
 
     try {
+      console.log('[handleBalancePosition] 发起持平请求:', { long_amount, short_amount, diff });
       const positions = [];
       if (long_amount < short_amount) {
         positions.push({
@@ -455,6 +479,7 @@ function QuickOrderPage() {
         positions
       });
 
+      console.log('[handleBalancePosition] API 响应:', JSON.stringify(response, null, 2));
       if (response.status === 'success' && response.datum) {
         handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '持仓操作完成');
         await loadAccountData();
@@ -462,7 +487,7 @@ function QuickOrderPage() {
         showMessage(response.message || '持仓失败', 'error');
       }
     } catch (err) {
-      console.error('持仓失败:', err);
+      console.error('[handleBalancePosition] 持仓异常:', err);
       showMessage('持仓失败，请重试', 'error');
     } finally {
       setLoading(false);
@@ -484,8 +509,6 @@ function QuickOrderPage() {
       navigateToSettings();
       return;
     }
-
-    setErrorMsg(null);
 
     try {
       const response = await BinanceAccountApi.setLeverage({
@@ -523,13 +546,6 @@ function QuickOrderPage() {
           </div>
         </div>
       </div>
-
-      {error_msg && (
-        <div className={`quick-order-message ${message_status === 'success' ? 'quick-order-success' : 'quick-order-error'}`}>
-          {message_status === 'success' ? <IconCheck size={16} /> : <IconAlertCircle size={16} />}
-          <span>{error_msg}</span>
-        </div>
-      )}
 
       <div className="quick-order-card">
         <div className="quick-order-card-header">
