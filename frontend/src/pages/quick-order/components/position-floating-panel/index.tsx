@@ -23,7 +23,7 @@ interface DragState {
   initial_top: number;
 }
 
-const DEFAULT_POSITION = { x: 0, y: 200 };
+const DEFAULT_POSITION = { x: -0, y: 200 };
 
 function PositionFloatingPanel(props: PositionFloatingPanelProps) {
   const { positions, ticker_prices, get_active_api_key, show_message, is_visible, set_is_visible } = props;
@@ -39,7 +39,7 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
     opened: false,
     title: '',
     content: '',
-    onConfirm: () => {},
+    onConfirm: () => { },
   });
   const drag_state = useRef<DragState>({
     is_dragging: false,

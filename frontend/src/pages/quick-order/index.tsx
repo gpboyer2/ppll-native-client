@@ -20,6 +20,7 @@ import OrderRecordsFloatingPanel from './components/order-records-floating-panel
 import './index.scss';
 
 const DEFAULT_LEVERAGE = 20;
+const MIN_POSITION_AMOUNT = 100;
 
 type CloseSide = 'long' | 'short' | 'both';
 
@@ -501,6 +502,11 @@ function QuickOrderPage() {
       return;
     }
 
+    if (amount < MIN_POSITION_AMOUNT) {
+      showMessage(`开仓金额不能小于 ${MIN_POSITION_AMOUNT} USDT`, 'error');
+      return;
+    }
+
     if (account_data.available_balance < amount) {
       showMessage(`可用保证金不足，当前: ${account_data.available_balance.toFixed(2)} USDT`, 'error');
       return;
@@ -673,6 +679,11 @@ function QuickOrderPage() {
     const active_api_key = get_active_api_key();
     if (!active_api_key) {
       navigateToSettings();
+      return;
+    }
+
+    if (amount < MIN_POSITION_AMOUNT) {
+      showMessage(`开仓金额不能小于 ${MIN_POSITION_AMOUNT} USDT`, 'error');
       return;
     }
 

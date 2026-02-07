@@ -17,6 +17,23 @@ const DELAY_RANGES = {
 
 const SKIP_SYMBOLS = ["USDCUSDT"]; // 跳过的币种
 
+const formatOpenPositionError = (error) => {
+  const rawMessage = typeof error === 'string' ? error : error?.message || '';
+  if (!rawMessage) {
+    return '开仓失败，请稍后重试';
+  }
+
+  if (/notional must be no smaller than 100/i.test(rawMessage)) {
+    return '开仓金额过小，币安要求名义价值不少于 100 USDT，请提高金额后重试';
+  }
+
+  if (/insufficient balance|insufficient margin|margin is insufficient/i.test(rawMessage)) {
+    return '保证金不足，请检查余额后重试';
+  }
+
+  return rawMessage;
+};
+
 
 /**
  * 创建币安客户端
@@ -171,7 +188,20 @@ const executeSingleOpen = async ({ symbol, side, amount, api_key, api_secret, ex
 
   try {
     const rawQuantity = new bigNumber(amount).div(price);
+
+    // 校验最小名义价值（第一次：金额校验）
+    const MIN_NOTIONAL = 100;
+    if (new bigNumber(amount).isLessThan(MIN_NOTIONAL)) {
+      return { symbol, side, amount, success: false, error: `开仓金额不能小于 ${MIN_NOTIONAL} USDT` };
+    }
+
     const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity.toString());
+
+    // 校验最小名义价值（第二次：精度调整后校验）
+    const adjustedNotional = new bigNumber(quantity).multipliedBy(price);
+    if (adjustedNotional.isLessThan(MIN_NOTIONAL)) {
+      return { symbol, side, amount, success: false, error: `由于精度调整，开仓金额需至少 ${MIN_NOTIONAL} USDT，当前计算名义价值为 ${adjustedNotional.toFixed(2)} USDT` };
+    }
 
     const client = createClient(api_key, api_secret);
     const orderResult = await client.submitNewOrder({
@@ -214,7 +244,8 @@ const executeSingleOpen = async ({ symbol, side, amount, api_key, api_secret, ex
     return { symbol, side, amount, success: true, order_id: orderResult.orderId };
   } catch (error) {
     UtilRecord.error('开仓失败:', error);
-    return { symbol, side, amount, success: false, error: error?.message || JSON.stringify(error) };
+    const friendlyMessage = formatOpenPositionError(error);
+    return { symbol, side, amount, success: false, error: friendlyMessage };
   }
 };
 
