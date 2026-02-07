@@ -23,7 +23,7 @@ interface DragState {
   initial_top: number;
 }
 
-const DEFAULT_POSITION = { x: -0, y: 200 };
+const DEFAULT_POSITION = { x: 0, y: 200 };
 
 function PositionFloatingPanel(props: PositionFloatingPanelProps) {
   const { positions, ticker_prices, get_active_api_key, show_message, is_visible, set_is_visible } = props;
@@ -148,19 +148,15 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
     }
   }, [get_active_api_key, show_message]);
 
+  const position_initialized_ref = useRef(false);
+
   useEffect(() => {
-    const updateDefaultPosition = () => {
-      const panel = panel_ref.current;
-      if (!panel) return;
+    if (position_initialized_ref.current) return;
 
-      if (position.x === 0 && position.y === DEFAULT_POSITION.y) {
-        const viewport_width = window.innerWidth;
-        const target_x = viewport_width - 340;
-        setPosition({ x: target_x, y: DEFAULT_POSITION.y });
-      }
-    };
-
-    updateDefaultPosition();
+    const viewport_width = window.innerWidth;
+    const target_x = viewport_width - 340;
+    setPosition({ x: target_x, y: DEFAULT_POSITION.y });
+    position_initialized_ref.current = true;
   }, []);
 
   useEffect(() => {

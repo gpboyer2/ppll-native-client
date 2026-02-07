@@ -32,7 +32,7 @@ interface DragState {
   initial_top: number;
 }
 
-const DEFAULT_POSITION = { x: -0, y: 200 };
+const DEFAULT_POSITION = { x: 0, y: 200 };
 
 export interface OrderRecordsFloatingPanelRef {
   refresh: () => void;
@@ -89,19 +89,15 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
     }
   }, [is_visible, loadOrderRecords]);
 
+  const position_initialized_ref = useRef(false);
+
   useEffect(() => {
-    const updateDefaultPosition = () => {
-      const panel = panel_ref.current;
-      if (!panel) return;
+    if (position_initialized_ref.current) return;
 
-      if (position.x === 0 && position.y === DEFAULT_POSITION.y) {
-        const viewport_width = window.innerWidth;
-        const target_x = viewport_width - 340;
-        setPosition({ x: target_x, y: DEFAULT_POSITION.y });
-      }
-    };
-
-    updateDefaultPosition();
+    const viewport_width = window.innerWidth;
+    const target_x = viewport_width - 340;
+    setPosition({ x: target_x, y: DEFAULT_POSITION.y });
+    position_initialized_ref.current = true;
   }, []);
 
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
