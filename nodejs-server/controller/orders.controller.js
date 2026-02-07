@@ -76,82 +76,34 @@ const template = catchAsync(async (req, res) => {
 });
 
 /**
- * 批量建仓（对冲单）
+ * U本位合约开仓
  */
-const batchBuildPosition = catchAsync(async (req, res) => {
-  const result = await ordersService.batchBuildPosition(req.body);
-  return res.apiSuccess(result, `序列总长 ${result.totalPairs}，建仓完成`);
-});
-
-/**
- * 自定义建仓（对冲单）
- */
-const customBuildPosition = catchAsync(async (req, res) => {
+const umOpenPosition = catchAsync(async (req, res) => {
   const { positions } = req.body;
-  const result = await ordersService.customBuildPosition(req.body);
-  return res.apiSuccess(result, `请等待约 ${positions.length * 1.5} 秒后，在APP查看建仓结果`);
+  const result = await ordersService.umOpenPosition(req.body);
+  return res.apiSuccess(result, `请等待约 ${positions.length * 1.5} 秒后，在APP查看开仓结果`);
 });
 
 /**
- * 自定义平多单，空单不做任何操作；（看空）
+ * U本位合约平仓
  */
-const customCloseMultiplePosition = catchAsync(async (req, res) => {
-  const { positions } = req.body;
-  const result = await ordersService.customCloseMultiplePositions(req.body);
-
-  // 这里可以异步执行一些后续操作或日志记录
-  UtilRecord.log('[自定义平多单] 接口响应 - 已提交后台执行', {
-    totalPositions: result.totalPositions,
-    processedCount: result.processedCount
-  });
-
-  return res.apiSuccess(result, `请等待约 ${result.totalPositions * 10} 秒后，在APP查看平仓结果`);
-});
-
-/**
- * 批量平仓
- */
-const batchClosePosition = catchAsync(async (req, res) => {
-  const { positions } = req.body;
-  const result = await ordersService.batchClosePositions(req.body);
-
-  UtilRecord.log('[批量平仓] 接口响应 - 已提交后台执行', {
-    totalPositions: result.totalPositions,
-    processedCount: result.processedCount
-  });
-
-  return res.apiSuccess(result, `请等待约 ${result.totalPositions * 1.5} 秒后，在APP查看平仓结果`);
-});
-
-/**
- * 自定义平仓
- */
-const customClosePosition = catchAsync(async (req, res) => {
+const umClosePosition = catchAsync(async (req, res) => {
   const { positions } = req.body;
 
   // 先打印接口请求信息，确保接口日志在业务日志之前输出
   const totalRequestPositions = Array.isArray(positions) ? positions.length : 0;
   UtilRecord.log(
-    `[自定义平仓] 接口请求 - 收到平仓参数，总数: ${totalRequestPositions}`
+    `[U本位平仓] 接口请求 - 收到平仓参数，总数: ${totalRequestPositions}`
   );
 
-  const result = await ordersService.customClosePositions(req.body);
+  const result = await ordersService.umClosePosition(req.body);
 
   // 再打印接口响应信息
   UtilRecord.log(
-    `[自定义平仓] 接口响应 - 总仓位: ${result.totalPositions}, 有效: ${result.validPositions}, 跳过: ${result.skippedPositions}`
+    `[U本位平仓] 接口响应 - 总仓位: ${result.totalPositions}, 有效: ${result.validPositions || 0}, 跳过: ${result.skippedPositions || 0}`
   );
 
   return res.apiSuccess(result, `请等待约 ${result.totalPositions * 1.5} 秒后，在APP查看平仓结果`);
-});
-
-/**
- * 指定平仓
- */
-const appointClosePosition = catchAsync(async (req, res) => {
-  const { positions } = req.body;
-  const result = await ordersService.appointClosePosition(req.body);
-  return res.apiSuccess(result, result.error || `请等待约 ${positions.length * 1.5} 秒后，在APP查看平仓结果`);
 });
 
 
@@ -195,47 +147,6 @@ const batchInspect = catchAsync(async (req, res) => {
 });
 
 /**
- * 简化批量建仓（按价值下单）- 新增优化版本
- */
-const simpleBatchBuildPosition = catchAsync(async (req, res) => {
-  const result = await ordersService.batchBuildPosition(req.body);
-
-  return res.apiSuccess({
-    ...result,
-    performance: {
-      method: '简化按价值下单',
-      advantages: [
-        '无需复杂精度计算',
-        '自动重试机制',
-        '代码更简洁',
-        '性能更好'
-      ]
-    }
-  }, `简化批量建仓完成，总交易对 ${result.totalPairs}，成功 ${result.summary.successCount} 个订单`);
-});
-
-/**
- * 简化自定义建仓（按价值下单）- 新增优化版本
- */
-const simpleCustomBuildPosition = catchAsync(async (req, res) => {
-  const { positions } = req.body;
-  const result = await ordersService.customBuildPosition(req.body);
-
-  return res.apiSuccess({
-    ...result,
-    performance: {
-      method: '简化按价值下单',
-      advantages: [
-        '直接按价值下单',
-        '自动处理精度错误',
-        '代码量减少70%',
-        '维护成本更低'
-      ]
-    }
-  }, `简化自定义建仓完成，成功 ${result.summary.successCount} 个订单`);
-});
-
-/**
  * 为空单设置原价止盈
  */
 const setShortTakeProfit = catchAsync(async (req, res) => {
@@ -246,16 +157,9 @@ const setShortTakeProfit = catchAsync(async (req, res) => {
 
 module.exports = {
   template,
-  batchBuildPosition,
-  customBuildPosition,
-  customCloseMultiplePosition,
-  batchClosePosition,
-  customClosePosition,
-  appointClosePosition,
+  umOpenPosition,
+  umClosePosition,
   batchInspect,
-  // 新增的简化接口
-  simpleBatchBuildPosition,
-  simpleCustomBuildPosition,
   setShortTakeProfit,
   validateParams
 };

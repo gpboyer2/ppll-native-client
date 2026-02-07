@@ -1,6 +1,6 @@
 /**
  * 订单交易路由模块
- * 提供批量建仓、平仓、持仓检查等功能，支持对冲单和自定义交易操作
+ * 提供U本位合约开仓、平仓、持仓检查等功能
  */
 const express = require('express');
 const router = express.Router();
@@ -14,63 +14,23 @@ const vipMiddleware = require("../../middleware/vip.js");
 router.get('/', ordersController.template);
 
 /**
- * 批量建仓（对冲单）: 一键建仓/批量建仓功能，对所有USDT永续合约进行批量建仓操作
- * /api/v1/orders/batch-build-position
+ * U本位合约开仓: 支持单个或批量开仓操作
+ * POST /api/v1/orders/um/open-position body: { api_key, api_secret, positions: [{ symbol, side, amount }] }
  */
-router.post('/batch-build-position',
+router.post('/um/open-position',
   vipMiddleware.validateVipAccess,
-  ordersController.validateParams(['api_key', 'api_secret', 'long_amount', 'short_amount']),
-  ordersController.batchBuildPosition
+  ordersController.validateParams(['api_key', 'api_secret', 'positions']),
+  ordersController.umOpenPosition
 );
 
 /**
- * 自定义建仓（对冲单）: 根据指定的交易对列表进行自定义建仓操作
- * /api/v1/orders/custom-build-position
+ * U本位合约平仓: 支持单个或批量平仓操作
+ * POST /api/v1/orders/um/close-position body: { api_key, api_secret, positions: [{ symbol, side, amount?, quantity?, percentage? }] }
  */
-router.post('/custom-build-position',
+router.post('/um/close-position',
   vipMiddleware.validateVipAccess,
   ordersController.validateParams(['api_key', 'api_secret', 'positions']),
-  ordersController.customBuildPosition
-);
-
-/**
- * 自定义平多单（看空策略）: 只平多单，空单不做任何操作。适用于看空策略
- * /api/v1/orders/custom-close-multiple-position
- */
-router.post('/custom-close-multiple-position',
-  vipMiddleware.validateVipAccess,
-  ordersController.validateParams(['api_key', 'api_secret', 'positions']),
-  ordersController.customCloseMultiplePosition
-);
-
-/**
- * 批量平仓: 一键收菜/批量平仓功能，对所有指定交易对进行平仓操作
- * /api/v1/orders/batch-close-position
- */
-router.post('/batch-close-position',
-  vipMiddleware.validateVipAccess,
-  ordersController.validateParams(['api_key', 'api_secret', 'positions']),
-  ordersController.batchClosePosition
-);
-
-/**
- * 自定义平仓: 根据币种，平仓方向，平仓数量等参数执行平仓操作
- * /api/v1/orders/custom-close-position
- */
-router.post('/custom-close-position',
-  vipMiddleware.validateVipAccess,
-  ordersController.validateParams(['api_key', 'api_secret', 'positions']),
-  ordersController.customClosePosition
-);
-
-/**
- * 指定平仓: 指定平仓哪些币种，哪个方向，并确认平仓数量
- * /api/v1/orders/appoint-close-position
- */
-router.post('/appoint-close-position',
-  vipMiddleware.validateVipAccess,
-  ordersController.validateParams(['api_key', 'api_secret', 'positions']),
-  ordersController.appointClosePosition
+  ordersController.umClosePosition
 );
 
 /**
@@ -102,14 +62,14 @@ module.exports = router;
  * @swagger
  * tags:
  *   name: Orders
- *   description: 订单交易管理 - 提供批量建仓、平仓、持仓检查等功能，支持对冲单和自定义交易操作
+ *   description: 订单交易管理 - 提供U本位合约开仓、平仓、持仓检查等功能
  */
 
 /**
  * @swagger
  * components:
  *   schemas:
- *     Position:
+ *     UmPosition:
  *       type: object
  *       properties:
  *         symbol:
@@ -123,8 +83,16 @@ module.exports = router;
  *           example: "LONG"
  *         amount:
  *           type: number
- *           description: 持仓数量
+ *           description: USDT金额（开仓时必填）
+ *           example: 100
+ *         quantity:
+ *           type: number
+ *           description: 币数量（平仓时可选，与amount二选一）
  *           example: 0.001
+ *         percentage:
+ *           type: number
+ *           description: 平仓比例（平仓时可选，0-100）
+ *           example: 50
  *     ApiResponse:
  *       type: object
  *       properties:
@@ -140,7 +108,7 @@ module.exports = router;
  *           type: string
  *           description: 响应消息
  *           example: "操作成功"
- *         data:
+ *         datum:
  *           type: object
  *           description: 响应数据
  *     ErrorResponse:
@@ -177,97 +145,24 @@ module.exports = router;
  *                 - $ref: '#/components/schemas/ApiResponse'
  *                 - type: object
  *                   properties:
- *                     data:
+ *                     datum:
  *                       type: string
  *                       example: "orders route is working"
  */
 
 /**
  * @openapi
- * /api/v1/orders/batch-build-position:
+ * /api/v1/orders/um/open-position:
  *   post:
  *     tags: [Orders]
- *     summary: 批量建仓（对冲单）
+ *     summary: U本位合约开仓
  *     description: |
- *       一键建仓/批量建仓功能，对所有USDT永续合约进行批量建仓操作。
- *       支持对冲单策略，同时建立多头和空头仓位。
+ *       支持单个或批量开仓操作。positions数组天然支持批量。
  *
  *       **注意事项：**
  *       - 需要VIP用户权限
  *       - 必须提供有效的币安API密钥
- *       - 建仓前会验证账户余额和风险
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - api_key
- *               - api_secret
- *               - long_amount
- *               - short_amount
- *             properties:
- *               api_key:
- *                 type: string
- *                 description: 币安API密钥
- *                 example: "your_binance_api_key"
- *               api_secret:
- *                 type: string
- *                 description: 币安API密钥Secret
- *                 example: "your_binance_api_secret"
- *               long_amount:
- *                 type: number
- *                 description: 多头建仓金额（USDT）
- *                 example: 100
- *               short_amount:
- *                 type: number
- *                 description: 空头建仓金额（USDT）
- *                 example: 100
- *     responses:
- *       200:
- *         description: 批量建仓成功
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/ApiResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: array
- *                       items:
- *                         $ref: '#/components/schemas/Position'
- *       400:
- *         description: 请求参数错误
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       403:
- *         description: 权限不足
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/ErrorResponse'
- *       500:
- *         description: 服务器内部错误
- */
-
-/**
- * @openapi
- * /api/v1/orders/custom-build-position:
- *   post:
- *     tags: [Orders]
- *     summary: 自定义建仓（对冲单）
- *     description: |
- *       根据指定的交易对列表进行自定义建仓操作。
- *       支持对冲单策略，可以指定具体要建仓的交易对和方向。
- *
- *       **注意事项：**
- *       - 需要VIP用户权限
- *       - 必须提供有效的币安API密钥
- *       - 支持多个交易对同时建仓
+ *       - amount为USDT金额
  *     requestBody:
  *       required: true
  *       content:
@@ -289,34 +184,31 @@ module.exports = router;
  *                 example: "your_binance_api_secret"
  *               positions:
  *                 type: array
- *                 description: 建仓位置列表
+ *                 description: 开仓位置列表
  *                 items:
- *                   $ref: '#/components/schemas/Position'
+ *                   $ref: '#/components/schemas/UmPosition'
  *     responses:
  *       200:
- *         description: 自定义建仓成功
+ *         description: 开仓成功
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/ApiResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: array
- *                       items:
- *                         $ref: '#/components/schemas/Position'
+ *               $ref: '#/components/schemas/ApiResponse'
  */
 
 /**
  * @openapi
- * /api/v1/orders/batch-close-position:
+ * /api/v1/orders/um/close-position:
  *   post:
  *     tags: [Orders]
- *     summary: 批量平仓
+ *     summary: U本位合约平仓
  *     description: |
- *       一键收菜/批量平仓功能，对所有指定交易对进行平仓操作。
- *       支持快速平仓所有持仓或指定交易对的平仓操作。
+ *       支持单个或批量平仓操作。positions数组天然支持批量。
+ *
+ *       平仓方式（三选一）：
+ *       - amount: 按USDT金额平仓
+ *       - quantity: 按币数量平仓
+ *       - percentage: 按百分比平仓（0-100）
  *
  *       **注意事项：**
  *       - 需要VIP用户权限
@@ -345,30 +237,14 @@ module.exports = router;
  *                 type: array
  *                 description: 平仓位置列表
  *                 items:
- *                   $ref: '#/components/schemas/Position'
+ *                   $ref: '#/components/schemas/UmPosition'
  *     responses:
  *       200:
- *         description: 批量平仓成功
+ *         description: 平仓成功
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/ApiResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           symbol:
- *                             type: string
- *                           side:
- *                             type: string
- *                           amount:
- *                             type: number
- *                           result:
- *                             type: string
+ *               $ref: '#/components/schemas/ApiResponse'
  */
 
 /**
@@ -413,14 +289,14 @@ module.exports = router;
  *                 - $ref: '#/components/schemas/ApiResponse'
  *                 - type: object
  *                   properties:
- *                     data:
+ *                     datum:
  *                       type: object
  *                       properties:
  *                         imbalancedPositions:
  *                           type: array
  *                           description: 不平衡的持仓列表
  *                           items:
- *                             $ref: '#/components/schemas/Position'
+ *                             $ref: '#/components/schemas/UmPosition'
  *                         totalImbalance:
  *                           type: number
  *                           description: 总不平衡金额
@@ -429,18 +305,16 @@ module.exports = router;
 
 /**
  * @openapi
- * /api/v1/orders/custom-close-multiple-position:
+ * /api/v1/orders/set-short-take-profit:
  *   post:
  *     tags: [Orders]
- *     summary: 自定义平多单（看空策略）
+ *     summary: 为空单设置原价止盈
  *     description: |
- *       只平多单，空单不做任何操作。适用于看空策略。
- *       用于执行看空策略时，选择性平掉多头仓位。
+ *       为空单设置原价止盈。使用开仓价的97%作为止盈价。
  *
  *       **注意事项：**
  *       - 需要VIP用户权限
- *       - 只平多头仓位，保留空头仓位
- *       - 适用于看跌市场策略
+ *       - 必须提供有效的币安API密钥
  *     requestBody:
  *       required: true
  *       content:
@@ -462,175 +336,27 @@ module.exports = router;
  *                 example: "your_binance_api_secret"
  *               positions:
  *                 type: array
- *                 description: 要平仓的多头仓位列表
+ *                 description: 止盈设置列表
  *                 items:
- *                   $ref: '#/components/schemas/Position'
+ *                   type: object
+ *                   properties:
+ *                     symbol:
+ *                       type: string
+ *                       description: 交易对符号
+ *                       example: "BTCUSDT"
+ *                     stopPrice:
+ *                       type: number
+ *                       description: 止盈价格
+ *                       example: 50000
+ *                     closeRatio:
+ *                       type: number
+ *                       description: 平仓比例
+ *                       example: 50
  *     responses:
  *       200:
- *         description: 多头平仓成功
+ *         description: 止盈设置成功
  *         content:
  *           application/json:
  *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/ApiResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: array
- *                       description: 平仓结果列表
- *                       items:
- *                         type: object
- *                         properties:
- *                           symbol:
- *                             type: string
- *                           amount:
- *                             type: number
- *                           result:
- *                             type: string
- */
-
-/**
- * @openapi
- * /api/v1/orders/custom-close-position:
- *   post:
- *     tags: [Orders]
- *     summary: 自定义平仓
- *     description: |
- *       根据币种、平仓方向、平仓数量等参数执行平仓操作。
- *       支持精确控制平仓的币种、方向和数量。
- *
- *       **注意事项：**
- *       - 需要VIP用户权限
- *       - 支持指定具体的平仓数量
- *       - 可以精确控制平仓操作
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - api_key
- *               - api_secret
- *               - positions
- *             properties:
- *               api_key:
- *                 type: string
- *                 description: 币安API密钥
- *                 example: "your_binance_api_key"
- *               api_secret:
- *                 type: string
- *                 description: 币安API密钥Secret
- *                 example: "your_binance_api_secret"
- *               positions:
- *                 type: array
- *                 description: 平仓位置列表
- *                 items:
- *                   allOf:
- *                     - $ref: '#/components/schemas/Position'
- *                     - type: object
- *                       properties:
- *                         closeAmount:
- *                           type: number
- *                           description: 平仓数量
- *                           example: 0.5
- *     responses:
- *       200:
- *         description: 自定义平仓成功
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/ApiResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           symbol:
- *                             type: string
- *                           side:
- *                             type: string
- *                           closeAmount:
- *                             type: number
- *                           result:
- *                             type: string
- */
-
-/**
- * @openapi
- * /api/v1/orders/appoint-close-position:
- *   post:
- *     tags: [Orders]
- *     summary: 指定平仓
- *     description: |
- *       指定平仓哪些币种、哪个方向，并确认平仓数量。
- *       提供最精确的平仓控制，可以指定具体的币种、方向和数量。
- *
- *       **注意事项：**
- *       - 需要VIP用户权限
- *       - 提供最精确的平仓控制
- *       - 支持单币种精确平仓
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             required:
- *               - api_key
- *               - api_secret
- *               - positions
- *             properties:
- *               api_key:
- *                 type: string
- *                 description: 币安API密钥
- *                 example: "your_binance_api_key"
- *               api_secret:
- *                 type: string
- *                 description: 币安API密钥Secret
- *                 example: "your_binance_api_secret"
- *               positions:
- *                 type: array
- *                 description: 指定平仓位置列表
- *                 items:
- *                   allOf:
- *                     - $ref: '#/components/schemas/Position'
- *                     - type: object
- *                       properties:
- *                         closeAmount:
- *                           type: number
- *                           description: 指定平仓数量
- *                           example: 0.1
- *                         confirmClose:
- *                           type: boolean
- *                           description: 确认平仓标志
- *                           example: true
- *     responses:
- *       200:
- *         description: 指定平仓成功
- *         content:
- *           application/json:
- *             schema:
- *               allOf:
- *                 - $ref: '#/components/schemas/ApiResponse'
- *                 - type: object
- *                   properties:
- *                     data:
- *                       type: array
- *                       items:
- *                         type: object
- *                         properties:
- *                           symbol:
- *                             type: string
- *                           side:
- *                             type: string
- *                           closeAmount:
- *                             type: number
- *                           status:
- *                             type: string
- *                           orderId:
- *                             type: string
+ *               $ref: '#/components/schemas/ApiResponse'
  */

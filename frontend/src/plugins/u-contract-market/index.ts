@@ -373,24 +373,34 @@ const buildPositions = async () => {
     showStatus('请先配置并测试API密钥', 'error');
     return;
   }
-  
+
   const positions = getPositionConfigs();
   if (positions.length === 0) {
     showStatus('请至少添加一个有效的建仓配置', 'error');
     return;
   }
-  
+
   if (!BinanceApi.validatePositionConfigs(positions)) {
     showStatus('建仓配置无效，请检查交易对和金额', 'error');
     return;
   }
-  
+
   showLoading(true, '执行建仓中...');
-  
+
   try {
-    const response = await BinanceApi.customBuildPosition({
+    const newPositions: Array<{ symbol: string; side: 'LONG' | 'SHORT'; amount: number }> = [];
+    for (const pos of positions) {
+      if (pos.long_amount > 0) {
+        newPositions.push({ symbol: pos.symbol, side: 'LONG', amount: pos.long_amount });
+      }
+      if (pos.short_amount > 0) {
+        newPositions.push({ symbol: pos.symbol, side: 'SHORT', amount: pos.short_amount });
+      }
+    }
+
+    const response = await BinanceApi.umOpenPosition({
       ...currentCredentials,
-      positions
+      positions: newPositions
     });
 
     if (response.status === 'success' && response.datum?.status === 'success') {
@@ -423,21 +433,26 @@ const closePositions = async () => {
     showStatus('请先配置并测试API密钥', 'error');
     return;
   }
-  
+
   const positions = getSelectedClosePositions();
   if (positions.length === 0) {
     showStatus('请至少选择一个要平仓的交易对', 'error');
     return;
   }
-  
+
   const formattedPositions = BinanceApi.formatTradingPairs(positions);
-  
+
   showLoading(true, '执行平仓中...');
-  
+
   try {
-    const response = await BinanceApi.batchClosePosition({
+    const closePositions: Array<{ symbol: string; side: 'LONG' | 'SHORT' }> = [];
+    for (const symbol of formattedPositions) {
+      closePositions.push({ symbol, side: 'LONG' });
+      closePositions.push({ symbol, side: 'SHORT' });
+    }
+    const response = await BinanceApi.umClosePosition({
       ...currentCredentials,
-      positions: formattedPositions
+      positions: closePositions
     });
 
     if (response.status === 'success' && response.datum?.status === 'success') {

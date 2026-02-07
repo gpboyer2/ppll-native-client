@@ -137,157 +137,14 @@ const executeDelay = async (range = 'MEDIUM') => {
 };
 
 /**
- * 批量建仓（对冲单）
+ * U本位合约开仓
  * @param {Object} params - 参数对象
  * @param {string} params.api_key - API密钥
  * @param {string} params.api_secret - API密钥Secret
- * @param {number} params.longAmount - 多单金额
- * @param {number} params.shortAmount - 空单金额
- * @param {Array} params.positions - 自定义交易对列表
+ * @param {Array} params.positions - 开仓位置列表 [{ symbol, side, amount }]
  * @returns {Promise<Object>} 执行结果
  */
-const batchBuildPosition = async (params) => {
-  const { api_key, api_secret, longAmount, shortAmount, positions = null } = params;
-  try {
-    if (!longAmount || !shortAmount) {
-      throw new Error('longAmount or shortAmount is not defined');
-    }
-
-    // 检查账户余额
-    const account_info = await getAccountInfo(api_key, api_secret);
-    if (new bigNumber(account_info.availableBalance).isLessThan(10)) {
-      throw new Error(`当前合约账户余额${account_info.availableBalance}, 不足10u, 请充值`);
-    }
-    const exchangeInfo = await getExchangeInfo(api_key, api_secret);
-    const usdt_trading_list = await getUsdtTradingList(api_key, api_secret, positions);
-
-    // 立即返回响应数据，不等待for循环执行
-    const responseData = {
-      success: true,
-      results: [],
-      processedCount: 0,
-      totalPairs: usdt_trading_list.length
-    };
-
-    // 异步执行建仓操作，不阻塞函数返回
-    setImmediate(async () => {
-      let sufficient = true;
-      const results = [];
-
-      try {
-        // 遍历交易对执行建仓
-        for (let i = 0; i < usdt_trading_list.length && sufficient; i++) {
-          const sequence = i + 1;
-          const currency = usdt_trading_list[i];
-
-          if (SKIP_SYMBOLS.includes(currency.symbol)) continue;
-
-          const currencyPos = account_info.positions.filter(item => {
-            return item.symbol === currency.symbol && item.notional !== '0';
-          });
-
-          const logPrefix = `序列 ${sequence}, 币种${currency.symbol}`;
-
-          // 检查已有持仓
-          if (currencyPos.length === 2) {
-            console.log(`${logPrefix}有对冲单持仓`);
-            continue;
-          }
-
-          const quantityPrecision = exchangeInfo.symbols.find(item =>
-            item.symbol === currency.symbol
-          )?.quantityPrecision || 8;
-
-          // 建多单
-          if (!currencyPos.find(item => item.positionSide === 'LONG') && longAmount > 0) {
-            const rawQuantity = new bigNumber(longAmount).div(currency.price);
-            const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, currency.symbol, rawQuantity.toString());
-
-            try {
-              const client = createClient(api_key, api_secret);
-              await client.submitNewOrder({
-                symbol: currency.symbol,
-                side: 'BUY',
-                type: 'MARKET',
-                quantity: parseFloat(quantity),
-                positionSide: 'LONG'
-              });
-
-              console.log(`--- 币种${currency.symbol} 新增多单持仓 ${longAmount} usdt`);
-              results.push({ symbol: currency.symbol, action: 'BUY_LONG', success: true });
-            } catch (error) {
-              // 移除throw，确保异步流程不被中断
-              if (typeof error === 'string' && error.includes('-2019')) {
-                sufficient = false;
-              }
-              UtilRecord.log(`symbol: ${currency.symbol}`, error);
-              results.push({ symbol: currency.symbol, action: 'BUY_LONG', success: false, error: error?.message || JSON.stringify(error) });
-            }
-          }
-
-          if (!sufficient) break;
-          await executeDelay('SHORT');
-
-          // 建空单
-          if (!currencyPos.find(item => item.positionSide === 'SHORT') && shortAmount > 0) {
-            const rawQuantity = new bigNumber(shortAmount).div(currency.price);
-            const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, currency.symbol, rawQuantity.toString());
-
-            try {
-              const client = createClient(api_key, api_secret);
-              await client.submitNewOrder({
-                symbol: currency.symbol,
-                side: 'SELL',
-                type: 'MARKET',
-                quantity: parseFloat(quantity),
-                positionSide: 'SHORT'
-              });
-
-              console.log(`--- 币种${currency.symbol} 新增空单持仓 ${shortAmount} usdt`);
-              results.push({ symbol: currency.symbol, action: 'SELL_SHORT', success: true });
-            } catch (error) {
-              // 移除throw，确保异步流程不被中断
-              if (typeof error === 'string' && error.includes('-2019')) {
-                sufficient = false;
-              }
-              UtilRecord.log(`symbol: ${currency.symbol}`, error);
-              results.push({ symbol: currency.symbol, action: 'SELL_SHORT', success: false, error: error?.message || JSON.stringify(error) });
-            }
-          }
-
-          await executeDelay('MEDIUM');
-        }
-
-        // 记录最终执行结果
-        UtilRecord.log('批量建仓后台执行完成:', {
-          sufficient,
-          totalProcessed: results.length,
-          success_count: results.filter(r => r.success).length,
-          totalPairs: usdt_trading_list.length,
-          results: results
-        });
-      } catch (error) {
-        // 移除throw，确保异步流程不被中断，只记录日志
-        UtilRecord.log('批量建仓后台执行错误:', error?.message || JSON.stringify(error));
-      }
-    });
-
-    return responseData;
-  } catch (error) {
-    if (error instanceof ApiError) throw error; // 如果错误已经是ApiError，直接抛出，避免覆盖具体错误信息
-    throw error;
-  }
-};
-
-/**
- * 自定义建仓（对冲单）
- * @param {Object} params - 参数对象
- * @param {string} params.api_key - API密钥
- * @param {string} params.api_secret - API密钥Secret
- * @param {Array} params.positions - 自定义交易对列表
- * @returns {Promise<Object>} 执行结果
- */
-const customBuildPosition = async (params) => {
+const umOpenPosition = async (params) => {
   let { api_key, api_secret, positions } = params;
   try {
     if (!positions?.length) {
@@ -314,75 +171,59 @@ const customBuildPosition = async (params) => {
       totalPositions: positions.length
     };
 
-    // 异步执行建仓操作，不阻塞函数返回
+    // 异步执行开仓操作，不阻塞函数返回
     setImmediate(async () => {
       const results = [];
 
       try {
         for (let i = 0; i < positions.length; i++) {
-          const { symbol, longAmount, shortAmount } = positions[i];
+          const { symbol, side, amount } = positions[i];
+
+          // 验证参数
+          if (!symbol || !side || !amount) {
+            results.push({ symbol, side, amount, success: false, error: '参数不完整' });
+            continue;
+          }
+
+          // 验证 side
+          if (!['LONG', 'SHORT'].includes(side)) {
+            results.push({ symbol, side, amount, success: false, error: 'side 必须是 LONG 或 SHORT' });
+            continue;
+          }
 
           const theCurrency = priceInfo.find(item => item.symbol === symbol);
           const price = theCurrency?.price;
 
           if (!price) {
-            results.push({ symbol, action: 'BUILD_POSITION', success: false, error: '价格信息不存在' });
+            results.push({ symbol, side, amount, success: false, error: '价格信息不存在' });
             continue;
           }
 
-          // 建多单（仅当 longAmount > 0 时）
-          if (longAmount > 0) {
-            try {
-              const rawQuantity = new bigNumber(longAmount).div(price);
-              const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity.toString());
+          try {
+            const rawQuantity = new bigNumber(amount).div(price);
+            const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity.toString());
 
-              const client = createClient(api_key, api_secret);
-              await client.submitNewOrder({
-                symbol,
-                side: 'BUY',
-                type: 'MARKET',
-                quantity: parseFloat(quantity),
-                positionSide: 'LONG'
-              });
+            const client = createClient(api_key, api_secret);
+            await client.submitNewOrder({
+              symbol,
+              side: side === 'LONG' ? 'BUY' : 'SELL',
+              type: 'MARKET',
+              quantity: parseFloat(quantity),
+              positionSide: side
+            });
 
-              console.log(`--- 币种${symbol} 新增多单持仓 ${longAmount} usdt`);
-              results.push({ symbol, action: 'BUY_LONG', success: true });
-            } catch (error) {
-              console.log(error);
-              results.push({ symbol, action: 'BUY_LONG', success: false, error: error?.message || JSON.stringify(error) });
-            }
-
-            await executeDelay('SHORT');
-          }
-
-          // 建空单（仅当 shortAmount > 0 时）
-          if (shortAmount > 0) {
-            try {
-              const rawQuantity = new bigNumber(shortAmount).div(price);
-              const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity.toString());
-
-              const client = createClient(api_key, api_secret);
-              await client.submitNewOrder({
-                symbol,
-                side: 'SELL',
-                type: 'MARKET',
-                quantity: parseFloat(quantity),
-                positionSide: 'SHORT'
-              });
-
-              console.log(`--- 币种${symbol} 新增空单持仓 ${shortAmount} usdt`);
-              results.push({ symbol, action: 'SELL_SHORT', success: true });
-            } catch (error) {
-              console.log(error);
-              results.push({ symbol, action: 'SELL_SHORT', success: false, error: error?.message || JSON.stringify(error) });
-            }
+            console.log(`--- 币种${symbol} 新增${side}持仓 ${amount} usdt`);
+            results.push({ symbol, side, amount, success: true });
+          } catch (error) {
+            console.log(error);
+            results.push({ symbol, side, amount, success: false, error: error?.message || JSON.stringify(error) });
           }
 
           await executeDelay('MEDIUM');
         }
 
         // 记录最终执行结果
-        UtilRecord.log('自定义建仓后台执行完成:', {
+        UtilRecord.log('U本位开仓后台执行完成:', {
           totalProcessed: results.length,
           success_count: results.filter(r => r.success).length,
           totalPositions: positions.length,
@@ -390,316 +231,26 @@ const customBuildPosition = async (params) => {
         });
       } catch (error) {
         // 移除throw，确保异步流程不被中断，只记录日志
-        UtilRecord.log('自定义建仓后台执行错误:', error?.message || JSON.stringify(error));
+        UtilRecord.log('U本位开仓后台执行错误:', error?.message || JSON.stringify(error));
       }
     });
 
     return responseData;
   } catch (error) {
-    if (error instanceof ApiError) throw error; // 如果错误已经是ApiError，直接抛出，避免覆盖具体错误信息
+    if (error instanceof ApiError) throw error;
     throw error;
   }
 };
 
 /**
- * 指定平仓
+ * U本位合约平仓
  * @param {Object} params - 参数对象
  * @param {string} params.api_key - API密钥
  * @param {string} params.api_secret - API密钥Secret
- * @param {Array} params.positions - 平仓信息列表
+ * @param {Array} params.positions - 平仓位置列表 [{ symbol, side, amount?, quantity?, percentage? }]
  * @returns {Promise<Object>} 执行结果
  */
-const appointClosePosition = async (params) => {
-  const { api_key, api_secret, positions } = params;
-  try {
-    if (!positions?.length) {
-      throw new Error('positions 参数异常');
-    }
-
-    // 获取交易所信息用于精度处理
-    const exchangeInfo = await getExchangeInfo(api_key, api_secret);
-
-    // 立即返回响应数据，不等待for循环执行
-    const responseData = {
-      success: true,
-      results: [],
-      processedCount: 0,
-      totalPositions: positions.length,
-      error: null
-    };
-
-    // 异步执行平仓操作，不阻塞函数返回
-    setImmediate(async () => {
-      const results = [];
-      let error_msg = null;
-
-      try {
-        for (let i = 0; i < positions.length; i++) {
-          const { symbol, positionSide, positionAmt } = positions[i];
-
-          try {
-            // 处理数量精度
-            const rawQuantity = positionSide === 'SHORT' ? new bigNumber(positionAmt).abs().toString() : positionAmt;
-            const adjustedQuantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity);
-
-            const orderParams = {
-              symbol,
-              side: (positionSide === 'LONG' ? 'SELL' : 'BUY'),
-              type: 'MARKET',
-              quantity: parseFloat(adjustedQuantity),
-              positionSide
-            };
-
-            const client = createClient(api_key, api_secret);
-            await client.submitNewOrder(orderParams);
-            UtilRecord.log(`${symbol} 平仓成功`);
-            results.push({ symbol, action: `CLOSE_${positionSide}`, success: true });
-          } catch (error) {
-            // 移除throw，确保异步流程不被中断
-            UtilRecord.log(error);
-            error_msg = error;
-            results.push({ symbol, action: `CLOSE_${positionSide}`, success: false, error: error?.message || JSON.stringify(error) });
-          }
-
-          await executeDelay('LONG');
-        }
-
-        // 记录最终执行结果
-        UtilRecord.log('指定平仓后台执行完成:', {
-          totalProcessed: results.length,
-          success_count: results.filter(r => r.success).length,
-          totalPositions: positions.length,
-          hasError: !!error_msg,
-          results: results
-        });
-      } catch (error) {
-        // 移除throw，确保异步流程不被中断，只记录日志
-        UtilRecord.log('指定平仓后台执行错误:', error?.message || JSON.stringify(error));
-      }
-    });
-
-    return responseData;
-  } catch (error) {
-    if (error instanceof ApiError) throw error; // 如果错误已经是ApiError，直接抛出，避免覆盖具体错误信息
-    throw error;
-  }
-};
-
-/**
- * 批量平仓（对冲单）
- * @param {Object} params - 参数对象
- * @param {string} params.api_key - API密钥
- * @param {string} params.api_secret - API密钥Secret
- * @param {Array} params.positions - 交易对符号列表
- * @returns {Promise<Object>} 执行结果
- */
-const batchClosePositions = async (params) => {
-  const { api_key, api_secret, positions } = params;
-  try {
-    if (!positions?.length) {
-      throw new Error('positions 参数异常');
-    }
-
-    // 获取账户信息（不检查余额，因为是平仓操作）
-    const account_info = await getAccountInfo(api_key, api_secret);
-    const exchangeInfo = await getExchangeInfo(api_key, api_secret);
-    const accountPositions = account_info.positions.filter(poi => positions.includes(poi.symbol));
-
-    // 立即返回响应数据，不等待for循环执行
-    const responseData = {
-      success: true,
-      results: [],
-      processedCount: 0,
-      totalPositions: accountPositions.length
-    };
-
-    // 异步执行平仓操作，不阻塞函数返回
-    setImmediate(async () => {
-      const results = [];
-      try {
-        for (let i = 0; i < accountPositions.length; i++) {
-          if (accountPositions[i].processed) continue;
-
-          const symbol = accountPositions[i].symbol;
-          if (!symbol.endsWith('USDT')) continue;
-
-          // 获取该交易对当前的持仓信息
-          const longPosition = accountPositions.find(poi => poi.symbol === symbol && poi.positionSide === 'LONG');
-          const shortPosition = accountPositions.find(poi => poi.symbol === symbol && poi.positionSide === 'SHORT');
-
-          // 平多单
-          if (longPosition?.positionAmt) {
-            try {
-              const adjustedQuantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, longPosition.positionAmt);
-              const client = createClient(api_key, api_secret);
-              await client.submitNewOrder({
-                symbol,
-                side: 'SELL',
-                type: 'MARKET',
-                quantity: parseFloat(adjustedQuantity),
-                positionSide: 'LONG'
-              });
-
-              results.push({ symbol, action: 'CLOSE_LONG', success: true });
-            } catch (error) {
-              // 移除throw，确保异步流程不被中断
-              results.push({ symbol, action: 'CLOSE_LONG', success: false, error: error?.message || JSON.stringify(error) });
-            }
-
-            await executeDelay('SHORT');
-          }
-
-          // 平空单
-          if (shortPosition?.positionAmt) {
-            try {
-              const rawQuantity = new bigNumber(shortPosition.positionAmt).abs().toString();
-              const adjustedQuantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity);
-              const client = createClient(api_key, api_secret);
-              await client.submitNewOrder({
-                symbol,
-                side: 'BUY',
-                type: 'MARKET',
-                quantity: parseFloat(adjustedQuantity),
-                positionSide: 'SHORT'
-              });
-
-              results.push({ symbol, action: 'CLOSE_SHORT', success: true });
-            } catch (error) {
-              // 移除throw，确保异步流程不被中断
-              results.push({ symbol, action: 'CLOSE_SHORT', success: false, error: error?.message || JSON.stringify(error) });
-            }
-
-            await executeDelay('SHORT');
-          }
-
-          // 标记为已处理
-          if (longPosition) longPosition.processed = true;
-          if (shortPosition) shortPosition.processed = true;
-        }
-
-        // 记录最终执行结果
-        UtilRecord.log('批量平仓后台执行完成:', {
-          totalProcessed: results.length,
-          success_count: results.filter(r => r.success).length,
-          results: results
-        });
-      } catch (error) {
-        // 移除throw，确保异步流程不被中断，只记录日志
-        UtilRecord.log('批量平仓后台执行错误:', error?.message || JSON.stringify(error));
-      }
-    });
-
-    return responseData;
-  } catch (error) {
-    if (error instanceof ApiError) throw error; // 如果错误已经是ApiError，直接抛出，避免覆盖具体错误信息
-    throw error;
-  }
-};
-
-/**
- * 自定义平仓（多个）- 只平多单
- * @param {Object} params - 参数对象
- * @param {string} params.api_key - API密钥
- * @param {string} params.api_secret - API密钥Secret
- * @param {Array} params.positions - 交易对符号列表
- * @returns {Promise<Object>} 执行结果
- */
-const customCloseMultiplePositions = async (params) => {
-  const { api_key, api_secret, positions } = params;
-  try {
-    if (!positions?.length) {
-      throw new Error('positions 参数异常');
-    }
-
-    // 获取账户信息（不检查余额，因为是平仓操作）
-    const account_info = await getAccountInfo(api_key, api_secret);
-    const exchangeInfo = await getExchangeInfo(api_key, api_secret);
-    const accountPositions = account_info.positions.filter(poi => positions.includes(poi.symbol));
-
-    // 立即返回响应数据，不等待for循环执行
-    const responseData = {
-      success: true,
-      results: [],
-      processedCount: 0,
-      totalPositions: accountPositions.length
-    };
-
-    // 异步执行平仓操作，不阻塞函数返回
-    setImmediate(async () => {
-      const results = [];
-
-      try {
-        for (let i = 0; i < accountPositions.length; i++) {
-          if (accountPositions[i].processed) continue;
-
-          const symbol = accountPositions[i].symbol;
-          if (!symbol.endsWith('USDT')) continue;
-
-          // 获取该交易对当前的持仓信息
-          const longPosition = accountPositions.find(poi => poi.symbol === symbol && poi.positionSide === 'LONG');
-          const shortPosition = accountPositions.find(poi => poi.symbol === symbol && poi.positionSide === 'SHORT');
-
-          if (!(longPosition && shortPosition)) {
-            UtilRecord.log(`${symbol} 不是对冲单`);
-            continue;
-          }
-
-          const rawQuantity = new bigNumber(longPosition.positionAmt).plus(shortPosition.positionAmt).toNumber();
-          const adjustedQuantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity.toString());
-
-          // 平多单
-          try {
-            const client = createClient(api_key, api_secret);
-            await client.submitNewOrder({
-              symbol,
-              side: 'SELL',
-              type: 'MARKET',
-              quantity: parseFloat(adjustedQuantity),
-              positionSide: 'LONG'
-            });
-
-            results.push({ symbol, action: 'CLOSE_LONG', success: true });
-          } catch (error) {
-            // 移除throw，确保异步流程不被中断
-            results.push({ symbol, action: 'CLOSE_LONG', success: false, error: error?.message || JSON.stringify(error) });
-          }
-
-          await executeDelay('SHORT');
-
-          // 标记为已处理
-          longPosition.processed = true;
-          shortPosition.processed = true;
-        }
-
-        // 记录最终执行结果
-        UtilRecord.log('自定义平多单后台执行完成:', {
-          totalProcessed: results.length,
-          success_count: results.filter(r => r.success).length,
-          totalPositions: accountPositions.length,
-          results: results
-        });
-      } catch (error) {
-        // 移除throw，确保异步流程不被中断，只记录日志
-        UtilRecord.log('自定义平多单后台执行错误:', error?.message || JSON.stringify(error));
-      }
-    });
-
-    return responseData;
-  } catch (error) {
-    if (error instanceof ApiError) throw error; // 如果错误已经是ApiError，直接抛出，避免覆盖具体错误信息
-    throw error;
-  }
-};
-
-/**
- * 自定义平仓
- * @param {Object} params - 参数对象
- * @param {string} params.api_key - API密钥
- * @param {string} params.api_secret - API密钥Secret
- * @param {Array} params.positions - 平仓信息列表
- * @returns {Promise<Object>} 执行结果
- */
-const customClosePositions = async (params) => {
+const umClosePosition = async (params) => {
   const { api_key, api_secret, positions } = params;
   try {
     if (!positions) {
@@ -708,73 +259,53 @@ const customClosePositions = async (params) => {
 
     // 获取交易所信息用于精度处理和验证
     const exchangeInfo = await getExchangeInfo(api_key, api_secret);
-    const client = createClient(api_key, api_secret);
+    const account_info = await getAccountInfo(api_key, api_secret);
 
     // 过滤有效的平仓请求
     const validPositions = [];
     const skippedPositions = [];
 
     for (const pos of positions) {
-      const { symbol, type, quantity } = pos;
+      const { symbol, side, amount, quantity, percentage } = pos;
+
+      // 验证参数
+      if (!symbol || !side) {
+        skippedPositions.push({ ...pos, reason: '参数不完整' });
+        continue;
+      }
+
+      // 验证 side
+      if (!['LONG', 'SHORT'].includes(side)) {
+        skippedPositions.push({ ...pos, reason: 'side 必须是 LONG 或 SHORT' });
+        continue;
+      }
 
       // 跳过非USDT交易对
       if (!symbol.endsWith('USDT')) {
-        skippedPositions.push({ symbol, reason: '非USDT交易对' });
+        skippedPositions.push({ ...pos, reason: '非USDT交易对' });
         continue;
       }
 
-      // 跳过数量为0或无效的仓位
-      const qty = parseFloat(quantity);
-      if (!qty || qty <= 0) {
-        skippedPositions.push({ symbol, quantity, reason: '数量为0或无效' });
+      // 验证至少有一个平仓方式
+      if (!amount && !quantity && !percentage) {
+        skippedPositions.push({ ...pos, reason: '必须指定 amount、quantity 或 percentage 之一' });
         continue;
       }
 
-      // 检查是否满足最小数量要求
-      const filters = binancePrecision.getSymbolFilters(exchangeInfo, symbol);
-      const lotSizeFilter = filters.find(f => f.filterType === 'LOT_SIZE');
-      if (lotSizeFilter && qty < parseFloat(lotSizeFilter.minQty)) {
-        skippedPositions.push({
-          symbol,
-          quantity,
-          minQty: lotSizeFilter.minQty,
-          reason: `数量小于最小限制${lotSizeFilter.minQty}`
-        });
+      // 查找持仓
+      const position = account_info.positions.find(
+        p => p.symbol === symbol && p.positionSide === side
+      );
+
+      if (!position || parseFloat(position.positionAmt) === 0) {
+        skippedPositions.push({ ...pos, reason: '未找到持仓' });
         continue;
       }
 
-      validPositions.push(pos);
+      validPositions.push({ ...pos, positionAmt: parseFloat(position.positionAmt) });
     }
 
-    UtilRecord.log(`[自定义平仓] 数据过滤完成 - 总数: ${positions.length}, 有效: ${validPositions.length}, 跳过: ${skippedPositions.length}`);
-
-    // 将全部仓位信息写入 trace 日志文件，避免终端输出过多内容
-    if (positions.length > 0) {
-      UtilRecord.trace(
-        `[自定义平仓] 所有请求的仓位详细信息(共${positions.length}个):`,
-        JSON.stringify(positions, null, 2)
-      );
-    }
-
-    if (validPositions.length > 0) {
-      UtilRecord.trace(
-        `[自定义平仓] 有效的仓位详细信息(共${validPositions.length}个):`,
-        JSON.stringify(validPositions, null, 2)
-      );
-    }
-
-    if (skippedPositions.length > 0) {
-      // 终端仅展示部分示例，完整数据写入 trace 日志
-      const skippedSampleList = skippedPositions.slice(0, 10);
-      UtilRecord.log(
-        `[自定义平仓] 跳过的仓位示例(前${skippedSampleList.length}个):`,
-        JSON.stringify(skippedSampleList, null, 2)
-      );
-      UtilRecord.trace(
-        `[自定义平仓] 跳过的仓位详细信息(共${skippedPositions.length}个):`,
-        JSON.stringify(skippedPositions, null, 2)
-      );
-    }
+    UtilRecord.log(`[U本位平仓] 数据过滤完成 - 总数: ${positions.length}, 有效: ${validPositions.length}, 跳过: ${skippedPositions.length}`);
 
     // 立即返回响应数据，不等待for循环执行
     const responseData = {
@@ -791,33 +322,57 @@ const customClosePositions = async (params) => {
       const results = [];
 
       try {
+        const client = createClient(api_key, api_secret);
+        const priceInfo = await getPriceInfo(api_key, api_secret);
+
         for (let i = 0; i < validPositions.length; i++) {
-          const { symbol, type, quantity } = validPositions[i];
+          const { symbol, side, amount, quantity, percentage, positionAmt } = validPositions[i];
 
           try {
             await executeDelay('SHORT');
 
-            // 精度调整（静默模式，减少日志）
+            let closeQuantity;
+            const positionSide = side;
+
+            // 计算平仓数量
+            if (percentage) {
+              // 按百分比平仓
+              closeQuantity = Math.abs(positionAmt) * (percentage / 100);
+            } else if (quantity) {
+              // 按币数量平仓
+              closeQuantity = quantity;
+            } else {
+              // 按USDT金额平仓
+              const theCurrency = priceInfo.find(item => item.symbol === symbol);
+              const price = theCurrency?.price;
+              if (!price) {
+                results.push({ symbol, side, success: false, error: '价格信息不存在' });
+                continue;
+              }
+              closeQuantity = new bigNumber(amount).div(price).toNumber();
+            }
+
+            // 精度调整
             const adjustedQuantity = binancePrecision.smartAdjustQuantity(
               exchangeInfo,
               symbol,
-              quantity.toString(),
+              closeQuantity.toString(),
               { silent: true }
             );
 
-            // 使用官方binance包下单
+            // 下单
             const orderParams = {
               symbol,
-              side: (type === "CLOSE_LONG" ? 'SELL' : 'BUY'),
+              side: positionSide === 'LONG' ? 'SELL' : 'BUY',
               type: 'MARKET',
               quantity: parseFloat(adjustedQuantity),
-              positionSide: type === "CLOSE_LONG" ? 'LONG' : 'SHORT'
+              positionSide
             };
 
             const orderResult = await client.submitNewOrder(orderParams);
             results.push({
               symbol,
-              action: type,
+              side,
               quantity: adjustedQuantity,
               success: true,
               orderId: orderResult.orderId
@@ -825,7 +380,7 @@ const customClosePositions = async (params) => {
           } catch (error) {
             results.push({
               symbol,
-              action: type,
+              side,
               success: false,
               error: error?.message || JSON.stringify(error)
             });
@@ -833,7 +388,7 @@ const customClosePositions = async (params) => {
         }
 
         // 记录最终执行结果
-        UtilRecord.log('自定义平仓后台执行完成:', {
+        UtilRecord.log('U本位平仓后台执行完成:', {
           totalRequested: positions.length,
           validPositions: validPositions.length,
           skippedPositions: skippedPositions.length,
@@ -848,7 +403,7 @@ const customClosePositions = async (params) => {
           UtilRecord.error('平仓失败的订单:', failedOrders);
         }
       } catch (error) {
-        UtilRecord.error('自定义平仓后台执行错误:', error?.message || JSON.stringify(error));
+        UtilRecord.error('U本位平仓后台执行错误:', error?.message || JSON.stringify(error));
       }
     });
 
@@ -1005,11 +560,7 @@ module.exports = {
   getPriceInfo,
   getUsdtTradingList,
   executeDelay,
-  batchBuildPosition,
-  customBuildPosition,
-  appointClosePosition,
-  batchClosePositions,
-  customCloseMultiplePositions,
-  customClosePositions,
+  umOpenPosition,
+  umClosePosition,
   setShortTakeProfit,
 };

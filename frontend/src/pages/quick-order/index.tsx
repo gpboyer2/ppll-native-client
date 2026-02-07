@@ -187,16 +187,14 @@ function QuickOrderPage() {
     setErrorMsg(null);
 
     try {
-      const position_config = {
-        symbol: trading_pair,
-        long_amount: side === 'long' ? amount : 0,
-        short_amount: side === 'short' ? amount : 0
-      };
-
-      const response = await OrdersApi.customBuildPosition({
+      const response = await OrdersApi.umOpenPosition({
         api_key: active_api_key.api_key,
         api_secret: active_api_key.api_secret,
-        positions: [position_config]
+        positions: [{
+          symbol: trading_pair,
+          side: side === 'long' ? 'LONG' : 'SHORT',
+          amount
+        }]
       });
 
       if (response.status === 'success') {
@@ -236,15 +234,14 @@ function QuickOrderPage() {
     try {
       const close_positions = target_positions.map(p => {
         const position_amt = parseFloat(p.positionAmt);
-        const close_quantity = Math.abs(position_amt) * (percentage / 100);
         return {
           symbol: p.symbol,
-          type: position_amt > 0 ? 'CLOSE_LONG' : 'CLOSE_SHORT',
-          quantity: close_quantity.toString()
+          side: (position_amt > 0 ? 'LONG' : 'SHORT') as 'LONG' | 'SHORT',
+          percentage
         };
       });
 
-      const response = await OrdersApi.customClosePosition({
+      const response = await OrdersApi.umClosePosition({
         api_key: active_api_key.api_key,
         api_secret: active_api_key.api_secret,
         positions: close_positions
@@ -299,15 +296,14 @@ function QuickOrderPage() {
       const ratio = amount / target_amount;
       const close_positions = target_positions.map(p => {
         const position_amt = parseFloat(p.positionAmt);
-        const close_quantity = Math.abs(position_amt) * ratio;
         return {
           symbol: p.symbol,
-          type: position_amt > 0 ? 'CLOSE_LONG' : 'CLOSE_SHORT',
-          quantity: close_quantity.toString()
+          side: (position_amt > 0 ? 'LONG' : 'SHORT') as 'LONG' | 'SHORT',
+          percentage: ratio * 100
         };
       });
 
-      const response = await OrdersApi.customClosePosition({
+      const response = await OrdersApi.umClosePosition({
         api_key: active_api_key.api_key,
         api_secret: active_api_key.api_secret,
         positions: close_positions
@@ -348,16 +344,14 @@ function QuickOrderPage() {
     setErrorMsg(null);
 
     try {
-      const position_config = {
-        symbol: trading_pair,
-        long_amount: side === 'long' ? amount : 0,
-        short_amount: side === 'short' ? amount : 0
-      };
-
-      const response = await OrdersApi.customBuildPosition({
+      const response = await OrdersApi.umOpenPosition({
         api_key: active_api_key.api_key,
         api_secret: active_api_key.api_secret,
-        positions: [position_config]
+        positions: [{
+          symbol: trading_pair,
+          side: side === 'long' ? 'LONG' : 'SHORT',
+          amount
+        }]
       });
 
       if (response.status === 'success') {
@@ -400,16 +394,26 @@ function QuickOrderPage() {
     setErrorMsg(null);
 
     try {
-      const position_config = {
-        symbol: trading_pair,
-        long_amount: long_amount < short_amount ? diff : 0,
-        short_amount: short_amount < long_amount ? diff : 0
-      };
+      const positions = [];
+      if (long_amount < short_amount) {
+        positions.push({
+          symbol: trading_pair,
+          side: 'LONG' as const,
+          amount: diff
+        });
+      }
+      if (short_amount < long_amount) {
+        positions.push({
+          symbol: trading_pair,
+          side: 'SHORT' as const,
+          amount: diff
+        });
+      }
 
-      const response = await OrdersApi.customBuildPosition({
+      const response = await OrdersApi.umOpenPosition({
         api_key: active_api_key.api_key,
         api_secret: active_api_key.api_secret,
-        positions: [position_config]
+        positions
       });
 
       if (response.status === 'success') {

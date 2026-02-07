@@ -95,14 +95,26 @@ export interface AccountPosition {
 
 // ==================== 建仓相关 ====================
 
-// 建仓位置配置
+// U本位开仓位置
+export interface UmOpenPosition {
+  symbol: string
+  side: 'LONG' | 'SHORT'
+  amount: number
+}
+
+// U本位开仓请求
+export interface UmOpenPositionRequest extends BinanceCredentials {
+  positions: UmOpenPosition[]
+}
+
+// 建仓位置配置（兼容旧接口）
 export interface PositionConfig {
   symbol: string
   long_amount: number
   short_amount: number
 }
 
-// 自定义建仓请求
+// 自定义建仓请求（兼容旧接口）
 export interface CustomBuildPositionRequest extends BinanceCredentials {
   positions: PositionConfig[]
 }
@@ -117,7 +129,21 @@ export interface OperationResult {
 
 // ==================== 平仓相关 ====================
 
-// 批量平仓请求
+// U本位平仓位置
+export interface UmClosePosition {
+  symbol: string
+  side: 'LONG' | 'SHORT'
+  amount?: number
+  quantity?: number
+  percentage?: number
+}
+
+// U本位平仓请求
+export interface UmClosePositionRequest extends BinanceCredentials {
+  positions: UmClosePosition[]
+}
+
+// 批量平仓请求（兼容旧接口）
 export interface BatchClosePositionRequest extends BinanceCredentials {
   positions: string[] // 交易对列表
 }

@@ -15,58 +15,62 @@ export class OrdersApi {
   }
 
   /**
-   * 批量建仓
+   * U本位合约开仓
+   * @param data 开仓参数 { api_key, api_secret, positions: [{ symbol, side, amount }] }
    */
-  static async batchBuildPosition(data: any): Promise<Response<any>> {
-    return RequestWrapper.post(`${this.BASE_PATH}/batch-build-position`, data);
+  static async umOpenPosition(data: {
+    api_key: string;
+    api_secret: string;
+    positions: Array<{
+      symbol: string;
+      side: 'LONG' | 'SHORT';
+      amount: number;
+    }>;
+  }): Promise<Response<any>> {
+    return RequestWrapper.post(`${this.BASE_PATH}/um/open-position`, data);
   }
 
   /**
-   * 自定义建仓
+   * U本位合约平仓
+   * @param data 平仓参数 { api_key, api_secret, positions: [{ symbol, side, amount?, quantity?, percentage? }] }
    */
-  static async customBuildPosition(data: any): Promise<Response<any>> {
-    return RequestWrapper.post(`${this.BASE_PATH}/custom-build-position`, data);
-  }
-
-  /**
-   * 自定义平仓多个
-   */
-  static async customCloseMultiple(data: any): Promise<Response<any>> {
-    return RequestWrapper.post(`${this.BASE_PATH}/custom-close-multiple-position`, data);
-  }
-
-  /**
-   * 批量平仓
-   */
-  static async batchClosePosition(data: any): Promise<Response<any>> {
-    return RequestWrapper.post(`${this.BASE_PATH}/batch-close-position`, data);
-  }
-
-  /**
-   * 自定义平仓
-   */
-  static async customClosePosition(data: any): Promise<Response<any>> {
-    return RequestWrapper.post(`${this.BASE_PATH}/custom-close-position`, data);
-  }
-
-  /**
-   * 指定平仓
-   */
-  static async appointClosePosition(data: any): Promise<Response<any>> {
-    return RequestWrapper.post(`${this.BASE_PATH}/appoint-close-position`, data);
+  static async umClosePosition(data: {
+    api_key: string;
+    api_secret: string;
+    positions: Array<{
+      symbol: string;
+      side: 'LONG' | 'SHORT';
+      amount?: number;
+      quantity?: number;
+      percentage?: number;
+    }>;
+  }): Promise<Response<any>> {
+    return RequestWrapper.post(`${this.BASE_PATH}/um/close-position`, data);
   }
 
   /**
    * 批量检查
    */
-  static async batchInspect(data: any): Promise<Response<any>> {
+  static async batchInspect(data: {
+    api_key: string;
+    api_secret: string;
+  }): Promise<Response<any>> {
     return RequestWrapper.post(`${this.BASE_PATH}/batch-inspect`, data);
   }
 
   /**
    * 设置做空止盈
    */
-  static async setShortTakeProfit(data: any): Promise<Response<any>> {
+  static async setShortTakeProfit(data: {
+    api_key: string;
+    api_secret: string;
+    positions: Array<{
+      symbol: string;
+      stopPrice: number;
+      closeRatio: number;
+    }>;
+  }): Promise<Response<any>> {
     return RequestWrapper.post(`${this.BASE_PATH}/set-short-take-profit`, data);
   }
+
 }

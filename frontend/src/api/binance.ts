@@ -4,9 +4,9 @@ import {
   BinanceApiResponse,
   AccountInfoRequest,
   AccountInfo,
-  CustomBuildPositionRequest,
+  UmOpenPositionRequest,
+  UmClosePositionRequest,
   OperationResult,
-  BatchClosePositionRequest,
   ClosePositionResponse
 } from '../types/binance';
 
@@ -35,31 +35,31 @@ export class BinanceApi {
   // ==================== 订单相关 ====================
 
   /**
-   * 自定义建仓（对冲单）
-   * 根据指定的交易对列表进行自定义建仓操作
-   * 支持指定具体的交易对和多空单金额，适用于精确的建仓需求
-   * 
-   * @param request 建仓请求参数
-   * @returns 建仓操作结果
+   * U本位合约开仓
+   * 根据指定的交易对列表进行开仓操作
+   * 支持指定具体的交易对和多空方向，适用于精确的建仓需求
+   *
+   * @param request 开仓请求参数
+   * @returns 开仓操作结果
    */
-  static async customBuildPosition(request: CustomBuildPositionRequest): Promise<Response<BinanceApiResponse<OperationResult>>> {
+  static async umOpenPosition(request: UmOpenPositionRequest): Promise<Response<BinanceApiResponse<OperationResult>>> {
     return RequestWrapper.post<BinanceApiResponse<OperationResult>>(
-      `${this.BASE_URL}/api/v1/orders/custom-build-position`,
+      `${this.BASE_URL}/api/v1/orders/um/open-position`,
       request
     );
   }
 
   /**
-   * 批量平仓（收菜）
-   * 一键收菜/批量平仓功能，对所有指定交易对进行平仓操作
-   * 同时平多单和空单，适用于完整的平仓需求
-   * 
+   * U本位合约平仓
+   * 一键平仓功能，对所有指定交易对进行平仓操作
+   * 支持按金额、数量或百分比平仓
+   *
    * @param request 平仓请求参数
    * @returns 平仓操作结果
    */
-  static async batchClosePosition(request: BatchClosePositionRequest): Promise<Response<BinanceApiResponse<ClosePositionResponse>>> {
+  static async umClosePosition(request: UmClosePositionRequest): Promise<Response<BinanceApiResponse<ClosePositionResponse>>> {
     return RequestWrapper.post<BinanceApiResponse<ClosePositionResponse>>(
-      `${this.BASE_URL}/api/v1/orders/batch-close-position`,
+      `${this.BASE_URL}/api/v1/orders/um/close-position`,
       request
     );
   }
