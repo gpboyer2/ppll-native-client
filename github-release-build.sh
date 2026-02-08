@@ -88,13 +88,43 @@ check_uncommitted_changes() {
 
 # 获取当前版本号
 get_current_version() {
-    if [ -f "wails.json" ]; then
-        grep '"productVersion"' wails.json | sed 's/.*"productVersion": "\(.*\)".*/\1/'
-    elif [ -f "package.json" ]; then
+    if [ -f "package.json" ]; then
         grep '"version"' package.json | head -1 | sed 's/.*"version": "\(.*\)".*/\1/'
+    elif [ -f "wails.json" ]; then
+        grep '"productVersion"' wails.json | sed 's/.*"productVersion": "\(.*\)".*/\1/'
     else
         echo "0.0.0"
     fi
+}
+
+# 更新版本号文件
+update_version_files() {
+    local version=$1
+    local updated=false
+
+    # 更新 package.json
+    if [ -f "package.json" ]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' 's/"version": "[^"]*"/"version": "'"$version"'"/' package.json
+        else
+            sed -i 's/"version": "[^"]*"/"version": "'"$version"'"/' package.json
+        fi
+        print_success "package.json 已更新"
+        updated=true
+    fi
+
+    # 更新 wails.json
+    if [ -f "wails.json" ]; then
+        if [[ "$OSTYPE" == "darwin"* ]]; then
+            sed -i '' 's/"productVersion": "[^"]*"/"productVersion": "'"$version"'"/' wails.json
+        else
+            sed -i 's/"productVersion": "[^"]*"/"productVersion": "'"$version"'"/' wails.json
+        fi
+        print_success "wails.json 已更新"
+        updated=true
+    fi
+
+    return 0
 }
 
 # 获取已有的版本标签
@@ -237,58 +267,54 @@ main() {
 
     # 输入新版本号
     echo "─────────────────────────────────────────"
-    echo "           输入新版本号"
+    echo "           版本升级"
     echo "─────────────────────────────────────────"
     echo ""
-    echo "版本号格式：v开头的语义化版本，如 v1.0.0、v1.0.1、v2.0.0"
+    print_info "当前版本号：${MAGENTA}$CURRENT_VERSION${NC}"
     echo ""
 
-    # 推荐下一个版本号
-    if [[ "$existing_tags" =~ v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
-        latest_major=${BASH_REMATCH[1]}
-        latest_minor=${BASH_REMATCH[2]}
-        latest_patch=${BASH_REMATCH[3]}
+    # 解析当前版本号
+    if [[ $CURRENT_VERSION =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+        current_major=${BASH_REMATCH[1]}
+        current_minor=${BASH_REMATCH[2]}
+        current_patch=${BASH_REMATCH[3]}
 
-        suggest_patch="v${latest_major}.${latest_minor}.$((latest_patch + 1))"
-        suggest_minor="v${latest_major}.$((latest_minor + 1)).0"
-        suggest_major="v$((latest_major + 1)).0.0"
+        # 自动计算的 patch 版本
+        auto_patch="v${current_major}.${current_minor}.$((current_patch + 1))"
 
-        echo "推荐版本号："
-        echo "  [1] $suggest_patch (修复版本)"
-        echo "  [2] $suggest_minor (功能版本)"
-        echo "  [3] $suggest_major (重大版本)"
-        echo "  [4] 自定义"
+        echo "推荐版本：${CYAN}${auto_patch}${NC} (自动 +1)"
         echo ""
-        read -p "请选择 [1-4，默认 1]: " version_choice
 
-        version_choice=${version_choice:-1}
+        # 询问是否升级大版本
+        read -p "是否升级大版本号？(y/N，默认 n): " upgrade_major
+        upgrade_major=${upgrade_major:-n}
 
-        case $version_choice in
-            1) NEW_VERSION="$suggest_patch" ;;
-            2) NEW_VERSION="$suggest_minor" ;;
-            3) NEW_VERSION="$suggest_major" ;;
-            4)
-                read -p "请输入版本号: " NEW_VERSION
-                if [[ ! $NEW_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-                    print_error "版本号格式不正确，应为 v1.0.0 格式"
-                    exit 1
-                fi
-                ;;
-            *)
-                print_error "无效选择"
+        if [[ $upgrade_major == "y" || $upgrade_major == "Y" ]]; then
+            echo ""
+            read -p "请输入新的主版本号 (当前 $current_major): " new_major
+            new_major=${new_major:-$((current_major + 1))}
+
+            if [[ ! $new_major =~ ^[0-9]+$ ]]; then
+                print_error "主版本号必须是数字"
                 exit 1
-                ;;
-        esac
+            fi
+
+            NEW_VERSION="v${new_major}.0.0"
+            print_info "将升级到重大版本：${MAGENTA}$NEW_VERSION${NC}"
+        else
+            NEW_VERSION="$auto_patch"
+            print_info "将使用小版本自增：${MAGENTA}$NEW_VERSION${NC}"
+        fi
     else
-        read -p "请输入版本号 (如 v1.0.0): " NEW_VERSION
+        print_warning "当前版本号格式不符合语义化版本规范"
+        echo ""
+        read -p "请输入新版本号 (如 v1.0.0): " NEW_VERSION
         if [[ ! $NEW_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             print_error "版本号格式不正确，应为 v1.0.0 格式"
             exit 1
         fi
     fi
 
-    echo ""
-    print_info "将要创建的版本：${MAGENTA}$NEW_VERSION${NC}"
     echo ""
 
     # 检查标签是否已存在
@@ -338,29 +364,22 @@ main() {
     # 提取纯版本号（去掉 v 前缀）
     VERSION_NUMBER=${NEW_VERSION#v}
 
-    # 更新 wails.json 中的版本号
+    # 更新版本文件
     echo ""
-    print_step "正在更新 wails.json 版本号为 $VERSION_NUMBER..."
+    print_step "正在更新版本号到 $VERSION_NUMBER..."
 
-    if [ -f "wails.json" ]; then
-        # 使用 sed 替换 productVersion
-        if [[ "$OSTYPE" == "darwin"* ]]; then
-            # macOS 的 sed 语法
-            sed -i '' "s/\"productVersion\": \".*\"/\"productVersion\": \"$VERSION_NUMBER\"/" wails.json
-        else
-            # Linux 的 sed 语法
-            sed -i "s/\"productVersion\": \".*\"/\"productVersion\": \"$VERSION_NUMBER\"/" wails.json
-        fi
-        print_success "wails.json 已更新"
+    update_version_files "$VERSION_NUMBER"
 
-        # 提交版本号更新
-        print_step "正在提交版本号更新..."
-        git add wails.json
-        git commit -m "chore: bump version to $VERSION_NUMBER"
-        print_success "版本号更新已提交"
-    else
-        print_warning "未找到 wails.json，跳过版本号更新"
+    # 提交版本号更新
+    print_step "正在提交版本号更新..."
+    if [ -f "package.json" ]; then
+        git add package.json
     fi
+    if [ -f "wails.json" ]; then
+        git add wails.json
+    fi
+    git commit -m "chore: bump version to $VERSION_NUMBER"
+    print_success "版本号更新已提交"
 
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
