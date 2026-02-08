@@ -356,7 +356,10 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
               return (
                 <div key={record.id} className="order-records-floating-panel-item">
                   <div className="order-records-floating-panel-item-main">
-                    <div className="order-records-floating-panel-symbol">{record.symbol}</div>
+                    <div className="order-records-floating-panel-symbol">
+                      {record.symbol}
+                      <span className="order-records-floating-panel-order-id">{record.order_id}</span>
+                    </div>
                     <div className={`order-records-floating-panel-side ${is_long ? 'side-long' : 'side-short'}`}>
                       {side}
                     </div>

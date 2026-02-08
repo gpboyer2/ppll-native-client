@@ -8,7 +8,7 @@
  */
 const chatRoute = require("./v1/chat.route");
 const helloRoute = require("./v1/hello.route");
-const ordersRoute = require("./v1/orders.route");
+const ordersRoute = require("./v1/binance-um-orders.route");
 const dashboardRoute = require("./v1/dashboard.route");
 const informationRoute = require("./v1/information.route");
 const gridStrategyRoute = require("./v1/grid-strategy.route");

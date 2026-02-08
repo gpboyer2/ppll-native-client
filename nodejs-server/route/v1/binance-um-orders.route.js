@@ -4,7 +4,7 @@
  */
 const express = require('express');
 const router = express.Router();
-const ordersController = require("../../controller/orders.controller.js");
+const ordersController = require("../../controller/binance-um-orders.controller.js");
 const vipMiddleware = require("../../middleware/vip.js");
 
 /**

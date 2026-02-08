@@ -8,7 +8,7 @@ import { useBinanceStore } from '../../stores/binance-store';
 import { OrdersApi, BinanceAccountApi } from '../../api';
 import type { QuickOrderRecord } from '../../api';
 import type { AccountPosition } from '../../types/binance';
-import type { PositionOperationResponse } from '../../api/modules/orders';
+import type { PositionOperationResponse } from '../../api/modules/binance-um-orders';
 import { ROUTES } from '../../router';
 import { AccountInfoCard } from './components/account-info-card';
 import { TradingPairInfoCard } from './components/trading-pair-info-card';

@@ -139,6 +139,7 @@ export class OrdersApi {
  */
 export interface QuickOrderRecord {
   id: number;
+  order_id: string;
   symbol: string;
   side: string;
   position_side: string;

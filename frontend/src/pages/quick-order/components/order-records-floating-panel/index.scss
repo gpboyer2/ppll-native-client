@@ -104,6 +104,14 @@
   color: var(--color-text);
 }
 
+.order-records-floating-panel-order-id {
+  margin-left: 6px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-weight: 400;
+}
+
 .order-records-floating-panel-side {
   padding: 2px 8px;
   border-radius: 12px;
