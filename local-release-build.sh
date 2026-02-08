@@ -126,7 +126,7 @@ echo "[步骤 1/5] 执行多平台构建..."
 
 # 2. 添加构建产物到git
 echo "[步骤 2/5] 添加构建产物到git..."
-git add -f build/*.dmg build/*.exe
+git add -f build/*.dmg build/*.exe build/node-*.exe
 
 # 3. 提交构建产物
 echo "[步骤 3/5] 提交构建产物..."
@@ -192,6 +192,6 @@ fi
 
 echo "========================================="
 echo "构建产物列表:"
-ls -lh build/*.dmg build/*.exe 2>/dev/null || ls -lh build/
+ls -lh build/*.dmg build/*.exe build/node-*.exe 2>/dev/null || ls -lh build/
 echo "========================================="
 echo "如需切换到此版本: git checkout $TAG_VERSION"

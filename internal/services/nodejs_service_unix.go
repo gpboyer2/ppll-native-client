@@ -52,6 +52,16 @@ func (s *NodejsService) Start() error {
 		return fmt.Errorf("Node.js 服务已在运行中")
 	}
 
+	// 预检查
+	s.log.Info("[Node.js] 执行启动前预检查...")
+	checkInfo, checkErr := s.PreflightCheck()
+	if checkErr != nil {
+		s.log.Error("[Node.js] 预检查失败", "error", checkErr)
+		s.log.Debug("[Node.js] 预检查详情", "info", checkInfo)
+		return fmt.Errorf("预检查失败: %w", checkErr)
+	}
+	s.log.Info("[Node.js] 预检查通过", "entryPoint", checkInfo["entryPointExists"])
+
 	startCmd, err := s.buildStartCommand()
 	if err != nil {
 		return err
@@ -63,6 +73,10 @@ func (s *NodejsService) Start() error {
 	cmd := exec.CommandContext(ctx, startCmd.executable, startCmd.args...)
 	cmd.Dir = startCmd.workingDir
 	cmd.Env = s.buildEnv(os.Environ())
+
+	s.log.Debug("[Node.js] 启动命令", "executable", startCmd.executable, "args", startCmd.args)
+	s.log.Debug("[Node.js] 工作目录", "dir", startCmd.workingDir)
+	s.log.Debug("[Node.js] 环境变量", "env_count", len(cmd.Env))
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {

@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
@@ -162,13 +163,45 @@ func (s *NodejsService) GetStatus() map[string]any {
 // ==================== 私有方法 ====================
 
 // findNodeExecutable 查找 Node.js 可执行文件
+// 查找顺序：
+// 1. 可执行文件同目录下的嵌入 Node.js（node 或 node.exe）
+// 2. PATH 环境变量中的 node
+// 3. 常见安装路径
 func (s *NodejsService) findNodeExecutable() (string, error) {
-	// 1. 检查 PATH 中的 node
+	// 1. 检查可执行文件同目录下的嵌入 Node.js
+	// 获取当前可执行文件所在目录
+	execPath, err := os.Executable()
+	if err == nil {
+		execDir := filepath.Dir(execPath)
+		embeddedNode := filepath.Join(execDir, "node")
+		if stat, err := os.Stat(embeddedNode); err == nil && !stat.IsDir() {
+			s.log.Info("[Node.js] 使用嵌入的 Node.js", "path", embeddedNode)
+			return embeddedNode, nil
+		}
+
+		// macOS .app 包结构检查
+		// 可执行文件可能在 .app/Contents/MacOS/，嵌入的 node 在 ../Resources/
+		resourcesNode := filepath.Join(execDir, "..", "Resources", "node")
+		if stat, err := os.Stat(resourcesNode); err == nil && !stat.IsDir() {
+			s.log.Info("[Node.js] 使用嵌入的 Node.js (Resources)", "path", resourcesNode)
+			return resourcesNode, nil
+		}
+
+		// Windows 检查 node.exe
+		embeddedNodeExe := filepath.Join(execDir, "node.exe")
+		if stat, err := os.Stat(embeddedNodeExe); err == nil && !stat.IsDir() {
+			s.log.Info("[Node.js] 使用嵌入的 Node.js", "path", embeddedNodeExe)
+			return embeddedNodeExe, nil
+		}
+	}
+
+	// 2. 检查 PATH 中的 node
 	if path, err := exec.LookPath("node"); err == nil {
+		s.log.Info("[Node.js] 使用系统 PATH 中的 Node.js", "path", path)
 		return path, nil
 	}
 
-	// 2. 检查常见安装路径
+	// 3. 检查常见安装路径
 	homeDir, _ := os.UserHomeDir()
 	commonPaths := []string{
 		filepath.Join(homeDir, ".nvm", "versions", "node", "*", "bin", "node"),
@@ -182,12 +215,13 @@ func (s *NodejsService) findNodeExecutable() (string, error) {
 		matches, _ := filepath.Glob(pattern)
 		for _, match := range matches {
 			if _, err := os.Stat(match); err == nil {
+				s.log.Info("[Node.js] 使用常见安装路径中的 Node.js", "path", match)
 				return match, nil
 			}
 		}
 	}
 
-	return "", fmt.Errorf("未找到 Node.js，请确保已安装 Node.js")
+	return "", fmt.Errorf("未找到 Node.js，请确保已安装 Node.js 或应用已正确打包")
 }
 
 // startCommand 启动命令配置
@@ -233,24 +267,68 @@ func (s *NodejsService) buildStartCommand() (startCommand, error) {
 }
 
 // resolveServerDir 解析服务目录路径
+// 查找顺序：
+// 1. 可执行文件同目录下的 nodejs-server（用于 Windows 打包）
+// 2. 可执行文件所在目录的 Resources/nodejs-server（用于 macOS .app 包）
+// 3. 可执行文件所在目录的 ../nodejs-server（用于开发环境）
+// 4. 当前工作目录下的 nodejs-server（作为最后回退）
 func (s *NodejsService) resolveServerDir() string {
 	if filepath.IsAbs(s.serverDir) {
 		return s.serverDir
 	}
 
-	// 相对于当前工作目录
+	// 获取可执行文件所在目录
+	execPath, err := os.Executable()
+	if err != nil {
+		// 回退到当前工作目录
+		wd, _ := os.Getwd()
+		s.log.Warn("[Node.js] 无法获取可执行文件路径，使用当前工作目录", "error", err)
+		return filepath.Join(wd, s.serverDir)
+	}
+
+	execDir := filepath.Dir(execPath)
 	wd, _ := os.Getwd()
-	return filepath.Join(wd, s.serverDir)
+
+	candidates := []string{
+		filepath.Join(execDir, s.serverDir),                    // Windows 打包场景
+		filepath.Join(execDir, "..", "Resources", s.serverDir), // macOS .app 包场景
+		filepath.Join(execDir, "..", s.serverDir),              // 开发环境：项目根目录/nodejs-server
+		filepath.Join(wd, s.serverDir),                         // 当前工作目录
+	}
+
+	for _, candidate := range candidates {
+		if info, err := os.Stat(candidate); err == nil && info.IsDir() {
+			s.log.Debug("[Node.js] 使用服务目录", "path", candidate)
+			return candidate
+		}
+	}
+
+	s.log.Warn("[Node.js] 服务目录不存在", "candidates", candidates)
+	return candidates[0]
 }
 
 // buildEnv 构建环境变量
 func (s *NodejsService) buildEnv(baseEnv []string) []string {
 	env := append([]string{}, baseEnv...)
+	envMap := make(map[string]struct{}, len(env))
+	for _, item := range env {
+		if key := strings.SplitN(item, "=", 2)[0]; key != "" {
+			envMap[key] = struct{}{}
+		}
+	}
+
+	appendIfMissing := func(key, value string) {
+		if _, exists := envMap[key]; exists {
+			return
+		}
+		env = append(env, key+"="+value)
+		envMap[key] = struct{}{}
+	}
 
 	// 添加必要的环境变量
-	env = append(env, "NODE_ENV=production")
-	env = append(env, fmt.Sprintf("PORT=%d", s.port))
-	env = append(env, "DISABLE_RATE_LIMIT=true")
+	appendIfMissing("NODE_ENV", "production")
+	appendIfMissing("PORT", fmt.Sprintf("%d", s.port))
+	appendIfMissing("DISABLE_RATE_LIMIT", "true")
 
 	// 代理环境变量处理
 	// 优先使用系统环境变量，如果未设置则使用默认的 Clash 代理
@@ -266,14 +344,15 @@ func (s *NodejsService) buildEnv(baseEnv []string) []string {
 	}
 
 	for _, pv := range proxyVars {
+		if _, exists := envMap[pv.name]; exists {
+			continue
+		}
 		value := os.Getenv(pv.name)
 		if value == "" {
-			// 系统环境变量未设置，使用默认代理
-			env = append(env, pv.name+"="+pv.defaultValue)
-		} else {
-			// 使用系统环境变量
-			env = append(env, pv.name+"="+value)
+			value = pv.defaultValue
 		}
+		env = append(env, pv.name+"="+value)
+		envMap[pv.name] = struct{}{}
 	}
 
 	return env
@@ -365,10 +444,10 @@ func (s *NodejsService) goHealthChecker() {
 }
 
 // performHealthChecker 执行单次健康检查
-// 通过调用 /v1/hello 端点来验证服务是否正常
+// 通过调用 /api/v1/hello 端点来验证服务是否正常
 func (s *NodejsService) performHealthCheck() {
 	// 构建健康检查 URL
-	healthURL := fmt.Sprintf("http://localhost:%d/v1/hello", s.port)
+	healthURL := fmt.Sprintf("http://localhost:%d/api/v1/hello", s.port)
 
 	// 创建 HTTP 客户端，设置超时
 	client := &http.Client{
@@ -413,4 +492,134 @@ func (s *NodejsService) performHealthCheck() {
 			s.log.Warn("[Node.js] 健康检查失败", "statusCode", resp.StatusCode)
 		}
 	}
+}
+
+// ==================== 调试相关方法 ====================
+
+// DebugInfo 调试信息结构
+type DebugInfo struct {
+	ServerDir      string            `json:"server_dir"`
+	ResolvedDir    string            `json:"resolved_dir"`
+	ExecutablePath string            `json:"executable_path"`
+	WorkingDir     string            `json:"working_dir"`
+	IsRunning      bool              `json:"is_running"`
+	IsHealthy      bool              `json:"is_healthy"`
+	Port           int               `json:"port"`
+	ServiceURL     string            `json:"service_url"`
+	ProcessInfo    map[string]any    `json:"process_info,omitempty"`
+	EnvVars        map[string]string `json:"env_vars,omitempty"`
+	StartTime      string            `json:"start_time,omitempty"`
+	Uptime         string            `json:"uptime,omitempty"`
+}
+
+// GetDebugInfo 获取完整的调试信息
+func (s *NodejsService) GetDebugInfo() DebugInfo {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	info := DebugInfo{
+		ServerDir:   s.serverDir,
+		ResolvedDir: s.resolveServerDir(),
+		IsRunning:   s.isRunning,
+		IsHealthy:   s.isHealthy,
+		Port:        s.port,
+		ServiceURL:  fmt.Sprintf("http://localhost:%d", s.port),
+		EnvVars:     make(map[string]string),
+	}
+
+	// 获取可执行文件路径
+	if execPath, err := os.Executable(); err == nil {
+		info.ExecutablePath = execPath
+	}
+
+	// 获取当前工作目录
+	if wd, err := os.Getwd(); err == nil {
+		info.WorkingDir = wd
+	}
+
+	// 进程信息
+	if s.process != nil {
+		info.ProcessInfo = map[string]any{
+			"pid": s.process.Pid,
+		}
+	}
+
+	// 启动时间
+	if !s.startTime.IsZero() {
+		info.StartTime = s.startTime.Format("2006-01-02 15:04:05")
+		info.Uptime = time.Since(s.startTime).String()
+	}
+
+	// 关键环境变量
+	envKeys := []string{
+		"NODE_ENV", "PORT", "SQLITE_PATH",
+		"HTTPS_PROXY", "HTTP_PROXY",
+		"PPLL_LOG_DIR", "DEBUG",
+	}
+	for _, key := range envKeys {
+		if value := os.Getenv(key); value != "" {
+			info.EnvVars[key] = value
+		}
+	}
+
+	return info
+}
+
+// PreflightCheck 预检查启动条件
+// 返回检查结果和可能的错误信息
+func (s *NodejsService) PreflightCheck() (map[string]any, error) {
+	result := make(map[string]any)
+	errors := []string{}
+
+	// 1. 检查 Node.js 可执行文件
+	nodePath, err := s.findNodeExecutable()
+	if err != nil {
+		errors = append(errors, fmt.Sprintf("Node.js 未找到: %v", err))
+		result["nodeExecutable"] = nil
+	} else {
+		result["nodeExecutable"] = nodePath
+	}
+
+	// 2. 检查服务目录
+	resolvedDir := s.resolveServerDir()
+	result["serverDir"] = s.serverDir
+	result["resolvedDir"] = resolvedDir
+
+	if dirInfo, err := os.Stat(resolvedDir); err != nil {
+		errors = append(errors, fmt.Sprintf("服务目录不存在: %s", resolvedDir))
+		result["serverDirExists"] = false
+	} else {
+		result["serverDirExists"] = true
+		result["serverDirIsDir"] = dirInfo.IsDir()
+	}
+
+	// 3. 检查入口文件
+	entryPoint := filepath.Join(resolvedDir, "app.js")
+	if fileInfo, err := os.Stat(entryPoint); err != nil {
+		errors = append(errors, fmt.Sprintf("入口文件不存在: %s", entryPoint))
+		result["entryPointExists"] = false
+	} else {
+		result["entryPointExists"] = true
+		result["entryPointSize"] = fileInfo.Size()
+	}
+
+	// 4. 检查端口占用
+	result["port"] = s.port
+	result["portCheckUrl"] = fmt.Sprintf("http://localhost:%d", s.port)
+
+	// 5. 检查 nodemon
+	nodemonPath := filepath.Join(resolvedDir, "node_modules", ".bin", "nodemon")
+	if _, err := os.Stat(nodemonPath); err == nil {
+		result["nodemonAvailable"] = true
+	} else {
+		result["nodemonAvailable"] = false
+	}
+
+	result["checkTime"] = time.Now().Format("2006-01-02 15:04:05")
+
+	if len(errors) > 0 {
+		return result, fmt.Errorf("预检查失败: %s", strings.Join(errors, "; "))
+	}
+
+	return result, nil
 }

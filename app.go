@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 	"ppll-native-client/internal/services"
@@ -87,8 +89,40 @@ func (a *App) startup(ctx context.Context) {
 	// 3. 启动 Node.js 后端服务（NodeJS 端已接管数据库初始化）
 	// 设置环境变量 SKIP_NODEJS_AUTO_START=1 可跳过自动启动
 	skipNodejs := os.Getenv("SKIP_NODEJS_AUTO_START") == "1"
+
+	// 设置必要的环境变量
+	// 3.1 设置数据库路径（如果未设置）
+	if os.Getenv("SQLITE_PATH") == "" {
+		// 默认使用用户数据目录
+		var userDataDir string
+		if homeDir, err := os.UserHomeDir(); err == nil {
+			userDataDir = filepath.Join(homeDir, ".ppll-client")
+		} else {
+			userDataDir = filepath.Join(os.TempDir(), "ppll-client")
+		}
+		dbPath := filepath.Join(userDataDir, "database.sqlite")
+		dbDir := filepath.Dir(dbPath)
+		if err := os.MkdirAll(dbDir, 0755); err == nil {
+			os.Setenv("SQLITE_PATH", dbPath)
+			a.log.Info("设置数据库路径", "path", dbPath)
+		}
+	}
+
+	// 3.2 设置 NODE_ENV（如果未设置）
+	if os.Getenv("NODE_ENV") == "" {
+		os.Setenv("NODE_ENV", "production")
+		a.log.Debug("设置 NODE_ENV=production")
+	}
+
+	// 3.3 确定 nodejs-server 路径
+	// 优先级：环境变量 > 相对于可执行文件的路径
+	nodejsServerDir := os.Getenv("NODEJS_SERVER_DIR")
+	if nodejsServerDir == "" {
+		nodejsServerDir = "./nodejs-server"
+	}
+
 	a.njs = services.NewNodejsService(ctx, a.logWrapper(), services.Config{
-		ServerDir: "./nodejs-server",
+		ServerDir: nodejsServerDir,
 		Port:      54321,
 	})
 
@@ -421,4 +455,150 @@ func (a *App) GetSystemInfo() map[string]any {
 func (a *App) OpenBrowser(url string) error {
 	runtime.BrowserOpenURL(a.ctx, url)
 	return nil
+}
+
+// ===== 开发者调试相关 =====
+
+// DebugInfo 调试信息结构
+type DebugInfo struct {
+	AppPath       string            `json:"app_path"`
+	AppVersion    string            `json:"app_version"`
+	WorkingDir    string            `json:"working_dir"`
+	LogDir        string            `json:"log_dir"`
+	NodejsService map[string]any    `json:"nodejs_service"`
+	Environment   map[string]string `json:"environment"`
+	SystemInfo    map[string]string `json:"system_info"`
+	Timestamp     string            `json:"timestamp"`
+}
+
+// GetDebugInfo 获取完整的调试信息
+func (a *App) GetDebugInfo() DebugInfo {
+	info := DebugInfo{
+		AppPath:       "",
+		AppVersion:    a.GetAppVersion(),
+		WorkingDir:    "",
+		LogDir:        os.Getenv("PPLL_LOG_DIR"),
+		NodejsService: map[string]any{},
+		Environment:   make(map[string]string),
+		SystemInfo:    make(map[string]string),
+		Timestamp:     time.Now().Format("2006-01-02 15:04:05"),
+	}
+
+	// 获取可执行文件路径
+	if execPath, err := os.Executable(); err == nil {
+		info.AppPath = execPath
+	}
+
+	// 获取当前工作目录
+	if wd, err := os.Getwd(); err == nil {
+		info.WorkingDir = wd
+	}
+
+	// Node.js 服务调试信息
+	if a.njs != nil {
+		nodejsDebug := a.njs.GetDebugInfo()
+		info.NodejsService = map[string]any{
+			"serverDir":   nodejsDebug.ServerDir,
+			"resolvedDir": nodejsDebug.ResolvedDir,
+			"isRunning":   nodejsDebug.IsRunning,
+			"isHealthy":   nodejsDebug.IsHealthy,
+			"port":        nodejsDebug.Port,
+			"serviceURL":  nodejsDebug.ServiceURL,
+			"processInfo": nodejsDebug.ProcessInfo,
+			"startTime":   nodejsDebug.StartTime,
+			"uptime":      nodejsDebug.Uptime,
+		}
+	}
+
+	// 关键环境变量
+	envKeys := []string{
+		"NODE_ENV", "PORT", "SQLITE_PATH",
+		"HTTPS_PROXY", "HTTP_PROXY",
+		"PPLL_LOG_DIR", "DEBUG", "SKIP_NODEJS_AUTO_START",
+	}
+	for _, key := range envKeys {
+		info.Environment[key] = os.Getenv(key)
+	}
+
+	// 系统信息
+	info.SystemInfo = map[string]string{
+		"os":   runtime.Environment(a.ctx).Platform,
+		"arch": runtime.Environment(a.ctx).Arch,
+	}
+
+	return info
+}
+
+// DebugLogEntry 日志条目
+type DebugLogEntry struct {
+	Timestamp string `json:"timestamp"`
+	Source    string `json:"source"` // "go" 或 "nodejs"
+	Level     string `json:"level"`  // "info", "error", "debug", "warn"
+	Message   string `json:"message"`
+}
+
+// GetDebugLogs 获取 Go 后端和 Node.js 服务的日志
+// 参数：lines - 返回的日志行数，默认 100
+func (a *App) GetDebugLogs(lines int) map[string]any {
+	if lines <= 0 {
+		lines = 100
+	}
+
+	result := map[string]any{
+		"go_logs":     []string{},
+		"nodejs_logs": []string{},
+		"log_dir":     os.Getenv("PPLL_LOG_DIR"),
+		"max_lines":   lines,
+	}
+
+	logDir := os.Getenv("PPLL_LOG_DIR")
+	if logDir == "" {
+		return result
+	}
+
+	// 读取 Go 日志
+	goLogPath := filepath.Join(logDir, "go.log")
+	if goLogs, err := a.readLastNLines(goLogPath, lines); err == nil {
+		result["go_logs"] = goLogs
+	}
+
+	// 读取 Node.js 日志
+	nodejsLogPath := filepath.Join(logDir, "nodejs-server.log")
+	if nodejsLogs, err := a.readLastNLines(nodejsLogPath, lines); err == nil {
+		result["nodejs_logs"] = nodejsLogs
+	}
+
+	return result
+}
+
+// readLastNLines 读取文件的最后 N 行
+func (a *App) readLastNLines(filePath string, n int) ([]string, error) {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	// 返回最后 N 行
+	if len(lines) > n {
+		return lines[len(lines)-n:], nil
+	}
+	return lines, nil
+}
+
+// WriteDebugLog 写入调试日志
+// 参数：message - 日志消息
+func (a *App) WriteDebugLog(message string) {
+	a.log.Info("[前端调试] " + message)
 }

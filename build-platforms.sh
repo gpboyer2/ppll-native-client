@@ -14,6 +14,10 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Node.js 配置
+NODE_VERSION="20.18.2"
+NODE_BIN_DIR="build/node-bin"
+
 # 解析命令行参数
 PACKAGE_MANAGER="pnpm"
 BRANCH_NAME="master"
@@ -64,6 +68,67 @@ echo "========================================"
 
 # 确保build目录存在
 mkdir -p build
+mkdir -p "$NODE_BIN_DIR/darwin-amd64"
+mkdir -p "$NODE_BIN_DIR/darwin-arm64"
+mkdir -p "$NODE_BIN_DIR/windows-amd64"
+mkdir -p "$NODE_BIN_DIR/windows-arm64"
+
+# 下载 Node.js 二进制文件函数
+downloadNodejs() {
+    local platform=$1
+    local binary_name=""
+    local platform_dir=""
+
+    # 确定二进制文件名和存储目录
+    case "$platform" in
+        darwin/amd64)
+            binary_name="node"
+            platform_dir="darwin-amd64"
+            ;;
+        darwin/arm64)
+            binary_name="node"
+            platform_dir="darwin-arm64"
+            ;;
+        darwin/universal)
+            binary_name="node"
+            platform_dir="darwin-arm64"
+            ;;
+        windows/amd64)
+            binary_name="node.exe"
+            platform_dir="windows-amd64"
+            ;;
+        windows/arm64)
+            binary_name="node.exe"
+            platform_dir="windows-arm64"
+            ;;
+        *)
+            echo "警告: 不支持的平台 $platform，跳过 Node.js 下载"
+            return 0
+            ;;
+    esac
+
+    local output_file="$NODE_BIN_DIR/${platform_dir}/${binary_name}"
+
+    # 检查是否已存在
+    if [ -f "$output_file" ]; then
+        echo "✓ Node.js 二进制文件已存在: $output_file"
+        return 0
+    fi
+
+    echo "正在下载 Node.js for ${platform}..."
+    if "$SCRIPT_DIR/scripts/download-nodejs.sh" "$platform"; then
+        # 移动到对应的平台目录
+        mkdir -p "$NODE_BIN_DIR/${platform_dir}"
+        if [ "$binary_name" = "node" ]; then
+            mv -f "$NODE_BIN_DIR/node" "$output_file" 2>/dev/null || true
+        else
+            mv -f "$NODE_BIN_DIR/node.exe" "$output_file" 2>/dev/null || true
+        fi
+        echo "✓ Node.js 下载成功"
+    else
+        echo "警告: Node.js 下载失败，请手动运行: ./scripts/download-nodejs.sh $platform"
+    fi
+}
 
 # 获取wails路径
 WAILS_PATH=$(command -v wails)
@@ -90,6 +155,9 @@ for platform_info in "${PLATFORMS[@]}"; do
     # 清理旧的构建产物
     rm -rf build/bin/*.app build/bin/*.exe
 
+    # 下载对应平台的 Node.js
+    downloadNodejs "$platform"
+
     # 使用 wails build 构建当前平台
     # Wails 会自动处理：
     # 1. 安装前端依赖（如果需要）
@@ -104,6 +172,37 @@ for platform_info in "${PLATFORMS[@]}"; do
         APP_NAME="ppll-native-client.app"
 
         if [ -d "build/bin/$APP_NAME" ]; then
+            # 将 Node.js 复制到 .app 的 Resources 目录
+            # 根据当前平台选择正确的 Node.js 文件
+            case "$platform" in
+                darwin/amd64)
+                    NODE_SRC="$NODE_BIN_DIR/darwin-amd64/node"
+                    ;;
+                darwin/arm64)
+                    NODE_SRC="$NODE_BIN_DIR/darwin-arm64/node"
+                    ;;
+                darwin/universal)
+                    # universal 版本使用 arm64 的 node
+                    NODE_SRC="$NODE_BIN_DIR/darwin-arm64/node"
+                    ;;
+            esac
+
+            if [ -f "$NODE_SRC" ]; then
+                RESOURCES_DIR="build/bin/$APP_NAME/Contents/Resources"
+                mkdir -p "$RESOURCES_DIR"
+                cp -f "$NODE_SRC" "$RESOURCES_DIR/node"
+                chmod +x "$RESOURCES_DIR/node"
+                echo "✓ Node.js 已嵌入到: $RESOURCES_DIR/node"
+            fi
+
+            # 复制 nodejs-server 到 .app
+            if [ -d "nodejs-server" ]; then
+                RESOURCES_DIR="build/bin/$APP_NAME/Contents/Resources"
+                mkdir -p "$RESOURCES_DIR"
+                cp -R nodejs-server "$RESOURCES_DIR/"
+                echo "✓ nodejs-server 已复制到: $RESOURCES_DIR/nodejs-server"
+            fi
+
             OUTPUT_FILE="build/ppll-client-v${VERSION}-${suffix}.dmg"
 
             echo "正在创建 $OUTPUT_FILE..."
@@ -130,12 +229,40 @@ for platform_info in "${PLATFORMS[@]}"; do
         EXE_NAME="ppll-native-client.exe"
 
         if [ -f "build/bin/$EXE_NAME" ]; then
+            # 根据当前平台选择正确的 Node.js 文件
+            case "$platform" in
+                windows/amd64)
+                    NODE_SRC="$NODE_BIN_DIR/windows-amd64/node.exe"
+                    ;;
+                windows/arm64)
+                    NODE_SRC="$NODE_BIN_DIR/windows-arm64/node.exe"
+                    ;;
+            esac
+
+            # 复制 node.exe 到 exe 同目录（用于运行时查找）
+            if [ -f "$NODE_SRC" ]; then
+                cp -f "$NODE_SRC" "build/bin/node.exe"
+                echo "✓ Node.js 已复制到: build/bin/node.exe"
+            fi
+
+            # 复制 nodejs-server 到 exe 同目录
+            if [ -d "nodejs-server" ]; then
+                cp -R nodejs-server "build/bin/nodejs-server"
+                echo "✓ nodejs-server 已复制到: build/bin/nodejs-server"
+            fi
+
             OUTPUT_FILE="build/ppll-client-v${VERSION}-${suffix}.exe"
 
             echo "正在创建 $OUTPUT_FILE..."
 
-            # 复制并重命名
+            # 复制并重命名主程序
             cp "build/bin/$EXE_NAME" "$OUTPUT_FILE"
+
+            # 同时复制 node.exe 到输出目录（用户需要两个文件）
+            if [ -f "$NODE_SRC" ]; then
+                cp -f "$NODE_SRC" "build/node-${suffix}.exe"
+                echo "✓ Node.js 已复制到: build/node-${suffix}.exe"
+            fi
 
             echo "✓ 已生成: $OUTPUT_FILE"
             ls -lh "$OUTPUT_FILE" | awk '{print "  文件大小: " $5}'

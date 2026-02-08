@@ -67,9 +67,37 @@ jobs:
           # 编译 sqlite3
           pnpm rebuild sqlite3 || echo "sqlite3 rebuild skipped"
 
+      - name: 下载 Node.js 可执行文件
+        run: |
+          ./scripts/download-nodejs.sh ${{ matrix.platform }}
+
       - name: 构建 macOS ${{ matrix.target }}
         run: |
           wails build -platform ${{ matrix.platform }} -clean
+
+      - name: 嵌入 Node.js 到 .app
+        run: |
+          NODE_SRC="build/node-bin/node"
+          APP_PATH="build/bin/ppll-native-client.app"
+          RESOURCES_DIR="$APP_PATH/Contents/Resources"
+
+          if [ -f "$NODE_SRC" ] && [ -d "$APP_PATH" ]; then
+            mkdir -p "$RESOURCES_DIR"
+            cp -f "$NODE_SRC" "$RESOURCES_DIR/node"
+            chmod +x "$RESOURCES_DIR/node"
+            echo "✓ Node.js 已嵌入到: $RESOURCES_DIR/node"
+          fi
+
+      - name: 复制 nodejs-server 到 .app
+        run: |
+          APP_PATH="build/bin/ppll-native-client.app"
+          RESOURCES_DIR="$APP_PATH/Contents/Resources"
+
+          if [ -d "nodejs-server" ] && [ -d "$APP_PATH" ]; then
+            mkdir -p "$RESOURCES_DIR"
+            cp -R nodejs-server "$RESOURCES_DIR/"
+            echo "✓ nodejs-server 已复制到: $RESOURCES_DIR/nodejs-server"
+          fi
 
       - name: 创建 DMG
         run: |
@@ -144,8 +172,32 @@ jobs:
           # Windows 下编译 sqlite3
           pnpm rebuild sqlite3 || echo "sqlite3 rebuild skipped"
 
+      - name: 下载 Node.js 可执行文件
+        run: ./scripts/download-nodejs.sh ${{ matrix.platform }}
+
       - name: 构建 Windows ${{ matrix.target }}
         run: wails build -platform ${{ matrix.platform }} -clean
+
+      - name: 嵌入 Node.js 到构建目录
+        shell: pwsh
+        run: |
+          $NODE_SRC = "build/node-bin/node.exe"
+          $BUILD_DIR = "build/bin"
+
+          if (Test-Path $NODE_SRC) {
+            Copy-Item -Path $NODE_SRC -Destination "$BUILD_DIR/node.exe" -Force
+            Write-Host "✓ Node.js 已复制到: $BUILD_DIR/node.exe"
+          }
+
+      - name: 复制 nodejs-server 到构建目录
+        shell: pwsh
+        run: |
+          $BUILD_DIR = "build/bin"
+
+          if (Test-Path "nodejs-server") {
+            Copy-Item -Path "nodejs-server" -Destination "$BUILD_DIR/nodejs-server" -Recurse -Force
+            Write-Host "✓ nodejs-server 已复制到: $BUILD_DIR/nodejs-server"
+          }
 
       - name: 重命名并打包 EXE
         shell: pwsh
