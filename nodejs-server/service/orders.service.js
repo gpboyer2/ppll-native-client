@@ -981,6 +981,35 @@ const enrichQuickOrderRecords = async (records, api_key, api_secret) => {
   return enriched_records;
 };
 
+/**
+ * 更新快捷订单折叠状态
+ * @param {Object} params - 参数对象
+ * @param {string} params.api_key - API密钥
+ * @param {number} params.order_id - 订单ID
+ * @param {boolean} params.is_collapsed - 是否折叠
+ * @returns {Promise<Object>} 更新结果
+ */
+const updateQuickOrderCollapse = async (params) => {
+  const { api_key, order_id, is_collapsed } = params;
+
+  const [updated_count] = await Order.update(
+    { is_collapsed },
+    {
+      where: {
+        api_key,
+        id: order_id,
+        source: 'QUICK_ORDER'
+      }
+    }
+  );
+
+  if (updated_count === 0) {
+    throw new Error('订单不存在或无权操作');
+  }
+
+  return { success: true };
+};
+
 module.exports = {
   getAccountInfo,
   getExchangeInfo,
@@ -992,4 +1021,5 @@ module.exports = {
   setShortTakeProfit,
   getAvgEntryPrice,
   enrichQuickOrderRecords,
+  updateQuickOrderCollapse,
 };

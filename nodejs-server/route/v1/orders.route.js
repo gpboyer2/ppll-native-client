@@ -70,6 +70,15 @@ router.get('/avg-entry-price',
   ordersController.getAvgEntryPrice
 );
 
+/**
+ * 更新快捷订单折叠状态
+ * POST /api/v1/orders/quick-order/update-collapse
+ * body: { api_key: string, order_id: number, is_collapsed: boolean }
+ */
+router.post('/quick-order/update-collapse',
+  ordersController.updateQuickOrderCollapse
+);
+
 module.exports = router;
 
 

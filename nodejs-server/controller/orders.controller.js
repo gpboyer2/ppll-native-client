@@ -226,6 +226,28 @@ const getAvgEntryPrice = catchAsync(async (req, res) => {
   }
 });
 
+/**
+ * 更新快捷订单折叠状态
+ */
+const updateQuickOrderCollapse = catchAsync(async (req, res) => {
+  const { api_key, order_id, is_collapsed } = req.body;
+
+  if (!api_key) {
+    return res.apiError(null, 'api_key is not defined');
+  }
+
+  if (order_id === undefined || is_collapsed === undefined) {
+    return res.apiError(null, 'order_id 和 is_collapsed 参数必须');
+  }
+
+  try {
+    await ordersService.updateQuickOrderCollapse({ api_key, order_id, is_collapsed });
+    return res.apiSuccess(null, '操作成功');
+  } catch (error) {
+    return res.apiError(null, error.message);
+  }
+});
+
 module.exports = {
   template,
   umOpenPosition,
@@ -234,5 +256,6 @@ module.exports = {
   setShortTakeProfit,
   queryQuickOrderRecords,
   getAvgEntryPrice,
+  updateQuickOrderCollapse,
   validateParams
 };

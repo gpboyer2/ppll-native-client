@@ -1,23 +1,8 @@
 import { useState, useCallback, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-import { IconX, IconGripHorizontal } from '@tabler/icons-react';
-import { OrdersApi } from '../../../../api';
+import { IconX, IconGripHorizontal, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
+import { OrdersApi, type QuickOrderRecord } from '../../../../api';
 import type { BinanceApiKey } from '../../../../stores/binance-store';
 import './index.scss';
-
-interface QuickOrderRecord {
-  id: number;
-  symbol: string;
-  side: string;
-  position_side: string;
-  executed_amount: number;
-  executed_price: number;
-  quantity: number;
-  status: string;
-  created_at: string;
-  leverage?: number;
-  estimated_fee?: number;
-  avg_entry_price?: number;
-}
 
 interface OrderRecordsFloatingPanelProps {
   get_active_api_key: () => BinanceApiKey | null;
@@ -159,6 +144,39 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
     set_is_visible(false);
   }, [set_is_visible]);
 
+  const handleToggleCollapse = useCallback(async (record: QuickOrderRecord) => {
+    const api_key = get_active_api_key();
+    if (!api_key) {
+      show_message('未选择 API Key', 'error');
+      return;
+    }
+
+    const new_collapsed_state = !record.is_collapsed;
+
+    try {
+      const response = await OrdersApi.updateQuickOrderCollapse({
+        api_key: api_key.api_key,
+        order_id: record.id,
+        is_collapsed: new_collapsed_state
+      });
+
+      if (response.status === 'success') {
+        setOrderRecords(prev =>
+          prev.map(r =>
+            r.id === record.id
+              ? { ...r, is_collapsed: new_collapsed_state }
+              : r
+          )
+        );
+      } else {
+        show_message(response.message || '更新折叠状态失败', 'error');
+      }
+    } catch (err) {
+      console.error('[OrderRecordsFloatingPanel] 更新折叠状态异常:', err);
+      show_message('更新折叠状态失败', 'error');
+    }
+  }, [get_active_api_key, show_message]);
+
   const handleClosePosition = useCallback(async (record: QuickOrderRecord) => {
     const api_key = get_active_api_key();
     if (!api_key) {
@@ -280,7 +298,8 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
                     </div>
                   </div>
 
-                  <div className="order-records-floating-panel-item-details">
+                  {!record.is_collapsed && (
+                    <div className="order-records-floating-panel-item-details">
                     <div className="order-records-floating-panel-detail-row">
                       <span className="order-records-floating-panel-label">开仓价</span>
                       <span className="order-records-floating-panel-value">{executed_price.toFixed(2)}</span>
@@ -312,14 +331,24 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
                       </span>
                     </div>
                   </div>
+                  )}
 
-                  <button
-                    className={`order-records-floating-panel-close-btn ${is_long ? 'btn-long' : 'btn-short'} ${is_closing ? 'btn-loading' : ''}`}
-                    onClick={() => handleClosePosition(record)}
-                    disabled={is_closing}
-                  >
-                    {is_closing ? '平仓中...' : '平仓'}
-                  </button>
+                  <div className="order-records-floating-panel-button-row">
+                    <button
+                      className="order-records-floating-panel-collapse-btn"
+                      onClick={() => handleToggleCollapse(record)}
+                      title={record.is_collapsed ? '展开' : '折叠'}
+                    >
+                      {record.is_collapsed ? <IconChevronDown size={18} /> : <IconChevronUp size={18} />}
+                    </button>
+                    <button
+                      className={`order-records-floating-panel-close-btn ${is_long ? 'btn-long' : 'btn-short'} ${is_closing ? 'btn-loading' : ''}`}
+                      onClick={() => handleClosePosition(record)}
+                      disabled={is_closing}
+                    >
+                      {is_closing ? '平仓中...' : '平仓'}
+                    </button>
+                  </div>
                 </div>
               );
             })}

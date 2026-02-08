@@ -10,8 +10,6 @@ import { MantineTheme, createTheme } from '@mantine/core';
  * 4. 禁用全局样式注入
  */
 export const mantineTheme = createTheme({
-  // 强制使用浅色模式
-  defaultColorScheme: 'light',
   // 主色调配置 - 币安黄色系
   primaryColor: 'yellow',
   

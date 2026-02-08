@@ -158,6 +158,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(255),
       comment: '备注'
     },
+    is_collapsed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      comment: '是否折叠（仅快捷订单使用）'
+    },
     created_at: {
       type: DataTypes.DATE,
       field: 'created_at',

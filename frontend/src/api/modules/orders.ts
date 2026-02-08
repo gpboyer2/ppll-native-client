@@ -123,4 +123,34 @@ export class OrdersApi {
     return RequestWrapper.get(`${this.BASE_PATH}/avg-entry-price`, params);
   }
 
+  /**
+   * 更新快捷订单折叠状态
+   */
+  static async updateQuickOrderCollapse(data: {
+    api_key: string;
+    order_id: number;
+    is_collapsed: boolean;
+  }): Promise<Response<null>> {
+    return RequestWrapper.post(`${this.BASE_PATH}/quick-order/update-collapse`, data);
+  }
+
+}
+
+/**
+ * 快捷订单记录
+ */
+export interface QuickOrderRecord {
+  id: number;
+  symbol: string;
+  side: string;
+  position_side: string;
+  executed_amount: number;
+  executed_price: number;
+  quantity: number;
+  status: string;
+  created_at: string;
+  leverage?: number;
+  estimated_fee?: number;
+  avg_entry_price?: number;
+  is_collapsed?: boolean;
 }

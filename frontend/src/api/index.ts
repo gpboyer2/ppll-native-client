@@ -45,7 +45,7 @@ export { LoginLogsApi } from './modules/login-logs';
 export { OperationLogsApi } from './modules/operation-logs';
 
 // 订单管理
-export { OrdersApi } from './modules/orders';
+export { OrdersApi, type QuickOrderRecord } from './modules/orders';
 export { TemplateApi } from './modules/template';
 
 // 权限管理
