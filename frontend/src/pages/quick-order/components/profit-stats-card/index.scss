@@ -1,33 +1,33 @@
-.account-info-card {
+.profit-stats-card {
   background: var(--color-bg-muted);
   border-radius: var(--radius-md);
   overflow: hidden;
 }
 
-.account-info-card-header {
+.profit-stats-card-header {
   padding: 10px 12px;
   border-bottom: 1px solid var(--color-border);
 }
 
-.account-info-card-title {
+.profit-stats-card-title {
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-text-muted);
 }
 
-.account-info-card-content {
+.profit-stats-card-content {
   display: flex;
   flex-direction: column;
   padding: 12px;
   gap: 12px;
 }
 
-.account-info-card-row {
+.profit-stats-card-row {
   display: flex;
   gap: 12px;
 }
 
-.account-info-card-item {
+.profit-stats-card-item {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -35,26 +35,22 @@
   gap: 4px;
 }
 
-.account-info-card-label {
+.profit-stats-card-label {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
 
-.account-info-card-value {
+.profit-stats-card-value {
   font-size: var(--text-sm);
   font-weight: 600;
   color: var(--color-text);
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
 }
 
-.account-info-card-value-long {
+.profit-stats-card-value-long {
   color: var(--color-success);
 }
 
-.account-info-card-value-short {
+.profit-stats-card-value-short {
   color: var(--color-danger);
-}
-
-.account-info-card-value-warning {
-  color: var(--color-warning);
 }

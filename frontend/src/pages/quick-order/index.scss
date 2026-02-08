@@ -90,6 +90,9 @@
 
 .quick-order-card-right {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .quick-order-sections {
