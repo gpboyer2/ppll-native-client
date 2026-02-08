@@ -741,7 +741,7 @@ function QuickOrderPage() {
 
     showCloseConfirm(
       `确认平仓`,
-      `确定要平${side_text}单 ${amount} USDT 吗？`,
+      `确定要平 ${trading_pair} ${side_text}单 ${amount} USDT 吗？`,
       async () => {
         await executeWithNotification(
           `平${side_text}单 ${trading_pair} ${amount} USDT`,
