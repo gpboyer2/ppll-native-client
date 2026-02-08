@@ -364,19 +364,32 @@ function QuickOrderPage() {
             const positions = data.updateData?.updatedPositions || data.positions || [];
             console.log('[Account Update] 账户数量:', accounts.length, '持仓数量:', positions.length);
 
-            // 提取可用余额（使用 crossWalletBalance 或 walletBalance）
-            let available_balance = 0;
-            let margin_balance = 0;
-            let wallet_balance = 0;
+            // 提取余额信息（注意：ACCOUNT_UPDATE 通常不包含 availableBalance/marginBalance）
+            let available_balance: number | null = null;
+            let margin_balance: number | null = null;
+            let wallet_balance: number | null = null;
             let unrealized_profit = 0;
 
             if (accounts && accounts.length > 0) {
               const usdt_account = accounts.find((acc: any) => acc.asset === 'USDT');
               if (usdt_account) {
-                available_balance = parseFloat(usdt_account.crossWalletBalance || usdt_account.walletBalance || usdt_account.availableBalance || '0');
-                margin_balance = parseFloat(usdt_account.marginBalance || usdt_account.balance || '0');
-                wallet_balance = parseFloat(usdt_account.walletBalance || usdt_account.balance || '0');
-                console.log('[Account Update] USDT 账户信息:', { available_balance, margin_balance, wallet_balance });
+                const has_available_balance = usdt_account.availableBalance !== undefined && usdt_account.availableBalance !== null;
+                const has_margin_balance = usdt_account.marginBalance !== undefined && usdt_account.marginBalance !== null;
+                const wallet_balance_raw = usdt_account.walletBalance ?? usdt_account.crossWalletBalance ?? usdt_account.balance;
+                const has_wallet_balance = wallet_balance_raw !== undefined && wallet_balance_raw !== null;
+
+                available_balance = has_available_balance ? parseFloat(usdt_account.availableBalance || '0') : null;
+                margin_balance = has_margin_balance ? parseFloat(usdt_account.marginBalance || '0') : null;
+                wallet_balance = has_wallet_balance ? parseFloat(wallet_balance_raw || '0') : null;
+
+                console.log('[Account Update] USDT 账户信息:', {
+                  available_balance,
+                  margin_balance,
+                  wallet_balance,
+                  has_available_balance,
+                  has_margin_balance,
+                  has_wallet_balance
+                });
               }
             }
 
@@ -411,16 +424,18 @@ function QuickOrderPage() {
             });
             console.log('[Account Update] 有效持仓数量:', valid_positions.length);
 
-            // 直接更新本地 state
-            const newAccountData = {
-              available_balance,
-              positions: valid_positions,
-              margin_balance,
-              wallet_balance,
-              unrealized_profit
-            };
-            console.log('[Account Update] 更新账户数据:', newAccountData);
-            setAccountData(newAccountData);
+            // 直接更新本地 state（仅在字段存在时覆盖余额值）
+            setAccountData(prev => {
+              const newAccountData = {
+                available_balance: available_balance !== null ? available_balance : prev.available_balance,
+                positions: valid_positions,
+                margin_balance: margin_balance !== null ? margin_balance : prev.margin_balance,
+                wallet_balance: wallet_balance !== null ? wallet_balance : prev.wallet_balance,
+                unrealized_profit
+              };
+              console.log('[Account Update] 更新账户数据:', newAccountData);
+              return newAccountData;
+            });
             setAccountLoading(false);
           } else {
             console.log('[Account Update] 非 ACCOUNT_UPDATE 事件，eventType:', data.eventType);
