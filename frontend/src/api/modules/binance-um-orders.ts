@@ -160,6 +160,7 @@ export interface QuickOrderRecord {
   leverage?: number;
   estimated_fee?: number;
   is_collapsed?: boolean;
+  realized_pnl?: number;
 }
 
 /**

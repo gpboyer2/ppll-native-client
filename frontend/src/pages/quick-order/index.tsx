@@ -117,14 +117,12 @@ function QuickOrderPage() {
   const [account_data, setAccountData] = useState<{
     available_balance: number;
     positions: AccountPosition[];
-    today_profit_loss: number;
     margin_balance: number;
     wallet_balance: number;
     unrealized_profit: number;
   }>({
     available_balance: 0,
     positions: [],
-    today_profit_loss: 0,
     margin_balance: 0,
     wallet_balance: 0,
     unrealized_profit: 0
@@ -266,7 +264,6 @@ function QuickOrderPage() {
         setAccountData({
           available_balance: parseFloat(data.availableBalance || data.totalWalletBalance || '0'),
           positions: data.positions || [],
-          today_profit_loss: 0,
           margin_balance: parseFloat(data.totalMarginBalance || '0'),
           wallet_balance: parseFloat(data.totalWalletBalance || '0'),
           unrealized_profit: parseFloat(data.totalUnrealizedProfit || '0')
@@ -409,7 +406,6 @@ function QuickOrderPage() {
             const newAccountData = {
               available_balance,
               positions: valid_positions,
-              today_profit_loss: 0,
               margin_balance,
               wallet_balance,
               unrealized_profit
@@ -466,6 +462,17 @@ function QuickOrderPage() {
       }
     };
   }, [active_api_key_id, initialized, connectSocket, get_active_api_key, navigateToSettings]);
+
+  // 初始化时加载账户数据
+  useEffect(() => {
+    const active_api_key = get_active_api_key();
+    if (!active_api_key) {
+      return;
+    }
+    loadAccountData().catch(err => {
+      console.error('[QuickOrder] 初始加载账户数据失败:', err);
+    });
+  }, [active_api_key_id, loadAccountData]);
 
   // 切换交易对时更新 ticker 订阅
   useEffect(() => {
@@ -1079,7 +1086,6 @@ function QuickOrderPage() {
             />
             <ProfitStatsCard
               ref={profit_stats_card_ref}
-              today_profit_loss={account_data.today_profit_loss}
             />
           </div>
         </div>

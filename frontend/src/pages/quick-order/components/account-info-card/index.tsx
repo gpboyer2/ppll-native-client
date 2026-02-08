@@ -1,6 +1,4 @@
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { BinanceAccountApi } from '../../../../api';
+import { forwardRef, useImperativeHandle } from 'react';
 import { useBinanceStore } from '../../../../stores/binance-store';
 import type { AccountPosition } from '../../../../types/binance';
 import './index.scss';
@@ -12,7 +10,6 @@ export interface AccountInfoCardRef {
 export interface AccountInfoData {
   available_balance: number;
   positions: AccountPosition[];
-  today_profit_loss: number;
   margin_balance: number;
   wallet_balance: number;
   unrealized_profit: number;
@@ -25,64 +22,18 @@ export interface AccountInfoCardProps {
 
 export const AccountInfoCard = forwardRef<AccountInfoCardRef, AccountInfoCardProps>((props, ref) => {
   const { externalData, onRefreshRequest } = props;
-  const navigate = useNavigate();
 
-  const get_active_api_key = useBinanceStore(state => state.get_active_api_key);
-  const active_api_key_id = useBinanceStore(state => state.active_api_key_id);
+  useImperativeHandle(ref, () => ({
+    refresh: onRefreshRequest ?? (() => Promise.resolve())
+  }));
 
-  const [loading, setLoading] = useState(false);
-  const [data, setData] = useState<AccountInfoData>({
+  const displayData = externalData ?? {
     available_balance: 0,
     positions: [],
-    today_profit_loss: 0,
     margin_balance: 0,
     wallet_balance: 0,
     unrealized_profit: 0
-  });
-
-  const loadAccountData = async () => {
-    const active_api_key = get_active_api_key();
-    if (!active_api_key) {
-      navigate('/settings');
-      return;
-    }
-
-    setLoading(true);
-
-    try {
-      const response = await BinanceAccountApi.getUSDMFutures({
-        api_key: active_api_key.api_key,
-        api_secret: active_api_key.api_secret,
-        include_positions: true
-      });
-
-      if (response.status === 'success' && response.datum) {
-        const datum = response.datum;
-        setData({
-          available_balance: parseFloat(datum.availableBalance || datum.totalWalletBalance || '0'),
-          positions: datum.positions || [],
-          today_profit_loss: 0,
-          margin_balance: parseFloat(datum.totalMarginBalance || '0'),
-          wallet_balance: parseFloat(datum.totalWalletBalance || '0'),
-          unrealized_profit: parseFloat(datum.totalUnrealizedProfit || '0')
-        });
-      }
-    } catch (err) {
-      console.error('[AccountInfoCard] 获取账户信息失败:', err);
-    } finally {
-      setLoading(false);
-    }
   };
-
-  useImperativeHandle(ref, () => ({
-    refresh: onRefreshRequest ?? loadAccountData
-  }));
-
-  useEffect(() => {
-    loadAccountData();
-  }, [active_api_key_id]);
-
-  const displayData = externalData ?? data;
 
   const long_positions = displayData.positions.filter(
     p => parseFloat(p.positionAmt) > 0 && (p.positionSide === 'LONG' || p.positionSide === 'BOTH')
@@ -130,12 +81,6 @@ export const AccountInfoCard = forwardRef<AccountInfoCardRef, AccountInfoCardPro
           </div>
         </div>
         <div className="account-info-card-row">
-          <div className="account-info-card-item">
-            <span className="account-info-card-label">今日盈亏</span>
-            <span className={`account-info-card-value ${displayData.today_profit_loss > 0 ? 'account-info-card-value-long' : displayData.today_profit_loss < 0 ? 'account-info-card-value-short' : ''}`}>
-              {displayData.today_profit_loss > 0 ? '+' : ''}{displayData.today_profit_loss.toFixed(2)} U
-            </span>
-          </div>
           <div className="account-info-card-item">
             <span className="account-info-card-label">保证金余额</span>
             <span className="account-info-card-value">

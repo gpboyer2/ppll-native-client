@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { useState, useEffect, forwardRef, useImperativeHandle, useMemo } from 'react';
 import { OrdersApi } from '../../../../api';
 import type { QuickOrderRecord, WinRateStats } from '../../../../api';
 import { useBinanceStore } from '../../../../stores/binance-store';
@@ -18,12 +18,11 @@ export interface ProfitStatsData {
 }
 
 export interface ProfitStatsCardProps {
-  today_profit_loss?: number;
   onRefreshRequest?: () => Promise<void>;
 }
 
 export const ProfitStatsCard = forwardRef<ProfitStatsCardRef, ProfitStatsCardProps>((props, ref) => {
-  const { today_profit_loss = 0, onRefreshRequest } = props;
+  const { onRefreshRequest } = props;
 
   const get_active_api_key = useBinanceStore(state => state.get_active_api_key);
   const active_api_key_id = useBinanceStore(state => state.active_api_key_id);
@@ -94,11 +93,34 @@ export const ProfitStatsCard = forwardRef<ProfitStatsCardRef, ProfitStatsCardPro
     refresh();
   }, [active_api_key_id]);
 
-  const today_profit = today_profit_loss;
-  const today_trades = orderRecords.length;
+  // 获取今日日期（UTC 0点开始）
+  const today_start = useMemo(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0);
+    return date;
+  }, []);
+
+  // 从订单记录中计算今日盈亏（过滤今日订单）
+  const today_records = useMemo(() => {
+    return orderRecords.filter(record => {
+      const record_date = new Date(record.created_at);
+      return record_date >= today_start;
+    });
+  }, [orderRecords, today_start]);
+
+  const today_profit = today_records.reduce((sum, record) => {
+    const profit = record.realized_pnl ?? 0;
+    return sum + profit;
+  }, 0);
+
+  const today_trades = today_records.length;
   const today_win_rate = winRateStats.today_win_rate;
-  const total_profit = today_profit;
-  const total_trades = today_trades;
+
+  const total_profit = orderRecords.reduce((sum, record) => {
+    const profit = record.realized_pnl ?? 0;
+    return sum + profit;
+  }, 0);
+  const total_trades = orderRecords.length;
   const total_win_rate = winRateStats.total_win_rate;
 
   return (
