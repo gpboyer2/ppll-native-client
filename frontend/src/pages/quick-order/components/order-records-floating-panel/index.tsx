@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect, useRef, useImperativeHandle, forwardR
 import { IconX, IconGripHorizontal, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
 import { OrdersApi, type QuickOrderRecord } from '../../../../api';
 import type { BinanceApiKey } from '../../../../stores/binance-store';
+import { Storage } from '../../../../utils/storage';
 import './index.scss';
 
 interface OrderRecordsFloatingPanelProps {
@@ -53,7 +54,21 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
       return;
     }
 
-    setLoading(true);
+    const cache_key = `quick_order_records_${api_key.api_key}`;
+
+    // 先从缓存读取
+    const cached_data = Storage.get<QuickOrderRecord[]>(cache_key);
+    const has_cache = !!cached_data;
+
+    if (cached_data) {
+      setOrderRecords(cached_data);
+    }
+
+    // 只有没有缓存时才显示 loading
+    if (!has_cache) {
+      setLoading(true);
+    }
+
     try {
       const response = await OrdersApi.getQuickOrderRecords({
         api_key: api_key.api_key,
@@ -61,18 +76,29 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
       });
 
       if (response.status === 'success' && response.datum) {
-        setOrderRecords(response.datum.list || []);
+        const records = response.datum.list || [];
+        setOrderRecords(records);
+        // 缓存数据，TTL 5分钟
+        Storage.set(cache_key, records);
       } else {
-        setOrderRecords([]);
+        // 只有没缓存时才清空显示错误
+        if (!has_cache) {
+          setOrderRecords([]);
+        }
         show_message(response.message || '加载订单记录失败', 'error');
       }
     } catch (err) {
       console.error('[OrderRecordsFloatingPanel] 加载订单记录失败:', err);
-      setOrderRecords([]);
+      if (!has_cache) {
+        setOrderRecords([]);
+      }
     } finally {
-      setLoading(false);
+      // 只有没缓存时才需要清除 loading
+      if (!has_cache) {
+        setLoading(false);
+      }
     }
-  }, [get_active_api_key]);
+  }, [get_active_api_key, show_message]);
 
   useImperativeHandle(ref, () => ({
     refresh: loadOrderRecords,

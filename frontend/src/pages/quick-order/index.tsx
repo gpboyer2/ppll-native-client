@@ -970,14 +970,15 @@ function QuickOrderPage() {
     }
   };
 
-  const trading_pair_options = usdt_pairs.slice(0, 20).map(pair => ({
-    value: pair,
-    label: pair
-  }));
-
-  if (!trading_pair_options.some(o => o.value === 'BTCUSDT')) {
-    trading_pair_options.unshift({ value: 'BTCUSDT', label: 'BTCUSDT' });
-  }
+  const quick_pairs = ['BTC', 'ETH', 'HYPE', 'ASTER', 'BNB', 'AVAX'];
+  const quick_pair_options = quick_pairs.map(coin => `${coin}USDT`);
+  const other_pairs = usdt_pairs
+    .filter(pair => !quick_pair_options.includes(pair))
+    .slice(0, 20);
+  const trading_pair_options = [
+    ...quick_pair_options.map(pair => ({ value: pair, label: pair })),
+    ...other_pairs.map(pair => ({ value: pair, label: pair }))
+  ];
 
   const handleLeverageChange = async (value: number) => {
     const active_api_key = get_active_api_key();
