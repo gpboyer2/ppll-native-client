@@ -24,6 +24,19 @@ const formatOpenPositionError = (error) => {
     return '开仓失败，请稍后重试';
   }
 
+  // 检测限流错误
+  const errorCode = error?.code || error?.body?.code;
+  const lowerMessage = rawMessage.toLowerCase();
+
+  if (errorCode === -1003 ||
+      errorCode === 429 ||
+      lowerMessage.includes('rate limit') ||
+      lowerMessage.includes('too many requests') ||
+      lowerMessage.includes('ip banned') ||
+      lowerMessage.includes('banned')) {
+    return '被币安限流，请稍后再试（通常2分钟后恢复）';
+  }
+
   if (/notional must be no smaller than 100/i.test(rawMessage)) {
     return '开仓金额过小，币安要求名义价值不少于 100 USDT，请提高金额后重试';
   }
@@ -803,12 +816,38 @@ const setShortTakeProfit = async (params) => {
 
 
 /**
+ * API限流错误类
+ */
+class RateLimitError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'RateLimitError';
+    this.isRateLimit = true;
+  }
+}
+
+/**
+ * 检查是否为限流错误
+ * @param {Error} error - 错误对象
+ * @returns {boolean} 是否为限流错误
+ */
+const isRateLimitError = (error) => {
+  const message = error?.message || '';
+  const lowerMessage = message.toLowerCase();
+  return lowerMessage.includes('too many requests') ||
+    lowerMessage.includes('429') ||
+    lowerMessage.includes('rate limit') ||
+    lowerMessage.includes('限流');
+};
+
+/**
  * 获取近一个月的开仓均价
  * @param {string} api_key - API密钥
  * @param {string} api_secret - API密钥Secret
  * @param {string} symbol - 交易对
  * @param {string} position_side - 持仓方向 LONG/SHORT
  * @returns {Promise<number>} 平均开仓价格
+ * @throws {RateLimitError} 当遇到限流错误时抛出
  */
 const getAvgEntryPrice = async (api_key, api_secret, symbol, position_side) => {
   try {
@@ -846,6 +885,9 @@ const getAvgEntryPrice = async (api_key, api_secret, symbol, position_side) => {
           all_trades.push(...trades);
         }
       } catch (error) {
+        if (isRateLimitError(error)) {
+          throw new RateLimitError(`获取 ${symbol} 历史交易时触发限流，请稍后再试`);
+        }
         UtilRecord.log(`获取 ${symbol} ${start_time}-${adjusted_end_time} 历史交易失败:`, error.message);
       }
     }
@@ -876,6 +918,12 @@ const getAvgEntryPrice = async (api_key, api_secret, symbol, position_side) => {
 
     return total_value.dividedBy(total_qty).toNumber();
   } catch (error) {
+    if (error instanceof RateLimitError) {
+      throw error;
+    }
+    if (isRateLimitError(error)) {
+      throw new RateLimitError(`获取 ${symbol} 近一个月开仓均价时触发限流，请稍后再试`);
+    }
     UtilRecord.error('获取近一个月开仓均价失败:', error);
     return 0;
   }

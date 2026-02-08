@@ -79,6 +79,7 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
         setOrderRecords(response.datum.list || []);
       } else {
         setOrderRecords([]);
+        show_message(response.message || '加载订单记录失败', 'error');
       }
     } catch (err) {
       console.error('[OrderRecordsFloatingPanel] 加载订单记录失败:', err);

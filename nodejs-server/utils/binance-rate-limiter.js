@@ -245,14 +245,21 @@ class BinanceRateLimiter {
       }
     }
 
-    // 检查错误码
-    if (error.code === -1003 || error.code === 429) {
+    // 检查错误码（支持多种格式）
+    const errorCode = error.code || error.body?.code || error.error?.code;
+    if (errorCode === -1003 || errorCode === 429 || errorCode === -1021) {
       return true;
     }
 
-    // 检查错误消息
-    const message = error.message || '';
-    if (message.includes('rate limit') || message.includes('Too many requests')) {
+    // 检查错误消息（从多个可能的来源）
+    const message = error.message || error.body?.message || error.msg || '';
+    const lowerMessage = message.toLowerCase();
+
+    if (lowerMessage.includes('rate limit') ||
+        lowerMessage.includes('too many requests') ||
+        lowerMessage.includes('ip banned') ||
+        lowerMessage.includes('banned') ||
+        lowerMessage.includes('限流')) {
       return true;
     }
 

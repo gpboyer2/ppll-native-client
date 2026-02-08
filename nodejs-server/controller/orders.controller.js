@@ -215,8 +215,15 @@ const getAvgEntryPrice = catchAsync(async (req, res) => {
     return res.apiError(null, 'position_side 必须是 LONG 或 SHORT');
   }
 
-  const avg_price = await ordersService.getAvgEntryPrice(api_key, api_secret, symbol, position_side);
-  return res.apiSuccess({ avg_price }, '操作成功');
+  try {
+    const avg_price = await ordersService.getAvgEntryPrice(api_key, api_secret, symbol, position_side);
+    return res.apiSuccess({ avg_price }, '操作成功');
+  } catch (error) {
+    if (error.isRateLimit) {
+      return res.apiError(null, error.message, 'RATE_LIMIT');
+    }
+    throw error;
+  }
 });
 
 module.exports = {
