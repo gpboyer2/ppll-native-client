@@ -300,53 +300,53 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
 
                   {!record.is_collapsed && (
                     <div className="order-records-floating-panel-item-details">
-                    <div className="order-records-floating-panel-detail-row">
-                      <span className="order-records-floating-panel-label">开仓价</span>
-                      <span className="order-records-floating-panel-value">{executed_price.toFixed(2)}</span>
+                      <div className="order-records-floating-panel-detail-row">
+                        <span className="order-records-floating-panel-label">开仓价</span>
+                        <span className="order-records-floating-panel-value">{executed_price.toFixed(2)}</span>
+                      </div>
+                      <div className="order-records-floating-panel-detail-row">
+                        <span className="order-records-floating-panel-label">近一个月开仓均价</span>
+                        <span className="order-records-floating-panel-value">{avg_entry_price > 0 ? avg_entry_price.toFixed(2) : '-'}</span>
+                      </div>
+                      <div className="order-records-floating-panel-detail-row">
+                        <span className="order-records-floating-panel-label">持仓额</span>
+                        <span className="order-records-floating-panel-value">{executed_amount.toFixed(2)} USDT</span>
+                      </div>
+                      <div className="order-records-floating-panel-detail-row">
+                        <span className="order-records-floating-panel-label">杠杆</span>
+                        <span className="order-records-floating-panel-value">{leverage}x</span>
+                      </div>
+                      <div className="order-records-floating-panel-detail-row">
+                        <span className="order-records-floating-panel-label">现价</span>
+                        <span className="order-records-floating-panel-value">{current_price.toFixed(2)}</span>
+                      </div>
+                      <div className="order-records-floating-panel-detail-row">
+                        <span className="order-records-floating-panel-label">预计手续费</span>
+                        <span className="order-records-floating-panel-value">{estimated_fee.toFixed(4)} USDT</span>
+                      </div>
+                      <div className="order-records-floating-panel-detail-row">
+                        <span className="order-records-floating-panel-label">盈亏</span>
+                        <span className={`order-records-floating-panel-value ${pnl_class}`}>
+                          {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)} USDT
+                        </span>
+                      </div>
                     </div>
-                    <div className="order-records-floating-panel-detail-row">
-                      <span className="order-records-floating-panel-label">近一个月开仓均价</span>
-                      <span className="order-records-floating-panel-value">{avg_entry_price > 0 ? avg_entry_price.toFixed(2) : '-'}</span>
-                    </div>
-                    <div className="order-records-floating-panel-detail-row">
-                      <span className="order-records-floating-panel-label">持仓额</span>
-                      <span className="order-records-floating-panel-value">{executed_amount.toFixed(2)} USDT</span>
-                    </div>
-                    <div className="order-records-floating-panel-detail-row">
-                      <span className="order-records-floating-panel-label">杠杆</span>
-                      <span className="order-records-floating-panel-value">{leverage}x</span>
-                    </div>
-                    <div className="order-records-floating-panel-detail-row">
-                      <span className="order-records-floating-panel-label">现价</span>
-                      <span className="order-records-floating-panel-value">{current_price.toFixed(2)}</span>
-                    </div>
-                    <div className="order-records-floating-panel-detail-row">
-                      <span className="order-records-floating-panel-label">预计手续费</span>
-                      <span className="order-records-floating-panel-value">{estimated_fee.toFixed(4)} USDT</span>
-                    </div>
-                    <div className="order-records-floating-panel-detail-row">
-                      <span className="order-records-floating-panel-label">盈亏</span>
-                      <span className={`order-records-floating-panel-value ${pnl_class}`}>
-                        {pnl >= 0 ? '+' : ''}{pnl.toFixed(2)} USDT
-                      </span>
-                    </div>
-                  </div>
                   )}
 
                   <div className="order-records-floating-panel-button-row">
-                    <button
-                      className="order-records-floating-panel-collapse-btn"
-                      onClick={() => handleToggleCollapse(record)}
-                      title={record.is_collapsed ? '展开' : '折叠'}
-                    >
-                      {record.is_collapsed ? <IconChevronDown size={18} /> : <IconChevronUp size={18} />}
-                    </button>
                     <button
                       className={`order-records-floating-panel-close-btn ${is_long ? 'btn-long' : 'btn-short'} ${is_closing ? 'btn-loading' : ''}`}
                       onClick={() => handleClosePosition(record)}
                       disabled={is_closing}
                     >
                       {is_closing ? '平仓中...' : '平仓'}
+                    </button>
+                    <button
+                      className="order-records-floating-panel-collapse-btn"
+                      onClick={() => handleToggleCollapse(record)}
+                      title={record.is_collapsed ? '展开' : '折叠'}
+                    >
+                      {record.is_collapsed ? <IconChevronDown size={18} /> : <IconChevronUp size={18} />}
                     </button>
                   </div>
                 </div>
