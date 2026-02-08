@@ -100,14 +100,18 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
     }
   }, [get_active_api_key, show_message]);
 
+  const prev_is_visible_ref = useRef(false);
+
   useImperativeHandle(ref, () => ({
     refresh: loadOrderRecords,
   }), [loadOrderRecords]);
 
   useEffect(() => {
-    if (is_visible) {
+    // 只在面板从隐藏变为显示时加载数据，避免重复调用
+    if (is_visible && !prev_is_visible_ref.current) {
       loadOrderRecords();
     }
+    prev_is_visible_ref.current = is_visible;
   }, [is_visible, loadOrderRecords]);
 
   const subscribed_symbols_ref = useRef<Set<string>>(new Set());
