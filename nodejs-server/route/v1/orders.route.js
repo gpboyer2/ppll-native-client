@@ -71,6 +71,15 @@ router.post('/quick-order/update-collapse',
   ordersController.updateQuickOrderCollapse
 );
 
+/**
+ * 删除快捷订单记录
+ * POST /api/v1/orders/quick-order/delete
+ * body: { api_key: string, order_id: number }
+ */
+router.post('/quick-order/delete',
+  ordersController.deleteQuickOrderRecord
+);
+
 module.exports = router;
 
 

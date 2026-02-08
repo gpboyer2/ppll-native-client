@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
-import { IconX, IconGripHorizontal, IconChevronUp, IconChevronDown } from '@tabler/icons-react';
+import { IconX, IconGripHorizontal, IconChevronUp, IconChevronDown, IconTrash } from '@tabler/icons-react';
 import { OrdersApi, type QuickOrderRecord } from '../../../../api';
 import type { BinanceApiKey } from '../../../../stores/binance-store';
 import { Storage } from '../../../../utils/storage';
@@ -39,6 +39,7 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
   const [order_records, setOrderRecords] = useState<QuickOrderRecord[]>([]);
   const [loading, setLoading] = useState(false);
   const [closing_positions, setClosingPositions] = useState<Set<string>>(new Set());
+  const [deleting_records, setDeletingRecords] = useState<Set<number>>(new Set());
   const drag_state = useRef<DragState>({
     is_dragging: false,
     start_x: 0,
@@ -246,6 +247,39 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
     }
   }, [get_active_api_key, show_message, loadOrderRecords]);
 
+  const handleDeleteRecord = useCallback(async (record: QuickOrderRecord) => {
+    const api_key = get_active_api_key();
+    if (!api_key) {
+      show_message('未选择 API Key', 'error');
+      return;
+    }
+
+    setDeletingRecords(prev => new Set(prev).add(record.id));
+
+    try {
+      const response = await OrdersApi.deleteQuickOrderRecord({
+        api_key: api_key.api_key,
+        order_id: record.id
+      });
+
+      if (response.status === 'success') {
+        show_message('删除成功', 'success');
+        setOrderRecords(prev => prev.filter(r => r.id !== record.id));
+      } else {
+        show_message(response.message || '删除失败', 'error');
+      }
+    } catch (err) {
+      console.error('[OrderRecordsFloatingPanel] 删除订单记录异常:', err);
+      show_message('删除失败', 'error');
+    } finally {
+      setDeletingRecords(prev => {
+        const next = new Set(prev);
+        next.delete(record.id);
+        return next;
+      });
+    }
+  }, [get_active_api_key, show_message]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -312,6 +346,7 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
               const current_price = ticker?.mark_price || ticker?.price || executed_price;
 
               const is_closing = closing_positions.has(record.symbol);
+              const is_deleting = deleting_records.has(record.id);
 
               const pnl = is_long
                 ? (current_price - executed_price) * quantity
@@ -372,6 +407,14 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
                       title={record.is_collapsed ? '展开' : '折叠'}
                     >
                       {record.is_collapsed ? <IconChevronDown size={18} /> : <IconChevronUp size={18} />}
+                    </button>
+                    <button
+                      className="order-records-floating-panel-delete-btn"
+                      onClick={() => handleDeleteRecord(record)}
+                      disabled={is_deleting}
+                      title="删除"
+                    >
+                      <IconTrash size={16} />
                     </button>
                   </div>
                 </div>

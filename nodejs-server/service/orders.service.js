@@ -910,6 +910,32 @@ const updateQuickOrderCollapse = async (params) => {
   return { success: true };
 };
 
+/**
+ * 删除快捷订单记录
+ * @param {Object} params - 参数对象
+ * @param {string} params.api_key - API密钥
+ * @param {number} params.order_id - 订单ID
+ * @returns {Promise<Object>} 删除结果
+ */
+const deleteQuickOrderRecord = async (params) => {
+  const { api_key, order_id } = params;
+
+  const record = await Order.findOne({
+    where: {
+      id: order_id,
+      api_key,
+      source: 'QUICK_ORDER'
+    }
+  });
+
+  if (!record) {
+    throw new Error('订单记录不存在');
+  }
+
+  await record.destroy();
+  return { success: true };
+};
+
 module.exports = {
   getAccountInfo,
   getExchangeInfo,
@@ -921,4 +947,5 @@ module.exports = {
   setShortTakeProfit,
   enrichQuickOrderRecords,
   updateQuickOrderCollapse,
+  deleteQuickOrderRecord,
 };

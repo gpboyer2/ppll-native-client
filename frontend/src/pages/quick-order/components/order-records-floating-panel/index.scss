@@ -160,7 +160,7 @@
 }
 
 .order-records-floating-panel-collapse-btn {
-  width: 25%;
+  width: 22.22%;
   height: 32px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -178,8 +178,32 @@
   color: var(--color-text);
 }
 
+.order-records-floating-panel-delete-btn {
+  width: 11.11%;
+  height: 32px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-container);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.order-records-floating-panel-delete-btn:hover {
+  background: color-mix(in srgb, var(--color-danger) 20%, var(--color-bg));
+  color: var(--color-danger);
+}
+
+.order-records-floating-panel-delete-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .order-records-floating-panel-close-btn {
-  width: 75%;
+  width: 66.67%;
   height: 32px;
   border: none;
   border-radius: var(--radius-sm);

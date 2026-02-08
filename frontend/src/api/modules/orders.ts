@@ -122,6 +122,16 @@ export class OrdersApi {
     return RequestWrapper.post(`${this.BASE_PATH}/quick-order/update-collapse`, data);
   }
 
+  /**
+   * 删除快捷订单记录
+   */
+  static async deleteQuickOrderRecord(data: {
+    api_key: string;
+    order_id: number;
+  }): Promise<Response<null>> {
+    return RequestWrapper.post(`${this.BASE_PATH}/quick-order/delete`, data);
+  }
+
 }
 
 /**

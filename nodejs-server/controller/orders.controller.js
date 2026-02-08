@@ -223,6 +223,28 @@ const updateQuickOrderCollapse = catchAsync(async (req, res) => {
   }
 });
 
+/**
+ * 删除快捷订单记录
+ */
+const deleteQuickOrderRecord = catchAsync(async (req, res) => {
+  const { api_key, order_id } = req.body;
+
+  if (!api_key) {
+    return res.apiError(null, 'api_key is not defined');
+  }
+
+  if (!order_id) {
+    return res.apiError(null, 'order_id is not defined');
+  }
+
+  try {
+    await ordersService.deleteQuickOrderRecord({ api_key, order_id });
+    return res.apiSuccess(null, '操作成功');
+  } catch (error) {
+    return res.apiError(null, error.message);
+  }
+});
+
 module.exports = {
   template,
   umOpenPosition,
@@ -231,5 +253,6 @@ module.exports = {
   setShortTakeProfit,
   queryQuickOrderRecords,
   updateQuickOrderCollapse,
+  deleteQuickOrderRecord,
   validateParams
 };
