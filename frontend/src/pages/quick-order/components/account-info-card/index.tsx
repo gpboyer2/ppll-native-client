@@ -75,7 +75,7 @@ export const AccountInfoCard = forwardRef<AccountInfoCardRef, AccountInfoCardPro
           </div>
           <div className="account-info-card-item">
             <span className="account-info-card-label">全局净仓</span>
-            <span className={`account-info-card-value ${net_position > 0 ? 'account-info-card-value-long' : net_position < 0 ? 'account-info-card-value-short' : ''}`}>
+            <span className={`account-info-card-value`}>
               {net_position > 0 ? '+' : ''}{net_position.toFixed(2)} U
             </span>
           </div>

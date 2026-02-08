@@ -145,11 +145,7 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
         <div className="trading-pair-info-card-item">
           <span className="trading-pair-info-card-label">净仓</span>
           <span
-            className={`trading-pair-info-card-value ${
-              net_position > 0 ? 'trading-pair-info-card-value-long' :
-              net_position < 0 ? 'trading-pair-info-card-value-short' :
-              ''
-            }`}
+            className={`trading-pair-info-card-value`}
           >
             {net_position > 0 ? '+' : ''}{net_position.toFixed(2)} U
           </span>
@@ -157,7 +153,10 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
       </div>
       <div className="trading-pair-info-card-prices">
         <div className="trading-pair-info-card-price-section">
-          <span className="trading-pair-info-card-price-section-title">多单仓位详情</span>
+          <div className="trading-pair-info-card-price-section-title">
+            <span>多单仓位详情</span>
+            <span className="trading-pair-info-card-value-long">({current_pair_long_amount.toFixed(2)} U)</span>
+          </div>
           <div className="trading-pair-info-card-price-list">
             <div className="trading-pair-info-card-price-item">
               <span className="trading-pair-info-card-price-label">保本</span>
@@ -180,7 +179,10 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
           </div>
         </div>
         <div className="trading-pair-info-card-price-section">
-          <span className="trading-pair-info-card-price-section-title">空单仓位详情</span>
+          <div className="trading-pair-info-card-price-section-title">
+            <span>空单仓位详情</span>
+            <span className="trading-pair-info-card-value-short">({current_pair_short_amount.toFixed(2)} U)</span>
+          </div>
           <div className="trading-pair-info-card-price-list">
             <div className="trading-pair-info-card-price-item">
               <span className="trading-pair-info-card-price-label">保本</span>
