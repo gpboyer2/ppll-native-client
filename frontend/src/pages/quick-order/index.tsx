@@ -692,7 +692,7 @@ function QuickOrderPage() {
     }
 
     await executeWithNotification(
-      `${side === 'long' ? '开多' : '开空'} ${amount} USDT`,
+      `${side === 'long' ? '开多' : '开空'} ${trading_pair} ${amount} USDT`,
       async () => {
         const response = await OrdersApi.umOpenPosition({
           api_key: active_api_key.api_key,
@@ -750,7 +750,7 @@ function QuickOrderPage() {
       `确定要${position_text}平${side_text}单吗？`,
       async () => {
         await executeWithNotification(
-          `${position_text}平${side_text}单`,
+          `${position_text}平${side_text}单 ${trading_pair}`,
           async () => {
             const close_positions = target_positions.map(p => {
               const position_amt = parseFloat(p.positionAmt);
@@ -818,7 +818,7 @@ function QuickOrderPage() {
       `确定要平${side_text}单 ${amount} USDT 吗？`,
       async () => {
         await executeWithNotification(
-          `平${side_text}单 ${amount} USDT`,
+          `平${side_text}单 ${trading_pair} ${amount} USDT`,
           async () => {
             const target_positions = side === 'long'
               ? current_pair_long_positions
@@ -887,7 +887,7 @@ function QuickOrderPage() {
     }
 
     await executeWithNotification(
-      `${side === 'long' ? '开多' : '开空'} ${amount} USDT`,
+      `${side === 'long' ? '开多' : '开空'} ${trading_pair} ${amount} USDT`,
       async () => {
         const response = await OrdersApi.umOpenPosition({
           api_key: active_api_key.api_key,
@@ -942,7 +942,7 @@ function QuickOrderPage() {
     }
 
     await executeWithNotification(
-      '开仓持平',
+      `开仓持平 ${trading_pair}`,
       async () => {
         const positions = [];
         if (long_amount < short_amount) {
@@ -1011,7 +1011,7 @@ function QuickOrderPage() {
     const close_percentage = (diff / max_amount) * 100;
 
     await executeWithNotification(
-      '平仓持平',
+      `平仓持平 ${trading_pair}`,
       async () => {
         const close_positions: Array<{
           symbol: string;
