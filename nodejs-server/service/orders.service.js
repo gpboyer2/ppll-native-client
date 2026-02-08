@@ -930,7 +930,7 @@ const getAvgEntryPrice = async (api_key, api_secret, symbol, position_side) => {
 };
 
 /**
- * 为快捷订单记录补充额外信息（杠杆、历史均价）
+ * 为快捷订单记录补充额外信息（杠杆、持仓均价）
  * @param {Array} records - 订单记录列表
  * @param {string} api_key - API密钥
  * @param {string} api_secret - API密钥Secret
@@ -941,40 +941,32 @@ const enrichQuickOrderRecords = async (records, api_key, api_secret) => {
     return records;
   }
 
-  // 获取所有唯一的交易对
-  const unique_symbols = [...new Set(records.map(r => r.symbol))];
-
-  // 批量获取杠杆信息
-  const leverage_map = {};
-  for (const symbol of unique_symbols) {
-    try {
-      const leverage_info = await binanceAccountService.getPositionRisk(api_key, api_secret, symbol);
-      leverage_map[symbol] = leverage_info?.leverage || 20;
-    } catch (error) {
-      UtilRecord.log(`获取 ${symbol} 杠杆失败，使用默认值:`, error.message);
-      leverage_map[symbol] = 20;
-    }
-  }
-
-  // 为每条记录补充杠杆、历史均价和计算预计手续费
+  // 为每条记录获取持仓风险信息（包含杠杆和持仓均价）
   const enriched_records = await Promise.all(records.map(async (record) => {
-    const leverage = leverage_map[record.symbol] || 20;
     const executed_amount = parseFloat(record.executed_amount || 0);
     const estimated_fee = executed_amount * 0.001;
 
-    // 获取近一个月开仓均价（异步操作，不阻塞其他字段）
-    let avg_entry_price = 0;
+    // 获取当前持仓的均价（与币安APP一致）
+    let leverage = 20;
+    let entry_price = 0;
     try {
-      avg_entry_price = await getAvgEntryPrice(api_key, api_secret, record.symbol, record.position_side);
+      const position_info = await binanceAccountService.getPositionRisk(
+        api_key,
+        api_secret,
+        record.symbol,
+        record.position_side
+      );
+      leverage = position_info?.leverage || 20;
+      entry_price = position_info?.entry_price || 0;
     } catch (error) {
-      UtilRecord.log(`获取 ${record.symbol} 近一个月开仓均价失败:`, error.message);
+      UtilRecord.log(`获取 ${record.symbol} 持仓风险信息失败:`, error.message);
     }
 
     return {
       ...record.toJSON ? record.toJSON() : record,
       leverage,
       estimated_fee,
-      avg_entry_price
+      avg_entry_price: entry_price  // 使用当前持仓均价替代历史均价
     };
   }));
 

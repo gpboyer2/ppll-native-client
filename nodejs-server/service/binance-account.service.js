@@ -463,13 +463,14 @@ const keepAliveListenKey = async (api_key) => {
 };
 
 /**
- * 获取指定交易对的当前杠杆倍数
+ * 获取指定交易对的持仓风险信息（包含杠杆倍数和持仓均价）
  * @param {string} api_key - 用户API Key
  * @param {string} api_secret - 用户API Secret
  * @param {string} symbol - 交易对符号，如 BTCUSDT
- * @returns {Promise<{symbol: string, leverage: number}|null>} 返回杠杆倍数，如果未设置则返回null
+ * @param {string} position_side - 持仓方向 LONG/SHORT（可选）
+ * @returns {Promise<{symbol: string, leverage: number, entry_price: number}|null>} 返回持仓风险信息
  */
-const getPositionRisk = async (api_key, api_secret, symbol) => {
+const getPositionRisk = async (api_key, api_secret, symbol, position_side) => {
   try {
     const client = createUSDMClient(api_key, api_secret);
 
@@ -478,28 +479,39 @@ const getPositionRisk = async (api_key, api_secret, symbol) => {
       symbol: symbol
     });
 
-    // 查找对应交易对的杠杆倍数
+    // 查找对应交易对的持仓信息
     if (positionRisk && Array.isArray(positionRisk) && positionRisk.length > 0) {
-      const position = positionRisk.find(p => p.symbol === symbol);
-      if (position && position.leverage) {
+      // 如果指定了持仓方向，查找匹配的持仓
+      let position;
+      if (position_side) {
+        position = positionRisk.find(p => p.symbol === symbol && p.positionSide === position_side && parseFloat(p.positionAmt) !== 0);
+      } else {
+        // 未指定方向时，查找有持仓的任意方向
+        position = positionRisk.find(p => p.symbol === symbol && parseFloat(p.positionAmt) !== 0);
+      }
+
+      if (position) {
         return {
           symbol: symbol,
-          leverage: parseInt(position.leverage)
+          leverage: parseInt(position.leverage) || 20,
+          entry_price: parseFloat(position.entryPrice) || 0
         };
       }
     }
 
-    // 如果没有找到持仓信息，返回默认杠杆倍数
+    // 如果没有找到持仓信息，返回默认值
     return {
       symbol: symbol,
-      leverage: 20  // 默认20倍
+      leverage: 20,
+      entry_price: 0
     };
   } catch (error) {
     UtilRecord.log("获取持仓风险失败:", error);
-    // 出错时返回默认杠杆倍数
+    // 出错时返回默认值
     return {
       symbol: symbol,
-      leverage: 20
+      leverage: 20,
+      entry_price: 0
     };
   }
 };
