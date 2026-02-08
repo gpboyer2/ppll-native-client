@@ -12,7 +12,7 @@ import { MantineTheme, createTheme } from '@mantine/core';
 export const mantineTheme = createTheme({
   // 主色调配置 - 币安黄色系
   primaryColor: 'yellow',
-  
+
   // 自定义颜色调色板
   colors: {
     // 币安黄色调色板
@@ -103,7 +103,7 @@ export const mantineTheme = createTheme({
     xl: '0 25px 50px rgba(0,0,0,0.9)',
   },
 
-  
+
   // 其他配置
   other: {
     // 自定义 CSS 变量映射
@@ -135,7 +135,7 @@ export const mantineTheme = createTheme({
         }
       }
     },
-    
+
     Card: {
       defaultProps: {
         radius: 'md',
@@ -256,6 +256,7 @@ export const mantineTheme = createTheme({
             padding: '12px 16px',
             minWidth: '280px',
             maxWidth: '400px',
+            minHeight: '90px',
           },
           icon: {
             color: colors.icon,
