@@ -1169,6 +1169,7 @@ function QuickOrderPage() {
       </div>
 
       <BalanceButton
+        trading_pair={trading_pair}
         on_balance_by_open_click={handleBalanceByOpenPosition}
         on_balance_by_close_click={handleBalanceByClosePosition}
       />
