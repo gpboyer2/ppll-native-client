@@ -1174,27 +1174,23 @@ function QuickOrderPage() {
         subscribe_ticker={subscribeTicker}
       />
 
-      {!show_position_panel && (
-        <button
-          className="position-panel-toggle-btn"
-          onClick={() => setShowPositionPanel(true)}
-          title="打开持仓面板"
-        >
-          <IconList size={18} />
-          <span>持仓</span>
-        </button>
-      )}
+      <button
+        className={`position-panel-toggle-btn${show_position_panel ? ' active' : ''}`}
+        onClick={() => setShowPositionPanel(v => !v)}
+        title="打开持仓面板"
+      >
+        <IconList size={18} />
+        <span>持仓</span>
+      </button>
 
-      {!show_order_records_panel && (
-        <button
-          className="order-records-panel-toggle-btn"
-          onClick={() => setShowOrderRecordsPanel(true)}
-          title="打开订单记录面板"
-        >
-          <IconHistory size={18} />
-          <span>订单</span>
-        </button>
-      )}
+      <button
+        className={`order-records-panel-toggle-btn${show_order_records_panel ? ' active' : ''}`}
+        onClick={() => setShowOrderRecordsPanel(v => !v)}
+        title="打开订单记录面板"
+      >
+        <IconHistory size={18} />
+        <span>订单</span>
+      </button>
 
       <div className="quick-order-sections quick-order-sections-close">
         <ClosePositionSection
