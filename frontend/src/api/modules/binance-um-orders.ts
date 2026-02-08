@@ -132,6 +132,15 @@ export class OrdersApi {
     return RequestWrapper.post(`${this.BASE_PATH}/quick-order/delete`, data);
   }
 
+  /**
+   * 获取U本位合约胜率统计
+   */
+  static async getUmWinRateStats(params: {
+    api_key: string;
+  }): Promise<Response<WinRateStats>> {
+    return RequestWrapper.get(`${this.BASE_PATH}/um/win-rate-stats`, params);
+  }
+
 }
 
 /**
@@ -151,4 +160,12 @@ export interface QuickOrderRecord {
   leverage?: number;
   estimated_fee?: number;
   is_collapsed?: boolean;
+}
+
+/**
+ * 胜率统计数据
+ */
+export interface WinRateStats {
+  today_win_rate: number;
+  total_win_rate: number;
 }

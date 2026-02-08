@@ -6,7 +6,7 @@ import { Button } from '../../components/mantine';
 import { ConfirmModal } from '../../components/mantine/Modal';
 import { useBinanceStore } from '../../stores/binance-store';
 import { OrdersApi, BinanceAccountApi } from '../../api';
-import type { QuickOrderRecord } from '../../api';
+import type { QuickOrderRecord, WinRateStats } from '../../api';
 import type { AccountPosition } from '../../types/binance';
 import type { PositionOperationResponse } from '../../api/modules/binance-um-orders';
 import { ROUTES } from '../../router';
@@ -100,6 +100,10 @@ function QuickOrderPage() {
 
   // 收益统计数据
   const [order_records, setOrderRecords] = useState<QuickOrderRecord[]>([]);
+  const [win_rate_stats, setWinRateStats] = useState<WinRateStats>({
+    today_win_rate: 0,
+    total_win_rate: 0
+  });
 
   const current_price = ticker_prices[trading_pair]?.price || 0;
   const mark_price = ticker_prices[trading_pair]?.mark_price;
@@ -308,13 +312,37 @@ function QuickOrderPage() {
     }
   }, [get_active_api_key]);
 
+  // 加载胜率统计
+  const loadWinRateStats = useCallback(async () => {
+    const active_api_key = get_active_api_key();
+    if (!active_api_key) {
+      return;
+    }
+
+    try {
+      const response = await OrdersApi.getUmWinRateStats({
+        api_key: active_api_key.api_key
+      });
+
+      if (response.status === 'success' && response.datum) {
+        setWinRateStats(response.datum);
+      } else {
+        setWinRateStats({ today_win_rate: 0, total_win_rate: 0 });
+      }
+    } catch (err) {
+      console.error('[QuickOrder] 加载胜率统计失败:', err);
+      setWinRateStats({ today_win_rate: 0, total_win_rate: 0 });
+    }
+  }, [get_active_api_key]);
+
   // 刷新所有数据（账户信息和订单记录）
   const handleRefresh = useCallback(async () => {
     await Promise.all([
       loadAccountData(),
-      loadOrderRecords()
+      loadOrderRecords(),
+      loadWinRateStats()
     ]);
-  }, [loadAccountData, loadOrderRecords]);
+  }, [loadAccountData, loadOrderRecords, loadWinRateStats]);
 
   // 跟踪上一次的交易对，用于切换 ticker 订阅
   const prev_trading_pair_ref = useRef<string | null>(null);
@@ -475,6 +503,7 @@ function QuickOrderPage() {
     // 初始加载一次数据（避免 WebSocket 初始延迟）
     loadAccountData();
     loadOrderRecords();
+    loadWinRateStats();
     initUserDataStream();
 
     // cleanup 函数
@@ -553,12 +582,12 @@ function QuickOrderPage() {
     // 今日数据
     const today_profit = account_data.today_profit_loss || 0;
     const today_trades = order_records.length;
-    const today_win_rate = today_profit >= 0 ? 55 : 45;
+    const today_win_rate = win_rate_stats.today_win_rate;
 
     // 总计数据（简化处理，使用今日数据作为总计）
     const total_profit = today_profit;
     const total_trades = today_trades;
-    const total_win_rate = today_win_rate;
+    const total_win_rate = win_rate_stats.total_win_rate;
 
     return {
       today_profit,
@@ -568,7 +597,7 @@ function QuickOrderPage() {
       total_trades,
       total_win_rate
     };
-  }, [account_data.today_profit_loss, order_records.length]);
+  }, [account_data.today_profit_loss, order_records.length, win_rate_stats]);
 
   // 当前交易对的持仓数据
   const current_pair_positions = useMemo(() => {
@@ -681,6 +710,7 @@ function QuickOrderPage() {
           Promise.all([
             order_records_panel_ref.current?.refresh(),
             loadOrderRecords(),
+            loadWinRateStats(),
             loadAccountData()
           ]).catch(err => {
             console.error('[QuickOrder] 刷新数据失败:', err);
@@ -740,7 +770,11 @@ function QuickOrderPage() {
 
             if (response.status === 'success' && response.datum) {
               // 异步刷新持仓数据，不阻塞通知更新
-              loadAccountData().catch(err => {
+              Promise.all([
+                loadOrderRecords(),
+                loadWinRateStats(),
+                loadAccountData()
+              ]).catch(err => {
                 console.error('[QuickOrder] 刷新持仓数据失败:', err);
               });
               return { datum: response.datum as PositionOperationResponse };
@@ -817,7 +851,11 @@ function QuickOrderPage() {
                 setCustomCloseShortAmount('');
               }
               // 异步刷新持仓数据，不阻塞通知更新
-              loadAccountData().catch(err => {
+              Promise.all([
+                loadOrderRecords(),
+                loadWinRateStats(),
+                loadAccountData()
+              ]).catch(err => {
                 console.error('[QuickOrder] 刷新持仓数据失败:', err);
               });
               return { datum: response.datum as PositionOperationResponse };
@@ -867,6 +905,7 @@ function QuickOrderPage() {
           Promise.all([
             order_records_panel_ref.current?.refresh(),
             loadOrderRecords(),
+            loadWinRateStats(),
             loadAccountData()
           ]).catch(err => {
             console.error('[QuickOrder] 刷新数据失败:', err);
@@ -933,6 +972,7 @@ function QuickOrderPage() {
           Promise.all([
             order_records_panel_ref.current?.refresh(),
             loadOrderRecords(),
+            loadWinRateStats(),
             loadAccountData()
           ]).catch(err => {
             console.error('[QuickOrder] 刷新数据失败:', err);
@@ -1181,6 +1221,14 @@ function QuickOrderPage() {
         show_message={showMessage}
         is_visible={show_position_panel}
         set_is_visible={setShowPositionPanel}
+        on_close_success={() => {
+          Promise.all([
+            loadOrderRecords(),
+            loadWinRateStats()
+          ]).catch(err => {
+            console.error('[QuickOrder] 刷新数据失败:', err);
+          });
+        }}
       />
 
       <OrderRecordsFloatingPanel
@@ -1191,6 +1239,14 @@ function QuickOrderPage() {
         set_is_visible={setShowOrderRecordsPanel}
         ticker_prices={ticker_prices}
         subscribe_ticker={subscribeTicker}
+        on_close_success={() => {
+          Promise.all([
+            loadOrderRecords(),
+            loadWinRateStats()
+          ]).catch(err => {
+            console.error('[QuickOrder] 刷新数据失败:', err);
+          });
+        }}
       />
 
       <button

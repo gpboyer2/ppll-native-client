@@ -245,6 +245,24 @@ const deleteQuickOrderRecord = catchAsync(async (req, res) => {
   }
 });
 
+/**
+ * 获取U本位合约胜率统计
+ */
+const getUmWinRateStats = catchAsync(async (req, res) => {
+  const { api_key } = req.query;
+
+  if (!api_key) {
+    return res.apiError(null, 'api_key is not defined');
+  }
+
+  try {
+    const result = await ordersService.getUmWinRateStats({ api_key });
+    return res.apiSuccess(result, '操作成功');
+  } catch (error) {
+    return res.apiError(null, error.message);
+  }
+});
+
 module.exports = {
   template,
   umOpenPosition,
@@ -254,5 +272,6 @@ module.exports = {
   queryQuickOrderRecords,
   updateQuickOrderCollapse,
   deleteQuickOrderRecord,
+  getUmWinRateStats,
   validateParams
 };

@@ -45,7 +45,7 @@ export { LoginLogsApi } from './modules/login-logs';
 export { OperationLogsApi } from './modules/operation-logs';
 
 // 订单管理
-export { OrdersApi, type QuickOrderRecord } from './modules/binance-um-orders';
+export { OrdersApi, type QuickOrderRecord, type WinRateStats } from './modules/binance-um-orders';
 export { TemplateApi } from './modules/template';
 
 // 权限管理

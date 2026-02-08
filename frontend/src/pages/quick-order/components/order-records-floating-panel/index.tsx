@@ -12,6 +12,7 @@ interface OrderRecordsFloatingPanelProps {
   set_is_visible: (value: boolean) => void;
   ticker_prices: Record<string, { price?: number; mark_price?: number }>;
   subscribe_ticker: (symbol: string, market?: string) => void;
+  on_close_success?: () => void;
 }
 
 interface DragState {
@@ -30,7 +31,7 @@ export interface OrderRecordsFloatingPanelRef {
 }
 
 function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: React.Ref<OrderRecordsFloatingPanelRef>) {
-  const { get_active_api_key, show_message, is_visible, set_is_visible, ticker_prices, subscribe_ticker } = props;
+  const { get_active_api_key, show_message, is_visible, set_is_visible, ticker_prices, subscribe_ticker, on_close_success } = props;
 
   const [position, setPosition] = useState(() => ({
     x: window.innerWidth - PANEL_RIGHT_OFFSET,
@@ -232,6 +233,7 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
       if (response.status === 'success') {
         show_message(`${record.symbol} 平仓成功`, 'success');
         loadOrderRecords();
+        on_close_success?.();
       } else {
         show_message(response.message || `${record.symbol} 平仓失败`, 'error');
       }

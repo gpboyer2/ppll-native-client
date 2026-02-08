@@ -80,6 +80,14 @@ router.post('/quick-order/delete',
   ordersController.deleteQuickOrderRecord
 );
 
+/**
+ * 获取U本位合约胜率统计
+ * GET /api/v1/orders/um/win-rate-stats?api_key=xxx
+ */
+router.get('/um/win-rate-stats',
+  ordersController.getUmWinRateStats
+);
+
 module.exports = router;
 
 

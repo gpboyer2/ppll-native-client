@@ -13,6 +13,7 @@ interface PositionFloatingPanelProps {
   show_message: (msg: string, status: 'success' | 'error') => void;
   is_visible: boolean;
   set_is_visible: (value: boolean) => void;
+  on_close_success?: () => void;
 }
 
 interface DragState {
@@ -27,7 +28,7 @@ const PANEL_RIGHT_OFFSET = 340;
 const DEFAULT_Y = 200;
 
 function PositionFloatingPanel(props: PositionFloatingPanelProps) {
-  const { positions, ticker_prices, get_active_api_key, show_message, is_visible, set_is_visible } = props;
+  const { positions, ticker_prices, get_active_api_key, show_message, is_visible, set_is_visible, on_close_success } = props;
 
   const [position, setPosition] = useState(() => ({
     x: window.innerWidth - PANEL_RIGHT_OFFSET,
@@ -137,6 +138,7 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
 
       if (response.status === 'success') {
         show_message(`${position.symbol} 平仓成功`, 'success');
+        on_close_success?.();
       } else {
         show_message(response.message || `${position.symbol} 平仓失败`, 'error');
       }

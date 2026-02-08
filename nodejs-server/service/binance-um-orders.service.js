@@ -29,11 +29,11 @@ const formatOpenPositionError = (error) => {
   const lowerMessage = rawMessage.toLowerCase();
 
   if (errorCode === -1003 ||
-      errorCode === 429 ||
-      lowerMessage.includes('rate limit') ||
-      lowerMessage.includes('too many requests') ||
-      lowerMessage.includes('ip banned') ||
-      lowerMessage.includes('banned')) {
+    errorCode === 429 ||
+    lowerMessage.includes('rate limit') ||
+    lowerMessage.includes('too many requests') ||
+    lowerMessage.includes('ip banned') ||
+    lowerMessage.includes('banned')) {
     return '被币安限流，请稍后再试（通常2分钟后恢复）';
   }
 
@@ -226,20 +226,19 @@ const executeSingleOpen = async ({ symbol, side, amount, api_key, api_secret, ex
   }
 
   try {
+    // 获取交易对过滤器，动态获取 MIN_NOTIONAL
+    const filters = binancePrecision.getSymbolFilters(exchangeInfo, symbol);
+    const minNotionalFilter = filters.find(filter => filter.filterType === 'MIN_NOTIONAL');
+    const minNotional = minNotionalFilter ? parseFloat(minNotionalFilter.minNotional) : 100;
+
     const rawQuantity = new bigNumber(amount).div(price);
 
-    // 校验最小名义价值（第一次：金额校验）
-    const MIN_NOTIONAL = 100;
-    if (new bigNumber(amount).isLessThan(MIN_NOTIONAL)) {
-      return { symbol, side, amount, success: false, error: `开仓金额不能小于 ${MIN_NOTIONAL} USDT` };
-    }
+    let quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity.toString());
 
-    const quantity = binancePrecision.smartAdjustQuantity(exchangeInfo, symbol, rawQuantity.toString());
-
-    // 校验最小名义价值（第二次：精度调整后校验）
-    const adjustedNotional = new bigNumber(quantity).multipliedBy(price);
-    if (adjustedNotional.isLessThan(MIN_NOTIONAL)) {
-      return { symbol, side, amount, success: false, error: `由于精度调整，开仓金额需至少 ${MIN_NOTIONAL} USDT，当前计算名义价值为 ${adjustedNotional.toFixed(2)} USDT` };
+    // 校验最小名义价值
+    let adjustedNotional = new bigNumber(quantity).multipliedBy(price);
+    if (adjustedNotional.isLessThan(minNotional)) {
+      return { symbol, side, amount, success: false, error: `开仓金额不能小于 ${minNotional} USDT` };
     }
 
     const adjustmentMessage = formatAdjustmentMessage({
@@ -936,6 +935,58 @@ const deleteQuickOrderRecord = async (params) => {
   return { success: true };
 };
 
+/**
+ * 获取U本位合约胜率统计
+ * @param {Object} params - 参数对象
+ * @param {string} params.api_key - API密钥
+ * @returns {Promise<Object>} 胜率统计数据
+ */
+const getUmWinRateStats = async (params) => {
+  const { api_key } = params;
+  const { Op } = require("sequelize");
+
+  // 获取今天的开始时间（本地时区0点）
+  const today_start = new Date();
+  today_start.setHours(0, 0, 0, 0);
+
+  // 查询所有快捷订单（已成交）
+  const { count: total_count, rows: all_orders } = await Order.findAndCountAll({
+    where: {
+      api_key,
+      source: 'QUICK_ORDER',
+      status: 'FILLED'
+    },
+    attributes: ['id', 'realized_pnl', 'created_at']
+  });
+
+  // 查询今天的订单
+  const today_orders = all_orders.filter(order => {
+    const created_at = new Date(order.created_at);
+    return created_at >= today_start;
+  });
+
+  const today_count = today_orders.length;
+
+  // 计算今日胜率（realized_pnl > 0的订单数 / 总订单数）
+  const today_win_count = today_orders.filter(order => {
+    const pnl = parseFloat(order.realized_pnl || '0');
+    return pnl > 0;
+  }).length;
+  const today_win_rate = today_count > 0 ? (today_win_count / today_count) * 100 : 0;
+
+  // 计算总胜率
+  const total_win_count = all_orders.filter(order => {
+    const pnl = parseFloat(order.realized_pnl || '0');
+    return pnl > 0;
+  }).length;
+  const total_win_rate = total_count > 0 ? (total_win_count / total_count) * 100 : 0;
+
+  return {
+    today_win_rate: parseFloat(today_win_rate.toFixed(2)),
+    total_win_rate: parseFloat(total_win_rate.toFixed(2))
+  };
+};
+
 module.exports = {
   getAccountInfo,
   getExchangeInfo,
@@ -948,4 +999,5 @@ module.exports = {
   enrichQuickOrderRecords,
   updateQuickOrderCollapse,
   deleteQuickOrderRecord,
+  getUmWinRateStats,
 };
