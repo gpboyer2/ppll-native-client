@@ -175,11 +175,18 @@ buildMacos() {
             echo "Node.js 已嵌入到: $RESOURCES_DIR/node"
         fi
 
-        # 复制 nodejs-server
+        # 复制 nodejs-server（排除 logs 目录）
         if [ -d "nodejs-server" ]; then
             RESOURCES_DIR="build/bin/$APP_NAME/Contents/Resources"
             mkdir -p "$RESOURCES_DIR"
-            cp -R nodejs-server "$RESOURCES_DIR/"
+            # 使用 rsync 排除 logs 目录
+            if command -v rsync >/dev/null 2>&1; then
+                rsync -av --exclude='logs' --exclude='*.log' nodejs-server/ "$RESOURCES_DIR/nodejs-server/"
+            else
+                # 备用方案：使用 tar 过滤
+                mkdir -p "$RESOURCES_DIR/nodejs-server"
+                tar -cf - --exclude='logs' --exclude='*.log' -C nodejs-server . | tar -xf - -C "$RESOURCES_DIR/nodejs-server"
+            fi
             echo "nodejs-server 已复制到: $RESOURCES_DIR/nodejs-server"
         fi
 
@@ -235,9 +242,14 @@ buildWindows() {
             echo "Node.js 已复制到: build/bin/node.exe"
         fi
 
-        # 复制 nodejs-server
+        # 复制 nodejs-server（排除 logs 目录）
         if [ -d "nodejs-server" ]; then
-            cp -R nodejs-server "build/bin/nodejs-server"
+            if command -v rsync >/dev/null 2>&1; then
+                rsync -av --exclude='logs' --exclude='*.log' nodejs-server/ build/bin/nodejs-server/
+            else
+                mkdir -p build/bin/nodejs-server
+                tar -cf - --exclude='logs' --exclude='*.log' -C nodejs-server . | tar -xf - -C build/bin/nodejs-server
+            fi
             echo "nodejs-server 已复制到: build/bin/nodejs-server"
         fi
 
@@ -296,9 +308,14 @@ buildLinux() {
             chmod +x "$APPDIR/usr/bin/node"
         fi
 
-        # 复制 nodejs-server
+        # 复制 nodejs-server（排除 logs 目录）
         if [ -d "nodejs-server" ]; then
-            cp -R nodejs-server "$APPDIR/usr/bin/nodejs-server"
+            if command -v rsync >/dev/null 2>&1; then
+                rsync -av --exclude='logs' --exclude='*.log' nodejs-server/ "$APPDIR/usr/bin/nodejs-server/"
+            else
+                mkdir -p "$APPDIR/usr/bin/nodejs-server"
+                tar -cf - --exclude='logs' --exclude='*.log' -C nodejs-server . | tar -xf - -C "$APPDIR/usr/bin/nodejs-server"
+            fi
         fi
 
         # 创建 .desktop 文件
