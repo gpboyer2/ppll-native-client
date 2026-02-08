@@ -3,13 +3,12 @@ import { IconArrowUp, IconArrowDown } from '@tabler/icons-react';
 import { Button, ConfirmModal } from '../../../../components/mantine';
 
 export interface BalanceButtonProps {
-  disabled: boolean;
   on_balance_by_open_click: () => void;
   on_balance_by_close_click: () => void;
 }
 
 export function BalanceButton(props: BalanceButtonProps): JSX.Element {
-  const { disabled, on_balance_by_open_click, on_balance_by_close_click } = props;
+  const { on_balance_by_open_click, on_balance_by_close_click } = props;
 
   const [showOpenConfirm, setShowOpenConfirm] = useState(false);
   const [showCloseConfirm, setShowCloseConfirm] = useState(false);
@@ -31,7 +30,6 @@ export function BalanceButton(props: BalanceButtonProps): JSX.Element {
           <Button
             className="quick-order-balance-btn quick-order-balance-btn-open"
             onClick={() => setShowOpenConfirm(true)}
-            disabled={disabled}
             title="通过建仓方式使多空仓位相等"
           >
             <IconArrowUp size={16} />
@@ -41,7 +39,6 @@ export function BalanceButton(props: BalanceButtonProps): JSX.Element {
           <Button
             className="quick-order-balance-btn quick-order-balance-btn-close"
             onClick={() => setShowCloseConfirm(true)}
-            disabled={disabled}
             title="通过减仓平仓方式使多空仓位相等"
           >
             <IconArrowDown size={16} />

@@ -8,7 +8,6 @@ export type PositionSide = 'long' | 'short' | 'LONG' | 'SHORT';
 
 export interface OpenPositionSectionProps {
   side: PositionSide;
-  loading: boolean;
   account_loading: boolean;
   custom_amount: string;
   on_amount_click: (amount: number) => void;
@@ -17,7 +16,7 @@ export interface OpenPositionSectionProps {
 }
 
 export function OpenPositionSection(props: OpenPositionSectionProps): JSX.Element {
-  const { side, loading, account_loading, custom_amount, on_amount_click, on_custom_amount_change, on_open_click } = props;
+  const { side, account_loading, custom_amount, on_amount_click, on_custom_amount_change, on_open_click } = props;
 
   const is_long = side === 'LONG' || side === 'long';
   const Icon = is_long ? IconTrendingUp : IconTrendingDown;
@@ -35,7 +34,6 @@ export function OpenPositionSection(props: OpenPositionSectionProps): JSX.Elemen
       </div>
       <AmountButtons
         amounts={QUICK_AMOUNTS}
-        disabled={loading}
         button_class_name={button_class}
         on_amount_click={on_amount_click}
       />
@@ -44,14 +42,13 @@ export function OpenPositionSection(props: OpenPositionSectionProps): JSX.Elemen
           placeholder="自定义金额"
           value={custom_amount}
           onChange={(value) => on_custom_amount_change(String(value))}
-          disabled={loading}
           min={0}
           className="quick-order-open-amount-input"
         />
         <Button
           className={`quick-order-button ${button_class} quick-order-open-btn`}
           onClick={on_open_click}
-          disabled={loading || !custom_amount}
+          disabled={!custom_amount}
         >
           {label}
         </Button>

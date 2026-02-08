@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { IconRefresh, IconList, IconHistory } from '@tabler/icons-react';
+import { IconRefresh, IconList, IconHistory, IconCheck, IconX } from '@tabler/icons-react';
 import { notifications } from '@mantine/notifications';
 import { Button } from '../../components/mantine';
 import { ConfirmModal } from '../../components/mantine/Modal';
@@ -63,7 +63,6 @@ function QuickOrderPage() {
   const navigate = useNavigate();
   const [trading_pair, setTradingPair] = useState('BTCUSDT');
   const [leverage, setLeverage] = useState(DEFAULT_LEVERAGE);
-  const [loading, setLoading] = useState(false);
   const [account_loading, setAccountLoading] = useState(false);
   const [custom_close_long_amount, setCustomCloseLongAmount] = useState('');
   const [custom_close_short_amount, setCustomCloseShortAmount] = useState('');
@@ -170,6 +169,63 @@ function QuickOrderPage() {
         title: '操作失败',
         message: msg,
         color: 'red',
+      });
+    }
+  }, []);
+
+  /**
+   * 执行操作并显示独立通知
+   * 先显示"执行中"通知，完成后更新为成功/失败状态
+   */
+  const executeWithNotification = useCallback(async (
+    operationName: string,
+    executor: () => Promise<{ datum: PositionOperationResponse; message?: string } | void>
+  ) => {
+    const id = notifications.show({
+      title: operationName,
+      message: '执行中，请求接口中...',
+      loading: true,
+      autoClose: false,
+    });
+
+    try {
+      const result = await executor();
+
+      if (!result) {
+        notifications.update({
+          id,
+          title: '操作成功',
+          message: operationName,
+          color: 'green',
+          icon: <IconCheck size={18} />,
+          autoClose: 4000,
+          loading: false,
+        });
+        return;
+      }
+
+      if ('datum' in result && result.datum) {
+        handlePositionResponse(result.datum as PositionOperationResponse, (msg, status) => {
+          notifications.update({
+            id,
+            title: status === 'success' ? '操作成功' : '操作失败',
+            message: msg,
+            color: status === 'success' ? 'green' : 'red',
+            icon: status === 'success' ? <IconCheck size={18} /> : <IconX size={18} />,
+            autoClose: 4000,
+            loading: false,
+          });
+        }, operationName);
+      }
+    } catch (err: any) {
+      notifications.update({
+        id,
+        title: '操作失败',
+        message: err?.message || '请重试',
+        color: 'red',
+        icon: <IconX size={18} />,
+        autoClose: 4000,
+        loading: false,
       });
     }
   }, []);
@@ -606,35 +662,32 @@ function QuickOrderPage() {
       return;
     }
 
-    setLoading(true);
+    await executeWithNotification(
+      `${side === 'long' ? '开多' : '开空'} ${amount} USDT`,
+      async () => {
+        const response = await OrdersApi.umOpenPosition({
+          api_key: active_api_key.api_key,
+          api_secret: active_api_key.api_secret,
+          source: 'QUICK_ORDER',
+          positions: [{
+            symbol: trading_pair,
+            side: side === 'long' ? 'LONG' : 'SHORT',
+            amount
+          }]
+        });
 
-    try {
-      const response = await OrdersApi.umOpenPosition({
-        api_key: active_api_key.api_key,
-        api_secret: active_api_key.api_secret,
-        source: 'QUICK_ORDER',
-        positions: [{
-          symbol: trading_pair,
-          side: side === 'long' ? 'LONG' : 'SHORT',
-          amount
-        }]
-      });
+        if (response.status === 'success' && response.datum) {
+          order_records_panel_ref.current?.refresh();
+          loadOrderRecords();
+          // 刷新持仓数据以获取最新的强平价格
+          await loadAccountData();
+          return { datum: response.datum as PositionOperationResponse };
+        }
 
-      if (response.status === 'success' && response.datum) {
-        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓操作已提交');
-        order_records_panel_ref.current?.refresh();
-        loadOrderRecords();
-        // 刷新持仓数据以获取最新的强平价格
-        await loadAccountData();
-      } else {
         showMessage(response.message || '开仓失败', 'error');
+        return undefined;
       }
-    } catch (err) {
-      console.error('[handleOpenPosition] 开仓异常:', err);
-      showMessage('开仓失败，请重试', 'error');
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   const handleCloseByPercentage = async (side: CloseSide, percentage: number) => {
@@ -662,38 +715,35 @@ function QuickOrderPage() {
       `确认平仓`,
       `确定要${position_text}平${side_text}单吗？`,
       async () => {
-        setLoading(true);
+        await executeWithNotification(
+          `${position_text}平${side_text}单`,
+          async () => {
+            const close_positions = target_positions.map(p => {
+              const position_amt = parseFloat(p.positionAmt);
+              return {
+                symbol: p.symbol,
+                side: (position_amt > 0 ? 'LONG' : 'SHORT') as 'LONG' | 'SHORT',
+                percentage
+              };
+            });
 
-        try {
-          const close_positions = target_positions.map(p => {
-            const position_amt = parseFloat(p.positionAmt);
-            return {
-              symbol: p.symbol,
-              side: (position_amt > 0 ? 'LONG' : 'SHORT') as 'LONG' | 'SHORT',
-              percentage
-            };
-          });
+            const response = await OrdersApi.umClosePosition({
+              api_key: active_api_key.api_key,
+              api_secret: active_api_key.api_secret,
+              source: 'QUICK_ORDER',
+              positions: close_positions
+            });
 
-          const response = await OrdersApi.umClosePosition({
-            api_key: active_api_key.api_key,
-            api_secret: active_api_key.api_secret,
-            source: 'QUICK_ORDER',
-            positions: close_positions
-          });
+            if (response.status === 'success' && response.datum) {
+              // 刷新持仓数据以获取最新的强平价格
+              await loadAccountData();
+              return { datum: response.datum as PositionOperationResponse };
+            }
 
-          if (response.status === 'success' && response.datum) {
-            handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓操作已提交');
-            // 刷新持仓数据以获取最新的强平价格
-            await loadAccountData();
-          } else {
             showMessage(response.message || '平仓失败', 'error');
+            return undefined;
           }
-        } catch (err) {
-          console.error('[handleCloseByPercentage] 平仓异常:', err);
-          showMessage('平仓失败，请重试', 'error');
-        } finally {
-          setLoading(false);
-        }
+        );
       }
     );
   };
@@ -727,51 +777,48 @@ function QuickOrderPage() {
       `确认平仓`,
       `确定要平${side_text}单 ${amount} USDT 吗？`,
       async () => {
-        setLoading(true);
+        await executeWithNotification(
+          `平${side_text}单 ${amount} USDT`,
+          async () => {
+            const target_positions = side === 'long'
+              ? current_pair_long_positions
+              : side === 'short'
+                ? current_pair_short_positions
+                : [...current_pair_long_positions, ...current_pair_short_positions];
 
-        try {
-          const target_positions = side === 'long'
-            ? current_pair_long_positions
-            : side === 'short'
-              ? current_pair_short_positions
-              : [...current_pair_long_positions, ...current_pair_short_positions];
+            const ratio = amount / target_amount;
+            const close_positions = target_positions.map(p => {
+              const position_amt = parseFloat(p.positionAmt);
+              return {
+                symbol: p.symbol,
+                side: (position_amt > 0 ? 'LONG' : 'SHORT') as 'LONG' | 'SHORT',
+                percentage: ratio * 100
+              };
+            });
 
-          const ratio = amount / target_amount;
-          const close_positions = target_positions.map(p => {
-            const position_amt = parseFloat(p.positionAmt);
-            return {
-              symbol: p.symbol,
-              side: (position_amt > 0 ? 'LONG' : 'SHORT') as 'LONG' | 'SHORT',
-              percentage: ratio * 100
-            };
-          });
+            const response = await OrdersApi.umClosePosition({
+              api_key: active_api_key.api_key,
+              api_secret: active_api_key.api_secret,
+              source: 'QUICK_ORDER',
+              positions: close_positions
+            });
 
-          const response = await OrdersApi.umClosePosition({
-            api_key: active_api_key.api_key,
-            api_secret: active_api_key.api_secret,
-            source: 'QUICK_ORDER',
-            positions: close_positions
-          });
-
-          if (response.status === 'success' && response.datum) {
-            handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓操作已提交');
-            if (side === 'long') {
-              setCustomCloseLongAmount('');
+            if (response.status === 'success' && response.datum) {
+              if (side === 'long') {
+                setCustomCloseLongAmount('');
+              }
+              if (side === 'short') {
+                setCustomCloseShortAmount('');
+              }
+              // 刷新持仓数据以获取最新的强平价格
+              await loadAccountData();
+              return { datum: response.datum as PositionOperationResponse };
             }
-            if (side === 'short') {
-              setCustomCloseShortAmount('');
-            }
-            // 刷新持仓数据以获取最新的强平价格
-            await loadAccountData();
-          } else {
+
             showMessage(response.message || '平仓失败', 'error');
+            return undefined;
           }
-        } catch (err) {
-          console.error('[handleCloseByAmount] 平仓异常:', err);
-          showMessage('平仓失败，请重试', 'error');
-        } finally {
-          setLoading(false);
-        }
+        );
       }
     );
   };
@@ -793,41 +840,38 @@ function QuickOrderPage() {
       return;
     }
 
-    setLoading(true);
+    await executeWithNotification(
+      `${side === 'long' ? '开多' : '开空'} ${amount} USDT`,
+      async () => {
+        const response = await OrdersApi.umOpenPosition({
+          api_key: active_api_key.api_key,
+          api_secret: active_api_key.api_secret,
+          source: 'QUICK_ORDER',
+          positions: [{
+            symbol: trading_pair,
+            side: side === 'long' ? 'LONG' : 'SHORT',
+            amount
+          }]
+        });
 
-    try {
-      const response = await OrdersApi.umOpenPosition({
-        api_key: active_api_key.api_key,
-        api_secret: active_api_key.api_secret,
-        source: 'QUICK_ORDER',
-        positions: [{
-          symbol: trading_pair,
-          side: side === 'long' ? 'LONG' : 'SHORT',
-          amount
-        }]
-      });
+        if (response.status === 'success' && response.datum) {
+          order_records_panel_ref.current?.refresh();
+          loadOrderRecords();
+          if (side === 'long') {
+            setCustomOpenLongAmount('');
+          }
+          if (side === 'short') {
+            setCustomOpenShortAmount('');
+          }
+          // 刷新持仓数据以获取最新的强平价格
+          await loadAccountData();
+          return { datum: response.datum as PositionOperationResponse };
+        }
 
-      if (response.status === 'success' && response.datum) {
-        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓操作已提交');
-        order_records_panel_ref.current?.refresh();
-        loadOrderRecords();
-        if (side === 'long') {
-          setCustomOpenLongAmount('');
-        }
-        if (side === 'short') {
-          setCustomOpenShortAmount('');
-        }
-        // 刷新持仓数据以获取最新的强平价格
-        await loadAccountData();
-      } else {
         showMessage(response.message || '开仓失败', 'error');
+        return undefined;
       }
-    } catch (err) {
-      console.error('[handleOpenByAmount] 开仓异常:', err);
-      showMessage('开仓失败，请重试', 'error');
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   const handleBalanceByOpenPosition = async () => {
@@ -846,47 +890,44 @@ function QuickOrderPage() {
       return;
     }
 
-    setLoading(true);
+    await executeWithNotification(
+      '开仓持平',
+      async () => {
+        const positions = [];
+        if (long_amount < short_amount) {
+          positions.push({
+            symbol: trading_pair,
+            side: 'LONG' as const,
+            amount: diff
+          });
+        }
+        if (short_amount < long_amount) {
+          positions.push({
+            symbol: trading_pair,
+            side: 'SHORT' as const,
+            amount: diff
+          });
+        }
 
-    try {
-      const positions = [];
-      if (long_amount < short_amount) {
-        positions.push({
-          symbol: trading_pair,
-          side: 'LONG' as const,
-          amount: diff
+        const response = await OrdersApi.umOpenPosition({
+          api_key: active_api_key.api_key,
+          api_secret: active_api_key.api_secret,
+          source: 'QUICK_ORDER',
+          positions
         });
-      }
-      if (short_amount < long_amount) {
-        positions.push({
-          symbol: trading_pair,
-          side: 'SHORT' as const,
-          amount: diff
-        });
-      }
 
-      const response = await OrdersApi.umOpenPosition({
-        api_key: active_api_key.api_key,
-        api_secret: active_api_key.api_secret,
-        source: 'QUICK_ORDER',
-        positions
-      });
+        if (response.status === 'success' && response.datum) {
+          order_records_panel_ref.current?.refresh();
+          loadOrderRecords();
+          // 刷新持仓数据以获取最新的强平价格
+          await loadAccountData();
+          return { datum: response.datum as PositionOperationResponse };
+        }
 
-      if (response.status === 'success' && response.datum) {
-        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '开仓持平完成');
-        order_records_panel_ref.current?.refresh();
-        loadOrderRecords();
-        // 刷新持仓数据以获取最新的强平价格
-        await loadAccountData();
-      } else {
         showMessage(response.message || '开仓持平失败', 'error');
+        return undefined;
       }
-    } catch (err) {
-      console.error('[handleBalanceByOpenPosition] 开仓持平异常:', err);
-      showMessage('开仓持平失败，请重试', 'error');
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   const handleBalanceByClosePosition = async () => {
@@ -913,61 +954,57 @@ function QuickOrderPage() {
 
     const close_percentage = (diff / max_amount) * 100;
 
-    setLoading(true);
+    await executeWithNotification(
+      '平仓持平',
+      async () => {
+        const close_positions: Array<{
+          symbol: string;
+          side: 'LONG' | 'SHORT';
+          percentage: number;
+        }> = [];
 
-    try {
-      const close_positions: Array<{
-        symbol: string;
-        side: 'LONG' | 'SHORT';
-        percentage: number;
-      }> = [];
-
-      if (long_amount > short_amount) {
-        current_pair_long_positions.forEach(p => {
-          close_positions.push({
-            symbol: p.symbol,
-            side: 'LONG' as const,
-            percentage: close_percentage
+        if (long_amount > short_amount) {
+          current_pair_long_positions.forEach(p => {
+            close_positions.push({
+              symbol: p.symbol,
+              side: 'LONG' as const,
+              percentage: close_percentage
+            });
           });
-        });
-      }
+        }
 
-      if (short_amount > long_amount) {
-        current_pair_short_positions.forEach(p => {
-          close_positions.push({
-            symbol: p.symbol,
-            side: 'SHORT' as const,
-            percentage: close_percentage
+        if (short_amount > long_amount) {
+          current_pair_short_positions.forEach(p => {
+            close_positions.push({
+              symbol: p.symbol,
+              side: 'SHORT' as const,
+              percentage: close_percentage
+            });
           });
+        }
+
+        if (close_positions.length === 0) {
+          showMessage('没有可平仓的持仓', 'error');
+          return undefined;
+        }
+
+        const response = await OrdersApi.umClosePosition({
+          api_key: active_api_key.api_key,
+          api_secret: active_api_key.api_secret,
+          source: 'QUICK_ORDER',
+          positions: close_positions
         });
-      }
 
-      if (close_positions.length === 0) {
-        showMessage('没有可平仓的持仓', 'error');
-        setLoading(false);
-        return;
-      }
+        if (response.status === 'success' && response.datum) {
+          // 刷新持仓数据以获取最新的强平价格
+          await loadAccountData();
+          return { datum: response.datum as PositionOperationResponse };
+        }
 
-      const response = await OrdersApi.umClosePosition({
-        api_key: active_api_key.api_key,
-        api_secret: active_api_key.api_secret,
-        source: 'QUICK_ORDER',
-        positions: close_positions
-      });
-
-      if (response.status === 'success' && response.datum) {
-        handlePositionResponse(response.datum as PositionOperationResponse, showMessage, '平仓持平完成');
-        // 刷新持仓数据以获取最新的强平价格
-        await loadAccountData();
-      } else {
         showMessage(response.message || '平仓持平失败', 'error');
+        return undefined;
       }
-    } catch (err) {
-      console.error('[handleBalanceByClosePosition] 平仓持平异常:', err);
-      showMessage('平仓持平失败，请重试', 'error');
-    } finally {
-      setLoading(false);
-    }
+    );
   };
 
   const quick_pairs = ['BTC', 'ETH', 'HYPE', 'ASTER', 'BNB', 'AVAX'];
@@ -1086,7 +1123,6 @@ function QuickOrderPage() {
       <div className="quick-order-sections">
         <OpenPositionSection
           side="long"
-          loading={loading}
           account_loading={account_loading}
           custom_amount={custom_open_long_amount}
           on_amount_click={(amount) => handleOpenPosition('long', amount)}
@@ -1101,7 +1137,6 @@ function QuickOrderPage() {
 
         <OpenPositionSection
           side="short"
-          loading={loading}
           account_loading={account_loading}
           custom_amount={custom_open_short_amount}
           on_amount_click={(amount) => handleOpenPosition('short', amount)}
@@ -1116,7 +1151,6 @@ function QuickOrderPage() {
       </div>
 
       <BalanceButton
-        disabled={loading}
         on_balance_by_open_click={handleBalanceByOpenPosition}
         on_balance_by_close_click={handleBalanceByClosePosition}
       />
@@ -1165,7 +1199,6 @@ function QuickOrderPage() {
       <div className="quick-order-sections quick-order-sections-close">
         <ClosePositionSection
           side="long"
-          loading={loading}
           account_loading={account_loading}
           position_count={current_pair_long_positions.length}
           custom_amount={custom_close_long_amount}
@@ -1182,7 +1215,6 @@ function QuickOrderPage() {
 
         <ClosePositionSection
           side="short"
-          loading={loading}
           account_loading={account_loading}
           position_count={current_pair_short_positions.length}
           custom_amount={custom_close_short_amount}
