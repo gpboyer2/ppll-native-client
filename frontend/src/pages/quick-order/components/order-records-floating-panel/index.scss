@@ -161,6 +161,14 @@
   color: var(--color-danger);
 }
 
+.order-records-floating-panel-value.value-long {
+  color: var(--color-success);
+}
+
+.order-records-floating-panel-value.value-short {
+  color: var(--color-danger);
+}
+
 .order-records-floating-panel-button-row {
   display: flex;
   align-items: center;

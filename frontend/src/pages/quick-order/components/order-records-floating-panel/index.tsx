@@ -375,7 +375,9 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
                       </div>
                       <div className="order-records-floating-panel-detail-row">
                         <span className="order-records-floating-panel-label">持仓额</span>
-                        <span className="order-records-floating-panel-value">{executed_amount.toFixed(2)} USDT</span>
+                        <span className={`order-records-floating-panel-value ${is_long ? 'value-long' : 'value-short'}`}>
+                          {executed_amount.toFixed(4)} USDT
+                        </span>
                       </div>
                       <div className="order-records-floating-panel-detail-row">
                         <span className="order-records-floating-panel-label">杠杆</span>

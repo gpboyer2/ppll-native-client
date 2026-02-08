@@ -40,12 +40,12 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
     title: string;
     content: string;
     onConfirm: () => void;
-      }>({
-        opened: false,
-        title: '',
-        content: '',
-        onConfirm: () => { },
-      });
+  }>({
+    opened: false,
+    title: '',
+    content: '',
+    onConfirm: () => { },
+  });
   const drag_state = useRef<DragState>({
     is_dragging: false,
     start_x: 0,
@@ -234,7 +234,9 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
                     </div>
                     <div className="position-floating-panel-detail-row">
                       <span className="position-floating-panel-label">持仓额</span>
-                      <span className="position-floating-panel-value">{notional.toFixed(2)} USDT</span>
+                      <span className={`position-floating-panel-value ${is_long ? 'value-long' : 'value-short'}`}>
+                        {notional.toFixed(4)} USDT
+                      </span>
                     </div>
                     <div className="position-floating-panel-detail-row">
                       <span className="position-floating-panel-label">杠杆</span>

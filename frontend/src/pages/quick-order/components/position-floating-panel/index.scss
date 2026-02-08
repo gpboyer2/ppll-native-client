@@ -153,6 +153,14 @@
   color: var(--color-danger);
 }
 
+.position-floating-panel-value.value-long {
+  color: var(--color-success);
+}
+
+.position-floating-panel-value.value-short {
+  color: var(--color-danger);
+}
+
 .position-floating-panel-close-btn {
   width: 100%;
   height: 32px;
