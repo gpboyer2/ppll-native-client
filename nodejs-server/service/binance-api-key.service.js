@@ -7,6 +7,9 @@ const ApiError = require("../utils/api-error");
 const db = require("../models");
 const BinanceApiKey = db.binance_api_keys;
 
+// API Key 调试日志前缀，方便搜索定位问题
+const API_KEY_LOG_PREFIX = '[API-KEY-DEBUG]';
+
 /**
  * 创建新的 Binance ApiKey
  * @param {Object} params - 创建 ApiKey 所需的参数对象
@@ -58,6 +61,7 @@ const createApiKey = async (params) => {
   const createdKey = await BinanceApiKey.create(keyData, {
     validate: false
   });
+  console.log(`${API_KEY_LOG_PREFIX} CREATE_SUCCESS id=${createdKey.id} name=${name} api_key=${api_key.substring(0, 8)}...`);
   return createdKey.toJSON();
 };
 
@@ -67,6 +71,7 @@ const createApiKey = async (params) => {
  * @returns {Promise<Object>} 删除成功的 ApiKey 信息对象
  */
 const deleteApiKeyById = async (api_key_id) => {
+  console.log(`${API_KEY_LOG_PREFIX} DELETE_ATTEMPT id=${api_key_id}`);
   const api_key = await BinanceApiKey.findOne({
     where: {
       id: api_key_id,
@@ -75,10 +80,12 @@ const deleteApiKeyById = async (api_key_id) => {
   });
 
   if (!api_key) {
+    console.log(`${API_KEY_LOG_PREFIX} DELETE_NOT_FOUND id=${api_key_id}`);
     throw new ApiError(httpStatus.NOT_FOUND, 'ApiKey 不存在');
   }
 
   await api_key.update({ deleted: 1 });
+  console.log(`${API_KEY_LOG_PREFIX} DELETE_SUCCESS id=${api_key_id} name=${api_key.name} api_key=${api_key.api_key.substring(0, 8)}...`);
   return api_key.toJSON();
 };
 
@@ -161,6 +168,7 @@ const updateApiKeyById = async (api_key_id, updateBody) => {
     }
   });
 
+  console.log(`${API_KEY_LOG_PREFIX} UPDATE_SUCCESS id=${api_key_id} fields=${Object.keys(updateData).join(',')}`);
   return updatedKey.toJSON();
 };
 
@@ -209,6 +217,7 @@ const getAllApiKeys = async (filter = {}, options = {}) => {
   if (offset) queryOptions.offset = parseInt(offset);
 
   const apiKeys = await BinanceApiKey.findAll(queryOptions);
+  console.log(`${API_KEY_LOG_PREFIX} QUERY filter=${JSON.stringify(filter)} result_count=${apiKeys.length} ids=${apiKeys.map(k => k.id).join(',')}`);
   return apiKeys;
 };
 

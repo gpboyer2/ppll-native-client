@@ -20,6 +20,8 @@ const createApiKey = catchAsync(async (req, res) => {
  * POST /v1/binance-api-key/delete
  */
 const deleteApiKey = catchAsync(async (req, res) => {
+  const clientIp = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || '-';
+  console.log(`[API-KEY-DEBUG] DELETE_REQUEST id=${req.body.id} ip=${clientIp} user-agent=${req.get('user-agent')?.substring(0, 50)}...`);
   const deleted = await binanceApiKeyService.deleteApiKeyById(req.body.id);
   return res.apiSuccess(deleted, '删除 ApiKey 成功');
 });

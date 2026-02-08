@@ -122,18 +122,44 @@ app.use(gitInfoMiddleware());
 // 启动时同步模型与数据库
 // 注意：桌面客户端本地 SQLite 数据库可以安全启用 alter 自动同步表结构
 // 先清理所有 backup 表，避免 Sequelize alter 模式下的残留表导致唯一性约束冲突
+
+// 记录 API Keys 表状态的辅助函数
+const logApiKeysStatus = async (phase) => {
+  try {
+    const [result] = await db.sequelize.query("SELECT COUNT(*) as count, SUM(CASE WHEN deleted=1 THEN 1 ELSE 0 END) as deleted_count FROM binance_api_keys");
+    const [allResult] = await db.sequelize.query("SELECT id, name, deleted, status, created_at FROM binance_api_keys ORDER BY id");
+    const ids = allResult.map(r => r.id).join(',');
+    const names = allResult.map(r => r.name).join(',');
+    const deletedFlags = allResult.map(r => `${r.id}:${r.deleted}`).join(',');
+    console.log(`[API-KEY-DEBUG] ${phase} total=${result[0].count} deleted=${result[0].deleted_count}`);
+    console.log(`[API-KEY-DEBUG] ${phase} ids=${ids}`);
+    console.log(`[API-KEY-DEBUG] ${phase} names=${names}`);
+    console.log(`[API-KEY-DEBUG] ${phase} deleted_flags=${deletedFlags}`);
+  } catch (e) {
+    console.log(`[API-KEY-DEBUG] ${phase}_ERROR ${e.message}`);
+  }
+};
+
 const cleanBackupTables = async () => {
+  // 在清理 backup 表之前记录 API Keys 状态
+  await logApiKeysStatus('BEFORE_CLEAN_BACKUP');
+
   const [backups] = await db.sequelize.query(
     "SELECT name FROM sqlite_master WHERE type='table' AND name LIKE '%_backup'"
   );
+  console.log(`[API-KEY-DEBUG] BACKUP_TABLES_COUNT=${backups.length} names=${backups.map(b => b.name).join(',')}`);
+
   for (const { name } of backups) {
     await db.sequelize.query(`DROP TABLE IF EXISTS ${name}`);
     console.log(`[数据库同步] 清理 backup 表: ${name}`);
   }
 };
 
-const dbSyncPromise = cleanBackupTables()
+const dbSyncPromise = logApiKeysStatus('BEFORE_SYNC')
+  .then(() => cleanBackupTables())
+  .then(() => logApiKeysStatus('AFTER_CLEAN_BEFORE_SYNC'))
   .then(() => db.sequelize.sync({ alter: true }))
+  .then(() => logApiKeysStatus('AFTER_SYNC'))
   .then(() => {
     console.log("数据库同步成功，表结构已创建/更新");
   })
