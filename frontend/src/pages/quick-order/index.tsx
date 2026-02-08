@@ -677,10 +677,14 @@ function QuickOrderPage() {
         });
 
         if (response.status === 'success' && response.datum) {
-          order_records_panel_ref.current?.refresh();
-          loadOrderRecords();
-          // 刷新持仓数据以获取最新的强平价格
-          await loadAccountData();
+          // 异步刷新数据，不阻塞通知更新
+          Promise.all([
+            order_records_panel_ref.current?.refresh(),
+            loadOrderRecords(),
+            loadAccountData()
+          ]).catch(err => {
+            console.error('[QuickOrder] 刷新数据失败:', err);
+          });
           return { datum: response.datum as PositionOperationResponse };
         }
 
@@ -735,8 +739,10 @@ function QuickOrderPage() {
             });
 
             if (response.status === 'success' && response.datum) {
-              // 刷新持仓数据以获取最新的强平价格
-              await loadAccountData();
+              // 异步刷新持仓数据，不阻塞通知更新
+              loadAccountData().catch(err => {
+                console.error('[QuickOrder] 刷新持仓数据失败:', err);
+              });
               return { datum: response.datum as PositionOperationResponse };
             }
 
@@ -810,8 +816,10 @@ function QuickOrderPage() {
               if (side === 'short') {
                 setCustomCloseShortAmount('');
               }
-              // 刷新持仓数据以获取最新的强平价格
-              await loadAccountData();
+              // 异步刷新持仓数据，不阻塞通知更新
+              loadAccountData().catch(err => {
+                console.error('[QuickOrder] 刷新持仓数据失败:', err);
+              });
               return { datum: response.datum as PositionOperationResponse };
             }
 
@@ -855,16 +863,20 @@ function QuickOrderPage() {
         });
 
         if (response.status === 'success' && response.datum) {
-          order_records_panel_ref.current?.refresh();
-          loadOrderRecords();
+          // 异步刷新数据，不阻塞通知更新
+          Promise.all([
+            order_records_panel_ref.current?.refresh(),
+            loadOrderRecords(),
+            loadAccountData()
+          ]).catch(err => {
+            console.error('[QuickOrder] 刷新数据失败:', err);
+          });
           if (side === 'long') {
             setCustomOpenLongAmount('');
           }
           if (side === 'short') {
             setCustomOpenShortAmount('');
           }
-          // 刷新持仓数据以获取最新的强平价格
-          await loadAccountData();
           return { datum: response.datum as PositionOperationResponse };
         }
 
@@ -917,10 +929,14 @@ function QuickOrderPage() {
         });
 
         if (response.status === 'success' && response.datum) {
-          order_records_panel_ref.current?.refresh();
-          loadOrderRecords();
-          // 刷新持仓数据以获取最新的强平价格
-          await loadAccountData();
+          // 异步刷新数据，不阻塞通知更新
+          Promise.all([
+            order_records_panel_ref.current?.refresh(),
+            loadOrderRecords(),
+            loadAccountData()
+          ]).catch(err => {
+            console.error('[QuickOrder] 刷新数据失败:', err);
+          });
           return { datum: response.datum as PositionOperationResponse };
         }
 
@@ -996,8 +1012,10 @@ function QuickOrderPage() {
         });
 
         if (response.status === 'success' && response.datum) {
-          // 刷新持仓数据以获取最新的强平价格
-          await loadAccountData();
+          // 异步刷新持仓数据，不阻塞通知更新
+          loadAccountData().catch(err => {
+            console.error('[QuickOrder] 刷新持仓数据失败:', err);
+          });
           return { datum: response.datum as PositionOperationResponse };
         }
 
