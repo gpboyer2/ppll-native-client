@@ -762,22 +762,6 @@ function QuickOrderPage() {
       return;
     }
 
-    const target_amount = side === 'long'
-      ? current_pair_total_long_amount
-      : side === 'short'
-        ? current_pair_total_short_amount
-        : current_pair_total_long_amount + current_pair_total_short_amount;
-
-    if (target_amount < amount) {
-      showMessage(`持仓金额不足，当前: ${target_amount.toFixed(2)} USDT`, 'error');
-      return;
-    }
-
-    if (target_amount === 0) {
-      showMessage('当前没有对应持仓', 'error');
-      return;
-    }
-
     const side_text = side === 'long' ? '多' : side === 'short' ? '空' : '';
 
     showCloseConfirm(
@@ -792,6 +776,12 @@ function QuickOrderPage() {
               : side === 'short'
                 ? current_pair_short_positions
                 : [...current_pair_long_positions, ...current_pair_short_positions];
+
+            const target_amount = side === 'long'
+              ? current_pair_total_long_amount
+              : side === 'short'
+                ? current_pair_total_short_amount
+                : current_pair_total_long_amount + current_pair_total_short_amount;
 
             const ratio = amount / target_amount;
             const close_positions = target_positions.map(p => {
