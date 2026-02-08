@@ -1,6 +1,14 @@
+import { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+import { OrdersApi } from '../../../../api';
+import type { QuickOrderRecord, WinRateStats } from '../../../../api';
+import { useBinanceStore } from '../../../../stores/binance-store';
 import './index.scss';
 
-export interface ProfitStatsCardProps {
+export interface ProfitStatsCardRef {
+  refresh: () => Promise<void>;
+}
+
+export interface ProfitStatsData {
   today_profit: number;
   today_trades: number;
   today_win_rate: number;
@@ -9,15 +17,89 @@ export interface ProfitStatsCardProps {
   total_win_rate: number;
 }
 
-export function ProfitStatsCard(props: ProfitStatsCardProps): JSX.Element {
-  const {
-    today_profit,
-    today_trades,
-    today_win_rate,
-    total_profit,
-    total_trades,
-    total_win_rate
-  } = props;
+export interface ProfitStatsCardProps {
+  today_profit_loss?: number;
+  onRefreshRequest?: () => Promise<void>;
+}
+
+export const ProfitStatsCard = forwardRef<ProfitStatsCardRef, ProfitStatsCardProps>((props, ref) => {
+  const { today_profit_loss = 0, onRefreshRequest } = props;
+
+  const get_active_api_key = useBinanceStore(state => state.get_active_api_key);
+  const active_api_key_id = useBinanceStore(state => state.active_api_key_id);
+
+  const [loading, setLoading] = useState(false);
+  const [orderRecords, setOrderRecords] = useState<QuickOrderRecord[]>([]);
+  const [winRateStats, setWinRateStats] = useState<WinRateStats>({
+    today_win_rate: 0,
+    total_win_rate: 0
+  });
+
+  const loadOrderRecords = async () => {
+    const active_api_key = get_active_api_key();
+    if (!active_api_key) {
+      return;
+    }
+
+    try {
+      const response = await OrdersApi.getQuickOrderRecords({
+        api_key: active_api_key.api_key,
+        api_secret: active_api_key.api_secret
+      });
+
+      if (response.status === 'success' && response.datum) {
+        setOrderRecords(response.datum.list || []);
+      } else {
+        setOrderRecords([]);
+      }
+    } catch (err) {
+      console.error('[ProfitStatsCard] 加载订单记录失败:', err);
+      setOrderRecords([]);
+    }
+  };
+
+  const loadWinRateStats = async () => {
+    const active_api_key = get_active_api_key();
+    if (!active_api_key) {
+      return;
+    }
+
+    try {
+      const response = await OrdersApi.getUmWinRateStats({
+        api_key: active_api_key.api_key
+      });
+
+      if (response.status === 'success' && response.datum) {
+        setWinRateStats(response.datum);
+      } else {
+        setWinRateStats({ today_win_rate: 0, total_win_rate: 0 });
+      }
+    } catch (err) {
+      console.error('[ProfitStatsCard] 加载胜率统计失败:', err);
+      setWinRateStats({ today_win_rate: 0, total_win_rate: 0 });
+    }
+  };
+
+  const refresh = async () => {
+    setLoading(true);
+    await Promise.all([loadOrderRecords(), loadWinRateStats()]);
+    setLoading(false);
+  };
+
+  useImperativeHandle(ref, () => ({
+    refresh: onRefreshRequest ?? refresh
+  }));
+
+  useEffect(() => {
+    refresh();
+  }, [active_api_key_id]);
+
+  const today_profit = today_profit_loss;
+  const today_trades = orderRecords.length;
+  const today_win_rate = winRateStats.today_win_rate;
+  const total_profit = today_profit;
+  const total_trades = today_trades;
+  const total_win_rate = winRateStats.total_win_rate;
 
   return (
     <div className="profit-stats-card">
@@ -68,4 +150,4 @@ export function ProfitStatsCard(props: ProfitStatsCardProps): JSX.Element {
       </div>
     </div>
   );
-}
+});
