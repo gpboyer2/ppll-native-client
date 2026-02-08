@@ -21,8 +21,8 @@ func main() {
 	// 配置并运行应用
 	err := wails.Run(&options.App{
 		Title:  "PPLL Native Client",
-		Width:  1200,
-		Height: 800,
+		Width:  1300,
+		Height: 900,
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},
