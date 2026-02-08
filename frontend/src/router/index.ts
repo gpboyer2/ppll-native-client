@@ -6,6 +6,7 @@ export const ROUTES = {
   SETTINGS: '/settings',
   SYSTEM_INFO: '/system-info',
   DATABASE_MANAGER: '/database-manager',
+  DEVELOPER_CONSOLE: '/developer-console',
   PLUGINS: '/plugins',
   PLUGIN_DETAIL: '/plugins/:id',
   QUICK_ORDER: '/quick-order',

@@ -1,4 +1,5 @@
 import { HashRouter as Router, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import React from 'react';
 import { MantineProvider } from '@mantine/core';
 import { Notifications } from '@mantine/notifications';
 import '@mantine/core/styles.css';
@@ -9,6 +10,7 @@ import HomePage from './pages/home-page';
 import SettingsPage from './pages/settings';
 import SystemInfoPage from './pages/system-info';
 import DatabaseManagerPage from './pages/database-manager';
+import DeveloperConsolePage from './pages/developer-console';
 import PluginsPage from './pages/plugins';
 import GridStrategyListPage from './pages/grid-strategy';
 import GridStrategyEditPage from './pages/grid-strategy/components/edit';
@@ -99,6 +101,12 @@ function ApiKeyGuard({ children }: { children: React.ReactNode }) {
 // 导航组件
 function Navigation() {
   const location = useLocation();
+  const [showDevConsole, setShowDevConsole] = React.useState(false);
+
+  // 开发者控制台始终显示，用于调试打包后的应用
+  React.useEffect(() => {
+    setShowDevConsole(true);
+  }, []);
 
   // 检查是否在插件详情页面（路径格式：/plugins/插件ID）
   const isPluginDetailPage = location.pathname.match(/^\/plugins\/[^\/]+$/);
@@ -112,30 +120,40 @@ function Navigation() {
     <nav className="surface p-12 mb-16">
       <div className="flex items-center space-between">
         <div className="flex items-center gap-12">
-          <img src={logo} alt="PPLL Logo" style={{ width: '32px', height: '32px' }} />
-          <span style={{ fontWeight: 600, color: 'var(--color-primary)' }}>PPLL 量化交易客户端</span>
+          <img src={logo} alt="PPLL Logo" className="nav-logo" />
+          <span className="nav-title">PPLL 量化交易客户端</span>
         </div>
         <div className="flex gap-8 items-center">
           {navItems.map(item => {
             const isActive = location.pathname === item.path ||
-                            (item.path === '/plugins' && location.pathname.startsWith('/plugins'));
+              (item.path === '/plugins' && location.pathname.startsWith('/plugins'));
             return (
               <Link
                 key={item.path}
                 to={item.path}
-                className={`btn ${isActive ? 'btn-primary' : 'btn-outline'}`}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  textDecoration: 'none'
-                }}
+                className={`btn nav-link ${isActive ? 'btn-primary' : 'btn-outline'}`}
               >
                 <span>{item.icon}</span>
                 <span>{item.label}</span>
               </Link>
             );
           })}
+          {/* 开发者控制台 - 用于调试 Node.js 服务状态 */}
+          {showDevConsole && (
+            <Link
+              to={ROUTES.DEVELOPER_CONSOLE}
+              className={`btn ${location.pathname === ROUTES.DEVELOPER_CONSOLE ? 'btn-primary' : 'btn-outline'}`}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                textDecoration: 'none'
+              }}
+            >
+              <span>🔧</span>
+              <span>开发者</span>
+            </Link>
+          )}
           {/* 主题切换按钮 */}
           <ThemeToggle />
         </div>
@@ -171,6 +189,7 @@ function App() {
               <Route path={ROUTES.SETTINGS} element={<SettingsPage />} />
               <Route path={ROUTES.SYSTEM_INFO} element={<SystemInfoPage />} />
               <Route path={ROUTES.DATABASE_MANAGER} element={<DatabaseManagerPage />} />
+              <Route path={ROUTES.DEVELOPER_CONSOLE} element={<DeveloperConsolePage />} />
               <Route path={ROUTES.PLUGINS} element={<PluginsPage />} />
               <Route path={ROUTES.PLUGIN_DETAIL} element={<PluginsPage />} />
               {/* U本位合约网格交易策略插件重定向到网格策略页面 */}

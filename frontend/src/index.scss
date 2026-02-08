@@ -554,6 +554,26 @@ nav.surface {
   border-bottom: 1px solid var(--color-border);
 }
 
+/* 导航链接样式 */
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+/* 导航 Logo 样式 */
+.nav-logo {
+  width: 32px;
+  height: 32px;
+}
+
+/* 导航标题样式 */
+.nav-title {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
 /* 响应式网格 */
 .grid-auto {
   display: grid;

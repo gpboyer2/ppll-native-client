@@ -152,3 +152,7 @@ cache/gate_cookies.json
 
 # Git worktrees
 .worktrees/
+
+# Build output
+/ppll-native-client
+/ppll-native-client.exe
