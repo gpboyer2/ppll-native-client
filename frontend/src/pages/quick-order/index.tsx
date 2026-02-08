@@ -6,6 +6,7 @@ import { Button } from '../../components/mantine';
 import { ConfirmModal } from '../../components/mantine/Modal';
 import { useBinanceStore } from '../../stores/binance-store';
 import { OrdersApi, BinanceAccountApi } from '../../api';
+import { Storage } from '../../utils/storage';
 import type { AccountPosition } from '../../types/binance';
 import type { PositionOperationResponse } from '../../api/modules/binance-um-orders';
 import { ROUTES } from '../../router';
@@ -63,10 +64,18 @@ function QuickOrderPage() {
   const [trading_pair, setTradingPair] = useState('BTCUSDT');
   const [leverage, setLeverage] = useState(DEFAULT_LEVERAGE);
   const [account_loading, setAccountLoading] = useState(false);
-  const [custom_close_long_amount, setCustomCloseLongAmount] = useState('');
-  const [custom_close_short_amount, setCustomCloseShortAmount] = useState('');
-  const [custom_open_long_amount, setCustomOpenLongAmount] = useState('');
-  const [custom_open_short_amount, setCustomOpenShortAmount] = useState('');
+  const [custom_close_long_amount, setCustomCloseLongAmount] = useState(() =>
+    Storage.get<string>('quick_order_custom_close_long_amount', '') || ''
+  );
+  const [custom_close_short_amount, setCustomCloseShortAmount] = useState(() =>
+    Storage.get<string>('quick_order_custom_close_short_amount', '') || ''
+  );
+  const [custom_open_long_amount, setCustomOpenLongAmount] = useState(() =>
+    Storage.get<string>('quick_order_custom_open_long_amount', '') || ''
+  );
+  const [custom_open_short_amount, setCustomOpenShortAmount] = useState(() =>
+    Storage.get<string>('quick_order_custom_open_short_amount', '') || ''
+  );
   const [show_position_panel, setShowPositionPanel] = useState(false);
   const [show_order_records_panel, setShowOrderRecordsPanel] = useState(false);
   const [close_confirm_modal, setCloseConfirmModal] = useState<{
@@ -479,6 +488,23 @@ function QuickOrderPage() {
     subscribeCurrentSymbol();
   }, [subscribeCurrentSymbol]);
 
+  // 持久化自定义金额
+  useEffect(() => {
+    Storage.set('quick_order_custom_close_long_amount', custom_close_long_amount);
+  }, [custom_close_long_amount]);
+
+  useEffect(() => {
+    Storage.set('quick_order_custom_close_short_amount', custom_close_short_amount);
+  }, [custom_close_short_amount]);
+
+  useEffect(() => {
+    Storage.set('quick_order_custom_open_long_amount', custom_open_long_amount);
+  }, [custom_open_long_amount]);
+
+  useEffect(() => {
+    Storage.set('quick_order_custom_open_short_amount', custom_open_short_amount);
+  }, [custom_open_short_amount]);
+
   // 切换交易对时更新杠杆
 
   useEffect(() => {
@@ -770,12 +796,6 @@ function QuickOrderPage() {
             });
 
             if (response.status === 'success' && response.datum) {
-              if (side === 'long') {
-                setCustomCloseLongAmount('');
-              }
-              if (side === 'short') {
-                setCustomCloseShortAmount('');
-              }
               // 异步刷新持仓数据，不阻塞通知更新
               Promise.all([
                 profit_stats_card_ref.current?.refresh(),
@@ -834,12 +854,6 @@ function QuickOrderPage() {
           ]).catch(err => {
             console.error('[QuickOrder] 刷新数据失败:', err);
           });
-          if (side === 'long') {
-            setCustomOpenLongAmount('');
-          }
-          if (side === 'short') {
-            setCustomOpenShortAmount('');
-          }
           return { datum: response.datum as PositionOperationResponse };
         }
 
