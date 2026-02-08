@@ -61,7 +61,7 @@ function handlePositionResponse(
  */
 function QuickOrderPage() {
   const navigate = useNavigate();
-  const [trading_pair, setTradingPair] = useState(() =>Storage.get<string>('quick_order_trading_pair', 'BTCUSDT') || 'BTCUSDT');
+  const [trading_pair, setTradingPair] = useState(() => Storage.get<string>('quick_order_trading_pair', 'BTCUSDT') || 'BTCUSDT');
   const [leverage, setLeverage] = useState(DEFAULT_LEVERAGE);
   const [account_loading, setAccountLoading] = useState(false);
   const [custom_close_long_amount, setCustomCloseLongAmount] = useState(() =>
@@ -526,19 +526,23 @@ function QuickOrderPage() {
   }, [trading_pair]);
 
   // 切换交易对时更新杠杆
-
   useEffect(() => {
-    const updateLeverageForNewPair = async () => {
-      // 优先从持仓数据中获取
+    const update_leverage_for_new_pair = async () => {
+      // 直接在函数内部查找持仓杠杆，避免闭包依赖
       const position = account_data.positions.find(p => p.symbol === trading_pair);
-      if (position) {
-        setLeverage(parseInt(position.leverage, 10));
-        return;
+      if (position?.leverage) {
+        const parsed = parseInt(position.leverage, 10);
+        const leverage = Number.isFinite(parsed) ? parsed : null;
+        if (leverage !== null) {
+          setLeverage(leverage);
+          return;
+        }
       }
 
-      // 没有持仓数据时调用 API
+      // 没有持仓杠杆数据时调用 API
       const active_api_key = get_active_api_key();
       if (!active_api_key) {
+        setLeverage(DEFAULT_LEVERAGE);
         return;
       }
 
@@ -559,8 +563,8 @@ function QuickOrderPage() {
       }
     };
 
-    updateLeverageForNewPair();
-  }, [trading_pair]);
+    update_leverage_for_new_pair();
+  }, [trading_pair, active_api_key_id, account_data.positions]);
 
   const long_positions = account_data.positions.filter(
     p => parseFloat(p.positionAmt) > 0 && (p.positionSide === 'LONG' || p.positionSide === 'BOTH')
