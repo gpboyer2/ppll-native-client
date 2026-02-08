@@ -282,7 +282,7 @@ main() {
         # 自动计算的 patch 版本
         auto_patch="v${current_major}.${current_minor}.$((current_patch + 1))"
 
-        echo "推荐版本：${CYAN}${auto_patch}${NC} (自动 +1)"
+        echo -e "推荐版本：${CYAN}${auto_patch}${NC} (自动 +1)"
         echo ""
 
         # 询问是否升级大版本
