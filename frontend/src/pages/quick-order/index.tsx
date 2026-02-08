@@ -61,7 +61,7 @@ function handlePositionResponse(
  */
 function QuickOrderPage() {
   const navigate = useNavigate();
-  const [trading_pair, setTradingPair] = useState('BTCUSDT');
+  const [trading_pair, setTradingPair] = useState(() =>Storage.get<string>('quick_order_trading_pair', 'BTCUSDT') || 'BTCUSDT');
   const [leverage, setLeverage] = useState(DEFAULT_LEVERAGE);
   const [account_loading, setAccountLoading] = useState(false);
   const [custom_close_long_amount, setCustomCloseLongAmount] = useState(() =>
@@ -519,6 +519,11 @@ function QuickOrderPage() {
   useEffect(() => {
     Storage.set('quick_order_custom_open_short_amount', custom_open_short_amount);
   }, [custom_open_short_amount]);
+
+  // 持久化交易对选择
+  useEffect(() => {
+    Storage.set('quick_order_trading_pair', trading_pair);
+  }, [trading_pair]);
 
   // 切换交易对时更新杠杆
 

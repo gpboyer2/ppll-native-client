@@ -21,7 +21,10 @@ export const StorageKeys = {
   CACHE_PREFIX: 'cache_',
 
   // 临时数据
-  TEMP_PREFIX: 'temp_'
+  TEMP_PREFIX: 'temp_',
+
+  // 快速下单
+  QUICK_ORDER_TRADING_PAIR: 'quick_order_trading_pair'
 };
 
 /**
