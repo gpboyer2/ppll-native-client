@@ -63,14 +63,6 @@ router.get('/quick-order/query',
 );
 
 /**
- * 获取近一个月开仓均价
- * GET /api/v1/orders/avg-entry-price?api_key=xxx&api_secret=xxx&symbol=xxx&position_side=xxx
- */
-router.get('/avg-entry-price',
-  ordersController.getAvgEntryPrice
-);
-
-/**
  * 更新快捷订单折叠状态
  * POST /api/v1/orders/quick-order/update-collapse
  * body: { api_key: string, order_id: number, is_collapsed: boolean }

@@ -841,96 +841,7 @@ const isRateLimitError = (error) => {
 };
 
 /**
- * 获取近一个月的开仓均价
- * @param {string} api_key - API密钥
- * @param {string} api_secret - API密钥Secret
- * @param {string} symbol - 交易对
- * @param {string} position_side - 持仓方向 LONG/SHORT
- * @returns {Promise<number>} 平均开仓价格
- * @throws {RateLimitError} 当遇到限流错误时抛出
- */
-const getAvgEntryPrice = async (api_key, api_secret, symbol, position_side) => {
-  try {
-    const client = createClient(api_key, api_secret);
-
-    // 计算一个月前的时间戳
-    const now = Date.now();
-    const one_month_ago = now - 30 * 24 * 60 * 60 * 1000;
-
-    // 币安 userTrades API 最多支持7天时间范围，需要分批查询
-    const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
-    const all_trades = [];
-
-    // 分批查询：近30天分成5段（每段7天）
-    for (let i = 0; i < 5; i++) {
-      const end_time = one_month_ago + (i + 1) * SEVEN_DAYS;
-      const start_time = one_month_ago + i * SEVEN_DAYS;
-
-      // 确保不超过当前时间
-      const adjusted_end_time = Math.min(end_time, now);
-
-      if (start_time >= now) {
-        break;
-      }
-
-      try {
-        const trades = await client.getAccountTrades({
-          symbol,
-          startTime: start_time,
-          endTime: adjusted_end_time,
-          limit: 1000
-        });
-
-        if (trades && Array.isArray(trades)) {
-          all_trades.push(...trades);
-        }
-      } catch (error) {
-        if (isRateLimitError(error)) {
-          throw new RateLimitError(`获取 ${symbol} 历史交易时触发限流，请稍后再试`);
-        }
-        UtilRecord.log(`获取 ${symbol} ${start_time}-${adjusted_end_time} 历史交易失败:`, error.message);
-      }
-    }
-
-    // 根据持仓方向筛选交易并计算均价
-    // LONG: 筛选 BUY 交易; SHORT: 筛选 SELL 交易
-    const side = position_side === 'LONG' ? 'BUY' : 'SELL';
-    const filtered_trades = all_trades.filter(t => t.side === side);
-
-    if (filtered_trades.length === 0) {
-      return 0;
-    }
-
-    // 计算加权平均价格: sum(price * qty) / sum(qty)
-    let total_value = new bigNumber(0);
-    let total_qty = new bigNumber(0);
-
-    for (const trade of filtered_trades) {
-      const price = new bigNumber(trade.price);
-      const qty = new bigNumber(trade.qty);
-      total_value = total_value.plus(price.multipliedBy(qty));
-      total_qty = total_qty.plus(qty);
-    }
-
-    if (total_qty.isZero()) {
-      return 0;
-    }
-
-    return total_value.dividedBy(total_qty).toNumber();
-  } catch (error) {
-    if (error instanceof RateLimitError) {
-      throw error;
-    }
-    if (isRateLimitError(error)) {
-      throw new RateLimitError(`获取 ${symbol} 近一个月开仓均价时触发限流，请稍后再试`);
-    }
-    UtilRecord.error('获取近一个月开仓均价失败:', error);
-    return 0;
-  }
-};
-
-/**
- * 为快捷订单记录补充额外信息（杠杆、持仓均价）
+ * 为快捷订单记录补充额外信息（杠杆）
  * @param {Array} records - 订单记录列表
  * @param {string} api_key - API密钥
  * @param {string} api_secret - API密钥Secret
@@ -941,14 +852,13 @@ const enrichQuickOrderRecords = async (records, api_key, api_secret) => {
     return records;
   }
 
-  // 为每条记录获取持仓风险信息（包含杠杆和持仓均价）
+  // 为每条记录获取持仓风险信息（包含杠杆）
   const enriched_records = await Promise.all(records.map(async (record) => {
     const executed_amount = parseFloat(record.executed_amount || 0);
     const estimated_fee = executed_amount * 0.001;
 
-    // 获取当前持仓的均价（与币安APP一致）
+    // 获取当前持仓的杠杆
     let leverage = 20;
-    let entry_price = 0;
     try {
       const position_info = await binanceAccountService.getPositionRisk(
         api_key,
@@ -957,7 +867,6 @@ const enrichQuickOrderRecords = async (records, api_key, api_secret) => {
         record.position_side
       );
       leverage = position_info?.leverage || 20;
-      entry_price = position_info?.entry_price || 0;
     } catch (error) {
       UtilRecord.log(`获取 ${record.symbol} 持仓风险信息失败:`, error.message);
     }
@@ -965,8 +874,7 @@ const enrichQuickOrderRecords = async (records, api_key, api_secret) => {
     return {
       ...record.toJSON ? record.toJSON() : record,
       leverage,
-      estimated_fee,
-      avg_entry_price: entry_price  // 使用当前持仓均价替代历史均价
+      estimated_fee
     };
   }));
 
@@ -1011,7 +919,6 @@ module.exports = {
   umOpenPosition,
   umClosePosition,
   setShortTakeProfit,
-  getAvgEntryPrice,
   enrichQuickOrderRecords,
   updateQuickOrderCollapse,
 };

@@ -202,31 +202,6 @@ const queryQuickOrderRecords = catchAsync(async (req, res) => {
 });
 
 /**
- * 获取近一个月开仓均价
- */
-const getAvgEntryPrice = catchAsync(async (req, res) => {
-  const { api_key, api_secret, symbol, position_side } = req.query;
-
-  if (!api_key || !api_secret || !symbol || !position_side) {
-    return res.apiError(null, '参数不完整');
-  }
-
-  if (!['LONG', 'SHORT'].includes(position_side)) {
-    return res.apiError(null, 'position_side 必须是 LONG 或 SHORT');
-  }
-
-  try {
-    const avg_price = await ordersService.getAvgEntryPrice(api_key, api_secret, symbol, position_side);
-    return res.apiSuccess({ avg_price }, '操作成功');
-  } catch (error) {
-    if (error.isRateLimit) {
-      return res.apiError(null, error.message, 'RATE_LIMIT');
-    }
-    throw error;
-  }
-});
-
-/**
  * 更新快捷订单折叠状态
  */
 const updateQuickOrderCollapse = catchAsync(async (req, res) => {
@@ -255,7 +230,6 @@ module.exports = {
   batchInspect,
   setShortTakeProfit,
   queryQuickOrderRecords,
-  getAvgEntryPrice,
   updateQuickOrderCollapse,
   validateParams
 };

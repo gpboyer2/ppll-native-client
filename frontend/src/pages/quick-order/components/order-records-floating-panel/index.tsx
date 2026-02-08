@@ -308,15 +308,14 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
               const quantity = parseFloat(String(record.quantity || 0));
               const leverage = record.leverage || 20;
               const estimated_fee = record.estimated_fee ?? executed_amount * 0.001;
-              const avg_entry_price = record.avg_entry_price ?? 0;
               const ticker = ticker_prices[record.symbol];
               const current_price = ticker?.mark_price || ticker?.price || executed_price;
 
               const is_closing = closing_positions.has(record.symbol);
 
               const pnl = is_long
-                ? (current_price - avg_entry_price || executed_price) * quantity
-                : ((avg_entry_price || executed_price) - current_price) * quantity;
+                ? (current_price - executed_price) * quantity
+                : (executed_price - current_price) * quantity;
               const pnl_class = pnl > 0 ? 'profit-positive' : pnl < 0 ? 'profit-negative' : '';
 
               return (
@@ -331,11 +330,7 @@ function OrderRecordsFloatingPanel(props: OrderRecordsFloatingPanelProps, ref: R
                   {!record.is_collapsed && (
                     <div className="order-records-floating-panel-item-details">
                       <div className="order-records-floating-panel-detail-row">
-                        <span className="order-records-floating-panel-label">开仓均价</span>
-                        <span className="order-records-floating-panel-value">{avg_entry_price > 0 ? avg_entry_price.toFixed(2) : executed_price.toFixed(2)}</span>
-                      </div>
-                      <div className="order-records-floating-panel-detail-row">
-                        <span className="order-records-floating-panel-label">本次成交价</span>
+                        <span className="order-records-floating-panel-label">开仓价</span>
                         <span className="order-records-floating-panel-value">{executed_price.toFixed(2)}</span>
                       </div>
                       <div className="order-records-floating-panel-detail-row">

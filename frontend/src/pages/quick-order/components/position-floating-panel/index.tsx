@@ -231,10 +231,6 @@ function PositionFloatingPanel(props: PositionFloatingPanelProps) {
                       <span className="position-floating-panel-value">{entry_price.toFixed(2)}</span>
                     </div>
                     <div className="position-floating-panel-detail-row">
-                      <span className="position-floating-panel-label">近一个月开仓均价</span>
-                      <span className="position-floating-panel-value">{entry_price.toFixed(2)}</span>
-                    </div>
-                    <div className="position-floating-panel-detail-row">
                       <span className="position-floating-panel-label">持仓额</span>
                       <span className="position-floating-panel-value">{notional.toFixed(2)} USDT</span>
                     </div>

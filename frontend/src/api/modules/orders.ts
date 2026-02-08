@@ -112,18 +112,6 @@ export class OrdersApi {
   }
 
   /**
-   * 获取近一个月开仓均价
-   */
-  static async getAvgEntryPrice(params: {
-    api_key: string;
-    api_secret: string;
-    symbol: string;
-    position_side: 'LONG' | 'SHORT';
-  }): Promise<Response<{ avg_price: number }>> {
-    return RequestWrapper.get(`${this.BASE_PATH}/avg-entry-price`, params);
-  }
-
-  /**
    * 更新快捷订单折叠状态
    */
   static async updateQuickOrderCollapse(data: {
@@ -151,6 +139,5 @@ export interface QuickOrderRecord {
   created_at: string;
   leverage?: number;
   estimated_fee?: number;
-  avg_entry_price?: number;
   is_collapsed?: boolean;
 }
