@@ -148,11 +148,11 @@ esac
 if [ "$OS" = "darwin" ] && [ "$ARCH" = "universal" ]; then
     echo "正在构建 universal 二进制文件..."
 
-    # 下载 amd64 版本
+    # 下载 amd64 版本（x64）
     AMD64_FILENAME="node-v${NODE_VERSION}-darwin-x64.tar.gz"
     AMD64_URL="${NODE_BASE_URL}/${AMD64_FILENAME}"
     AMD64_TEMP="/tmp/${AMD64_FILENAME}"
-    AMD64_EXTRACT="/tmp/node-v${NODE_VERSION}-darwin-amd64"
+    AMD64_EXTRACT="/tmp/node-v${NODE_VERSION}-darwin-x64"
 
     echo "正在下载 ${AMD64_FILENAME}..."
     curl -L -o "$AMD64_TEMP" "$AMD64_URL"
