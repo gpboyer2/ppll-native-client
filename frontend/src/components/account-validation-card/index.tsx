@@ -40,29 +40,37 @@ interface AccountValidationData {
 type ErrorType = 'validation_failed' | 'vip_required' | 'network_error' | 'signature_error' | 'invalid_api_key' | 'ip_restricted';
 
 interface AccountValidationProps {
-  status: 'idle' | 'loading' | 'success' | 'error';
-  data?: AccountValidationData;
-  error?: string;
-  errorType?: ErrorType;
-  ipAddress?: string;
+  // 外部注入的账户验证数据
+  // 为 null/undefined 时，组件内部自己请求账户数据
+  // 为对象（包括空对象）时，组件直接使用外部数据，不再内部请求
+  account_data?: {
+    status: 'idle' | 'loading' | 'success' | 'error';
+    data?: AccountValidationData;
+    error?: string;
+    errorType?: ErrorType;
+    ipAddress?: string;
+  } | null;
 }
 
 export function AccountValidationCard({
-  status,
-  data,
-  error,
-  errorType = 'validation_failed',
-  ipAddress
+  account_data
 }: AccountValidationProps) {
+  // 外部提供数据时直接使用，否则显示 idle（不显示任何内容）
+  const displayStatus = account_data?.status ?? 'idle';
+  const displayData = account_data?.data;
+  const displayError = account_data?.error;
+  const displayErrorType = account_data?.errorType ?? 'validation_failed';
+  const displayIpAddress = account_data?.ipAddress;
+
   // idle 状态不显示
-  if (status === 'idle') {
+  if (displayStatus === 'idle') {
     return null;
   }
 
   return (
-    <div className="surface mb-16">
+    <div className="account-validation-card mb-16">
       {/* 加载状态 */}
-      {status === 'loading' && (
+      {displayStatus === 'loading' && (
         <div className="account-card-loading">
           <span className="account-card-spinner"></span>
           <span>正在验证账户信息...</span>
@@ -70,7 +78,7 @@ export function AccountValidationCard({
       )}
 
       {/* 成功状态 */}
-      {status === 'success' && data && (
+      {displayStatus === 'success' && displayData && (
         <div className="account-card-success">
           <div className="account-card-header">
             <span className="account-card-icon">✓</span>
@@ -80,21 +88,21 @@ export function AccountValidationCard({
             {/* 可用余额 - 重点突出 */}
             <div className="account-card-item account-card-item-highlight">
               <span className="account-card-label">可用余额</span>
-              <span className="account-card-value">{Number(data.availableBalance || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
+              <span className="account-card-value">{Number(displayData.availableBalance || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
             </div>
 
             {/* 总余额 */}
             <div className="account-card-item">
               <span className="account-card-label">总余额</span>
-              <span className="account-card-value">{Number(data.totalWalletBalance || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
+              <span className="account-card-value">{Number(displayData.totalWalletBalance || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
             </div>
 
             {/* 未实现盈亏 */}
-            {data.totalUnrealizedProfit !== undefined && (
+            {displayData.totalUnrealizedProfit !== undefined && (
               <div className="account-card-item">
                 <span className="account-card-label">未实现盈亏</span>
-                <span className={`account-card-value ${Number(data.totalUnrealizedProfit) >= 0 ? 'account-card-value-positive' : 'account-card-value-negative'}`}>
-                  {Number(data.totalUnrealizedProfit) >= 0 ? '+' : ''}{Number(data.totalUnrealizedProfit || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span>
+                <span className={`account-card-value ${Number(displayData.totalUnrealizedProfit) >= 0 ? 'account-card-value-positive' : 'account-card-value-negative'}`}>
+                  {Number(displayData.totalUnrealizedProfit) >= 0 ? '+' : ''}{Number(displayData.totalUnrealizedProfit || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span>
                 </span>
               </div>
             )}
@@ -102,42 +110,42 @@ export function AccountValidationCard({
             {/* 保证金余额 */}
             <div className="account-card-item">
               <span className="account-card-label">保证金余额</span>
-              <span className="account-card-value">{Number(data.totalMarginBalance || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
+              <span className="account-card-value">{Number(displayData.totalMarginBalance || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
             </div>
 
             {/* 持仓保证金 */}
             <div className="account-card-item">
               <span className="account-card-label">持仓保证金</span>
-              <span className="account-card-value">{Number(data.totalPositionInitialMargin || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
+              <span className="account-card-value">{Number(displayData.totalPositionInitialMargin || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
             </div>
 
             {/* 挂单保证金 */}
             <div className="account-card-item">
               <span className="account-card-label">挂单保证金</span>
-              <span className="account-card-value">{Number(data.totalOpenOrderInitialMargin || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
+              <span className="account-card-value">{Number(displayData.totalOpenOrderInitialMargin || 0).toFixed(2)} <span className="account-card-unit-inline">USDT</span></span>
             </div>
 
             {/* 手续费等级 */}
-            {data.feeTier !== undefined && (
+            {displayData.feeTier !== undefined && (
               <div className="account-card-item">
                 <span className="account-card-label">手续费等级</span>
-                <span className="account-card-value account-card-badge">VIP {data.feeTier}</span>
+                <span className="account-card-value account-card-badge">VIP {displayData.feeTier}</span>
               </div>
             )}
 
             {/* 交易权限 */}
             <div className="account-card-item">
               <span className="account-card-label">交易权限</span>
-              <span className={`account-card-value ${data.canTrade ? 'account-card-permission-granted' : 'account-card-permission-denied'}`}>
-                {data.canTrade ? '已启用' : '未启用'}
+              <span className={`account-card-value ${displayData.canTrade ? 'account-card-permission-granted' : 'account-card-permission-denied'}`}>
+                {displayData.canTrade ? '已启用' : '未启用'}
               </span>
             </div>
 
             {/* 持仓数量 */}
-            {data.positions && (
+            {displayData.positions && (
               <div className="account-card-item">
                 <span className="account-card-label">持仓数量</span>
-                <span className="account-card-value">{data.positions.filter(p => parseFloat(p.positionAmt) !== 0).length} 个</span>
+                <span className="account-card-value">{displayData.positions.filter(p => parseFloat(p.positionAmt) !== 0).length} 个</span>
               </div>
             )}
           </div>
@@ -145,7 +153,7 @@ export function AccountValidationCard({
       )}
 
       {/* VIP权限提示 */}
-      {status === 'error' && errorType === 'vip_required' && (
+      {displayStatus === 'error' && displayErrorType === 'vip_required' && (
         <div className="account-card-vip-notice">
           <div className="account-card-vip-header">
             <span className="account-card-vip-icon">💎</span>
@@ -205,28 +213,28 @@ export function AccountValidationCard({
       )}
 
       {/* 错误状态 */}
-      {status === 'error' && errorType !== 'vip_required' && (
+      {displayStatus === 'error' && displayErrorType !== 'vip_required' && (
         <div className="account-card-error">
 
           {/* Key 异常 */}
-          {(errorType === 'signature_error' || errorType === 'invalid_api_key') && (
-            <KeyErrorTip errorType={errorType} />
+          {(displayErrorType === 'signature_error' || displayErrorType === 'invalid_api_key') && (
+            <KeyErrorTip errorType={displayErrorType} />
           )}
 
           {/* IP 白名单限制 */}
-          {errorType === 'ip_restricted' && (
-            <IpRestrictionTip ipAddress={ipAddress} />
+          {displayErrorType === 'ip_restricted' && (
+            <IpRestrictionTip ipAddress={displayIpAddress} />
           )}
 
           {/* 网络错误 */}
-          {errorType === 'network_error' && (
+          {displayErrorType === 'network_error' && (
             <NetworkErrorTip />
           )}
 
           {/* 其他验证失败 */}
-          {!['signature_error', 'invalid_api_key', 'ip_restricted', 'network_error'].includes(errorType) && (
+          {!['signature_error', 'invalid_api_key', 'ip_restricted', 'network_error'].includes(displayErrorType) && (
             <div className="account-card-error-content">
-              <p className="account-card-error-message">{error}</p>
+              <p className="account-card-error-message">{displayError}</p>
             </div>
           )}
         </div>

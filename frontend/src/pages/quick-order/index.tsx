@@ -14,6 +14,8 @@ import { AccountInfoCard, type AccountInfoCardRef } from './components/account-i
 import { TradingPairInfoCard } from './components/trading-pair-info-card';
 import { ProfitStatsCard, type ProfitStatsCardRef } from './components/profit-stats-card';
 import { ApiKeySelector } from './components/api-key-selector';
+import { AccountValidationCard } from '../../components/account-validation-card';
+import { useBinanceAccountValidation } from '../../hooks/use-binance-account-validation';
 import { OpenPositionSection } from './components/open-position-section';
 import { ClosePositionSection } from './components/close-position-section';
 import { BalanceButton } from './components/balance-button';
@@ -78,6 +80,19 @@ function QuickOrderPage() {
   );
   const [show_position_panel, setShowPositionPanel] = useState(false);
   const [show_order_records_panel, setShowOrderRecordsPanel] = useState(false);
+
+  // 账户验证 hook
+  const { result: validation_result, validate: validateAccount } = useBinanceAccountValidation();
+
+  // 从 loadAccountData 导出的验证结果（直接传递给 AccountValidationCard）
+  const [account_validation_result, setAccountValidationResult] = useState<{
+    status: 'idle' | 'loading' | 'success' | 'error';
+    data?: any;
+    error?: string;
+    errorType?: 'validation_failed' | 'vip_required' | 'network_error' | 'signature_error' | 'invalid_api_key' | 'ip_restricted';
+    ipAddress?: string;
+  } | null>(null);
+
   const [close_confirm_modal, setCloseConfirmModal] = useState<{
     opened: boolean;
     title: string;
@@ -251,6 +266,18 @@ function QuickOrderPage() {
     setCloseConfirmModal(prev => ({ ...prev, opened: false }));
   }, []);
 
+  // 验证账户
+  const doValidateAccount = useCallback(async () => {
+    const active_api_key = get_active_api_key();
+    if (!active_api_key) {
+      return;
+    }
+    await validateAccount({
+      api_key: active_api_key.api_key,
+      api_secret: active_api_key.api_secret
+    });
+  }, [get_active_api_key, validateAccount]);
+
   // 加载账户数据（供子组件 refresh 调用）
   const loadAccountData = useCallback(async () => {
     const active_api_key = get_active_api_key();
@@ -260,6 +287,9 @@ function QuickOrderPage() {
     }
 
     setAccountLoading(true);
+
+    // 同步更新验证结果状态为 loading
+    setAccountValidationResult({ status: 'loading' });
 
     try {
       const response = await BinanceAccountApi.getUSDMFutures({
@@ -277,12 +307,99 @@ function QuickOrderPage() {
           wallet_balance: parseFloat(data.totalWalletBalance || '0'),
           unrealized_profit: parseFloat(data.totalUnrealizedProfit || '0')
         });
+
+        // 同步验证结果状态为 success
+        setAccountValidationResult({
+          status: 'success',
+          data: response.datum
+        });
       } else {
         showMessage(response.message || '获取账户信息失败', 'error');
+
+        // 根据错误消息映射错误类型
+        let error_type: 'validation_failed' | 'vip_required' | 'network_error' | 'signature_error' | 'invalid_api_key' | 'ip_restricted' = 'validation_failed';
+        let error_message = response.message || '获取账户信息失败';
+        let ip_address = undefined;
+        const datum_error_type =
+          response.datum && typeof response.datum === 'object'
+            ? (response.datum as { error_type?: string }).error_type
+            : undefined;
+
+        if (
+          datum_error_type &&
+          ['validation_failed', 'vip_required', 'network_error', 'signature_error', 'invalid_api_key', 'ip_restricted'].includes(datum_error_type)
+        ) {
+          error_type = datum_error_type as typeof error_type;
+        }
+
+        if (response.datum && typeof response.datum === 'object' && response.datum.ip_address) {
+          ip_address = response.datum.ip_address;
+        } else {
+          const ip_match = error_message.match(/request ip:\s*([\d.]+)/);
+          if (ip_match && ip_match[1]) {
+            ip_address = ip_match[1];
+          }
+        }
+
+        if (error_message.includes('您不是 VIP 用户') || error_message.includes('VIP 已过期')) {
+          error_type = 'vip_required';
+          error_message = '您不是 VIP 用户，无法使用该功能';
+        } else if (error_message.includes('Signature for this request is not valid') || error_message.includes('签名错误')) {
+          error_type = 'signature_error';
+          error_message = '签名错误';
+        } else if (error_message.includes('IP 白名单限制') || error_message.includes('IP, or permissions')) {
+          error_type = 'ip_restricted';
+          error_message = 'IP 白名单限制';
+        } else if (error_message.includes('Invalid API-key') || error_message.includes('API-key')) {
+          error_type = 'invalid_api_key';
+          error_message = 'API Key 无效';
+        }
+
+        setAccountValidationResult({
+          status: 'error',
+          error: error_message,
+          errorType: error_type,
+          ipAddress: ip_address
+        });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('获取账户信息失败:', err);
       showMessage('获取账户信息失败', 'error');
+
+      // 处理异常情况下的错误类型映射
+      let error_type: 'validation_failed' | 'vip_required' | 'network_error' | 'signature_error' | 'invalid_api_key' | 'ip_restricted';
+      error_type = 'validation_failed';
+      let error_message = err?.message || '获取账户信息失败';
+      let ip_address = undefined;
+
+      const ip_match = error_message.match(/request ip:\s*([\d.]+)/);
+      if (ip_match && ip_match[1]) {
+        ip_address = ip_match[1];
+      }
+
+      if (error_message.includes('您不是 VIP 用户') || error_message.includes('VIP 已过期')) {
+        error_type = 'vip_required';
+        error_message = '您不是 VIP 用户，无法使用该功能';
+      } else if (error_message.includes('Signature for this request is not valid') || error_message.includes('签名错误')) {
+        error_type = 'signature_error';
+        error_message = '签名错误';
+      } else if (error_message.includes('IP 白名单限制') || error_message.includes('IP, or permissions')) {
+        error_type = 'ip_restricted';
+        error_message = 'IP 白名单限制';
+      } else if (error_message.includes('Invalid API-key') || error_message.includes('API-key')) {
+        error_type = 'invalid_api_key';
+        error_message = 'API Key 无效';
+      } else if (error_message.includes('网络') || error_message.includes('Network') || error_message.includes('ETIMEDOUT') || error_message.includes('fetch')) {
+        error_type = 'network_error';
+        error_message = '网络连接失败';
+      }
+
+      setAccountValidationResult({
+        status: 'error',
+        error: error_message,
+        errorType: error_type,
+        ipAddress: ip_address
+      });
     } finally {
       setAccountLoading(false);
     }
@@ -497,6 +614,15 @@ function QuickOrderPage() {
       console.error('[QuickOrder] 初始加载账户数据失败:', err);
     });
   }, [active_api_key_id, loadAccountData]);
+
+  // API Key 变化时验证账户
+  useEffect(() => {
+    const active_api_key = get_active_api_key();
+    if (!active_api_key) {
+      return;
+    }
+    doValidateAccount();
+  }, [active_api_key_id, doValidateAccount]);
 
   // 切换交易对时更新 ticker 订阅
   useEffect(() => {
@@ -1064,6 +1190,11 @@ function QuickOrderPage() {
           </div>
         </div>
       </div>
+
+      {/* 账户验证卡片 */}
+      <AccountValidationCard
+        account_data={account_validation_result ?? validation_result}
+      />
 
       <div className="quick-order-card">
         <div className="quick-order-card-header">

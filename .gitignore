@@ -159,3 +159,8 @@ cache/gate_cookies.json
 # Build output
 /ppll-native-client
 /ppll-native-client.exe
+
+# Allow custom NSIS installer script
+!/build/windows/
+!/build/windows/installer/
+!/build/windows/installer/project.nsi

@@ -738,6 +738,29 @@ async function loadLogicFlowCount() { }
 - 一个函数调用了2个或以上不同的 API → 必须拆分
 - 函数命名应该清晰表达它的目的（如 loadNodeBasicInfo、loadInterfaceCount）
 
+#### 前端错误处理规范（重要）
+
+**核心原则：后端已统一处理消息提示，前端 catch 块保持极简**
+
+后端通过响应的 `message` 字段统一返回错误信息，前端不需要复杂的错误类型判断。
+
+**正确做法**：
+```typescript
+// 简单处理：记录日志 + 显示错误消息
+catch (err: any) {
+  console.error('获取账户信息失败:', err);
+  showMessage('获取账户信息失败', 'error');
+}
+```
+
+**禁止的行为**：
+- 禁止在 catch 块中进行复杂的错误类型判断（如 instanceof、多层 if-else）
+- 禁止根据错误类型做不同处理分支
+- 禁止在 catch 块中调用多个接口或执行复杂逻辑
+- 禁止重新抛出错误（throw err）
+
+**原因**：后端已通过 apiSuccess/apiError 统一处理错误响应，message 字段包含完整错误信息。前端只需记录日志并显示提示，过度处理只会增加代码复杂度。
+
 ### Vue 组件拆分规范
 
 组件行数阈值：

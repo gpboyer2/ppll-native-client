@@ -20,7 +20,9 @@
 }
 
 @keyframes account-card-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .account-card-success {
@@ -67,7 +69,9 @@
   flex-shrink: 0;
 }
 
-.account-card-success .account-card-icon { color: #22c55e; }
+.account-card-success .account-card-icon {
+  color: #22c55e;
+}
 
 .account-card-title {
   font-size: var(--text-md);
@@ -75,10 +79,21 @@
   color: #22c55e;
 }
 
-.account-card-permission-granted { color: #22c55e; }
-.account-card-permission-denied { color: #ef4444; }
-.account-card-value-positive { color: #22c55e; }
-.account-card-value-negative { color: #ef4444; }
+.account-card-permission-granted {
+  color: #22c55e;
+}
+
+.account-card-permission-denied {
+  color: #ef4444;
+}
+
+.account-card-value-positive {
+  color: #22c55e;
+}
+
+.account-card-value-negative {
+  color: #ef4444;
+}
 
 .account-card-badge {
   padding: 2px 8px;
@@ -88,13 +103,6 @@
   font-size: var(--text-xs);
   font-weight: 600;
   color: #22c55e;
-}
-
-.account-card-error {
-  padding: 16px;
-  background: rgba(239, 68, 68, 0.08);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  border-radius: var(--radius-md);
 }
 
 .account-card-error-content {
@@ -267,7 +275,9 @@
   box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
 }
 
-.account-card-vip-contact-link:active { transform: translateY(0); }
+.account-card-vip-contact-link:active {
+  transform: translateY(0);
+}
 
 .account-card-vip-contact-icon {
   font-size: 20px;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { showSuccess, showError } from '../../../../utils/api-error';
+import { showSuccess, showError } from '../../../utils/api-error';
 import './index.scss';
 
 interface IpRestrictionTipProps {

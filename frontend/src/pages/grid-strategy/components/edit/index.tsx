@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import './index.scss';
 import { Select, NumberInput } from '../../../../components/mantine';
-import { SmartConfigModal, AccountValidationCard } from '../../../../components/grid-strategy';
+import { SmartConfigModal } from '../../../../components/grid-strategy';
+import { AccountValidationCard } from '../../../../components/account-validation-card';
 import { ReferralCommissionDialog } from '../../../../components/referral-commission-invitation';
 import { GridParametersCards } from '../grid-parameters-cards';
 import { ROUTES } from '../../../../router';
@@ -14,6 +15,7 @@ import type { BinanceSymbol, StrategyValidationResult } from '../../../../types/
 import { defaultGridStrategy } from '../../../../types/grid-strategy';
 import { showWarning, showSuccess, showError } from '../../../../utils/api-error';
 import { validateStrategyField } from '../../../../utils/strategy-validation';
+import { useBinanceAccountValidation } from '../../../../hooks/use-binance-account-validation';
 
 /**
  * 网格策略表单页面
@@ -60,123 +62,13 @@ function GridStrategyEditPage() {
   // 标记返佣弹窗关闭后是否需要跳转（通过保存按钮打开的弹窗才需要跳转）
   const [shouldNavigateAfterClose, setShouldNavigateAfterClose] = useState(false);
 
-  // 账户信息验证状态
-  const [accountValidation, setAccountValidation] = useState<{
-    status: 'idle' | 'loading' | 'success' | 'error';
-    data?: any;
-    error?: string;
-    errorType?: 'validation_failed' | 'vip_required' | 'network_error' | 'signature_error' | 'invalid_api_key' | 'ip_restricted';
-    ipAddress?: string;
-  }>({ status: 'idle' });
+  // 账户验证 hook
+  const { result: accountValidation, validate: validateAccountInfo, reset: resetAccountValidation } = useBinanceAccountValidation();
 
   // 初始化 store
   useEffect(() => {
     init();
   }, [init]);
-
-  // 验证账户信息
-  const validateAccountInfo = useCallback(async (api_key: string, api_secret: string) => {
-    if (!api_key || !api_secret) {
-      setAccountValidation({ status: 'idle' });
-      return;
-    }
-
-    setAccountValidation({ status: 'loading' });
-
-    try {
-      const response = await BinanceAccountApi.getUSDMFutures({
-        api_key,
-        api_secret,
-        include_positions: true
-      });
-
-      if (response.status === 'success' && response.datum) {
-        setAccountValidation({
-          status: 'success',
-          data: response.datum
-        });
-      } else {
-        // 优先显示 datum 中的详细错误信息，如果没有才显示 message
-        let error_message = response.datum && typeof response.datum === 'string'
-          ? response.datum
-          : response.message || '获取账户信息失败';
-
-        // 判断错误类型
-        let error_type: 'validation_failed' | 'vip_required' | 'network_error' | 'signature_error' | 'invalid_api_key' | 'ip_restricted' = 'validation_failed';
-
-        // 提取IP地址 - 优先从响应数据中获取
-        let ip_address = undefined;
-        if (response.datum && typeof response.datum === 'object' && response.datum.ip_address) {
-          ip_address = response.datum.ip_address;
-        } else {
-          // 从错误消息中提取（兼容旧格式）
-          const ip_match = error_message.match(/request ip:\s*([\d.]+)/);
-          if (ip_match && ip_match[1]) {
-            ip_address = ip_match[1];
-          }
-        }
-
-        // 识别错误类型并设置简洁的错误描述
-        if (error_message.includes('您不是 VIP 用户') || error_message.includes('VIP 已过期')) {
-          error_type = 'vip_required';
-          error_message = '您不是 VIP 用户，无法使用该功能';
-        } else if (error_message.includes('Signature for this request is not valid') || error_message.includes('签名错误')) {
-          error_type = 'signature_error';
-          error_message = '签名错误';
-        } else if (error_message.includes('IP 白名单限制') || error_message.includes('IP, or permissions')) {
-          error_type = 'ip_restricted';
-          error_message = 'IP 白名单限制';
-        } else if (error_message.includes('Invalid API-key') || error_message.includes('API-key')) {
-          error_type = 'invalid_api_key';
-          error_message = 'API Key 无效';
-        }
-
-        setAccountValidation({
-          status: 'error',
-          error: error_message,
-          errorType: error_type,
-          ipAddress: ip_address
-        });
-      }
-    } catch (error: any) {
-      let error_message = error.message || 'API Key 验证失败，请检查配置';
-
-      // 判断错误类型
-      let error_type: 'validation_failed' | 'vip_required' | 'network_error' | 'signature_error' | 'invalid_api_key' | 'ip_restricted' = 'validation_failed';
-
-      // 提取IP地址
-      let ip_address = undefined;
-      const ip_match = error_message.match(/request ip:\s*([\d.]+)/);
-      if (ip_match && ip_match[1]) {
-        ip_address = ip_match[1];
-      }
-
-      // 识别错误类型并设置简洁的错误描述
-      if (error_message.includes('您不是 VIP 用户') || error_message.includes('VIP 已过期')) {
-        error_type = 'vip_required';
-        error_message = '您不是 VIP 用户，无法使用该功能';
-      } else if (error_message.includes('Signature for this request is not valid') || error_message.includes('签名错误')) {
-        error_type = 'signature_error';
-        error_message = '签名错误';
-      } else if (error_message.includes('IP 白名单限制') || error_message.includes('IP, or permissions')) {
-        error_type = 'ip_restricted';
-        error_message = 'IP 白名单限制';
-      } else if (error_message.includes('Invalid API-key') || error_message.includes('API-key')) {
-        error_type = 'invalid_api_key';
-        error_message = 'API Key 无效';
-      } else if (error_message.includes('网络') || error_message.includes('Network') || error_message.includes('ETIMEDOUT')) {
-        error_type = 'network_error';
-        error_message = '网络连接失败';
-      }
-
-      setAccountValidation({
-        status: 'error',
-        error: error_message,
-        errorType: error_type,
-        ipAddress: ip_address
-      });
-    }
-  }, []);
 
   // 获取当前杠杆倍数
   const fetchCurrentLeverage = useCallback(async (api_key: string, api_secret: string, symbol: string) => {
@@ -232,7 +124,7 @@ function GridStrategyEditPage() {
 
           // 立即验证账户信息
           if (formData.api_key && formData.api_secret) {
-            validateAccountInfo(formData.api_key, formData.api_secret);
+            validateAccountInfo({ api_key: formData.api_key, api_secret: formData.api_secret });
           }
         } else {
           showError('未找到该策略');
@@ -346,7 +238,7 @@ function GridStrategyEditPage() {
         }));
 
         // 立即验证账户信息
-        validateAccountInfo(default_api_key.api_key, default_api_key.api_secret);
+        validateAccountInfo({ api_key: default_api_key.api_key, api_secret: default_api_key.api_secret });
       }
     }
   }, [initialized, api_key_list, is_editing, formData._api_key_id, validateAccountInfo, get_active_api_key]);
@@ -532,7 +424,7 @@ function GridStrategyEditPage() {
         // 重置杠杆倍数为默认值
         leverage: 20
       }));
-      setAccountValidation({ status: 'idle' });
+      resetAccountValidation();
       // 清空交易所信息
       setExchangeInfo(null);
       setCurrentSymbolInfo(null);
@@ -571,7 +463,7 @@ function GridStrategyEditPage() {
       // 选择API Key后自动刷新交易对列表
       refreshTradingPairs();
       // 验证账户信息
-      validateAccountInfo(selected_key.api_key, selected_key.api_secret);
+      validateAccountInfo({ api_key: selected_key.api_key, api_secret: selected_key.api_secret });
     } else {
       setFormData((prev: GridStrategyForm) => ({
         ...prev,
@@ -582,7 +474,7 @@ function GridStrategyEditPage() {
         // 重置杠杆倍数为默认值
         leverage: 20
       }));
-      setAccountValidation({ status: 'idle' });
+      resetAccountValidation();
       setExchangeInfo(null);
       setCurrentSymbolInfo(null);
       setValidationHints({});
@@ -763,11 +655,7 @@ function GridStrategyEditPage() {
 
         {/* 账户信息验证卡片 */}
         <AccountValidationCard
-          status={accountValidation.status}
-          data={accountValidation.data}
-          error={accountValidation.error}
-          errorType={accountValidation.errorType}
-          ipAddress={accountValidation.ipAddress}
+          account_data={accountValidation}
         />
 
         {/* 智能配置按钮 */}

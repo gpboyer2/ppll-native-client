@@ -1462,7 +1462,7 @@ nav.surface {
    - 网格策略列表页面样式：frontend/src/pages/grid-strategy/index.scss
    - 网格策略表单样式：frontend/src/pages/grid-strategy/components/edit/index.scss
    - 智能配置弹窗样式：frontend/src/components/grid-strategy/smart-config-modal/index.scss
-   - 账户验证卡片样式：frontend/src/components/grid-strategy/account-validation-card/index.scss
+   - 账户验证卡片样式：frontend/src/components/account-validation-card/index.scss
    - 返佣弹窗样式：frontend/src/components/referral-commission-invitation/index.scss
 */
 
@@ -2245,4 +2245,4 @@ nav.surface {
 /* 注意：返佣弹窗样式已拆分到 frontend/src/components/referral-commission-invitation/index.scss 和 frontend/src/components/grid-strategy/smart-config-modal/index.scss */
 
 /* ==================== 账户信息验证状态样式 ==================== */
-/* 注意：账户验证卡片样式已拆分到 frontend/src/components/grid-strategy/account-validation-card/index.scss */
+/* 注意：账户验证卡片样式已拆分到 frontend/src/components/account-validation-card/index.scss */
