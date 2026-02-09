@@ -114,7 +114,6 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
             clearable
             className="trading-pair-info-card-select"
           />
-          <div className="trading-pair-info-card-form-help">选择要交易的USDT币对，如ETHUSDT表示ETH兑换USDT</div>
         </div>
         <div className="trading-pair-info-card-control-group">
           <label className="trading-pair-info-card-control-label">杠杆</label>
