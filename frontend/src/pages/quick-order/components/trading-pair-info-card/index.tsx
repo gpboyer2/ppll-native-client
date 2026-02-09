@@ -89,7 +89,10 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
       </div>
       <div className="trading-pair-info-card-controls">
         <div className="trading-pair-info-card-control-group">
-          <label className="trading-pair-info-card-control-label">交易对</label>
+          <label className="trading-pair-info-card-control-label">
+            交易对
+            <span className="trading-pair-info-card-form-required">*</span>
+          </label>
           <div className="trading-pair-info-card-quick-buttons">
             {QUICK_PAIRS.map((coin) => (
               <button
@@ -103,12 +106,15 @@ export function TradingPairInfoCard(props: TradingPairInfoCardProps): JSX.Elemen
             ))}
           </div>
           <Select
-            placeholder="选择交易对"
+            placeholder="搜索选择交易对"
             value={trading_pair}
             onChange={(value) => on_trading_pair_change(value || 'BTCUSDT')}
             data={trading_pair_options}
+            searchable
+            clearable
             className="trading-pair-info-card-select"
           />
+          <div className="trading-pair-info-card-form-help">选择要交易的USDT币对，如ETHUSDT表示ETH兑换USDT</div>
         </div>
         <div className="trading-pair-info-card-control-group">
           <label className="trading-pair-info-card-control-label">杠杆</label>

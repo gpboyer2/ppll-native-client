@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { GetNodejsServiceURL, GetConfig } from '../../wailsjs/go/main/App';
-import { BinanceApiKeyApi, BinanceExchangeInfoApi } from '../api';
+import { BinanceApiKeyApi, BinanceUmTradingPairsApi } from '../api';
 import { io, Socket } from 'socket.io-client';
 
 // API Key 信息 - 字段名与后端完全一致
@@ -198,29 +198,15 @@ export const useBinanceStore = create<BinanceStore>((set, get) => ({
     const nodejs_url = await getNodejsUrl();
     if (!nodejs_url) return;
 
-    // 使用当前激活的 API Key，而不是第一个
-    const active_api_key = get().get_active_api_key();
-    if (!active_api_key) {
-      return;
-    }
-
     try {
-      const params = {
-        api_key: active_api_key.api_key,
-        api_secret: active_api_key.api_secret
-      };
+      const response = await BinanceUmTradingPairsApi.getTradingPairs();
 
-      // 传递 api_key 和 api_secret 参数
-      const response = await BinanceExchangeInfoApi.getExchangeInfo(params);
-
-      // 后端响应直接透传，数据在 response.datum.symbols
-      if (response.status === 'success' && response.datum?.symbols) {
-        const symbols = response.datum.symbols;
-        const trading_symbols = symbols.filter((s: any) => s.status === 'TRADING');
-        const all_pairs = trading_symbols.map((s: any) => s.symbol);
-        const usdt_pairs = trading_symbols
-          .filter((s: any) => s.quoteAsset === 'USDT')
-          .map((s: any) => s.symbol)
+      if (response.status === 'success' && response.datum?.list) {
+        const trading_pairs_list = response.datum.list;
+        const all_pairs = trading_pairs_list.map((p: any) => p.symbol);
+        const usdt_pairs = trading_pairs_list
+          .filter((p: any) => p.quote_asset === 'USDT')
+          .map((p: any) => p.symbol)
           .sort();
 
         set({

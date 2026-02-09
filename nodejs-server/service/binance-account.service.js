@@ -10,6 +10,7 @@ const { readJsonSafe, writeJsonSafe } = require("../utils/file.js");
 const UtilRecord = require('../utils/record-log.js');
 const rateLimiter = require('../utils/binance-rate-limiter.js');
 const db = require('../models');
+const binanceUmTradingPairsService = require('./binance-um-trading-pairs.service');
 
 // 缓存有效期（毫秒）
 const CACHE_TTL_MS = 20 * 1000;
@@ -222,6 +223,11 @@ const getUSDMFuturesAccount = async (api_key, api_secret, includePositions = tru
           }
         }
       }
+
+      // 自动更新交易对列表（钩子）
+      binanceUmTradingPairsService.updateFromPositions(account_info.positions).catch(err => {
+        UtilRecord.log('自动更新交易对列表失败:', err.message);
+      });
     } catch (error) {
       UtilRecord.log('获取持仓风险信息失败:', error.message);
     }

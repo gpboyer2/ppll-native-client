@@ -25,6 +25,7 @@ export { GridTradeHistoryApi } from './modules/grid-trade-history';
 export { BinanceAccountApi } from './modules/binance-account';
 export { BinanceApiKeyApi } from './modules/binance-api-key';
 export { BinanceExchangeInfoApi } from './modules/binance-exchange-info';
+export { BinanceUmTradingPairsApi } from './modules/binance-um-trading-pairs';
 export { BinanceApi } from './binance';
 
 // 插件管理

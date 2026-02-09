@@ -38,6 +38,17 @@
   white-space: nowrap;
 }
 
+.trading-pair-info-card-form-required {
+  margin-left: 4px;
+  color: var(--color-danger);
+}
+
+.trading-pair-info-card-form-help {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-top: -4px;
+}
+
 .trading-pair-info-card-quick-buttons {
   display: flex;
   gap: 6px;

@@ -33,6 +33,7 @@ const databaseAdminRoute = require("./v1/database-admin.route");
 const frontendLogRoute = require("./v1/frontend-log.route");
 const hourlyKlineRoute = require("./v1/hourly-kline.route");
 const usdMFuturesPluginLogRoute = require("./v1/usd-m-futures-plugin-log.route");
+const binanceUmTradingPairsRoute = require("./v1/binance-um-trading-pairs.route");
 
 const routeManager = (app) => {
   // API V1 Routes - 统一使用 /api/v1 前缀
@@ -63,6 +64,7 @@ const routeManager = (app) => {
   app.use("/api/v1/frontend-logs", frontendLogRoute);
   app.use("/api/v1/hourly-kline", hourlyKlineRoute);
   app.use("/api/v1/usd-m-futures-plugin-log", usdMFuturesPluginLogRoute);
+  app.use("/api/v1/binance-um-trading-pairs", binanceUmTradingPairsRoute);
 };
 
 module.exports = routeManager;
