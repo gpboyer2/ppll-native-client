@@ -127,7 +127,7 @@ const getAccountInfo = async (marketType, api_key, api_secret, filterOptions = {
         method: `getAccountInformation_${marketType}`,
         params: {},
         useCache: false, // 禁用内存缓存
-        retries: 3
+        retries: 1
       }
     );
 
@@ -200,7 +200,7 @@ const getUSDMFuturesAccount = async (api_key, api_secret, includePositions = tru
           method: 'getPositionsV3',
           params: {},
           useCache: false,
-          retries: 3
+          retries: 1
         }
       );
 

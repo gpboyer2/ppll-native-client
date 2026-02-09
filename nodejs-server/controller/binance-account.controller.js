@@ -66,6 +66,19 @@ const handleError = (error, res, operation) => {
     );
   }
 
+  // 限流错误处理
+  if (errorCode === 'RATE_LIMIT_EXCEEDED' ||
+    errorCode === -1003 ||
+    errorCode === 429 ||
+    errorMessage.includes('rate limit') ||
+    errorMessage.includes('too many requests') ||
+    errorMessage.includes('IP banned')) {
+    return res.apiError({
+      error_type: 'rate_limit',
+      retry_after: error.retryAfter || 120
+    }, '请求过于频繁，请稍后再试（通常2分钟后恢复）');
+  }
+
   // 针对无效 API Key 错误
   if (errorCode === -2015) {
     // 检查是否是 IP 白名单限制

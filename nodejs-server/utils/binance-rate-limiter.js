@@ -206,21 +206,18 @@ class BinanceRateLimiter {
         if (isRateLimitError) {
           this.stats.rateLimitErrors++;
           UtilRecord.log(`[RateLimiter] 检测到限流错误: ${task.options.method}`);
+
+          // 构造友好的限流错误对象，立即返回，不重试
+          const rateLimitError = new Error('请求过于频繁，请稍后再试（通常2分钟后恢复）');
+          rateLimitError.code = 'RATE_LIMIT_EXCEEDED';
+          rateLimitError.retryAfter = 120;
+          rateLimitError.originalError = error;
+          task.reject(rateLimitError);
+          return;
         }
 
-        // 重试逻辑
-        if (task.attempt < task.retries && isRateLimitError) {
-          const retryDelay = this.minDelayMs * task.attempt; // 递增延迟
-          UtilRecord.log(`[RateLimiter] ${retryDelay}ms 后重试 (${task.attempt}/${task.retries})`);
-
-          await new Promise(resolve => setTimeout(resolve, retryDelay));
-
-          // 重新加入队列
-          task.attempt--; // 补偿attempt++
-          this.requestQueue.unshift(task);
-        } else {
-          task.reject(error);
-        }
+        // 其他错误直接拒绝
+        task.reject(error);
       }
     }
 
