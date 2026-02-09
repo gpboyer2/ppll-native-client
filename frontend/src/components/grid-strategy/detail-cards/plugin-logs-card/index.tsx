@@ -35,8 +35,8 @@ export function PluginLogsCard({
   const [time_filter, setTimeFilter] = useState<TimeFilterType>('all');
   const [collapsed_groups, setCollapsedGroups] = useState<Set<string>>(new Set());
   const [next_refresh_countdown, setNextRefreshCountdown] = useState(AUTO_REFRESH_INTERVAL / 1000);
-  const interval_ref = useRef<NodeJS.Timeout | null>(null);
-  const countdown_ref = useRef<NodeJS.Timeout | null>(null);
+  const interval_ref = useRef<number | null>(null);
+  const countdown_ref = useRef<number | null>(null);
 
   // 使用 ref 存储回调，避免 useEffect 依赖变化
   const on_refresh_logs_ref = useRef(on_refresh_logs);

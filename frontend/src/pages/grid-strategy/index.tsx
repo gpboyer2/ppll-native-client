@@ -43,7 +43,7 @@ function GridStrategyListPage() {
   // 防止 StrictMode 双重渲染导致重复请求
   const has_loaded_ref = useRef(false);
   // 定时刷新引用
-  const interval_ref = useRef<NodeJS.Timeout | null>(null);
+  const interval_ref = useRef<number | null>(null);
 
   // 获取 binance-store 初始化状态和 ticker 数据
   const { initialized: binance_initialized, ticker_prices, connectSocket, subscribeTicker, unsubscribeTicker } = useBinanceStore();

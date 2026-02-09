@@ -736,7 +736,7 @@ function GridStrategyEditPage() {
                                 Mock
               </button>
             )}
-            {process.env.NODE_ENV === 'development' && (
+            {import.meta.env.DEV && (
               <button
                 type="button"
                 className="btn btn-outline"

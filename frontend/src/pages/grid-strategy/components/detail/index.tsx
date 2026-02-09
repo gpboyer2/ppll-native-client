@@ -49,7 +49,7 @@ function GridStrategyDetailPage() {
 
   // 防止 StrictMode 双重渲染导致重复请求
   const has_loaded_ref = useRef(false);
-  const interval_ref = useRef<NodeJS.Timeout | null>(null);
+  const interval_ref = useRef<number | null>(null);
 
   const { ticker_prices, subscribeTicker, unsubscribeTicker, initialized: binance_initialized, connectSocket, is_initializing } = useBinanceStore();
 
