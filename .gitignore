@@ -150,6 +150,9 @@ cache/gate_cookies.json
 # Kiro specs
 .kiro/
 
+# Claude Code
+.claude/
+
 # Git worktrees
 .worktrees/
 

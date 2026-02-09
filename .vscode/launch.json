@@ -6,19 +6,19 @@
   "configurations": [
     {
       "name": "🚀 一键启动(-q)",
-      "command": "export PATH=\"$PATH:$HOME/go/bin\" && ./start-mac.sh -q",
+      "command": "export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && export PATH=\"$PATH:$HOME/go/bin\" && ./start-mac.sh -q",
       "request": "launch",
       "type": "node-terminal"
     },
     {
       "name": "🖥️ Wails dev",
-      "command": "export PATH=\"$PATH:$HOME/go/bin\" && SKIP_NODEJS_AUTO_START=1 wails dev",
+      "command": "export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && export PATH=\"$PATH:$HOME/go/bin\" && SKIP_NODEJS_AUTO_START=1 wails dev",
       "request": "launch",
       "type": "node-terminal"
     },
     {
       "name": "⚙️ Node.js 后端",
-      "command": "cd nodejs-server && npm run dev",
+      "command": "export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && cd nodejs-server && npm run dev",
       "request": "launch",
       "type": "node-terminal"
     }
