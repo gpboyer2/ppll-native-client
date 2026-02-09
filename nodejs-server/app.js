@@ -17,6 +17,7 @@ const ipUtil = require("./utils/ip");
 const morgan = require("morgan");
 const WebSocketConnectionManager = require("./managers/WebSocketConnectionManager");
 const gitInfoMiddleware = require("./middleware/git-info");
+const UtilRecord = require("./utils/record-log.js");
 
 // ==================== 全局异常处理 ====================
 // 捕获未处理的 Promise 拒绝
@@ -277,7 +278,16 @@ const server = app.listen(port, () => {
     // WebSocket 连接错误是正常现象，binance 客户端会自动重连
     // 在Nodejs中, error 事件：没有监听器时，emit 会抛出异常，导致程序崩溃
     global.wsManager.on('error', (errorData) => {
-      // 静默处理，避免日志刷屏
+      // 记录全局 WebSocket 错误，帮助诊断断线重连原因
+      const errorInfo = {
+        wsKey: errorData?.key || 'N/A',
+        timestamp: new Date().toISOString(),
+        rawMessage: errorData?.data?.raw?.message || 'N/A',
+        rawCode: errorData?.data?.raw?.code || 'N/A',
+        eventType: errorData?.data?.eventType || 'N/A',
+        fullData: JSON.stringify(errorData, null, 2)
+      };
+      UtilRecord.log(`[WSManager Global] WebSocket 错误事件:`, JSON.stringify(errorInfo, null, 2));
     });
 
     // 初始化 Socket.IO，传入 wsManager 实例

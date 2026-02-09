@@ -11,6 +11,7 @@ const EventEmitter = require('events');
 const { SocksProxyAgent } = require('socks-proxy-agent');
 const UtilRecord = require('../utils/record-log.js');
 const { getProxyUrlString } = require('../utils/proxy.js');
+const cacheManager = require('./BinanceAccountCacheManager.js');
 
 // 生产环境标识
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
@@ -181,9 +182,18 @@ class WebSocketConnectionManager extends EventEmitter {
     });
 
     client.on('error', (data) => {
-      // 静默处理错误，避免日志刷屏
-      // SDK 会自动重连
-      UtilRecord.trace(`[WSClient] 错误 ${clientKey}:`, data?.raw?.message || 'unknown');
+      // 记录完整错误对象，帮助诊断断线重连原因
+      const errorInfo = {
+        wsKey: clientKey,
+        timestamp: new Date().toISOString(),
+        rawMessage: data?.raw?.message || 'N/A',
+        rawCode: data?.raw?.code || 'N/A',
+        eventType: data?.eventType || 'N/A',
+        dataWsKey: data?.wsKey || 'N/A',
+        connectionState: data?.connectionState || 'N/A',
+        fullData: JSON.stringify(data, null, 2)
+      };
+      UtilRecord.log(`[WSClient] 错误 ${clientKey}:`, JSON.stringify(errorInfo, null, 2));
       this.emit('error', { key: clientKey, data });
     });
 
@@ -404,6 +414,12 @@ class WebSocketConnectionManager extends EventEmitter {
             if (positionsCount > 0) {
               UtilRecord.log(`[WSManager] ACCOUNT_UPDATE updatedPositions:`, JSON.stringify(updateData.updatedPositions));
             }
+            // 更新缓存
+            try {
+              cacheManager.updateFromWebSocket(apiKey, market, data);
+            } catch (cacheError) {
+              UtilRecord.log(`[WSManager] 更新缓存失败: ${cacheError.message}`);
+            }
           }
           UtilRecord.log(`[WSManager] 转发 userDataUpdate 事件, apiKey: ${apiKey.substring(0, 8)}..., market: ${market}`);
           this.emit('userDataUpdate', { apiKey, market, data });
@@ -428,7 +444,18 @@ class WebSocketConnectionManager extends EventEmitter {
     });
 
     websocketClient.on('error', (data) => {
-      UtilRecord.log(`[WSManager] 用户数据流 WebSocket 错误: ${subKey}, error:`, data);
+      // 记录完整错误对象，帮助诊断用户数据流断线重连原因
+      const errorInfo = {
+        wsKey: subKey,
+        timestamp: new Date().toISOString(),
+        rawMessage: data?.raw?.message || 'N/A',
+        rawCode: data?.raw?.code || 'N/A',
+        eventType: data?.eventType || 'N/A',
+        dataWsKey: data?.wsKey || 'N/A',
+        connectionState: data?.connectionState || 'N/A',
+        fullData: JSON.stringify(data, null, 2)
+      };
+      UtilRecord.log(`[WSManager] 用户数据流 WebSocket 错误 ${subKey}:`, JSON.stringify(errorInfo, null, 2));
       this.emit('error', { key: subKey, data });
     });
 

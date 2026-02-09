@@ -48,7 +48,7 @@
     "bcryptjs": "^3.0.2",
     "better-sqlite3": "^12.4.6",
     "bignumber.js": "^9.1.2",
-    "binance": "^3.1.5",
+    "binance": "^3.3.3",
     "body-parser": "^1.20.1",
     "bull": "^4.16.5",
     "cheerio": "^1.1.2",

@@ -110,8 +110,17 @@ const initMarkPriceStream = async () => {
     });
 
     client.on('error', (data) => {
-      // 静默处理连接错误，SDK 会自动重连
-      UtilRecord.trace(`标记价格流 WebSocket 错误 (自动重连中):`, data?.raw?.message || 'unknown');
+      // 记录完整错误对象，帮助诊断标记价格流断线重连原因
+      const errorInfo = {
+        wsKey: data?.wsKey || 'markPrice',
+        timestamp: new Date().toISOString(),
+        rawMessage: data?.raw?.message || 'N/A',
+        rawCode: data?.raw?.code || 'N/A',
+        eventType: data?.eventType || 'N/A',
+        connectionState: data?.connectionState || 'N/A',
+        fullData: JSON.stringify(data, null, 2)
+      };
+      UtilRecord.log(`标记价格流 WebSocket 错误 (自动重连中):`, JSON.stringify(errorInfo, null, 2));
     });
 
     // 订阅全市场标记价格流

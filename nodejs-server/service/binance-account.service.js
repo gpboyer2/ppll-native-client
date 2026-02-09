@@ -11,6 +11,7 @@ const UtilRecord = require('../utils/record-log.js');
 const rateLimiter = require('../utils/binance-rate-limiter.js');
 const db = require('../models');
 const binanceUmTradingPairsService = require('./binance-um-trading-pairs.service');
+const cacheManager = require('../managers/BinanceAccountCacheManager.js');
 
 // 缓存有效期（毫秒）
 const CACHE_TTL_MS = 20 * 1000;
@@ -98,7 +99,7 @@ const createCoinMClient = (api_key, api_secret) => /** @type {CoinMClient} */ (c
  * 通用账户信息获取函数（内部使用）
  * 单用户系统：通过 api_key 实现数据隔离和缓存
  * 统一处理缓存逻辑，减少重复代码
- * 使用三层缓存策略: 内存缓存(20秒) -> 数据库缓存(20秒) -> API调用
+ * 使用三层缓存策略: 内存缓存(60秒/20秒) -> 数据库缓存(20秒) -> API调用
  * @param {string} marketType - 市场类型：spot | usdm | coinm
  * @param {string} api_key - 用户API Key（用于数据隔离）
  * @param {string} api_secret - 用户API Secret
@@ -110,8 +111,18 @@ const getAccountInfo = async (marketType, api_key, api_secret, filterOptions = {
   const marketLabel = { spot: '现货', usdm: 'U本位合约', coinm: '币本位合约' }[marketType];
 
   try {
-    // 直接调用币安 API，不使用数据库缓存
-    UtilRecord.debug(`[账户服务] 直接调用币安 API: ${marketLabel}`, {
+    // 优先从内存缓存获取数据
+    const cached_data = cacheManager.get(api_key, marketType);
+    if (cached_data && !cacheManager.isExpired(api_key, marketType, cacheManager.DEFAULT_CACHE_TTL_MS)) {
+      UtilRecord.debug(`[账户服务] 使用内存缓存: ${marketLabel}`, {
+        api_key_prefix: api_key.substring(0, 8) + '...',
+        cache_age: Date.now() - cacheManager.getTimestamp(api_key, marketType)
+      });
+      return applyAccountFilter(JSON.parse(JSON.stringify(cached_data)), marketType, filterOptions);
+    }
+
+    // 缓存未命中或已过期，调用币安 API
+    UtilRecord.debug(`[账户服务] 调用币安 API: ${marketLabel}`, {
       api_key_prefix: api_key.substring(0, 8) + '...',
       api_secret_prefix: api_secret.substring(0, 8) + '...',
       api_key_length: api_key.length,
@@ -131,7 +142,10 @@ const getAccountInfo = async (marketType, api_key, api_secret, filterOptions = {
       }
     );
 
-    // 仍然更新数据库缓存（用于调试和监控）
+    // 更新内存缓存
+    cacheManager.set(api_key, marketType, JSON.parse(JSON.stringify(account_info)));
+
+    // 更新数据库缓存（用于调试和监控）
     if (api_key && db[modelName]) {
       await db[modelName].upsert({
         api_key: api_key,
@@ -148,6 +162,15 @@ const getAccountInfo = async (marketType, api_key, api_secret, filterOptions = {
       error_code: error.code,
       error_stack: error.stack?.split('\n')?.[0]
     });
+
+    // API 调用失败，尝试使用过期缓存作为降级方案
+    const stale_data = cacheManager.get(api_key, marketType);
+    if (stale_data) {
+      const cache_age = Date.now() - cacheManager.getTimestamp(api_key, marketType);
+      UtilRecord.log(`[账户服务] 使用过期缓存降级: ${marketLabel}, 缓存年龄: ${Math.round(cache_age / 1000)}秒`);
+      return applyAccountFilter(JSON.parse(JSON.stringify(stale_data)), marketType, filterOptions);
+    }
+
     throw error;
   }
 };
