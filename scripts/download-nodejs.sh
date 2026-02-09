@@ -7,7 +7,7 @@
 #   ./scripts/download-nodejs.sh [platform]
 #
 # 参数:
-#   platform  目标平台 (darwin/amd64, darwin/arm64, windows/amd64, windows/arm64, auto)
+#   platform  目标平台 (darwin/amd64, darwin/arm64, darwin/universal, windows/amd64, windows/arm64, auto)
 #            默认为 auto，自动检测当前平台
 
 set -e
@@ -57,6 +57,10 @@ case "$ARCH" in
         ;;
     aarch64|arm64)
         ARCH="arm64"
+        BINARY_NAME="node"
+        ;;
+    universal)
+        # 保持 ARCH="universal"，特殊处理
         BINARY_NAME="node"
         ;;
     armv7l|arm)
@@ -139,6 +143,55 @@ case "$FILENAME" in
         EXTRACT_DIR="/tmp/node-v${NODE_VERSION}-win-${ARCH}"
         ;;
 esac
+
+# Universal 二进制特殊处理
+if [ "$OS" = "darwin" ] && [ "$ARCH" = "universal" ]; then
+    echo "正在构建 universal 二进制文件..."
+
+    # 下载 amd64 版本
+    AMD64_FILENAME="node-v${NODE_VERSION}-darwin-x64.tar.gz"
+    AMD64_URL="${NODE_BASE_URL}/${AMD64_FILENAME}"
+    AMD64_TEMP="/tmp/${AMD64_FILENAME}"
+    AMD64_EXTRACT="/tmp/node-v${NODE_VERSION}-darwin-amd64"
+
+    echo "正在下载 ${AMD64_FILENAME}..."
+    curl -L -o "$AMD64_TEMP" "$AMD64_URL"
+    tar -xzf "$AMD64_TEMP" -C /tmp
+
+    # 下载 arm64 版本
+    ARM64_FILENAME="node-v${NODE_VERSION}-darwin-arm64.tar.gz"
+    ARM64_URL="${NODE_BASE_URL}/${ARM64_FILENAME}"
+    ARM64_TEMP="/tmp/${ARM64_FILENAME}"
+    ARM64_EXTRACT="/tmp/node-v${NODE_VERSION}-darwin-arm64"
+
+    echo "正在下载 ${ARM64_FILENAME}..."
+    curl -L -o "$ARM64_TEMP" "$ARM64_URL"
+    tar -xzf "$ARM64_TEMP" -C /tmp
+
+    # 使用 lipo 合并为 universal 二进制
+    TARGET_FILE="${OUTPUT_DIR}/${BINARY_NAME}"
+    lipo -create \
+        "${AMD64_EXTRACT}/bin/node" \
+        "${ARM64_EXTRACT}/bin/node" \
+        -output "$TARGET_FILE"
+    chmod +x "$TARGET_FILE"
+
+    # 清理
+    rm -f "$AMD64_TEMP" "$ARM64_TEMP"
+    rm -rf "$AMD64_EXTRACT" "$ARM64_EXTRACT"
+
+    echo "✓ Universal 二进制文件已创建"
+    ls -lh "$TARGET_FILE" | awk '{print "  文件大小: " $5}'
+
+    # 验证 universal 二进制
+    echo "正在验证..."
+    lipo -info "$TARGET_FILE"
+
+    echo "========================================"
+    echo "下载完成！"
+    echo "========================================"
+    exit 0
+fi
 
 # 复制可执行文件
 echo "正在复制可执行文件..."
