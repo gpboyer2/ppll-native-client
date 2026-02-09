@@ -218,7 +218,7 @@ buildWindows() {
 
     echo ""
     echo "----------------------------------------"
-    echo "正在构建: $WINDOWS_PLATFORM"
+    echo "正在构建: $WINDOWS_PLATFORM (使用 NSIS 安装程序)"
     echo ""
 
     # 清理旧的构建产物
@@ -227,7 +227,7 @@ buildWindows() {
     # 下载 Node.js
     downloadNodejs "$WINDOWS_PLATFORM"
 
-    # 构建
+    # 先构建基础 exe（不带 -nsis）
     "$WAILS_PATH" build -platform "$WINDOWS_PLATFORM" -clean
 
     # 处理 .exe 文件
@@ -236,7 +236,7 @@ buildWindows() {
     if [ -f "build/bin/$EXE_NAME" ]; then
         NODE_SRC="$NODE_BIN_DIR/windows-amd64/node.exe"
 
-        # 复制 node.exe
+        # 复制 node.exe（在生成 NSIS 之前）
         if [ -f "$NODE_SRC" ]; then
             cp -f "$NODE_SRC" "build/bin/node.exe"
             echo "Node.js 已复制到: build/bin/node.exe"
@@ -253,12 +253,25 @@ buildWindows() {
             echo "nodejs-server 已复制到: build/bin/nodejs-server"
         fi
 
-        # 创建输出文件
-        OUTPUT_FILE="build/release/ppll-native-client-windows-${HOST_ARCH}.exe"
-        echo "正在创建 $OUTPUT_FILE..."
-        cp "build/bin/$EXE_NAME" "$OUTPUT_FILE"
+        # 生成 NSIS 安装程序（不带 -clean，避免删除刚复制的文件）
+        echo "正在生成 NSIS 安装程序..."
+        "$WAILS_PATH" build -platform "$WINDOWS_PLATFORM" -nsis
 
-        echo "已生成: $OUTPUT_FILE"
+        # 查找 NSIS 安装程序
+        INSTALLER_NAME="ppll-native-client-install.exe"
+        OUTPUT_FILE="build/release/ppll-native-client-windows-${HOST_ARCH}-installer.exe"
+
+        if [ -f "build/bin/$INSTALLER_NAME" ]; then
+            echo "正在创建 NSIS 安装程序: $OUTPUT_FILE..."
+            cp "build/bin/$INSTALLER_NAME" "$OUTPUT_FILE"
+            echo "已生成 NSIS 安装程序: $OUTPUT_FILE"
+        else
+            # 回退到原始 exe
+            echo "警告: 未找到 NSIS 安装程序，使用原始 exe"
+            OUTPUT_FILE="build/release/ppll-native-client-windows-${HOST_ARCH}.exe"
+            cp "build/bin/$EXE_NAME" "$OUTPUT_FILE"
+            echo "已生成: $OUTPUT_FILE"
+        fi
         ls -lh "$OUTPUT_FILE" | awk '{print "  文件大小: " $5}'
     else
         echo "警告: 未找到构建产物 build/bin/$EXE_NAME"

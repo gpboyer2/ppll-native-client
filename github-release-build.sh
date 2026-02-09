@@ -191,8 +191,8 @@ show_build_progress_hint() {
     echo "  • macOS Intel (x64)              .dmg"
     echo "  • macOS Apple Silicon (arm64)     .dmg"
     echo "  • macOS Universal                 .dmg"
-    echo "  • Windows x64                     .exe"
-    echo "  • Windows ARM64                   .exe"
+    echo "  • Windows x64                     .exe (NSIS 安装程序)"
+    echo "  • Windows ARM64                   .exe (NSIS 安装程序)"
     echo ""
 }
 

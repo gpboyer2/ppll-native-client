@@ -195,11 +195,16 @@ for platform_info in "${PLATFORMS[@]}"; do
                 echo "✓ Node.js 已嵌入到: $RESOURCES_DIR/node"
             fi
 
-            # 复制 nodejs-server 到 .app
+            # 复制 nodejs-server 到 .app（排除 logs 目录）
             if [ -d "nodejs-server" ]; then
                 RESOURCES_DIR="build/bin/$APP_NAME/Contents/Resources"
                 mkdir -p "$RESOURCES_DIR"
-                cp -R nodejs-server "$RESOURCES_DIR/"
+                if command -v rsync >/dev/null 2>&1; then
+                    rsync -av --exclude='logs' --exclude='*.log' nodejs-server/ "$RESOURCES_DIR/nodejs-server/"
+                else
+                    mkdir -p "$RESOURCES_DIR/nodejs-server"
+                    tar -cf - --exclude='logs' --exclude='*.log' -C nodejs-server . | tar -xf - -C "$RESOURCES_DIR/nodejs-server"
+                fi
                 echo "✓ nodejs-server 已复制到: $RESOURCES_DIR/nodejs-server"
             fi
 
@@ -225,7 +230,7 @@ for platform_info in "${PLATFORMS[@]}"; do
             echo "警告: 未找到构建产物 build/bin/$APP_NAME"
         fi
     elif [[ $platform == windows* ]]; then
-        # Windows 平台 - 处理 .exe 文件
+        # Windows 平台 - 使用 NSIS 生成安装程序
         EXE_NAME="ppll-native-client.exe"
 
         if [ -f "build/bin/$EXE_NAME" ]; then
@@ -239,33 +244,42 @@ for platform_info in "${PLATFORMS[@]}"; do
                     ;;
             esac
 
+            OUTPUT_FILE="build/ppll-client-v${VERSION}-${suffix}-installer.exe"
+
+            echo "正在准备 NSIS 安装程序..."
+
+            # 先复制依赖文件到 build/bin（在生成 NSIS 之前）
             # 复制 node.exe 到 exe 同目录（用于运行时查找）
             if [ -f "$NODE_SRC" ]; then
                 cp -f "$NODE_SRC" "build/bin/node.exe"
                 echo "✓ Node.js 已复制到: build/bin/node.exe"
             fi
 
-            # 复制 nodejs-server 到 exe 同目录
+            # 复制 nodejs-server 到 exe 同目录（排除 logs 目录）
             if [ -d "nodejs-server" ]; then
-                cp -R nodejs-server "build/bin/nodejs-server"
+                if command -v rsync >/dev/null 2>&1; then
+                    rsync -av --exclude='logs' --exclude='*.log' nodejs-server/ build/bin/nodejs-server/
+                else
+                    mkdir -p build/bin/nodejs-server
+                    tar -cf - --exclude='logs' --exclude='*.log' -C nodejs-server . | tar -xf - -C build/bin/nodejs-server
+                fi
                 echo "✓ nodejs-server 已复制到: build/bin/nodejs-server"
             fi
 
-            OUTPUT_FILE="build/ppll-client-v${VERSION}-${suffix}.exe"
+            # 使用 Wails 的 -nsis 参数生成安装程序（不带 -clean，避免删除刚复制的文件）
+            "$WAILS_PATH" build -platform "$platform" -nsis
 
-            echo "正在创建 $OUTPUT_FILE..."
-
-            # 复制并重命名主程序
-            cp "build/bin/$EXE_NAME" "$OUTPUT_FILE"
-
-            # 同时复制 node.exe 到输出目录（用户需要两个文件）
-            if [ -f "$NODE_SRC" ]; then
-                cp -f "$NODE_SRC" "build/node-${suffix}.exe"
-                echo "✓ Node.js 已复制到: build/node-${suffix}.exe"
+            # 查找生成的安装程序并重命名
+            if [ -f "build/bin/ppll-native-client-install.exe" ]; then
+                mv "build/bin/ppll-native-client-install.exe" "$OUTPUT_FILE"
+                echo "✓ 已生成 NSIS 安装程序: $OUTPUT_FILE"
+                ls -lh "$OUTPUT_FILE" | awk '{print "  文件大小: " $5}'
+            else
+                echo "警告: 未找到 NSIS 安装程序，使用原始 exe"
+                cp "build/bin/$EXE_NAME" "$OUTPUT_FILE"
+                echo "✓ 已生成: $OUTPUT_FILE"
+                ls -lh "$OUTPUT_FILE" | awk '{print "  文件大小: " $5}'
             fi
-
-            echo "✓ 已生成: $OUTPUT_FILE"
-            ls -lh "$OUTPUT_FILE" | awk '{print "  文件大小: " $5}'
         else
             echo "警告: 未找到构建产物 build/bin/$EXE_NAME"
         fi

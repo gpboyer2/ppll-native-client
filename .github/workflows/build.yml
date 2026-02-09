@@ -199,20 +199,31 @@ jobs:
             Write-Host "✓ nodejs-server 已复制到: $BUILD_DIR/nodejs-server"
           }
 
-      - name: 重命名并打包 EXE
+      - name: 生成 NSIS 安装程序
+        run: wails build -platform ${{ matrix.platform }} -nsis
+
+      - name: 准备 NSIS 安装程序输出
         shell: pwsh
         run: |
           $VERSION = (Get-Content wails.json | Select-String '"productVersion"' | ForEach-Object { $_.ToString() -replace '.*"productVersion": "(.*)".*', '$1' })
-          $OUTPUT_FILE = "build/ppll-client-v$VERSION-${{ matrix.suffix }}.exe"
-          Copy-Item "build/bin/ppll-native-client.exe" -Destination $OUTPUT_FILE
-          Get-Item $OUTPUT_FILE | Select-Object Name, @{Name="Size";Expression={$_.Length/1MB}}
+          $INSTALLER_EXE = "build/bin/ppll-native-client-install.exe"
+          $OUTPUT_FILE = "build/ppll-client-v$VERSION-${{ matrix.suffix }}-installer.exe"
+
+          if (Test-Path $INSTALLER_EXE) {
+            Move-Item -Path $INSTALLER_EXE -Destination $OUTPUT_FILE -Force
+            Write-Host "✓ NSIS 安装程序已重命名: $OUTPUT_FILE"
+            Get-Item $OUTPUT_FILE | Select-Object Name, @{Name="Size";Expression={$_.Length/1MB}}
+          } else {
+            Write-Host "警告: 未找到 NSIS 安装程序，可能需要安装 NSIS"
+          }
 
       - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
           name: ppll-client-${{ matrix.suffix }}
-          path: build/*.exe
+          path: build/*-installer.exe
           retention-days: 30
+          if-no-files-found: warn
 
   create-release:
     name: 创建发布
