@@ -35,8 +35,6 @@ const updateFromPositions = async (positions) => {
     updatedCount++;
   }
 
-  UtilRecord.debug(`[交易对服务] 自动更新了 ${updatedCount} 个U本位合约交易对`);
-
   return updatedCount;
 };
 
