@@ -11,7 +11,6 @@ const app = express();
 const routeManager = require("./route/route.manager.js");
 const db = require("./models/index");
 const cors = require("cors");
-const bodyParser = require("body-parser");
 const swaggerDocs = require("./swagger.js");
 const xss = require("xss-clean");
 const ipUtil = require("./utils/ip");
@@ -68,21 +67,20 @@ const corsOptions = {
   optionsSuccessStatus: 200 // 兼容老版本浏览器
 };
 
+app.use(cors(corsOptions)); // 启用CORS，限定来源、方法、头部
+
+app.use(express.json({ limit: "1mb" }));
+app.use(express.urlencoded({ extended: false }));
+
 app.use(xss());
 
 // 统一响应格式中间件（在所有路由之前注册）
 const responseFormatMiddleware = require('./utils/api-response');
 app.use(responseFormatMiddleware);
 
-app.use(express.json({ limit: "1mb" }));
-
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
 // 请求去重合并中间件（1秒窗口内相同请求合并处理）
 const requestCoalescingMiddleware = require('./middleware/request-coalescing');
 app.use(requestCoalescingMiddleware);
-app.use(cors(corsOptions)); // 启用CORS，限定来源、方法、头部
 
 
 // 日志中间件
@@ -221,7 +219,7 @@ function killProcessOnPort(port) {
   try {
     const platform = process.platform;
     let pids = [];
-        
+
     if (platform === 'darwin' || platform === 'linux') {
       // macOS / Linux: 使用 lsof 查找占用端口的进程
       const result = execSync(`lsof -ti:${port} 2>/dev/null || true`, { encoding: 'utf8' });
@@ -238,7 +236,7 @@ function killProcessOnPort(port) {
         }
       });
     }
-        
+
     if (pids.length > 0) {
       console.log(`[端口清理] 发现端口 ${port} 被占用，正在清理进程: ${pids.join(', ')}`);
       pids.forEach(pid => {
