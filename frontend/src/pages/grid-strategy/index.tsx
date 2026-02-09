@@ -72,7 +72,7 @@ function GridStrategyListPage() {
     loadStrategyList();
 
     // 设置定时刷新，每 5 秒刷新一次策略状态
-    interval_ref.current = setInterval(() => {
+    interval_ref.current = window.setInterval(() => {
       loadStrategyListInternal();
     }, 5000);
 

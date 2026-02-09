@@ -108,12 +108,12 @@ export function PluginLogsCard({
 
   useEffect(() => {
     if (!log_loading) {
-      interval_ref.current = setInterval(() => {
+      interval_ref.current = window.setInterval(() => {
         on_refresh_logs_ref.current();
         setNextRefreshCountdown(AUTO_REFRESH_INTERVAL / 1000);
       }, AUTO_REFRESH_INTERVAL);
 
-      countdown_ref.current = setInterval(() => {
+      countdown_ref.current = window.setInterval(() => {
         setNextRefreshCountdown(prev => {
           if (prev <= 1) {
             return AUTO_REFRESH_INTERVAL / 1000;

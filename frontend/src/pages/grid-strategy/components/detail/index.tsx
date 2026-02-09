@@ -261,7 +261,7 @@ function GridStrategyDetailPage() {
     updateDuration();
 
     // 每秒更新一次
-    interval_ref.current = setInterval(updateDuration, 1000);
+    interval_ref.current = window.setInterval(updateDuration, 1000);
 
     return () => {
       if (interval_ref.current) {
