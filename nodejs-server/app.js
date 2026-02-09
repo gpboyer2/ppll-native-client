@@ -78,6 +78,10 @@ app.use(express.json({ limit: "1mb" }));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
+
+// 请求去重合并中间件（1秒窗口内相同请求合并处理）
+const requestCoalescingMiddleware = require('./middleware/request-coalescing');
+app.use(requestCoalescingMiddleware);
 app.use(cors(corsOptions)); // 启用CORS，限定来源、方法、头部
 
 
