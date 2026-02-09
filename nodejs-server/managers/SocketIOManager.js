@@ -269,11 +269,11 @@ const init = (server, wsManagerInstance) => {
       }
     }
     if (tickerRooms.length > 0) {
-      UtilRecord.log('[SocketIO] ===== Ticker 房间状态 =====');
-      UtilRecord.log(`[SocketIO] 活跃的 Ticker 房间: ${JSON.stringify(tickerRooms, null, 2)}`);
+      UtilRecord.debug('[SocketIO] ===== Ticker 房间状态 =====');
+      UtilRecord.debug(`[SocketIO] 活跃的 Ticker 房间: ${JSON.stringify(tickerRooms, null, 2)}`);
     } else {
-      UtilRecord.log('[SocketIO] ===== Ticker 房间状态 =====');
-      UtilRecord.log('[SocketIO] 没有活跃的 Ticker 房间');
+      UtilRecord.debug('[SocketIO] ===== Ticker 房间状态 =====');
+      UtilRecord.debug('[SocketIO] 没有活跃的 Ticker 房间');
     }
   }, 30000);
 };
