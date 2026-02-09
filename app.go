@@ -132,10 +132,29 @@ func (a *App) startup(ctx context.Context) {
 		a.log.Info("正在启动 Node.js 后端服务...")
 		if err := a.njs.Start(); err != nil {
 			a.log.Error("Node.js 服务启动失败", "error", err)
+			// 显示错误对话框
+			runtime.MessageDialog(ctx, runtime.MessageDialogOptions{
+				Type:    runtime.ErrorDialog,
+				Title:   "Node.js 服务启动失败",
+				Message: "Node.js 后端服务启动失败，部分功能可能不可用。\n\n错误信息: " + err.Error() + "\n\n请检查日志目录: " + os.Getenv("PPLL_LOG_DIR"),
+			})
 		} else {
 			a.log.Info("Node.js 后端服务启动成功")
 		}
 	}
+}
+
+// domReady 当前端 DOM 加载完成时调用
+func (a *App) domReady(ctx context.Context) {
+	// 前端已就绪
+	a.log.Info("前端 DOM 已就绪")
+}
+
+// beforeClose 当应用即将关闭时调用
+// 返回 false 阻止关闭
+func (a *App) beforeClose(ctx context.Context) (prevent bool) {
+	a.log.Info("应用即将关闭")
+	return false
 }
 
 // shutdown 应用关闭时调用
