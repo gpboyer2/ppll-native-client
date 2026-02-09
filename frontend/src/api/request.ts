@@ -2,6 +2,7 @@ import { apiClient } from './client';
 import { Response } from '../core/response';
 import { getStaticInfo } from '../stores/system-info-store';
 import { useBinanceStore } from '../stores/binance-store';
+import { notifications } from '@mantine/notifications';
 
 /**
  * 获取 Node.js 服务 URL
@@ -136,7 +137,8 @@ export class RequestWrapper {
   private static async wrapRequest<T>(
     request: Promise<any>,
     requestId: number,
-    startTime: number
+    startTime: number,
+    url: string
   ): Promise<Response<T>> {
     try {
       const apiResponse = await request;
@@ -152,6 +154,15 @@ export class RequestWrapper {
       console.error(`[wrapRequest #${requestId}] 请求异常:`, error);
       // 记录错误日志
       RequestLogger.logError(requestId, error, startTime);
+
+      // 检测超时错误
+      if (error.name === 'AbortError' || error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+        notifications.show({
+          title: '请求超时',
+          message: `接口 ${url} 请求超时，请稍后再试。`,
+          color: 'red'
+        });
+      }
 
       return {
         status: 'error',
@@ -186,7 +197,7 @@ export class RequestWrapper {
     try {
       // 将 requestId 存储到 apiClient 实例上，供拦截器使用
       ;(apiClient as any).__requestId = requestId;
-      const result = await this.wrapRequest<T>(requestFn(), requestId, startTime);
+      const result = await this.wrapRequest<T>(requestFn(), requestId, startTime, url);
       return result;
     } finally {
       if (this.shouldUseNodejs(url)) {
@@ -262,7 +273,7 @@ export class RequestWrapper {
     const requestId = RequestLogger.logStart('UPLOAD', url, undefined, { fileName: file.name, size: file.size });
     const startTime = Date.now();
 
-    return this.wrapRequest<T>(apiClient.upload<T>(url, file), requestId, startTime);
+    return this.wrapRequest<T>(apiClient.upload<T>(url, file), requestId, startTime, url);
   }
 
   /**
@@ -273,7 +284,7 @@ export class RequestWrapper {
     const requestId = RequestLogger.logStart('UPLOAD-MULTI', url, undefined, { files: fileInfos });
     const startTime = Date.now();
 
-    return this.wrapRequest<T>(apiClient.uploadMultiple<T>(url, files), requestId, startTime);
+    return this.wrapRequest<T>(apiClient.uploadMultiple<T>(url, files), requestId, startTime, url);
   }
 
   /**
