@@ -111,6 +111,7 @@
 .container .flex.gap-16 .card.shortcut-card .plugin-info .plugin-version {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+  text-align: left;
 }
 
 .container .flex.gap-16 .card.shortcut-card .btn-open {
@@ -138,6 +139,7 @@
   padding: 8px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--color-border);
+  align-items: flex-start;
 }
 
 /* 系统通知卡片 */
