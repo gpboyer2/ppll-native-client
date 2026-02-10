@@ -24,6 +24,10 @@ database/
 
 # Database files
 nodejs-server/datum/*.sqlite
+app/backend/database.sqlite
+**/*.sqlite
+**/*.sqlite-*
+**/*.db
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json

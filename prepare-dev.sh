@@ -4,8 +4,8 @@
 # 重置代码、安装依赖、准备开发环境
 #
 # 使用方法:
-# ./prepare-dev.sh                         # 默认使用 pnpm 和 master 分支
-# ./prepare-dev.sh -n=npm -b=develop       # 使用 npm 和 develop 分支
+# ./prepare-dev.sh                         # 默认使用 pnpm 和当前分支
+# ./prepare-dev.sh -n=npm -b=feature-xxx  # 使用 npm 并切换到指定分支
 
 set -e
 
@@ -18,7 +18,7 @@ PACKAGE_MANAGER_LOCK_FILE="$SCRIPT_DIR/.package-manager-lock"
 
 # 解析命令行参数
 PACKAGE_MANAGER="pnpm"  # 默认使用 pnpm
-BRANCH_NAME="master"    # 默认分支
+BRANCH_NAME=$(git branch --show-current)  # 默认使用当前分支
 
 for arg in "$@"; do
     case $arg in
@@ -31,15 +31,11 @@ for arg in "$@"; do
             ;;
         -b=*)
             BRANCH_NAME="${arg#-b=}"
-            if [ "$BRANCH_NAME" != "develop" ] && [ "$BRANCH_NAME" != "master" ]; then
-                echo "错误: 不支持的分支 '$BRANCH_NAME'，支持的分支: develop, master"
-                exit 1
-            fi
             ;;
         *)
             echo "错误: 不支持的参数 '$arg'"
-            echo "支持的参数: -n=npm|pnpm, -b=develop|master"
-            echo "示例: ./prepare-dev.sh -n=pnpm -b=master"
+            echo "支持的参数: -n=npm|pnpm, -b=<分支名>"
+            echo "示例: ./prepare-dev.sh -n=pnpm -b=feature-xxx"
             exit 1
             ;;
     esac
@@ -64,55 +60,6 @@ get_package_manager_path() {
     fi
 }
 
-# 获取 wails 可执行文件路径
-get_wails_path() {
-    # 优先使用 PATH 中的 wails
-    if command -v wails &> /dev/null; then
-        echo "wails"
-        return 0
-    fi
-
-    # 检查 GOPATH/bin
-    local gopath=$(go env GOPATH)
-    if [ -f "$gopath/bin/wails" ]; then
-        echo "$gopath/bin/wails"
-        return 0
-    fi
-
-    # 未找到
-    return 1
-}
-
-# 检查并安装 wails
-check_wails() {
-    if ! get_wails_path &> /dev/null; then
-        echo "未找到 wails，正在自动安装..."
-        go install github.com/wailsapp/wails/v2/cmd/wails@latest
-
-        # 重新检查是否安装成功
-        if ! get_wails_path &> /dev/null; then
-            echo "错误: wails 安装失败，请手动安装: go install github.com/wailsapp/wails/v2/cmd/wails@latest"
-            echo "提示: 请确保 GOPATH/bin 已添加到系统 PATH 中"
-            exit 1
-        fi
-
-        echo "wails 安装成功！"
-    else
-        echo "wails 已安装"
-    fi
-
-    # 导出 wails 路径供后续使用
-    WAILS_PATH=$(get_wails_path)
-}
-
-# 检查 Go 是否安装
-check_go() {
-    if ! command -v go &> /dev/null; then
-        echo "错误: 找不到 Go，请先安装 Go"
-        exit 1
-    fi
-}
-
 # 检查 Node.js 是否安装
 check_nodejs() {
     if ! command -v node &> /dev/null; then
@@ -126,7 +73,7 @@ check_nodejs() {
 # 获取包管理器的完整路径
 PACKAGE_MANAGER_CMD=$(get_package_manager_path "$PACKAGE_MANAGER")
 
-# 检查上次使用的包管理器（前端）
+# 检查上次使用的包管理器（前端、主进程、后端）
 check_package_manager_change() {
     local current_manager=$1
     local previous_manager=""
@@ -139,17 +86,60 @@ check_package_manager_change() {
         echo "检测到包管理器从 '$previous_manager' 切换到 '$current_manager'"
         echo "正在清理旧的 node_modules..."
 
-        if [ -d "./frontend/node_modules" ]; then
-            echo "删除 ./frontend/node_modules"
-            rm -rf "./frontend/node_modules"
+        # 清理根目录
+        if [ -d "./node_modules" ]; then
+            echo "删除 ./node_modules"
+            rm -rf "./node_modules"
         fi
-        if [ -f "./frontend/package-lock.json" ] && [ "$current_manager" = "pnpm" ]; then
-            echo "删除 ./frontend/package-lock.json"
-            rm -f "./frontend/package-lock.json"
+        if [ -f "./package-lock.json" ] && [ "$current_manager" = "pnpm" ]; then
+            echo "删除 ./package-lock.json"
+            rm -f "./package-lock.json"
         fi
-        if [ -f "./frontend/pnpm-lock.yaml" ] && [ "$current_manager" = "npm" ]; then
-            echo "删除 ./frontend/pnpm-lock.yaml"
-            rm -f "./frontend/pnpm-lock.yaml"
+        if [ -f "./pnpm-lock.yaml" ] && [ "$current_manager" = "npm" ]; then
+            echo "删除 ./pnpm-lock.yaml"
+            rm -f "./pnpm-lock.yaml"
+        fi
+
+        # 清理前端
+        if [ -d "./app/frontend/node_modules" ]; then
+            echo "删除 ./app/frontend/node_modules"
+            rm -rf "./app/frontend/node_modules"
+        fi
+        if [ -f "./app/frontend/package-lock.json" ] && [ "$current_manager" = "pnpm" ]; then
+            echo "删除 ./app/frontend/package-lock.json"
+            rm -f "./app/frontend/package-lock.json"
+        fi
+        if [ -f "./app/frontend/pnpm-lock.yaml" ] && [ "$current_manager" = "npm" ]; then
+            echo "删除 ./app/frontend/pnpm-lock.yaml"
+            rm -f "./app/frontend/pnpm-lock.yaml"
+        fi
+
+        # 清理 Electron 主进程
+        if [ -d "./electron/node_modules" ]; then
+            echo "删除 ./electron/node_modules"
+            rm -rf "./electron/node_modules"
+        fi
+        if [ -f "./electron/package-lock.json" ] && [ "$current_manager" = "pnpm" ]; then
+            echo "删除 ./electron/package-lock.json"
+            rm -f "./electron/package-lock.json"
+        fi
+        if [ -f "./electron/pnpm-lock.yaml" ] && [ "$current_manager" = "npm" ]; then
+            echo "删除 ./electron/pnpm-lock.yaml"
+            rm -f "./electron/pnpm-lock.yaml"
+        fi
+
+        # 清理后端
+        if [ -d "./app/backend/node_modules" ]; then
+            echo "删除 ./app/backend/node_modules"
+            rm -rf "./app/backend/node_modules"
+        fi
+        if [ -f "./app/backend/package-lock.json" ] && [ "$current_manager" = "pnpm" ]; then
+            echo "删除 ./app/backend/package-lock.json"
+            rm -f "./app/backend/package-lock.json"
+        fi
+        if [ -f "./app/backend/pnpm-lock.yaml" ] && [ "$current_manager" = "npm" ]; then
+            echo "删除 ./app/backend/pnpm-lock.yaml"
+            rm -f "./app/backend/pnpm-lock.yaml"
         fi
 
         echo "清理完成"
@@ -160,8 +150,6 @@ check_package_manager_change() {
 }
 
 # 检查必要工具
-check_go
-check_wails
 check_nodejs
 
 # 检查并处理包管理器切换
@@ -171,69 +159,78 @@ echo "========================================"
 echo "PPLL Native Client macOS 开发环境准备"
 echo "========================================"
 echo "包管理器: $PACKAGE_MANAGER"
-echo "目标分支: $BRANCH_NAME"
+echo "使用分支: $BRANCH_NAME"
 echo "========================================"
 
-echo "[1/7] 确认代码在 $BRANCH_NAME 分支..."
+echo "[1/6] 确认代码在分支 $BRANCH_NAME 上..."
+# 动态获取第一个远程仓库名称
+GIT_REMOTE=$(git remote | head -n 1)
+if [ -z "$GIT_REMOTE" ]; then
+    echo "错误: 未找到 git remote，请检查仓库配置"
+    exit 1
+fi
+echo "使用远程仓库: $GIT_REMOTE"
+
 CURRENT_BRANCH=$(git branch --show-current)
 if [ "$CURRENT_BRANCH" != "$BRANCH_NAME" ]; then
     echo "当前分支是 '$CURRENT_BRANCH'，正在切换到 $BRANCH_NAME 分支..."
     git checkout "$BRANCH_NAME"
-    git pull origin "$BRANCH_NAME"
+    git pull "$GIT_REMOTE" "$BRANCH_NAME"
     echo "已切换到 $BRANCH_NAME 分支并拉取最新代码"
 else
     echo "当前已在 $BRANCH_NAME 分支，拉取最新代码..."
-    git pull origin "$BRANCH_NAME"
+    git pull "$GIT_REMOTE" "$BRANCH_NAME"
 fi
 
-echo "[2/7] 安装 Go 依赖..."
-go mod tidy
-
-echo "[3/7] 安装前端依赖..."
-cd ./frontend
+echo "[2/6] 安装前端依赖..."
+cd ./app/frontend
 $PACKAGE_MANAGER_CMD install
-cd ..
+cd ../..
 
-echo "[4/7] 安装 Node.js 后端依赖..."
-if [ -d "./nodejs-server" ]; then
-    cd ./nodejs-server
+echo "[3/6] 安装 Electron 主进程依赖..."
+if [ -d "./electron" ]; then
+    cd ./electron
     if [ -f "package.json" ]; then
-        # 如果使用 pnpm，需要手动编译 sqlite3 原生模块
-        if [ "$PACKAGE_MANAGER" = "pnpm" ]; then
-            echo "检测到 pnpm，安装依赖..."
-            $PACKAGE_MANAGER_CMD install
-
-            echo "手动编译 sqlite3 原生模块..."
-            # 找到 sqlite3 包目录并手动编译
-            SQLITE3_DIR=$(find node_modules/.pnpm/sqlite3@*/node_modules/sqlite3 -maxdepth 0 -type d 2>/dev/null | head -1)
-            if [ -n "$SQLITE3_DIR" ]; then
-                cd "$SQLITE3_DIR"
-                npm run install 2>&1 || echo "警告: sqlite3 编译失败"
-                cd - > /dev/null
-            else
-                echo "警告: 未找到 sqlite3 目录"
-            fi
-        else
-            $PACKAGE_MANAGER_CMD install
-        fi
-
-        echo "Node.js 后端依赖安装完成"
+        $PACKAGE_MANAGER_CMD install
+        echo "Electron 主进程依赖安装完成"
     else
-        echo "警告: nodejs-server/package.json 不存在，跳过依赖安装"
+        echo "警告: electron/package.json 不存在，跳过依赖安装"
     fi
     cd ..
 else
-    echo "警告: nodejs-server 目录不存在，跳过依赖安装"
+    echo "警告: electron 目录不存在，跳过依赖安装"
 fi
 
-echo "[5/7] 准备完成！"
+echo "[4/6] 安装 Node.js 后端依赖..."
+if [ -d "./app/backend" ]; then
+    cd ./app/backend
+    if [ -f "package.json" ]; then
+        $PACKAGE_MANAGER_CMD install
+        echo "Node.js 后端依赖安装完成"
+    else
+        echo "警告: app/backend/package.json 不存在，跳过依赖安装"
+    fi
+    cd ../..
+else
+    echo "警告: app/backend 目录不存在，跳过依赖安装"
+fi
+
+echo "[5/6] 安装根目录依赖（Electron 启动器）..."
+if [ -f "./package.json" ]; then
+    $PACKAGE_MANAGER_CMD install
+    echo "根目录依赖安装完成"
+else
+    echo "警告: 根目录 package.json 不存在，跳过依赖安装"
+fi
+
+echo "[6/6] 准备完成！"
 echo "========================================"
 echo "开发模式信息:"
-echo "  - Go + Node.js 后端服务将自动启动"
+echo "  - Electron 主进程 + Node.js 后端服务"
 echo "  - 前端热重载已启用"
 echo "  - SQLite 数据库: ~/.config/ppll-client/data.db"
 echo ""
-echo "如需启动开发服务器，请运行: $WAILS_PATH dev"
+echo "如需启动开发服务器，请运行: npm run dev:full"
 echo "========================================"
 
 echo "当前分支: $BRANCH_NAME"

@@ -5,32 +5,25 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "🚀 一键启动",
+      "name": "Electron 全启动",
       "type": "node-terminal",
       "request": "launch",
       "command": "export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && npm run dev:full"
     },
     {
-      "name": "⚡ Electron 主进程调试",
-      "type": "node",
+      "name": "Electron 主进程",
+      "type": "node-terminal",
       "request": "launch",
-      "program": "${workspaceFolder}/electron/main.js",
-      "cwd": "${workspaceFolder}",
-      "console": "integratedTerminal",
-      "skipFiles": ["<node_internals>/**"]
+      "command": "export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && electron ."
     },
     {
-      "name": "⚙️ 后端服务调试",
-      "type": "node",
+      "name": "Electron Node.js 后端",
+      "type": "node-terminal",
       "request": "launch",
-      "program": "${workspaceFolder}/app/backend/app.js",
-      "cwd": "${workspaceFolder}/app/backend",
-      "console": "integratedTerminal",
-      "env": { "NODE_ENV": "development" },
-      "skipFiles": ["<node_internals>/**"]
+      "command": "export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && node app/backend/app.js"
     },
     {
-      "name": "🎨 前端 Vite 开发服务器",
+      "name": "Electron React 前端",
       "type": "node-terminal",
       "request": "launch",
       "command": "export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && cd app/frontend && npm run dev"
