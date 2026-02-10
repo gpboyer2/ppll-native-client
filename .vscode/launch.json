@@ -5,22 +5,35 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "🚀 一键启动(-q)",
-      "command": "export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && export PATH=\"$PATH:$HOME/go/bin\" && ./start-mac.sh -q",
+      "name": "🚀 一键启动",
+      "type": "node-terminal",
       "request": "launch",
-      "type": "node-terminal"
+      "command": "export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && npm run dev:full"
     },
     {
-      "name": "🖥️ Wails dev",
-      "command": "export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && export PATH=\"$PATH:$HOME/go/bin\" && SKIP_NODEJS_AUTO_START=1 wails dev",
+      "name": "⚡ Electron 主进程调试",
+      "type": "node",
       "request": "launch",
-      "type": "node-terminal"
+      "program": "${workspaceFolder}/electron/main.js",
+      "cwd": "${workspaceFolder}",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
     },
     {
-      "name": "⚙️ Node.js 后端",
-      "command": "export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && cd nodejs-server && npm run dev",
+      "name": "⚙️ 后端服务调试",
+      "type": "node",
       "request": "launch",
-      "type": "node-terminal"
+      "program": "${workspaceFolder}/app/backend/app.js",
+      "cwd": "${workspaceFolder}/app/backend",
+      "console": "integratedTerminal",
+      "env": { "NODE_ENV": "development" },
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "🎨 前端 Vite 开发服务器",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "export NVM_DIR=\"$HOME/.nvm\" && [ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\" && cd app/frontend && npm run dev"
     }
   ]
 }

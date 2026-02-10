@@ -1,0 +1,15 @@
+{
+  "name": "ppll-native-client-electron",
+  "version": "1.0.0",
+  "description": "PPLL量化交易专业桌面客户端 - Electron主进程",
+  "main": "main.js",
+  "author": "PPLL Team <team@ppll.com>",
+  "license": "PROPRIETARY",
+  "private": true,
+  "dependencies": {
+    "electron": "^34.2.0"
+  },
+  "devDependencies": {
+    "electron-builder": "^25.1.8"
+  }
+}

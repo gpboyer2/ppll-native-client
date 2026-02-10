@@ -1,0 +1,88 @@
+{
+  "name": "ppll-native-client",
+  "version": "1.0.0",
+  "description": "PPLL量化交易专业桌面客户端 - 为量化交易者提供高性能、安全可靠的跨平台桌面交易体验",
+  "author": "PPLL Team <team@ppll.com>",
+  "license": "PROPRIETARY",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && cd app/backend && npm install && cd ../frontend && npm install && cd ../.. && cd electron && npm install",
+    "install:electron": "cd electron && npm install",
+    "dev:frontend": "cd app/frontend && npm run dev",
+    "dev:backend": "cd app/backend && npm run dev",
+    "dev": "cross-env NODE_ENV=development electron .",
+    "dev:full": "npm-run-all --parallel dev:frontend dev:backend dev",
+    "build:frontend": "cd app/frontend && npm run build",
+    "build": "npm run build:frontend && electron-builder",
+    "build:win": "npm run build:frontend && electron-builder --win",
+    "build:mac": "npm run build:frontend && electron-builder --mac",
+    "build:linux": "npm run build:frontend && electron-builder --linux"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8",
+    "npm-run-all": "^4.1.5"
+  },
+  "build": {
+    "appId": "com.ppll.native-client",
+    "productName": "PPLL量化交易终端",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "electron/**/*",
+      "app/backend/**/*",
+      "app/frontend/dist/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "app/backend",
+        "to": "backend",
+        "filter": [
+          "**/*",
+          "!node_modules/{sqlite3,better-sqlite3,@vscode/sqlite3}/**/*",
+          "!**/test/**/*",
+          "!**/*.test.js",
+          "!**/*.md"
+        ]
+      }
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "build/icon.icns",
+      "category": "public.app-category.finance"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "ia32"]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "build/icon.png",
+      "category": "Finance"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}
