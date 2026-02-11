@@ -1,20 +1,28 @@
 name: Build Multi-Platform
 
-# 触发条件
 on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: '要构建的平台 (逗号分隔: mac-x64,mac-arm64,mac-universal,win-x64,win-arm64，或 all)'
+        required: false
+        default: 'all'
 
-# 构建矩阵
 env:
-  NODE_VERSION: '22'
+  NODE_VERSION: '18'
 
 jobs:
   build-macos:
     name: Build macOS ${{ matrix.arch }}
     runs-on: macos-latest
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && 
+       (github.event.inputs.platforms == 'all' || 
+        contains(github.event.inputs.platforms, format('mac-{0}', matrix.arch))))
 
     strategy:
       matrix:
@@ -35,19 +43,35 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: 设置 Node.js 环境
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
 
-      - name: 安装 pnpm
-        run: npm install -g pnpm
+      - name: 安装根目录依赖
+        run: pnpm install --frozen-lockfile
 
-      - name: 安装所有依赖
-        run: npm run install:all
+      - name: 安装前端依赖
+        working-directory: ./app/frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: 安装后端依赖
+        working-directory: ./app/backend
+        run: pnpm install --frozen-lockfile
+
+      - name: 安装 Electron 依赖
+        working-directory: ./electron
+        run: pnpm install --frozen-lockfile
 
       - name: 构建前端
-        run: npm run build:frontend
+        working-directory: ./app/frontend
+        run: pnpm run build
 
       - name: 构建 macOS ${{ matrix.arch }}
         run: npx electron-builder --mac --${{ matrix.electron_arch }}
@@ -78,6 +102,11 @@ jobs:
   build-windows:
     name: Build Windows ${{ matrix.arch }}
     runs-on: windows-latest
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && 
+       (github.event.inputs.platforms == 'all' || 
+        contains(github.event.inputs.platforms, format('win-{0}', matrix.arch))))
 
     strategy:
       matrix:
@@ -95,19 +124,35 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
       - name: 设置 Node.js 环境
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
 
-      - name: 安装 pnpm
-        run: npm install -g pnpm
+      - name: 安装根目录依赖
+        run: pnpm install --frozen-lockfile
 
-      - name: 安装所有依赖
-        run: npm run install:all
+      - name: 安装前端依赖
+        working-directory: ./app/frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: 安装后端依赖
+        working-directory: ./app/backend
+        run: pnpm install --frozen-lockfile
+
+      - name: 安装 Electron 依赖
+        working-directory: ./electron
+        run: pnpm install --frozen-lockfile
 
       - name: 构建前端
-        run: npm run build:frontend
+        working-directory: ./app/frontend
+        run: pnpm run build
 
       - name: 构建 Windows ${{ matrix.arch }}
         run: npx electron-builder --win --${{ matrix.electron_arch }}

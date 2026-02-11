@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  ci:
+    name: Continuous Integration
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: 设置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 安装前端依赖
+        working-directory: ./app/frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: 安装后端依赖
+        working-directory: ./app/backend
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint 前端代码
+        working-directory: ./app/frontend
+        run: pnpm run lint
+
+      - name: Lint 后端代码
+        working-directory: ./app/backend
+        run: pnpm run lint
+
+      - name: 运行后端测试
+        working-directory: ./app/backend
+        run: pnpm run test
+
+      - name: 构建前端
+        working-directory: ./app/frontend
+        run: pnpm run build

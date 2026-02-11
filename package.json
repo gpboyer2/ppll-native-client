@@ -16,12 +16,19 @@
     "build": "npm run build:frontend && electron-builder",
     "build:win": "npm run build:frontend && electron-builder --win",
     "build:mac": "npm run build:frontend && electron-builder --mac",
-    "build:linux": "npm run build:frontend && electron-builder --linux"
+    "build:linux": "npm run build:frontend && electron-builder --linux",
+    "test": "jest",
+    "test:unit": "jest tests/workflows/unit",
+    "test:property": "jest tests/workflows/property",
+    "test:watch": "jest --watch"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
     "electron": "^34.2.0",
     "electron-builder": "^25.1.8",
+    "fast-check": "^4.5.3",
+    "jest": "^30.2.0",
+    "js-yaml": "^4.1.1",
     "npm-run-all": "^4.1.5"
   },
   "build": {
