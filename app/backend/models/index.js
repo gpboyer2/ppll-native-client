@@ -47,11 +47,6 @@ const sequelizeOptions = {
   storage: storagePath,
   // 日志由 Go 端统一控制：默认不打印，debug 模式打印
   logging: false,
-  // SQLite 特定配置
-  dialectOptions: {
-    mode: require('sqlite3').OPEN_READWRITE | require('sqlite3').OPEN_CREATE,
-    busyTimeout: 30000,
-  },
   // SQLite 连接池配置（单写模式）
   pool: config.pool || {
     max: 1,           // SQLite 只能单写连接
@@ -75,8 +70,6 @@ if (config.dialect === 'sqlite') {
     logging: sequelizeOptions.logging,
     pool: sequelizeOptions.pool,
     define: sequelizeOptions.define,
-    // 使用 sqlite3 包
-    dialectModule: require('sqlite3'),
   });
 } else {
   // MySQL 等其他数据库的兼容配置（保留以防回退）

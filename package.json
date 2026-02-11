@@ -6,7 +6,9 @@
   "license": "PROPRIETARY",
   "private": true,
   "scripts": {
-    "install:all": "npm install && cd app/backend && npm install && cd ../frontend && npm install && cd ../.. && cd electron && npm install",
+    "install:all": "npm install && npm run install:backend && npm run install:frontend && npm run install:electron",
+    "install:backend": "cd app/backend && npm install",
+    "install:frontend": "cd app/frontend && npm install",
     "install:electron": "cd electron && npm install",
     "dev:frontend": "cd app/frontend && npm run dev",
     "dev:backend": "cd app/backend && npm run dev",
