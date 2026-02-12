@@ -8,12 +8,24 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     build: {
       rollupOptions: {
-        external: ['better-sqlite3', 'sqlite3', '@vscode/sqlite3']
+        external: ['better-sqlite3', 'sqlite3', '@vscode/sqlite3'],
+        output: {
+          format: 'cjs',
+          entryFileNames: '[name].js'
+        }
       }
     }
   },
   preload: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
+    build: {
+      rollupOptions: {
+        output: {
+          format: 'cjs',
+          entryFileNames: '[name].js'
+        }
+      }
+    }
   },
   renderer: {
     resolve: {
