@@ -60,19 +60,21 @@ get_current_branch() {
     git branch --show-current
 }
 
-# 检查 github 远程仓库
+# 检查 github 远程仓库（优先 origin，其次 github）
 check_github_remote() {
-    if git remote get-url github >/dev/null 2>&1; then
-        GITHUB_URL=$(git remote get-url github)
-        return 0
-    fi
-
     if git remote get-url origin >/dev/null 2>&1; then
         local origin_url=$(git remote get-url origin)
         if [[ $origin_url =~ github\.com ]]; then
+            GITHUB_REMOTE="origin"
             GITHUB_URL="$origin_url"
             return 0
         fi
+    fi
+
+    if git remote get-url github >/dev/null 2>&1; then
+        GITHUB_REMOTE="github"
+        GITHUB_URL=$(git remote get-url github)
+        return 0
     fi
 
     return 1
@@ -146,7 +148,7 @@ push_tag_to_github() {
 
     local output
     # 先推送当前分支的 commit（包含版本号更新）
-    if output=$(git push github $(get_current_branch) 2>&1); then
+    if output=$(git push "$GITHUB_REMOTE" $(get_current_branch) 2>&1); then
         print_success "提交已推送到 GitHub"
     else
         print_error "推送提交失败"
@@ -155,7 +157,7 @@ push_tag_to_github() {
     fi
 
     # 再推送标签
-    if output=$(git push github "$tag" 2>&1); then
+    if output=$(git push "$GITHUB_REMOTE" "$tag" 2>&1); then
         print_success "标签 $tag 已推送到 GitHub"
         print_info "GitHub Actions 正在构建，请稍候..."
         return 0
@@ -324,7 +326,7 @@ main() {
         read -p "是否删除旧标签并重新创建？(y/N): " recreate_tag
         if [[ $recreate_tag == "y" || $recreate_tag == "Y" ]]; then
             git tag -d "$NEW_VERSION" 2>/dev/null || true
-            git push github ":refs/tags/$NEW_VERSION" 2>/dev/null || true
+            git push "$GITHUB_REMOTE" ":refs/tags/$NEW_VERSION" 2>/dev/null || true
             print_success "已删除旧标签"
         else
             print_info "已取消"
