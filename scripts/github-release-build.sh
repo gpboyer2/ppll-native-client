@@ -387,8 +387,9 @@ main() {
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo ""
 
-    # 创建标签
+    # 创建标签（先确保本地不存在同名标签）
     print_step "正在创建标签 $NEW_VERSION..."
+    git tag -d "$NEW_VERSION" 2>/dev/null || true
     git tag -a "$NEW_VERSION" -m "$release_notes"
     print_success "标签 $NEW_VERSION 已创建"
 
