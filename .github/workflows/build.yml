@@ -1,4 +1,4 @@
-name: Build Multi-Platform
+name: Build & Release
 
 on:
   push:
@@ -7,21 +7,45 @@ on:
   workflow_dispatch:
     inputs:
       platforms:
-        description: '要构建的平台 (逗号分隔: mac-x64,mac-arm64,mac-universal,win-x64,win-arm64，或 all)'
+        description: '要构建的平台 (逗号分隔: mac-x64,mac-arm64,win-x64,win-arm64,linux-x64，或 all)'
         required: false
         default: 'all'
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '20'
 
 jobs:
+  # 获取版本号
+  get-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      tag_name: ${{ steps.get_version.outputs.tag_name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Get version from package.json
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG_NAME="${{ github.ref_name }}"
+          else
+            TAG_NAME="v$VERSION"
+          fi
+          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "Version: $VERSION, Tag: $TAG_NAME"
+
   build-macos:
+    needs: get-version
     name: Build macOS ${{ matrix.arch }}
     runs-on: macos-latest
     if: |
       github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' && 
-       (github.event.inputs.platforms == 'all' || 
+      (github.event_name == 'workflow_dispatch' &&
+       (github.event.inputs.platforms == 'all' ||
         contains(github.event.inputs.platforms, format('mac-{0}', matrix.arch))))
 
     strategy:
@@ -33,9 +57,6 @@ jobs:
           - arch: arm64
             suffix: mac-apple-arm64
             electron_arch: arm64
-          - arch: universal
-            suffix: mac-universal
-            electron_arch: universal
 
     steps:
       - name: Checkout 代码
@@ -43,10 +64,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install setuptools (for node-gyp)
+        run: pip install setuptools
+
       - name: 安装 pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 9
 
       - name: 设置 Node.js 环境
         uses: actions/setup-node@v4
@@ -57,21 +86,25 @@ jobs:
       - name: 安装根目录依赖
         run: pnpm install --frozen-lockfile
 
-      - name: 构建 macOS ${{ matrix.arch }}
-        run: npx electron-builder --mac --${{ matrix.electron_arch }}
+      - name: 安装后端依赖
+        working-directory: src/main/backend
+        run: |
+          if [ -f "pnpm-lock.yaml" ]; then
+            pnpm install --frozen-lockfile
+          elif [ -f "package-lock.json" ]; then
+            npm ci
+          else
+            pnpm install
+          fi
+
+      - name: 构建应用
+        run: pnpm run build
+
+      - name: 打包 macOS ${{ matrix.arch }}
+        run: npx electron-builder --mac --${{ matrix.electron_arch }} -p never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
-
-      - name: 重命名 DMG
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          OUTPUT_DIR="dist"
-          for file in "$OUTPUT_DIR"/*.dmg; do
-            if [ -f "$file" ]; then
-              filename=$(basename "$file")
-              mv "$file" "$OUTPUT_DIR/ppll-client-v${VERSION}-${{ matrix.suffix }}.dmg"
-            fi
-          done
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 显示构建产物
         run: ls -lh dist/
@@ -80,16 +113,22 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ppll-client-${{ matrix.suffix }}
-          path: dist/*.dmg
+          path: |
+            dist/*.dmg
+            dist/*.zip
+            dist/*.yml
+            dist/*.blockmap
+          if-no-files-found: warn
           retention-days: 30
 
   build-windows:
+    needs: get-version
     name: Build Windows ${{ matrix.arch }}
     runs-on: windows-latest
     if: |
       github.event_name == 'push' ||
-      (github.event_name == 'workflow_dispatch' && 
-       (github.event.inputs.platforms == 'all' || 
+      (github.event_name == 'workflow_dispatch' &&
+       (github.event.inputs.platforms == 'all' ||
         contains(github.event.inputs.platforms, format('win-{0}', matrix.arch))))
 
     strategy:
@@ -108,10 +147,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install setuptools (for node-gyp)
+        run: pip install setuptools
+
       - name: 安装 pnpm
         uses: pnpm/action-setup@v2
         with:
-          version: 8
+          version: 9
 
       - name: 设置 Node.js 环境
         uses: actions/setup-node@v4
@@ -122,20 +169,26 @@ jobs:
       - name: 安装根目录依赖
         run: pnpm install --frozen-lockfile
 
-      - name: 构建 Windows ${{ matrix.arch }}
-        run: npx electron-builder --win --${{ matrix.electron_arch }}
+      - name: 安装后端依赖
+        working-directory: src/main/backend
+        run: |
+          if (Test-Path "pnpm-lock.yaml") {
+            pnpm install --frozen-lockfile
+          } elseif (Test-Path "package-lock.json") {
+            npm ci
+          } else {
+            pnpm install
+          }
+        shell: pwsh
+
+      - name: 构建应用
+        run: pnpm run build
+
+      - name: 打包 Windows ${{ matrix.arch }}
+        run: npx electron-builder --win --${{ matrix.electron_arch }} -p never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
-
-      - name: 重命名安装程序
-        shell: pwsh
-        run: |
-          $VERSION = node -p "require('./package.json').version"
-          $OUTPUT_DIR = "dist"
-          Get-ChildItem -Path "$OUTPUT_DIR\*.exe" | ForEach-Object {
-            $newName = "ppll-client-v$VERSION-${{ matrix.suffix }}-installer.exe"
-            Move-Item -Path $_.FullName -Destination "$OUTPUT_DIR\$newName" -Force
-          }
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 显示构建产物
         shell: pwsh
@@ -145,19 +198,99 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ppll-client-${{ matrix.suffix }}
-          path: dist/*-installer.exe
-          retention-days: 30
+          path: |
+            dist/*.exe
+            dist/*.zip
+            dist/*.yml
+            dist/*.blockmap
           if-no-files-found: warn
+          retention-days: 30
 
-  create-release:
+  build-linux:
+    needs: get-version
+    name: Build Linux x64
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' &&
+       (github.event.inputs.platforms == 'all' ||
+        contains(github.event.inputs.platforms, 'linux-x64')))
+
+    steps:
+      - name: Checkout 代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install setuptools (for node-gyp)
+        run: pip install setuptools
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - name: 设置 Node.js 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: 安装根目录依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 安装后端依赖
+        working-directory: src/main/backend
+        run: |
+          if [ -f "pnpm-lock.yaml" ]; then
+            pnpm install --frozen-lockfile
+          elif [ -f "package-lock.json" ]; then
+            npm ci
+          else
+            pnpm install
+          fi
+
+      - name: 构建应用
+        run: pnpm run build
+
+      - name: 打包 Linux x64
+        run: npx electron-builder --linux --x64 -p never
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 显示构建产物
+        run: ls -lh dist/
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: ppll-client-linux-x64
+          path: |
+            dist/*.AppImage
+            dist/*.deb
+            dist/*.yml
+            dist/*.blockmap
+          if-no-files-found: warn
+          retention-days: 30
+
+  # 创建 Release
+  release:
     name: 创建发布
-    needs: [build-macos, build-windows]
+    needs: [get-version, build-macos, build-windows, build-linux]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: 下载所有构建产物
         uses: actions/download-artifact@v4
         with:
@@ -168,12 +301,37 @@ jobs:
           echo "下载的文件："
           find artifacts -type f -exec ls -lh {} \;
 
+      - name: 清理重复的元数据文件
+        run: |
+          find artifacts -name "builder-debug.yml" -delete 2>/dev/null || true
+
+          find artifacts -name "latest.yml" | head -1 | xargs -I {} cp {} artifacts/latest.yml 2>/dev/null || true
+          find artifacts -path "*/ppll-client-*/*" -name "latest.yml" -delete 2>/dev/null || true
+
+          find artifacts -name "latest-mac.yml" | head -1 | xargs -I {} cp {} artifacts/latest-mac.yml 2>/dev/null || true
+          find artifacts -path "*/ppll-client-*/*" -name "latest-mac.yml" -delete 2>/dev/null || true
+
+          find artifacts -name "latest-linux.yml" | head -1 | xargs -I {} cp {} artifacts/latest-linux.yml 2>/dev/null || true
+          find artifacts -path "*/ppll-client-*/*" -name "latest-linux.yml" -delete 2>/dev/null || true
+
+          echo "After deduplication:"
+          find artifacts -name "*.yml" -type f
+
       - name: 创建 Release
         uses: softprops/action-gh-release@v1
         with:
-          files: artifacts/**/*
+          name: PPLL Client v${{ needs.get-version.outputs.version }}
+          tag_name: ${{ needs.get-version.outputs.tag_name }}
           draft: false
           prerelease: false
           generate_release_notes: true
+          files: |
+            artifacts/**/*.exe
+            artifacts/**/*.zip
+            artifacts/**/*.dmg
+            artifacts/**/*.AppImage
+            artifacts/**/*.deb
+            artifacts/**/*.yml
+            artifacts/**/*.blockmap
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
