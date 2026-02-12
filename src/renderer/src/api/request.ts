@@ -75,7 +75,7 @@ class RequestLogger {
 
 /**
  * 请求包装器 - 统一处理后端响应格式
- * 自动从 Wails 获取 Node.js 服务 URL
+ * 自动从 system-info-store 获取 Node.js 服务 URL
  */
 export class RequestWrapper {
   // 跟踪当前的 baseURL 状态

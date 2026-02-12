@@ -1,11 +1,4 @@
 import { useState, useEffect } from 'react'
-import {
-  UpdateSaveConfig,
-  UpdateCheckNow,
-  ClearAllData,
-  GetDataSize
-} from '../../wailsjs/go/main/App'
-import { EventsOn } from '../../wailsjs/runtime/runtime'
 import { feedURLExamples } from '../../router'
 import { useDataManagementStore } from '../../stores/data-management-store'
 import { useSystemInfoStore } from '../../stores/system-info-store'
@@ -59,13 +52,9 @@ function SettingsPage() {
   )
   const [showClearConfirm, setShowClearConfirm] = useState(false)
 
+  // 更新事件监听（Electron 架构暂不支持）
   useEffect(() => {
-    // 订阅更新事件（仅在 Wails 运行时可用时）
-    if (typeof window !== 'undefined' && (window as any).runtime) {
-      EventsOn('update:available', (info: any) => setUpdateInfo(info))
-      EventsOn('update:progress', (p: any) => setProgress(p))
-      EventsOn('update:downloaded', (p: any) => setProgress({ ...p, percent: 100 }))
-    }
+    // Electron 架构下暂不支持自动更新功能
   }, [])
 
   // 初始化 binance store
@@ -73,53 +62,14 @@ function SettingsPage() {
     init()
   }, [])
 
+  // Electron 架构下暂不支持自动更新功能
   async function saveUpdateConfig() {
-    // 检查 Wails 环境是否可用
-    if (typeof window === 'undefined' || !(window as any).go || !(window as any).go.main) {
-      alert('此功能仅在桌面客户端中可用')
-      return
-    }
-
-    setSaveStatus('saving')
-    try {
-      const cfg = {
-        feedURL,
-        channel: 'stable',
-        autoCheck,
-        checkIntervalMinute,
-        autoDownload,
-        silentInstall,
-        hashAlgo: 'md5'
-      }
-      const res = (await UpdateSaveConfig(cfg as any)) as any
-      if (res.status === 'success') {
-        setSaveStatus('success')
-        setTimeout(() => setSaveStatus('idle'), 500)
-      } else {
-        setSaveStatus('error')
-        setTimeout(() => setSaveStatus('idle'), 500)
-      }
-    } catch {
-      setSaveStatus('error')
-      setTimeout(() => setSaveStatus('idle'), 500)
-    }
+    alert('此功能暂不支持')
   }
 
+  // Electron 架构下暂不支持自动更新功能
   async function checkUpdateNow() {
-    // 检查 Wails 环境是否可用
-    if (typeof window === 'undefined' || !(window as any).go || !(window as any).go.main) {
-      alert('此功能仅在桌面客户端中可用')
-      return
-    }
-
-    try {
-      const res = (await UpdateCheckNow()) as any
-      if (res.status === 'success') {
-        setUpdateInfo(res.datum)
-      }
-    } catch (error) {
-      console.error('检查更新失败:', error)
-    }
+    alert('此功能暂不支持')
   }
 
   // ApiKey 管理函数
@@ -245,51 +195,13 @@ function SettingsPage() {
     return key.substring(0, 4) + '****' + key.substring(key.length - 4)
   }
 
-  // 数据清理相关函数
+  // 数据清理相关函数（Electron 架构暂不支持）
   async function loadDataSize() {
-    try {
-      // 检查 Wails 环境是否可用
-      if (typeof window === 'undefined' || !(window as any).go || !(window as any).go.main) {
-        return
-      }
-
-      const size = await GetDataSize()
-      setDataSize(size)
-    } catch (error) {
-      console.error('获取数据大小失败:', error)
-    }
+    // Electron 架构暂不支持此功能
   }
 
   async function handleClearAllData() {
-    // 检查 Wails 环境是否可用
-    if (typeof window === 'undefined' || !(window as any).go || !(window as any).go.main) {
-      alert('此功能仅在桌面客户端中可用')
-      return
-    }
-
-    setClearDataStatus('loading')
-    try {
-      await ClearAllData()
-
-      // 记录清理操作到数据管理 store
-      recordClearOperation()
-
-      // 重新加载数据大小
-      await loadDataSize()
-
-      setClearDataStatus('success')
-      setShowClearConfirm(false)
-
-      setTimeout(() => {
-        setClearDataStatus('idle')
-      }, 2000)
-    } catch (error) {
-      console.error('清理数据失败:', error)
-      setClearDataStatus('error')
-      setTimeout(() => {
-        setClearDataStatus('idle')
-      }, 2000)
-    }
+    alert('此功能暂不支持')
   }
 
   // 组件挂载时加载数据大小

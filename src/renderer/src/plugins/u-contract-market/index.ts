@@ -1,9 +1,9 @@
 import type { Plugin } from '../types'
-import { PluginSaveConfig, PluginGetConfig } from '../../wailsjs/go/main/App'
 import { BinanceApi } from '../../api/binance'
 import type { BinanceCredentials, AccountInfo, PositionConfig } from '../../types/binance'
 
 // U本位合约交易 插件
+// 说明：Electron 架构下暂不支持插件配置持久化
 // 功能：币安U本位合约账户管理、建仓、平仓
 
 let container: HTMLElement | null = null
@@ -158,41 +158,14 @@ const saveCredentials = async () => {
     return
   }
 
-  try {
-    await PluginSaveConfig('u-contract-market', {
-      api_key,
-      api_secret,
-      savedAt: new Date().toISOString()
-    } as any)
-    currentCredentials = { api_key, api_secret }
-    showStatus('API密钥保存成功', 'success')
-  } catch (error) {
-    showStatus('保存API密钥失败', 'error')
-    console.error('保存密钥失败:', error)
-  }
+  // Electron 架构下暂不支持配置持久化
+  currentCredentials = { api_key, api_secret }
+  showStatus('API密钥已设置（当前会话有效）', 'success')
 }
 
 const loadCredentials = async () => {
-  try {
-    const res: any = await PluginGetConfig('u-contract-market')
-    if (res && res.status === 'success' && res.datum) {
-      const { api_key, api_secret } = res.datum
-      if (api_key && api_secret) {
-        const inputs = getCredentialsInputs()
-        if (inputs) {
-          inputs.api_key_input.value = api_key
-          inputs.api_secret_input.value = api_secret
-          currentCredentials = { api_key, api_secret }
-          showStatus('API密钥加载成功', 'success')
-        }
-      } else {
-        showStatus('未找到保存的API密钥', 'info')
-      }
-    }
-  } catch (error) {
-    showStatus('加载API密钥失败', 'error')
-    console.error('加载密钥失败:', error)
-  }
+  // Electron 架构下暂不支持配置加载
+  showStatus('暂不支持加载保存的API密钥', 'info')
 }
 
 const testCredentials = async () => {

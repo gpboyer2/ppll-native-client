@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { GetNodejsServiceURL, GetConfig } from '../wailsjs/go/main/App'
 import { BinanceApiKeyApi, BinanceUmTradingPairsApi } from '../api'
 import { io, Socket } from 'socket.io-client'
 
@@ -70,40 +69,13 @@ interface BinanceStore {
 
 // 获取 auth token（当前未使用，保留备用）
 async function getAuthToken(): Promise<string> {
-  try {
-    // 检查 Wails 环境是否可用
-    if (typeof window === 'undefined' || !(window as any).go || !(window as any).go.main) {
-      return ''
-    }
-
-    const token_res = (await GetConfig('auth_token')) as any
-    if (token_res && typeof token_res === 'object') {
-      if (token_res.status === 'success' && token_res.datum) {
-        return String(token_res.datum)
-      }
-    } else if (typeof token_res === 'string') {
-      return token_res
-    }
-  } catch {
-    // 忽略错误，返回空字符串
-  }
+  // Electron 架构下暂不支持此功能
   return ''
 }
 
 // 获取 Node.js URL
 async function getNodejsUrl(): Promise<string> {
-  try {
-    // 检查 Wails 环境是否可用
-    if (typeof window === 'undefined' || !(window as any).go || !(window as any).go.main) {
-      // 浏览器模式：返回默认 URL（后端服务端口）
-      return 'http://localhost:54321'
-    }
-
-    return await GetNodejsServiceURL()
-  } catch {
-    // 忽略错误，返回默认 URL
-  }
-  // 发生错误时返回默认 URL（后端服务端口）
+  // Electron 架构：返回默认 URL（后端服务端口）
   return 'http://localhost:54321'
 }
 

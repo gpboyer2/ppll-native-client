@@ -1,78 +1,8 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 
-// 存储后端类型
-type StorageBackend = 'localStorage' | 'go'
-
-// 存储接口
-interface StorageAdapter {
-  getItem: (key: string) => Promise<string | null>
-  setItem: (key: string, value: string) => Promise<void>
-  removeItem: (key: string) => Promise<void>
-}
-
-// Go 后端存储适配器
-class GoStorageAdapter implements StorageAdapter {
-  // 检查 Wails 环境是否可用
-  private isWailsAvailable(): boolean {
-    return (
-      typeof window !== 'undefined' &&
-      (window as any).go &&
-      (window as any).go.main &&
-      (window as any).go.main.App
-    )
-  }
-
-  async getItem(key: string): Promise<string | null> {
-    try {
-      // 检查 Wails 环境是否可用
-      if (!this.isWailsAvailable()) {
-        console.warn(`Wails 环境未就绪，无法获取配置 [${key}]`)
-        return null
-      }
-
-      // 调用 Wails 的 Go 方法
-      const result = await (window as any).go.main.App.GetConfig(key)
-      return result || null
-    } catch (error) {
-      console.warn(`获取配置失败 [${key}]:`, error)
-      return null
-    }
-  }
-
-  async setItem(key: string, value: string): Promise<void> {
-    try {
-      // 检查 Wails 环境是否可用
-      if (!this.isWailsAvailable()) {
-        console.warn(`Wails 环境未就绪，无法保存配置 [${key}]`)
-        throw new Error('Wails 环境未就绪')
-      }
-
-      await (window as any).go.main.App.SetConfig(key, value)
-    } catch (error) {
-      console.error(`保存配置失败 [${key}]:`, error)
-      throw error
-    }
-  }
-
-  async removeItem(key: string): Promise<void> {
-    try {
-      // 检查 Wails 环境是否可用
-      if (!this.isWailsAvailable()) {
-        console.warn(`Wails 环境未就绪，无法删除配置 [${key}]`)
-        throw new Error('Wails 环境未就绪')
-      }
-
-      await (window as any).go.main.App.RemoveConfig(key)
-    } catch (error) {
-      console.error(`删除配置失败 [${key}]:`, error)
-      throw error
-    }
-  }
-}
-
 // localStorage 适配器
-class LocalStorageAdapter implements StorageAdapter {
+class LocalStorageAdapter {
   async getItem(key: string): Promise<string | null> {
     try {
       return localStorage.getItem(key)
@@ -101,22 +31,9 @@ class LocalStorageAdapter implements StorageAdapter {
   }
 }
 
-// 存储适配器工厂
-function createStorageAdapter(backend: StorageBackend): StorageAdapter {
-  switch (backend) {
-    case 'go':
-      return new GoStorageAdapter()
-    case 'localStorage':
-      return new LocalStorageAdapter()
-    default:
-      throw new Error(`不支持的存储后端: ${backend}`)
-  }
-}
-
 // 持久化配置
 interface PersistConfig {
   key: string
-  backend?: StorageBackend
   serialize?: (state: any) => string
   deserialize?: (str: string) => any
   partialize?: (state: any) => any
@@ -144,8 +61,7 @@ type StoreDefinition<T> = (set: any, get: any) => T
  *     age: 0,
  *     setName: (name: string) => set((state) => ({ ...state, name })),
  *     setAge: (age: number) => set((state) => ({ ...state, age })),
- *   }),
- *   { backend: 'go' }
+ *   })
  * );
  * ```
  */
@@ -156,7 +72,6 @@ export function createPersistedStore<T extends Record<string, any>>(
 ) {
   const persistConfig: PersistConfig = {
     key,
-    backend: 'go',
     serialize: JSON.stringify,
     deserialize: JSON.parse,
     partialize: (state) => {
@@ -172,7 +87,7 @@ export function createPersistedStore<T extends Record<string, any>>(
     ...config
   }
 
-  const storage = createStorageAdapter(persistConfig.backend!)
+  const storage = new LocalStorageAdapter()
 
   // 创建 Zustand store
   const useStore = create<T>()(
@@ -269,4 +184,4 @@ export function createPersistedStore<T extends Record<string, any>>(
 }
 
 // 导出类型
-export type { StorageBackend, PersistConfig }
+export type { PersistConfig }

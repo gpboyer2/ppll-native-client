@@ -10,15 +10,22 @@ import {
   IconClock,
   IconFileText
 } from '@tabler/icons-react'
-import {
-  GetDebugInfo,
-  GetDebugLogs,
-  WriteDebugLog,
-  RestartNodejsService
-} from '../../wailsjs/go/main/App'
 
 function DeveloperConsolePage() {
-  const [debugInfo, setDebugInfo] = useState<any>(null)
+  const [debugInfo, setDebugInfo] = useState<any>({
+    app_version: 'unknown',
+    nodejs_service: {
+      isRunning: false,
+      isHealthy: false,
+      serviceURL: 'http://localhost:54321'
+    },
+    environment: {},
+    system_info: { os: 'unknown', arch: 'unknown' },
+    app_path: '',
+    working_dir: '',
+    log_dir: '',
+    timestamp: ''
+  })
   const [debugLogs, setDebugLogs] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -26,54 +33,27 @@ function DeveloperConsolePage() {
   const [selectedLogTab, setSelectedLogTab] = useState<'nodejs' | 'go'>('nodejs')
   const [autoRefresh, setAutoRefresh] = useState(false)
 
+  // Electron 架构下暂不支持开发者控制台功能
   const loadDebugInfo = async () => {
-    try {
-      const info = await GetDebugInfo()
-      setDebugInfo(info)
-    } catch (error) {
-      console.error('获取调试信息失败:', error)
-      WriteDebugLog('获取调试信息失败: ' + String(error))
-    }
+    // 暂不支持
   }
 
   const loadDebugLogs = async () => {
-    try {
-      const logs = await GetDebugLogs(200)
-      setDebugLogs(logs)
-    } catch (error) {
-      console.error('获取调试日志失败:', error)
-      WriteDebugLog('获取调试日志失败: ' + String(error))
-    }
+    // 暂不支持
   }
 
   const loadAll = async () => {
-    setRefreshing(true)
-    await Promise.all([loadDebugInfo(), loadDebugLogs()])
     setRefreshing(false)
     setLoading(false)
   }
 
   const handleRestartService = async () => {
-    setRestarting(true)
-    try {
-      const result = await RestartNodejsService()
-      if (result.status === 'success') {
-        WriteDebugLog('Node.js 服务重启成功')
-      } else {
-        WriteDebugLog('Node.js 服务重启失败: ' + (result.message || '未知错误'))
-      }
-      await loadAll()
-    } catch (error) {
-      console.error('重启服务失败:', error)
-      WriteDebugLog('重启服务失败: ' + String(error))
-    } finally {
-      setRestarting(false)
-    }
+    alert('此功能暂不支持')
+    setRestarting(false)
   }
 
   useEffect(() => {
     loadAll()
-    WriteDebugLog('开发者控制台已打开')
   }, [])
 
   useEffect(() => {

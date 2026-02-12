@@ -1,5 +1,4 @@
 import { useEffect, useMemo } from 'react'
-import { OpenBrowser } from '../../wailsjs/go/main/App'
 import { NumberFormat } from '../../utils'
 import './index.scss'
 
@@ -175,32 +174,9 @@ export function ReferralCommissionDialog({
   }, [opened, onClose])
 
   // 跳转到返佣注册页面
-  async function handleEnableRebate() {
+  function handleEnableRebate() {
     const url = 'https://senmo.hk'
-
-    // 检查是否在 Wails 桌面客户端环境中
-    const isWailsAvailable =
-      typeof window !== 'undefined' &&
-      (window as any).go &&
-      (window as any).go.main &&
-      (window as any).go.main.App
-
-    if (isWailsAvailable) {
-      // 桌面客户端：使用系统浏览器打开
-      try {
-        await OpenBrowser(url)
-      } catch (error) {
-        console.error('打开系统浏览器失败:', error)
-      }
-    } else {
-      // 浏览器环境：使用 window.open 打开新标签页
-      try {
-        window.open(url, '_blank', 'noopener,noreferrer')
-      } catch (error) {
-        console.error('打开链接失败:', error)
-        // 备用方案：使用当前页面跳转
-      }
-    }
+    window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   // 下次不再提示

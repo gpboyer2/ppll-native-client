@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { GetAppDescription, GetNodejsServiceURL } from '../wailsjs/go/main/App'
 import { apiClient } from '../api/client'
 import { SystemApi } from '../api'
 
@@ -148,52 +147,8 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
       set({ loading: true })
 
       try {
-        // 检查 Wails 环境是否可用
-        const is_wails_available =
-          typeof window !== 'undefined' && (window as any).go && (window as any).go.main
-
-        if (!is_wails_available) {
-          console.warn('Wails 环境未就绪，使用浏览器模式初始化')
-
-          // 浏览器模式：使用默认 Node.js 服务地址
-          const nodejs_url = 'http://localhost:54321'
-
-          // 设置 staticInfo
-          set({
-            staticInfo: {
-              ...defaultStaticInfo,
-              nodejs_url
-            },
-            loading: false
-          })
-
-          // 尝试获取健康检查数据
-          try {
-            const response = await SystemApi.healthCheck()
-            if (response.status === 'success' && response.datum) {
-              set({
-                dynamicInfo: { health: response.datum },
-                initialized: true
-              })
-              return
-            }
-          } catch (error) {
-            console.warn('获取健康检查数据失败:', error)
-          }
-
-          // 如果获取健康检查失败，仍然标记为已初始化
-          set({
-            dynamicInfo: defaultDynamicInfo,
-            initialized: true
-          })
-          return
-        }
-
-        // Wails 桌面客户端模式
-        const [appDescription, nodejs_url] = await Promise.all([
-          GetAppDescription(),
-          GetNodejsServiceURL()
-        ])
+        // Electron 架构：使用默认 Node.js 服务地址
+        const nodejs_url = 'http://localhost:54321'
 
         // 配置 API 客户端的 base_url
         if (nodejs_url) {
@@ -205,6 +160,7 @@ export const useSystemInfoStore = create<SystemInfoStore>((set, get) => ({
         let app_version = 'unknown'
         let healthData: HealthData | null = null
         let databasePath: string | undefined
+        const appDescription = 'PPLL Native Client'
 
         if (nodejs_url) {
           for (let i = 0; i < 60; i++) {

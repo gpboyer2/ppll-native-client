@@ -1,30 +1,10 @@
 /**
  * 应用环境检测工具
  *
- * 统一检测 Wails 客户端和 Node.js 后端服务是否可用
+ * Electron 架构下，检测 Node.js 后端服务是否可用
  */
 
 import { SystemApi } from '../api'
-
-// 检查 Wails 运行时是否可用
-export function isWailsRuntimeAvailable(): boolean {
-  return typeof window !== 'undefined' && (window as any).runtime !== undefined
-}
-
-// 检查 Wails Go 后端是否可用
-export function isWailsGoAvailable(): boolean {
-  return (
-    typeof window !== 'undefined' &&
-    (window as any).go !== undefined &&
-    (window as any).go.main !== undefined &&
-    (window as any).go.main.App !== undefined
-  )
-}
-
-// 检查 Wails 环境是否完全就绪
-export function isWailsReady(): boolean {
-  return isWailsRuntimeAvailable() && isWailsGoAvailable()
-}
 
 // 检查 Node.js 服务是否可用（通过健康检查接口）
 export async function isNodejsServiceAvailable(_baseUrl?: string): Promise<boolean> {
@@ -36,13 +16,8 @@ export async function isNodejsServiceAvailable(_baseUrl?: string): Promise<boole
   }
 }
 
-// 检查应用环境是否就绪（Wails 或 Node.js 任一可用即可）
+// 检查应用环境是否就绪（Node.js 可用）
 export async function isAppReady(nodejsBaseUrl?: string): Promise<boolean> {
-  // Wails 可用
-  if (isWailsReady()) {
-    return true
-  }
-
   // Node.js 服务可用
   if (await isNodejsServiceAvailable(nodejsBaseUrl)) {
     return true

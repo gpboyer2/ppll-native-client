@@ -7,7 +7,7 @@
  * API 基础路径配置
  *
  * 开发环境: 使用代理,前端请求 /api/v1/xxx → vite代理 → 后端 http://localhost:PORT/api/v1/xxx
- * 生产环境: Wails 打包后前后端同端口,直接请求 /api/v1/xxx
+ * 生产环境: Electron 打包后直接请求 /api/v1/xxx
  */
 export const API_CONFIG = {
   // API 版本前缀

@@ -1,7 +1,7 @@
 import type { Plugin } from '../types'
-import { PluginSaveConfig, PluginGetConfig } from '../../wailsjs/go/main/App'
 
 // 币本位合约资金费率套利 插件页面骨架
+// 说明：Electron 架构下暂不支持插件配置持久化
 // 说明：此处仅展示必需参数占位，不含实盘逻辑
 
 let container: HTMLElement | null = null
@@ -104,9 +104,9 @@ const plugin: Plugin = {
           leverage: Number($('#leverage').value || 0),
           strategyType: $('#strategyType').value
         }
-        await PluginSaveConfig('coin-funding-rate-arbitrage', cfg as any)
+        // Electron 架构下暂不支持配置持久化
         log().textContent =
-          `[${new Date().toLocaleTimeString()}] 已保存配置\n` + (log().textContent || '')
+          `[${new Date().toLocaleTimeString()}] 配置持久化暂不支持\n` + (log().textContent || '')
       })
     )
     const applyCfg = (cfg: any) => {
@@ -121,13 +121,11 @@ const plugin: Plugin = {
     void (
       loadBtn &&
       (loadBtn.onclick = async () => {
-        const res: any = await PluginGetConfig('coin-funding-rate-arbitrage')
-        if (res && res.status === 'success') applyCfg(res.datum)
         log().textContent =
-          `[${new Date().toLocaleTimeString()}] 已读取配置\n` + (log().textContent || '')
+          `[${new Date().toLocaleTimeString()}] 配置持久化暂不支持\n` + (log().textContent || '')
       })
     )
-    // 初次挂载：若无配置则写入默认值后应用
+    // 初次挂载：应用默认值
     const defaults = {
       symbol: 'BTCUSD',
       minFundingRate: 0.01,
@@ -136,14 +134,7 @@ const plugin: Plugin = {
       leverage: 3,
       strategyType: 'positive'
     }
-    PluginGetConfig('coin-funding-rate-arbitrage').then(async (res: any) => {
-      let cfg = res && res.status === 'success' && res.datum ? res.datum : null
-      if (!cfg || cfg.symbol == null) {
-        await PluginSaveConfig('coin-funding-rate-arbitrage', defaults as any)
-        cfg = defaults
-      }
-      applyCfg(cfg)
-    })
+    applyCfg(defaults)
   },
   unmount() {
     if (container) container.innerHTML = ''

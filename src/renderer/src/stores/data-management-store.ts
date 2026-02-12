@@ -159,10 +159,7 @@ export const useDataManagementStore = createPersistedStore(
 
       return options
     }
-  }),
-  {
-    backend: 'go' // 使用 Go 后端存储
-  }
+  })
 )
 
 // 导出类型供其他地方使用

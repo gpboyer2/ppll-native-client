@@ -197,10 +197,7 @@ export const useStrategyStore = createPersistedStore(
 
       return `${state.strategy_name} | ${state.symbol} x${state.leverage} | ${state.enabled ? '已启用' : '已禁用'} | 风险: ${risk.level}`
     }
-  }),
-  {
-    backend: 'go' // 使用 Go 后端存储
-  }
+  })
 )
 
 // 导出类型供其他地方使用

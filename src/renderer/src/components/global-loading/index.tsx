@@ -1,7 +1,7 @@
 /**
  * 全局加载组件
  *
- * 在应用初始化时显示，等待 Wails 环境就绪
+ * 在应用初始化时显示，等待 Node.js 后端服务就绪
  */
 import React, { useEffect } from 'react'
 import { useAppInitStore } from '../../stores/app-init-store'

@@ -1,13 +1,13 @@
 /**
  * 全局应用初始化 Store
  *
- * 管理应用启动时的初始化状态，等待 Wails 客户端或 Node.js 后端服务就绪
+ * 管理应用启动时的初始化状态，等待 Node.js 后端服务就绪
  */
 import { create } from 'zustand'
-import { waitForAppReady } from '../utils/wails-env'
+import { waitForAppReady } from '../utils/electron-env'
 
 interface AppInitState {
-  // 应用环境是否已就绪（Wails 或 Node.js 任一可用）
+  // 应用环境是否已就绪（Node.js 可用）
   appReady: boolean
   // 是否正在初始化
   initializing: boolean
@@ -37,7 +37,7 @@ export const useAppInitStore = create<AppInitState>((set, get) => ({
     set({ initializing: true, error: null, progress: 10 })
 
     try {
-      // 等待应用环境就绪（Wails 或 Node.js 任一可用）
+      // 等待应用环境就绪（Node.js 可用）
       await waitForAppReady(
         2000, // 每 2 秒检查一次
         60000, // 最多等待 60 秒
