@@ -77,7 +77,12 @@
   ],
   "Codegeex.RepoIndex": true,
   "editor.tabSize": 2,
-  "cSpell.words": ["bybit", "persistedstate", "unplugin", "vant"],
+  "cSpell.words": [
+    "bybit",
+    "persistedstate",
+    "unplugin",
+    "vant"
+  ],
   // Vue file formatting configuration (optional for developers)
   "[vue]": {
     "editor.defaultFormatter": "vscode.typescript-language-features"

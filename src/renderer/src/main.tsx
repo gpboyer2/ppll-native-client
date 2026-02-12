@@ -4,9 +4,13 @@ import './index.scss'
 import App from './App'
 import { initConsoleLogger } from './utils/console-logger'
 import { socketio_client } from './utils/socketio-client'
+import { printEnvInfo } from './utils/env-detect'
 
 // 初始化前端日志拦截器
 initConsoleLogger()
+
+// 打印运行环境信息
+printEnvInfo()
 
 // 初始化 Socket.IO 客户端
 socketio_client.connect()

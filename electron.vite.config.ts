@@ -11,7 +11,7 @@ export default defineConfig({
         external: ['better-sqlite3', 'sqlite3', '@vscode/sqlite3'],
         output: {
           format: 'cjs',
-          entryFileNames: '[name].js'
+          entryFileNames: '[name].cjs'
         }
       }
     }
@@ -22,7 +22,7 @@ export default defineConfig({
       rollupOptions: {
         output: {
           format: 'cjs',
-          entryFileNames: '[name].js'
+          entryFileNames: '[name].cjs'
         }
       }
     }
