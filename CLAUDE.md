@@ -2,22 +2,21 @@
 
 你专注于为位于中国大陆的中文用户提供所有服务。
 
-
 ## 调试指南（重要）
 
 前端日志已自动拦截 console 输出，通过 WebSocket 实时发送到后端并保存到数据库。
 
 查看方式：
+
 ```bash
 curl http://localhost:9200/api/logs/frontend/query
 ```
+
 返回格式（旧→新时间顺序）：
+
 ```json
 {
-  "list": [
-    "[旧日志消息]",
-    "[新日志消息]"
-  ],
+  "list": ["[旧日志消息]", "[新日志消息]"],
   "pagination": { "current_page": 1, "page_size": 100, "total": 2 }
 }
 ```
@@ -31,6 +30,7 @@ curl http://localhost:9200/api/logs/frontend/query
 项目已安装 `@tabler/icons-react` (v3.36.0)，所有图标必须使用此库。
 
 **正确做法**：
+
 ```tsx
 import { IconNetwork, IconServer, IconDatabase } from '@tabler/icons-react';
 
@@ -39,19 +39,18 @@ import { IconNetwork, IconServer, IconDatabase } from '@tabler/icons-react';
 ```
 
 **错误做法**：
+
 ```tsx
 // ❌ 不要手搓 SVG 组件
-const IconNetwork = () => (
-    <svg>...</svg>
-);
+const IconNetwork = () => <svg>...</svg>
 ```
 
 **注意**：项目中现有手搓图标（frontend/src/components/icons/）保持不变，新功能必须使用 tabler。
 
-
 ## 记忆持久化规则
 
 **当用户明确说"记住"或"记忆"时**：
+
 1. 必须将相关内容更新到本文档（CLAUDE.md）和 AGENTS.md（如果有的话）的合适位置
 2. 不要只说"记住了"，而要实际更新文档
 3. 如果是新的规则类别，可以创建新的章节
@@ -64,11 +63,13 @@ const IconNetwork = () => (
 进行代码优化和项目架构优化时需遵循以下两步流程：
 
 ## 第一步：梳理分析
+
 - 识别文件中所有重复的接口定义、功能逻辑、参数配置等可复用点
 - 梳理文件与其他模块的依赖关系、交互逻辑，明确需要同步更新/校验的关联模块
 - 排查文件中的冗余变量、无效代码、重复实现
 
 ## 第二步：优化实施
+
 - 全局设计：基于梳理结果，设计全局变量（存储重复配置/状态）或全局函数（封装可复用功能），确保架构通用、美观
 - 模块独立：保证模块自身独立性，同时兼顾与其他模块的低耦合交互，同步完成关联模块的更新与校验
 - 复用优先：充分利用项目已有资源和代码，不新增非必要的冗余代码和变量，最大限度实现代码复用
@@ -77,8 +78,8 @@ const IconNetwork = () => (
 - 支持合并：针对多个关联紧密的文件，可根据优化需求进行合理合并，合并后需明确新的文件范围与职责边界，确保合并后的模块更简洁、更易维护，同时保留原有核心功能不受影响
 - 同步校验：优化过程中必须同步更新、校验所有相关关联模块（或文件），确保模块间功能衔接正常，无逻辑冲突或调用异常
 
-
 **避免你曾经犯过的错误**：
+
 - 你没有仔细观察用户的修改意图：用户明确选中了第xxx行并改成了GREEN，说明用户想要绿色，但你却擅自改成了白色。
 - 你没有理解用户的真实需求：用户说"五颜六色，不喜欢"，你应该理解这是想要统一颜色为绿色，而不是换成其他颜色。
 - 你忽略了用户已经做出的选择：系统提醒显示用户已经把颜色改成了绿色，你应该尊重并保持用户的选择，而不是自作主张。
@@ -93,7 +94,7 @@ const IconNetwork = () => (
   2. 修改后需要同步更新哪些调用点？
   3. 抽离后的迁移路径是什么？
   4. 新旧如何共存，逐步迁移？
-  正确做法：在给出任何复用建议前，必须先完整分析影响范围，列出所有引用点，给出具体的改动顺序和验证计划。只说"建议抽离"是错误的，必须说"如果要抽离，需要修改A、B、C文件，顺序是1、2、3"。
+     正确做法：在给出任何复用建议前，必须先完整分析影响范围，列出所有引用点，给出具体的改动顺序和验证计划。只说"建议抽离"是错误的，必须说"如果要抽离，需要修改A、B、C文件，顺序是1、2、3"。
 
 # 项目架构与技术栈
 
@@ -104,6 +105,7 @@ const IconNetwork = () => (
 核心原则：开发阶段不关注数据库性能，索引只会增加数据迁移复杂度。
 
 具体规则：
+
 1. 禁止在 Sequelize 模型中定义任何索引（indexes 配置）
 2. 禁止在代码中手动创建索引
 3. 只保留主键索引（PRIMARY KEY），其余索引全部删除
@@ -118,6 +120,7 @@ const IconNetwork = () => (
 3. **URL 参数**：通过 `route.query` 传递，直接调用接口获取数据
 
 **禁止使用的存储方式**：
+
 - 禁止使用 `sessionStorage` 存储动态数据
 - 禁止使用 `localStorage` 存储动态数据
 - 禁止在 Pinia Store 中缓存业务数据
@@ -177,12 +180,14 @@ function handleSelectItem(id: string) {
 ```
 
 **子组件列表/面板组件规范（重要）**：
+
 - 直接监听 URL 中的上下文参数（如 `interfaceId`、`nodeId` 等）
 - 当参数变化时，自动重新加载数据
 - 用户点击 item 时，更新 URL 的选中项参数
 - 不依赖父组件传递数据
 
 **禁止的行为**：
+
 - 禁止使用 Pinia store 缓存业务数据
 - 禁止通过 props 传递可以通过 URL 获取的参数
 - 禁止使用 sessionStorage 缓存动态数据
@@ -195,21 +200,21 @@ function handleSelectItem(id: string) {
 
 当涉及以下领域时，请先阅读对应的设计文档：
 
-| 领域 | 文档路径 | 描述 |
-|------|----------|------|
+| 领域           | 文档路径               | 描述                                                             |
+| -------------- | ---------------------- | ---------------------------------------------------------------- |
 | API 自动化测试 | `TEST_ARCHITECTURE.md` | 测试架构设计、status 字段定义规范、expect 验证规范、测试隔离策略 |
-| 数据库设计 | `DATABASE_SCHEMA.md` | 数据库表结构、字段定义、索引设计 |
+| 数据库设计     | `DATABASE_SCHEMA.md`   | 数据库表结构、字段定义、索引设计                                 |
 
 **重要**：在编写或修改测试相关代码前，必须先阅读 `TEST_ARCHITECTURE.md`。
 
 # 业务规范
-
 
 ## 1. URL 路由规范（重要）
 
 Vue Router 使用 hash 模式。
 
 **通用规范：禁止使用路径参数格式，必须使用查询参数格式**
+
 - 禁止：`/:id`, `/:{params}` 等路径参数
 - 例如：`/#/settings/user/:id` 是错误的
 - 正确：`/#/settings/user/detail?id=123`
@@ -219,21 +224,20 @@ Vue Router 使用 hash 模式。
 前端不准使用 `route.params`，只能用 `route.query`。
 
 **禁止行为**：
+
 - 不准使用 `route.params`
 - 不准在路由配置中定义动态路径参数（如 `/:id`）
 - 所有动态参数必须通过 query 参数传递
-
 
 ## 2. 组件引入规范
 
 **禁止使用组件映射表（例如editorComponentsMap）进行动态组件加载**
 
-
 **正确做法（必须）**：
+
 ```vue
 <script setup>
-import {ComponentName} from './components/{path/to/component}.vue';
-
+import { ComponentName } from './components/{path/to/component}.vue'
 </script>
 
 <template>
@@ -242,11 +246,11 @@ import {ComponentName} from './components/{path/to/component}.vue';
 ```
 
 **强制要求**：
+
 - 所有动态组件加载必须使用直接引入方式
 - 禁止创建任何形式的组件映射表（包括对象、Map、数组等）
 - 使用 if/else 或 switch 明确表达组件选择逻辑
 - 组件引用必须是变量名，不能是字符串
-
 
 ## 2.1 组件功能归属原则（重要）
 
@@ -277,24 +281,24 @@ import {ComponentName} from './components/{path/to/component}.vue';
 ```
 
 ### 实施效果
+
 - **减少通信**：组件自主管理，无需通过 emit/props 传递；**职责清晰**：使用该功能的组件就是该功能的拥有者；**易于维护**：所有相关逻辑集中在一处，修改时不用跨文件。
 
 ## 3. 命名规范
 
-| 类别 | 规范 | 示例 |
-|------|------|------|
-| 数据库表名 | snake_case | `grid_strategies`, `grid_trade_history` |
-| 数据库字段名 | snake_case | `trading_pair`, `grid_price_difference` |
-| 文件名 | kebab-case | `communication-node.js`, `packet-message.js` |
-| JavaScript 类名 | 保持不变 | `class Robot`（类名都是 PascalCase） |
-| Model 字段定义 | snake_case | `api_key: DataTypes.STRING` |
-| 函数/方法名 | camelCase | `getOrderList()`, `createStrategy()`, `handleClick()` |
-| 变量名（含局部变量） | snake_case | `const grid_strategy = ...` |
-| 集合变量名 | snake_case + list 后缀 | `const account_list = ...` |
-| 前端类型定义字段 | snake_case | `interface Strategy { trading_pair: string }` |
-| 前端类型定义名称（interface/type） | camelCase | `interface CacheLoadOptions<T> { ... }` |
-| API 请求/响应字段 | snake_case | `{ trading_pair: "BTCUSDT" }` |
-
+| 类别                               | 规范                   | 示例                                                  |
+| ---------------------------------- | ---------------------- | ----------------------------------------------------- |
+| 数据库表名                         | snake_case             | `grid_strategies`, `grid_trade_history`               |
+| 数据库字段名                       | snake_case             | `trading_pair`, `grid_price_difference`               |
+| 文件名                             | kebab-case             | `communication-node.js`, `packet-message.js`          |
+| JavaScript 类名                    | 保持不变               | `class Robot`（类名都是 PascalCase）                  |
+| Model 字段定义                     | snake_case             | `api_key: DataTypes.STRING`                           |
+| 函数/方法名                        | camelCase              | `getOrderList()`, `createStrategy()`, `handleClick()` |
+| 变量名（含局部变量）               | snake_case             | `const grid_strategy = ...`                           |
+| 集合变量名                         | snake_case + list 后缀 | `const account_list = ...`                            |
+| 前端类型定义字段                   | snake_case             | `interface Strategy { trading_pair: string }`         |
+| 前端类型定义名称（interface/type） | camelCase              | `interface CacheLoadOptions<T> { ... }`               |
+| API 请求/响应字段                  | snake_case             | `{ trading_pair: "BTCUSDT" }`                         |
 
 ## 3.1 前端目录组织规范（重要）
 
@@ -321,17 +325,18 @@ import {ComponentName} from './components/{path/to/component}.vue';
 
 ### 判断标准
 
-| 组件类型 | 放置位置 | 判断依据 |
-|----------|----------|----------|
-| 独立业务页面 | 与 `components/` 平级 | 是一个独立的业务入口，有独立的路由 |
-| 页面级共享组件 | `页面/components/` 下 | 被该页面下多个业务共用 |
-| 某业务的专属子组件 | 该业务目录下的 `components/` 中 | 只被该业务内部使用 |
+| 组件类型           | 放置位置                        | 判断依据                           |
+| ------------------ | ------------------------------- | ---------------------------------- |
+| 独立业务页面       | 与 `components/` 平级           | 是一个独立的业务入口，有独立的路由 |
+| 页面级共享组件     | `页面/components/` 下           | 被该页面下多个业务共用             |
+| 某业务的专属子组件 | 该业务目录下的 `components/` 中 | 只被该业务内部使用                 |
 
 ### 实施目的
 
 - **业务清晰**：每个业务是独立的，一目了然
 
 ### 禁止行为
+
 - 禁止组件目录名重复父目录的业务前缀
   - 错误：`settings/components/sub-comp-settings/`（已包含 settings 目录，无需重复后缀）
   - 正确：`settings/components/sub-comp/`
@@ -345,6 +350,7 @@ import {ComponentName} from './components/{path/to/component}.vue';
 统一响应格式：HTTP 状态码统一使用 200，通过响应体中的 status 字段区分成功/失败，前端通过 response.status 判断（不再使用 try-catch 处理业务错误），业务数据字段使用 datum（避免与 Axios 的 data 字段混淆）。
 
 响应格式定义：
+
 ```typescript
 // 后端响应格式
 {
@@ -356,37 +362,39 @@ import {ComponentName} from './components/{path/to/component}.vue';
 
 场景处理规范：
 
-| 场景 | HTTP状态码 | status 字段 | datum 值 | 前端处理 |
-|------|------------|-------------|---------|----------|
-| 操作成功 | 200 | success | 业务数据 | if (res.status === 'success') |
-| 单个资源不存在 | 200 | error | null | if (res.status === 'error') |
-| 列表查询为空 | 200 | success | [] | if (res.status === 'success') |
-| 参数错误 | 200 | error | null | if (res.status === 'error') |
-| 服务器异常 | 200 | error | null | if (res.status === 'error') |
+| 场景           | HTTP状态码 | status 字段 | datum 值 | 前端处理                      |
+| -------------- | ---------- | ----------- | -------- | ----------------------------- |
+| 操作成功       | 200        | success     | 业务数据 | if (res.status === 'success') |
+| 单个资源不存在 | 200        | error       | null     | if (res.status === 'error')   |
+| 列表查询为空   | 200        | success     | []       | if (res.status === 'success') |
+| 参数错误       | 200        | error       | null     | if (res.status === 'error')   |
+| 服务器异常     | 200        | error       | null     | if (res.status === 'error')   |
 
 后端 Controller 编写规范：
+
 ```javascript
 // 成功响应
-res.apiSuccess(datum, message)  // message 默认为 "操作成功"
+res.apiSuccess(datum, message) // message 默认为 "操作成功"
 
 // 错误响应（参数顺序与 apiSuccess 保持一致）
-res.apiError(datum, message)  // datum 默认为 null，message 默认为 "操作失败"
+res.apiError(datum, message) // datum 默认为 null，message 默认为 "操作失败"
 
 // 资源不存在时返回业务错误
 if (!node) {
-  return res.apiError(null, '资源不存在');
+  return res.apiError(null, '资源不存在')
 }
 
 // 校验错误时可返回额外数据
 if (error.validationErrorList) {
-  return res.apiError({ errorList: error.validationErrorList }, error.message);
+  return res.apiError({ errorList: error.validationErrorList }, error.message)
 }
 ```
 
 前端 API 调用规范：
+
 ```typescript
 // 正确：使用 response.status 判断
-const response = await api.getNodeById(id);
+const response = await api.getNodeById(id)
 if (response.status === 'success') {
   // 处理成功，使用 response.datum
 } else {
@@ -395,6 +403,7 @@ if (response.status === 'success') {
 ```
 
 入参规范：
+
 - GET 请求参数使用 `req.query`，例如：`req.query.id`
 - POST 请求参数使用 `req.body`，例如：`req.body.id`
 - 禁止使用 `/api/xxx/{id}` 路径参数（`req.params`）
@@ -402,22 +411,24 @@ if (response.status === 'success') {
 - 例如：`POST /api/users/delete` + `{ data: [1, 2, 3] }`
 
 出参规范（列表查询）：
+
 ```json
 {
-    "status": "success",
-    "message": "操作成功",
-    "datum": {
-        "list": [],
-        "pagination": {
-            "current_page": 1,
-            "page_size": 20,
-            "total": 2
-        }
+  "status": "success",
+  "message": "操作成功",
+  "datum": {
+    "list": [],
+    "pagination": {
+      "current_page": 1,
+      "page_size": 20,
+      "total": 2
     }
+  }
 }
 ```
 
 分页字段说明：
+
 - current_page: 当前页码（从1开始）
 - page_size: 每页数量
 - total: 总记录数
@@ -427,34 +438,37 @@ if (response.status === 'success') {
 
 **强制规则：四大操作必须使用以下关键词**
 
-| 操作 | 关键词 | URL 示例 | 说明 |
-|------|--------|----------|------|
-| 增 | create | POST /api/xxx/create | 创建资源 |
-| 删 | delete | POST /api/xxx/delete | 删除资源 |
-| 改 | update | POST /api/xxx/update | 更新资源 |
-| 查 | query | GET /api/xxx/query | 查询资源 |
+| 操作 | 关键词 | URL 示例             | 说明     |
+| ---- | ------ | -------------------- | -------- |
+| 增   | create | POST /api/xxx/create | 创建资源 |
+| 删   | delete | POST /api/xxx/delete | 删除资源 |
+| 改   | update | POST /api/xxx/update | 更新资源 |
+| 查   | query  | GET /api/xxx/query   | 查询资源 |
 
 **禁止使用的关键词（错误示例）**：
 
-| 操作 | 禁止关键词 | 错误示例 | 正确示例 |
-|------|------------|----------|----------|
-| 增 | add, insert, new, save | /add, /insert, /new | /create |
-| 删 | remove, destroy | /remove, /destroy | /delete |
-| 改 | edit, modify, change | /edit, /modify | /update |
-| 查 | list, get, fetch, find, search | /list, /get/:id, /fetch | /query |
+| 操作 | 禁止关键词                     | 错误示例                | 正确示例 |
+| ---- | ------------------------------ | ----------------------- | -------- |
+| 增   | add, insert, new, save         | /add, /insert, /new     | /create  |
+| 删   | remove, destroy                | /remove, /destroy       | /delete  |
+| 改   | edit, modify, change           | /edit, /modify          | /update  |
+| 查   | list, get, fetch, find, search | /list, /get/:id, /fetch | /query   |
 
 **URL 格式规范**：
+
 - 增：`POST /api/{resource}/create`
 - 删：`POST /api/{resource}/delete`
 - 改：`POST /api/{resource}/update`
 - 查：`GET /api/{resource}/query`
 
 ## 3.6 接口精简原则
+
 - 基础接口只需要增删改查四个
 - 除非必要不新增其他接口
 - 批量操作通过数组入参自然支持
 
 批量操作命名规范（重要）：
+
 - 入参默认为数组，天然支持批量操作
 - 禁止使用 batch 前缀的方法名，如 batchDelete、batchCreate
 - 删除接口直接命名为 delete，入参是数组即可同时支持单个和批量删除
@@ -466,8 +480,8 @@ if (response.status === 'success') {
 
 **背景**：本项目是多团队多人协作，不同团队成员水平参差不齐。后端接口设计往往不完整，导致前端代码变得复杂。
 
-
 **强制规范**：
+
 1. **每个资源必须有完整的增删改查接口**
    - `POST /api/{resource}/create` - 创建单个资源
    - `POST /api/{resource}/delete` - 删除资源（支持批量）
@@ -485,38 +499,43 @@ if (response.status === 'success') {
    - 不能只依赖 `POST /api/communication-nodes/update-endpoints` 整体替换
 
 **遇到接口不完整时的处理流程**：
+
 1. 先检查后端是否已有对应接口
 2. 如果没有，推动后端添加缺失的接口
 
 **正确示例**：
+
 ```typescript
 // 添加报文关联
-await communicationNodeApi.create(nodeId, interfaceId, packetId, direction);
+await communicationNodeApi.create(nodeId, interfaceId, packetId, direction)
 
 // 删除报文关联
-await communicationNodeApi.delete(nodeId, interfaceId, packetId);
+await communicationNodeApi.delete(nodeId, interfaceId, packetId)
 ```
 
 **错误示例（不能将错就错继续使用不符合规范和要求的代码，函数和接口）**：
-```typescript
-const list = await getList();
-list.push(newItem);
-await updateEndpoints(nodeId, list);
-```
 
+```typescript
+const list = await getList()
+list.push(newItem)
+await updateEndpoints(nodeId, list)
+```
 
 ## 4. 前后端数据交互规范
 
 **字段命名统一原则（重要）**：
+
 - 核心规则：后端用什么字段，前端必须完全使用后端的字段名
 - 前端不得对字段名进行任何转换，直接使用后端原始字段名
 - 前端类型定义必须与后端返回的字段名完全一致
 
 **后端不同模块的命名风格**：
+
 - 网格策略相关 API：使用 snake_case（如 `trading_pair`, `position_side`, `grid_price_difference`, `api_key`, `api_secret`）
 - 与第三方交互（如币安）：迁就第三方的命名风格
 
 **前端开发规范**：
+
 - 前端类型定义（TypeScript interface）的字段名必须与后端返回的字段名完全一致
 - 禁止在前端进行字段名转换（如 `tradingPair` <-> `trading_pair`）
 - 调用后端 API 时直接透传整个对象，不要手动列举每个字段
@@ -524,85 +543,103 @@ await updateEndpoints(nodeId, list);
 **接口调用规范**：
 
 前端：
+
 - 直接透传整个对象，不要手动列举每个字段
 - 错误做法：`await api.update(id, { field1: data.field1, field2: data.field2 })`
 - 正确做法1：`await api.update(id, data)`
 - 正确做法2：`await api.update(id, Object.assign({}, data, {name: 'plq'}))`
 
 后端Controller：
+
 - 前后端字段名已统一（都是snake_case），直接透传req.body，避免冗余解构
 - 只处理真正需要转换的（如ID从字符串转数值）
 - 避免遗漏风险：解构后新增字段可能忘记传递
 
 错误示例：
+
 ```javascript
 // 一堆解构，冗余且易遗漏
-const { trading_pair, position_side, grid_price_difference } = req.body;
-await create({ trading_pair, position_side, grid_price_difference });
+const { trading_pair, position_side, grid_price_difference } = req.body
+await create({ trading_pair, position_side, grid_price_difference })
 ```
 
 正确示例：
+
 ```javascript
 // 直接透传
-await create(req.body);
+await create(req.body)
 
 // 需要转换时用Object.assign
-const id = parseInt(req.body.id);
-await create(Object.assign({}, req.body, { id }));
+const id = parseInt(req.body.id)
+await create(Object.assign({}, req.body, { id }))
 ```
 
 多请求操作的用户提示：
+
 - 全部成功：只显示一次"操作成功"
 - 部分成功：显示失败的那个请求的错误信息
 - 全部失败：聚合所有错误信息
 - 禁止每个请求都弹一次提示
 
-
 # 代码编写规范
-
 
 ## 1. CSS/SCSS 样式规范
 
 结构清晰：
+
 - 必须根据 HTML/React/Vue 嵌套结构，使用从最顶层开始的完整路径选择器
 - 禁止嵌套：严禁使用 `&` 和 `%` 符号，必须展开所有选择器
 - 风格统一：保持美观、对齐、大小宽度一致
 - 同步性：修改后需同步更新或校验其他受影响模块
 
 正确示例1：
+
 ```scss
-.details-content-body { }
-.details-content-body .details-properties-table { }
-.details-content-body .details-properties-table tbody tr { }
-.details-content-body .details-properties-table tbody tr:hover { }
+.details-content-body {
+}
+.details-content-body .details-properties-table {
+}
+.details-content-body .details-properties-table tbody tr {
+}
+.details-content-body .details-properties-table tbody tr:hover {
+}
 ```
 
 正确示例2：
+
 ```scss
 .details-content-body {
   .details-properties-table {
     tbody {
-      tr { }
-      tr:hover { }
+      tr {
+      }
+      tr:hover {
+      }
     }
   }
 }
 ```
 
 错误:
+
 ```scss
-.details-content-body { }
-.details-properties-table { }
-tbody {}
+.details-content-body {
+}
+.details-properties-table {
+}
+tbody {
+}
 ```
 
 动态样式处理：
+
 - 严禁在 React/Vue 组件中使用内联 `style` 属性处理动态样式
 - 所有样式必须在 CSS/SCSS 文件中定义，包括根据状态变化的样式
 - 使用 CSS 类名修饰符来处理不同状态的样式
 - 组件中只负责根据状态动态添加对应的类名
 
 正确示例：
+
 ```scss
 /* CSS 文件 - 定义所有样式 */
 .status-badge {
@@ -627,12 +664,11 @@ tbody {}
 
 ```tsx
 // React/Vue 组件 - 只负责添加类名
-<span className={`status-badge ${is_active ? 'active' : 'inactive'}`}>
-  {statusText}
-</span>
+<span className={`status-badge ${is_active ? 'active' : 'inactive'}`}>{statusText}</span>
 ```
 
 错误示例：
+
 ```tsx
 // ❌ 不要在组件中使用内联 style
 <span
@@ -645,6 +681,7 @@ tbody {}
 ```
 
 颜色使用规范：
+
 - 禁止使用硬编码颜色值（如 `#ffffff`、`rgb(255, 255, 255)`、`rgba(0, 0, 0, 0.1)`）
 - 所有颜色必须使用 CSS 变量引用（如 `var(--color-bg-container)`）
 - 全局 CSS 变量统一定义在 `client/src/styles/index.scss` 中的 `:root` 选择器内
@@ -652,14 +689,15 @@ tbody {}
 - 如需新的颜色变量，在 `index.scss` 中添加语义化的变量名
 
 SCSS 模块导入规范：
+
 - 必须使用 `@use` 替代 `@import` 导入 SCSS 模块
 - CSS 文件（如 .css）必须使用 `@import`，因为不支持 `@use`
 - `@use` 语句必须写在文件最开头，在任何其他规则之前（注释除外）
 
-
 ## 2. JS/React/Vue 代码规范
 
 极简原则：
+
 - 禁止新增冗余变量和代码，代码行数缩减到最少
 - 资源复用：必须充分利用已有资源和代码
 - 向前看：不用考虑向后兼容性
@@ -670,34 +708,38 @@ SCSS 模块导入规范：
 **核心原则：禁止虚假兼容，约定明确格式，不符合就报错**
 
 虚假兼容的问题：
+
 - 代码充满各种 if else 兼容判断
 - 新人不知道该用哪个参数
 - 旧格式永远无法清理
 - bug 隐藏在兼容逻辑中
 
 正确做法：
+
 ```javascript
 // 正确：只取约定好的字段，一个映射清晰明了
 const PARAM_MAP = {
   logic: 'systemNodeId',
-  protocol: 'protocolAlgorithmId',
-};
-const param_name = PARAM_MAP[type];
-return query[param_name];
+  protocol: 'protocolAlgorithmId'
+}
+const param_name = PARAM_MAP[type]
+return query[param_name]
 
 // 错误：到处兼容
-if (route.params.id) return route.params.id;
-if (route.query.nodeId) return route.query.nodeId;
-if (route.query.systemNodeId) return route.query.systemNodeId;
-return route.query.id;
+if (route.params.id) return route.params.id
+if (route.query.nodeId) return route.query.nodeId
+if (route.query.systemNodeId) return route.query.systemNodeId
+return route.query.id
 ```
 
 禁止行为：
+
 - 禁止为了"兼容"写 3 个以上的 if 分支
 - 禁止在注释中写"兼容旧格式"而不说明什么时候删除
 - 禁止用 `||` 链式兼容超过 2 个字段
 
 后端 Lint 与 TypeScript 检查原则：
+
 - 后端是纯 JavaScript 项目，TypeScript 检查只是辅助工具
 - lint 命令包含 typecheck，但只修复影响业务的实际代码问题
 - 不需要为纯类型错误添加类型断言、其他修复
@@ -711,30 +753,34 @@ return route.query.id;
 当一个函数需要调用多个不同的 API 时，必须拆分成多个独立的函数，每个函数只负责调用一个接口。
 
 **错误示例**：
+
 ```javascript
 // ❌ 错误：一个函数调用3个接口，职责不清
 async function loadNodeData() {
-  const result1 = await api1.get();  // 基本信息
-  const result2 = await api2.get();  // 接口数量
-  const result3 = await api3.get();  // 逻辑流数量
+  const result1 = await api1.get() // 基本信息
+  const result2 = await api2.get() // 接口数量
+  const result3 = await api3.get() // 逻辑流数量
 }
 ```
 
 **正确示例**：
+
 ```javascript
 // ✅ 正确：拆分成3个函数，各司其职
-async function loadNodeBasicInfo() { }
-async function loadInterfaceCount() { }
-async function loadLogicFlowCount() { }
+async function loadNodeBasicInfo() {}
+async function loadInterfaceCount() {}
+async function loadLogicFlowCount() {}
 ```
 
 **拆分的目的**：
+
 1. 代码清爽度：一眼看懂每个函数的用途
 2. 优雅度：职责单一，易于理解
 3. 可维护性：修改一个接口调用不影响其他
 4. 可测试性：可以独立测试每个接口调用
 
 **判断标准**：
+
 - 一个函数调用了2个或以上不同的 API → 必须拆分
 - 函数命名应该清晰表达它的目的（如 loadNodeBasicInfo、loadInterfaceCount）
 
@@ -745,6 +791,7 @@ async function loadLogicFlowCount() { }
 后端通过响应的 `message` 字段统一返回错误信息，前端不需要复杂的错误类型判断。
 
 **正确做法**：
+
 ```typescript
 // 简单处理：记录日志 + 显示错误消息
 catch (err: any) {
@@ -754,6 +801,7 @@ catch (err: any) {
 ```
 
 **禁止的行为**：
+
 - 禁止在 catch 块中进行复杂的错误类型判断（如 instanceof、多层 if-else）
 - 禁止根据错误类型做不同处理分支
 - 禁止在 catch 块中调用多个接口或执行复杂逻辑
@@ -764,45 +812,48 @@ catch (err: any) {
 ### Vue 组件拆分规范
 
 组件行数阈值：
+
 - 单个 Vue 文件不超过 1000 行（含模板、脚本、样式）
 - 超过 1000 行必须拆分
 
 拆分原则（单一职责、高内聚低耦合）：
+
 - 每个子组件只负责一个明确的功能或业务领域
 - 相关的数据和操作逻辑放在同一个组件内
 - 可复用的逻辑抽离到 composables
 
 拆分方案要求：
+
 - 拆分后的组件层级结构（父组件 + 子组件命名/职责）
 - 样式隔离方案（使用外部 SCSS 文件，不使用 scoped）
 - 拆分后需注意的生命周期、数据流转风险点
-
-
 
 ## 3. Express Router 文件规范
 
 文件结构（两大分区）：
 
 业务逻辑区（上半部分）：
+
 - 导入语句
 - 路由定义（含简洁注释）
 - `module.exports = router;`
 
 文档定义区（下半部分）：
+
 - Swagger API 文档注释块
 - components/schemas 定义
 - securitySchemes 定义
-两区之间用 4 行空行分隔。
+  两区之间用 4 行空行分隔。
 
 路由定义风格：
+
 ```javascript
 /**
  * 功能描述
  * HTTP方法 /api/xxx/path  body: { data: [...] }
  */
-router.method('/path', middleware1, middleware2, Controller.action);
+router.method('/path', middleware1, middleware2, Controller.action)
 ```
-
 
 - 简洁中文注释（功能 + 方法路径 + 请求体示例）
 - 链式调用，一行完成
@@ -810,17 +861,16 @@ router.method('/path', middleware1, middleware2, Controller.action);
 - 每个路由之间 2 行空行
 
 Swagger 文档组织：
+
 - 分离式：与路由代码完全分离，放在 `module.exports` 之后
 - 按接口分组：每个接口独立一个完整的 `@swagger` 块
 - 统一标签：所有接口使用相同的 `tags: [模块名]`
 - 完整规范：包含 summary、description、parameters/requestBody、responses
 - 每个 Swagger 块之间 2 行空行
 
-
 ## 5. Git Commit 风格
 
 使用 Conventional Commits 格式
-
 
 ## 6. HTML data-debug 调试属性规范
 
@@ -829,25 +879,27 @@ Swagger 文档组织：
 ## 7. 代码与文档的格式风格
 
 markdown文档格式：
+
 - 不使用 emoji 图标
 - 不使用 Markdown 加粗语法
 - 使用简洁的纯文本标题
 
 代码注释格式：
+
 - 使用完整的 JSDoc 注释块（`/**` 开头）
-
-
 
 ## 8. 代码修改影响分析原则
 
 **核心原则：改一处而动全身，修改前必须全面分析影响范围**
 
 批量替换导致语义错误的教训：
+
 - 场景：简化 `compOptions?.options?.field` 为 `compOptions?.field`
 - 错误1：只批量替换了 `compOptions?.options` 为 `compOptions`，遗漏了父组件传递时的 `options: {}` 包装结构
 - 错误2：将 `props.compOptions?.packetData` 错误替换为 `props.compOptions`，改变了语义（从访问字段变为访问整个对象）
 
 **正确流程**：
+
 1. 先找到所有引用点（类型定义、赋值、使用）
 2. 确定修改顺序：类型定义 -> 父组件传递 -> 子组件使用
 3. 每次修改后检查是否有遗漏
@@ -855,4 +907,5 @@ markdown文档格式：
 5. 批量替换后必须运行项目验证功能是否正常
 
 **禁止的行为**：
+
 - 只看表面相似就批量替换，不理解语义就动手

@@ -1,0 +1,2254 @@
+/* 通用基础样式: 重置、主题变量、排版、组件与工具类 */
+
+/* ========== 重置 Reset ========== */
+/* 采用现代浏览器友好的基础重置，尽量不破坏表单与原生元素可用性 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+
+  /* 尺寸与圆角 */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  /* 排版 */
+  --font-sans:
+    ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
+    'Apple Color Emoji', 'Segoe UI Emoji';
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+  --leading-tight: 1.25;
+  --leading-normal: 1.5;
+}
+
+html:focus-within {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* 通用颜色 - 深浅主题下保持一致 */
+  --color-white: #ffffff;
+
+  /* ========== Z-Index 层级系统 Z-Index Scale ========== */
+  /* 系统化的 z-index 管理，所有组件必须使用这些变量 */
+  /* 层级从低到高，避免随意使用数字 */
+
+  /* 基础层：普通文档流之上的元素 */
+  --z-base: 1;
+
+  /* 下拉层：下拉菜单、选择器、弹出菜单 */
+  --z-dropdown: 1000;
+
+  /* 固定层：固定头部、侧边栏 */
+  --z-sticky: 2000;
+
+  /* 弹窗遮罩层：弹窗背景遮罩 */
+  --z-modal-overlay: 3000;
+
+  /* 弹窗内容层：弹窗主体内容（必须高于遮罩） */
+  --z-modal-content: 3001;
+
+  /* 通知层：通知提示、toast 消息（最高优先级显示） */
+  --z-notification: 4000;
+
+  /* 全局加载层：全局加载遮罩（最高层级） */
+  --z-global-loading: 5000;
+}
+
+/* ========== 浅色主题变量 Light Theme ========== */
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* 色板 - 币安浅色主题 */
+  --color-bg: #fafafa;
+  --color-bg-muted: #f0f0f0;
+  --color-text: #1e2329;
+  --color-text-muted: #707a8a;
+  --color-border: #e6e8ea;
+  --color-surface: #ffffff;
+
+  /* 主色调 - 浅色主题下保持币安黄 */
+  --color-primary: #c99400;
+  --color-primary-600: #c99400;
+  --color-primary-700: #b38600;
+  --color-primary-50: #fff9e6;
+
+  /* 功能色 - 浅色主题适配 */
+  --color-danger: #cf304a;
+  --color-warning: #f0b90b;
+  --color-success: #03a66d;
+  --color-info: #17a2b8;
+
+  /* 阴影 - 浅色主题 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.15);
+}
+
+/* ========== CSS 变量 Theme Variables ========== */
+/* 深色主题变量 (默认) */
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* 色板 - 币安主题风格 */
+  --color-primary: #f0b90b;
+  /* 币安黄-主色 */
+  --color-primary-600: #f0b90b;
+  --color-primary-700: #d9a00a;
+  --color-primary-50: #fef9e7;
+
+  --color-bg: #0b0e11;
+  /* 币安深色背景 */
+  --color-bg-muted: #1e2329;
+  /* 深灰背景 */
+  --color-text: #eaecef;
+  /* 浅色文字 */
+  --color-text-muted: #848e9c;
+  /* 次要文字 */
+  --color-border: #2b3139;
+  /* 边框色 */
+  --color-surface: #181a20;
+  /* 卡片表面色 */
+  --color-danger: #f6465d;
+  /* 币安红色 */
+  --color-warning: #fcd535;
+  /* 币安警告黄 */
+  --color-success: #0ecb81;
+  /* 币安绿色 */
+  --color-info: #138496;
+
+  /* 阴影 - 适配深色主题 */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.8);
+}
+
+/* ========== 基础排版 Typography ========== */
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-bg);
+  font-size: var(--text-md);
+  line-height: var(--leading-normal);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0 0 8px;
+  font-weight: 600;
+  line-height: var(--leading-tight);
+  color: var(--color-text);
+}
+
+h1 {
+  font-size: 28px;
+}
+
+h2 {
+  font-size: 24px;
+}
+
+h3 {
+  font-size: 20px;
+}
+
+h4 {
+  font-size: 18px;
+}
+
+h5 {
+  font-size: 16px;
+}
+
+h6 {
+  font-size: 14px;
+}
+
+p {
+  margin: 0 0 12px;
+  color: var(--color-text-muted);
+}
+
+small {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+/* 链接 - 币安黄色链接 */
+a {
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* ========== 布局容器 Layout ========== */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section {
+  padding: 16px;
+}
+
+.surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ========== 基础组件 Components ========== */
+/* 按钮 - 币安风格按钮 */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  border: 1px solid transparent;
+  transition: all 0.15s ease;
+}
+
+.btn-primary {
+  color: #fff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  background: var(--color-primary-700);
+  border-color: var(--color-primary-700);
+}
+
+.btn-outline {
+  color: var(--color-info);
+  background: color-mix(in srgb, var(--color-info) 8%, transparent);
+  border-color: color-mix(in srgb, var(--color-info) 25%, transparent);
+}
+
+.btn-outline:hover {
+  border-color: var(--color-info);
+  color: var(--color-info);
+  background: color-mix(in srgb, var(--color-info) 15%, transparent);
+}
+
+.btn-ghost {
+  color: var(--color-text);
+  background: transparent;
+}
+
+.btn-ghost:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-primary);
+}
+
+/* 危险按钮 */
+.btn-danger {
+  background: var(--color-danger);
+  color: var(--color-white);
+}
+
+.btn-danger:hover {
+  background: color-mix(in srgb, var(--color-bg) 10%, var(--color-danger));
+  color: var(--color-white);
+}
+
+/* 禁用状态 */
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+  transform: none;
+  box-shadow: var(--shadow-sm);
+}
+
+/* 卡片 */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-border);
+  font-weight: 600;
+}
+
+.card-content {
+  padding: 16px;
+}
+
+.card-footer {
+  padding: 12px 16px;
+  border-top: 1px solid var(--color-border);
+  text-align: right;
+}
+
+/* 表单 - 币安风格表单 */
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.input,
+.select,
+.textarea {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.help {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* 验证提示 */
+.validation-hint {
+  font-size: var(--text-xs);
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.validation-hint.success {
+  color: var(--color-success);
+}
+
+.validation-hint.error {
+  color: var(--color-danger);
+}
+
+.validation-hint.warning {
+  color: var(--color-warning);
+}
+
+/* 标签 Tag */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-muted);
+  font-size: var(--text-xs);
+  color: var(--color-text);
+}
+
+.tag.success {
+  background: color-mix(in srgb, var(--color-success) 10%, var(--color-bg));
+  border-color: color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+}
+
+.tag.warn {
+  background: color-mix(in srgb, var(--color-warning) 10%, var(--color-bg));
+  border-color: color-mix(in srgb, var(--color-warning) 30%, var(--color-border));
+}
+
+.tag.danger {
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-bg));
+  border-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+}
+
+/* ========== 工具类 Utilities ========== */
+.mt-8 {
+  margin-top: 8px;
+}
+
+.mt-12 {
+  margin-top: 12px;
+}
+
+.mt-16 {
+  margin-top: 16px;
+}
+
+.mb-8 {
+  margin-bottom: 8px;
+}
+
+.mb-12 {
+  margin-bottom: 12px;
+}
+
+.mb-16 {
+  margin-bottom: 16px;
+}
+
+.p-8 {
+  padding: 8px;
+}
+
+.p-12 {
+  padding: 12px;
+}
+
+.p-16 {
+  padding: 16px;
+}
+
+.gap-8 {
+  gap: 8px;
+}
+
+.gap-12 {
+  gap: 12px;
+}
+
+.gap-16 {
+  gap: 16px;
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.space-between {
+  justify-content: space-between;
+}
+
+.rounded {
+  border-radius: var(--radius-md);
+}
+
+.border {
+  border: 1px solid var(--color-border);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.hide {
+  display: none !important;
+}
+
+/* ========== 页面骨架 Skeleton ========== */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-bg-muted);
+}
+
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ========== 应用特定样式 App Specific ========== */
+/* 主应用容器 */
+#App {
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+/* 导航栏 - 币安风格导航 */
+nav.surface {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--color-surface) 95%, transparent);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* 导航链接样式 */
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+}
+
+/* 导航 Logo 样式 */
+.nav-logo {
+  width: 32px;
+  height: 32px;
+}
+
+/* 导航标题样式 */
+.nav-title {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* 响应式网格 */
+.grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+/* 卡片悬停效果 */
+.card-hover {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* 卡片禁用状态 */
+.card-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  position: relative;
+}
+
+.card-disabled:hover {
+  transform: none !important;
+  box-shadow: var(--shadow-sm) !important;
+}
+
+.card-disabled::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-bg) 70%, transparent);
+  border-radius: var(--radius-md);
+  z-index: var(--z-base);
+}
+
+.card-disabled .card-content {
+  position: relative;
+  z-index: calc(var(--z-base) + 1);
+}
+
+/* 状态指示器 */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-indicator::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* 进度条 - 币安风格进度条 */
+.progress {
+  width: 100%;
+  height: 8px;
+  background: var(--color-bg-muted);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.3s ease;
+  border-radius: 4px;
+}
+
+/* 徽章 - 币安风格徽章 */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 10px;
+  background: var(--color-primary);
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* 分割线 */
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 16px 0;
+}
+
+/* 空状态 */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: var(--color-text-muted);
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+/* 加载状态 - 币安风格加载动画 */
+.loading {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-border);
+  border-top: 2px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 权限提示框 */
+.permission-tooltip {
+  position: absolute;
+  top: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-bg);
+  color: var(--color-text);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  z-index: var(--z-dropdown);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.2s ease,
+    visibility 0.2s ease;
+}
+
+.permission-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--color-bg);
+}
+
+.card-disabled:hover .permission-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* 插件详情页面专用样式 */
+.plugin-detail-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg);
+}
+
+.plugin-detail-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 12px 16px;
+  flex-shrink: 0;
+}
+
+.plugin-detail-content {
+  flex: 1;
+  background: var(--color-bg);
+  overflow: hidden;
+}
+
+/* ========== Binance ApiKey 管理专用样式 ========== */
+/* ApiKey 管理卡片头部 */
+.binance-apikey-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ApiKey 列表容器 */
+.binance-apikey-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ApiKey 列表项 */
+.binance-apikey-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-muted);
+}
+
+/* ApiKey 项目信息区域 */
+.binance-apikey-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ApiKey 项目头部 */
+.binance-apikey-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ApiKey 项目名称 */
+.binance-apikey-item-name {
+  font-weight: 600;
+  color: var(--color-text);
+  font-size: var(--text-md);
+}
+
+/* ApiKey 项目标签区域 */
+.binance-apikey-item-badges {
+  display: flex;
+  gap: 6px;
+}
+
+/* ApiKey 详细信息区域 */
+.binance-apikey-item-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ApiKey 详细信息项 */
+.binance-apikey-item-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm);
+}
+
+/* ApiKey 掩码显示 */
+.binance-apikey-masked {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: var(--color-text-muted);
+  background: var(--color-surface);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+}
+
+/* ApiKey 项目操作区域 */
+.binance-apikey-item-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  margin-left: 16px;
+  align-items: center;
+}
+
+/* ApiKey 当前使用标签 */
+.binance-apikey-active-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 82px;
+  height: 32px;
+  padding: 0 16px;
+  background: transparent;
+  border: none;
+  border-radius: 16px;
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--color-success);
+}
+
+.binance-apikey-active-badge::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  background: var(--color-success);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* 小尺寸按钮 */
+.btn-small {
+  min-width: 82px;
+  padding: 6px 16px;
+  font-size: var(--text-sm);
+}
+
+/* ApiKey 空状态 */
+.binance-apikey-empty {
+  text-align: center;
+  padding: 32px 16px;
+}
+
+/* ApiKey 表单容器 */
+.binance-apikey-form {
+  margin-top: 12px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+/* ApiKey 表单头部 */
+.binance-apikey-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* ApiKey 表单头部标题 */
+.binance-apikey-form-header h4 {
+  margin: 0;
+  color: var(--color-text);
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+/* ApiKey 表单内容区域 */
+.binance-apikey-form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ApiKey 表单网格布局 */
+.binance-apikey-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* ApiKey 表单字段 */
+.binance-apikey-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ApiKey 表单操作区域 */
+.binance-apikey-form-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+}
+
+/* ApiKey 表单消息 */
+.binance-apikey-form-message {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+
+/* ApiKey 表单成功消息 */
+.binance-apikey-form-success {
+  background: color-mix(in srgb, var(--color-success) 10%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-success) 30%, var(--color-border));
+  color: var(--color-success);
+}
+
+/* ApiKey 表单错误消息 */
+.binance-apikey-form-error {
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-bg));
+  border: 1px solid color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+  color: var(--color-danger);
+}
+
+/* ========== U合约市场插件样式 ========== */
+.u-contract-container {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: var(--color-text);
+}
+
+.u-contract-container .header-section {
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.u-contract-container .header-section h2 {
+  color: var(--color-primary);
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.u-contract-container .description {
+  color: var(--color-text-muted);
+  margin: 0;
+  font-size: 14px;
+}
+
+.u-contract-container .credentials-section,
+.u-contract-container .account-section,
+.u-contract-container .position-section,
+.u-contract-container .close-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.u-contract-container .credentials-section h3,
+.u-contract-container .account-section h3,
+.u-contract-container .position-section h3,
+.u-contract-container .close-section h3 {
+  color: var(--color-primary);
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.u-contract-container .section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.u-contract-container .section-header h3 {
+  margin: 0;
+}
+
+.u-contract-container .credentials-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.u-contract-container .form-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.u-contract-container .account-info {
+  min-height: 100px;
+}
+
+.u-contract-container .no-data {
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 40px 20px;
+  font-style: italic;
+}
+
+.u-contract-container .account-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.u-contract-container .account-item {
+  background: var(--color-bg-muted);
+  padding: 12px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+}
+
+.u-contract-container .account-item label {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  margin-bottom: 4px;
+}
+
+.u-contract-container .account-item .value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.u-contract-container .account-item .value.positive {
+  color: var(--color-success);
+}
+
+.u-contract-container .account-item .value.negative {
+  color: var(--color-danger);
+}
+
+.u-contract-container .positions-section h4 {
+  color: var(--color-primary);
+  margin: 0 0 12px 0;
+  font-size: 16px;
+}
+
+.u-contract-container .positions-list {
+  background: var(--color-bg-muted);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.u-contract-container .position-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid var(--color-border);
+  align-items: center;
+}
+
+.u-contract-container .position-row:last-child {
+  border-bottom: none;
+}
+
+.u-contract-container .position-row .symbol {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.u-contract-container .position-row .side {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.u-contract-container .position-row .side.long {
+  background: color-mix(in srgb, var(--color-success) 20%, transparent);
+  color: var(--color-success);
+}
+
+.u-contract-container .position-row .side.short {
+  background: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  color: var(--color-danger);
+}
+
+.u-contract-container .position-row .side.both {
+  background: color-mix(in srgb, var(--color-text-muted) 20%, transparent);
+  color: var(--color-text-muted);
+}
+
+.u-contract-container .position-row .amount {
+  font-family: monospace;
+  color: var(--color-text);
+}
+
+.u-contract-container .position-row .pnl {
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.u-contract-container .position-row .pnl.positive {
+  color: var(--color-success);
+}
+
+.u-contract-container .position-row .pnl.negative {
+  color: var(--color-danger);
+}
+
+.u-contract-container .no-positions {
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+}
+
+.u-contract-container .position-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.u-contract-container .position-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  background: var(--color-bg-muted);
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+}
+
+.u-contract-container .close-positions {
+  margin-top: 8px;
+}
+
+.u-contract-container .checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.u-contract-container .checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.u-contract-container .checkbox-group input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+}
+
+.u-contract-container .status-section {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: var(--z-notification);
+  max-width: 400px;
+}
+
+.u-contract-container .status-message {
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+}
+
+.u-contract-container .status-message.status-success {
+  background: var(--color-success);
+  color: var(--color-white);
+}
+
+.u-contract-container .status-message.status-error {
+  background: var(--color-danger);
+  color: var(--color-white);
+}
+
+.u-contract-container .status-message.status-info {
+  background: var(--color-info);
+  color: var(--color-white);
+}
+
+.u-contract-container .loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--color-bg) 85%, transparent);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: var(--z-modal-overlay);
+}
+
+.u-contract-container .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--color-border);
+  border-top: 4px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+.u-contract-container .loading-text {
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.u-contract-container .positions-section h4 {
+  color: var(--color-primary);
+  margin: 0 0 12px 0;
+  font-size: 16px;
+}
+
+.u-contract-container .positions-list {
+  background: var(--color-bg-muted);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.u-contract-container .position-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 12px;
+  padding: 12px;
+  border-bottom: 1px solid var(--color-border);
+  align-items: center;
+}
+
+.u-contract-container .position-row:last-child {
+  border-bottom: none;
+}
+
+.u-contract-container .position-row .symbol {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.u-contract-container .position-row .side {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.u-contract-container .position-row .side.long {
+  background: color-mix(in srgb, var(--color-success) 20%, transparent);
+  color: var(--color-success);
+}
+
+.u-contract-container .position-row .side.short {
+  background: color-mix(in srgb, var(--color-danger) 20%, transparent);
+  color: var(--color-danger);
+}
+
+.u-contract-container .position-row .side.both {
+  background: color-mix(in srgb, var(--color-text-muted) 20%, transparent);
+  color: var(--color-text-muted);
+}
+
+.u-contract-container .position-row .amount {
+  font-family: monospace;
+  color: var(--color-text);
+}
+
+.u-contract-container .position-row .pnl {
+  font-family: monospace;
+  font-weight: 600;
+}
+
+.u-contract-container .position-row .pnl.positive {
+  color: var(--color-success);
+}
+
+.u-contract-container .position-row .pnl.negative {
+  color: var(--color-danger);
+}
+
+.u-contract-container .no-positions {
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+}
+
+.u-contract-container .position-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.u-contract-container .position-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 12px;
+  align-items: end;
+  background: var(--color-bg-muted);
+  padding: 16px;
+  border-radius: 6px;
+  border: 1px solid var(--color-border);
+}
+
+.u-contract-container .close-positions {
+  margin-top: 8px;
+}
+
+.u-contract-container .checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.u-contract-container .checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.u-contract-container .checkbox-group input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-primary);
+}
+
+.u-contract-container .status-section {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: var(--z-notification);
+  max-width: 400px;
+}
+
+.u-contract-container .status-message {
+  padding: 12px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: var(--shadow-md);
+}
+
+.u-contract-container .status-message.status-success {
+  background: var(--color-success);
+  color: #fff;
+}
+
+.u-contract-container .status-message.status-error {
+  background: var(--color-danger);
+  color: #fff;
+}
+
+.u-contract-container .status-message.status-info {
+  background: #17a2b8;
+  color: #fff;
+}
+
+.u-contract-container .loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--color-bg) 85%, transparent);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: var(--z-modal-overlay);
+}
+
+.u-contract-container .loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--color-border);
+  border-top: 4px solid var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+.u-contract-container .loading-text {
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* ========== 网格策略页面样式 ========== */
+/* 注意：网格策略相关样式已拆分到以下文件：
+   - 网格策略列表页面样式：frontend/src/pages/grid-strategy/index.scss
+   - 网格策略表单样式：frontend/src/pages/grid-strategy/components/edit/index.scss
+   - 智能配置弹窗样式：frontend/src/components/grid-strategy/smart-config-modal/index.scss
+   - 账户验证卡片样式：frontend/src/components/account-validation-card/index.scss
+   - 返佣弹窗样式：frontend/src/components/referral-commission-invitation/index.scss
+*/
+
+/* ========== 系统信息页面样式 ========== */
+.system-info-page {
+  padding: 16px 0;
+}
+
+.system-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.info-item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+}
+
+.info-value {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: var(--color-text);
+  font-size: var(--text-sm);
+}
+
+.info-path {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: var(--color-text);
+  font-size: var(--text-xs);
+  background: var(--color-bg-muted);
+  padding: 4px 8px;
+  border-radius: 4px;
+  word-break: break-all;
+  max-width: 60%;
+  text-align: right;
+}
+
+.info-link {
+  color: var(--color-primary);
+  font-size: var(--text-sm);
+  text-decoration: none;
+}
+
+.info-link:hover {
+  text-decoration: underline;
+}
+
+.info-status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+
+.info-status.success {
+  background: color-mix(in srgb, var(--color-success) 20%, var(--color-bg));
+  color: var(--color-success);
+}
+
+.info-status.danger {
+  background: color-mix(in srgb, var(--color-danger) 20%, var(--color-bg));
+  color: var(--color-danger);
+}
+
+/* ========== 数据库管理页面 Database Manager ========== */
+
+.database-manager-page .grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.database-manager-page .stat-card {
+  padding: 16px;
+  text-align: center;
+}
+
+.database-manager-page .stat-label {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  margin-bottom: 8px;
+}
+
+.database-manager-page .stat-value {
+  color: var(--color-primary);
+  font-size: var(--text-2xl);
+  font-weight: 600;
+}
+
+.database-manager-content {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 16px;
+  min-height: 500px;
+}
+
+/* 侧边栏 */
+.database-sidebar {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.database-sidebar-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.database-sidebar-header h3 {
+  margin: 0 0 12px 0;
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.database-sidebar-header .search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-bg-muted);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.database-sidebar-header .search-box svg {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.database-sidebar-header .search-box input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  width: 100%;
+}
+
+.table-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+}
+
+.table-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-bottom: 4px;
+}
+
+.table-item:hover {
+  background: var(--color-bg-muted);
+}
+
+.table-item.active {
+  background: color-mix(in srgb, var(--color-primary) 15%, var(--color-surface));
+}
+
+.table-item-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.table-item-info svg {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+.table-item-name {
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.table-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* 主内容区 */
+.database-main {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tab-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.tab-title svg {
+  color: var(--color-primary);
+}
+
+.tab-list {
+  display: flex;
+  gap: 4px;
+}
+
+.tab-item {
+  padding: 8px 16px;
+  border: none;
+  background: none;
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+}
+
+.tab-item:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+}
+
+.tab-item.active {
+  background: color-mix(in srgb, var(--color-primary) 15%, var(--color-surface));
+  color: var(--color-primary);
+}
+
+.tab-content {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+/* 数据表格 */
+.table-data-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.table-wrapper {
+  flex: 1;
+  overflow: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+
+.data-table thead {
+  background: var(--color-bg-muted);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-base);
+}
+
+.data-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+}
+
+.data-table th:hover {
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg-muted));
+}
+
+.data-table th.sorted {
+  color: var(--color-primary);
+}
+
+.data-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: var(--text-xs);
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-table tbody tr:hover {
+  background: var(--color-bg-muted);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table .text-center {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 24px;
+}
+
+/* 复选框列样式 - 用于数据库管理页面的多选批量删除功能 */
+.data-table .checkbox-column {
+  width: 40px;
+  text-align: center;
+  padding: 10px 8px;
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--color-surface);
+  border-right: 2px solid var(--color-border);
+}
+
+.data-table thead .checkbox-column {
+  z-index: 2;
+  background: var(--color-bg-muted);
+  cursor: default;
+}
+
+.data-table thead .checkbox-column:hover {
+  background: var(--color-bg-muted);
+}
+
+.data-table .checkbox-column .checkbox-label {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.data-table tbody tr.selected-row {
+  background: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+}
+
+.data-table tbody tr.selected-row:hover {
+  background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface));
+}
+
+.data-table tbody tr.selected-row td {
+  color: var(--color-primary);
+}
+
+/* 批量操作栏样式 - 显示选中记录数量和批量操作按钮 */
+.batch-actions-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  margin-bottom: 12px;
+}
+
+.batch-actions-info {
+  font-size: var(--text-sm);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+/* 固定列样式 - 用于数据库管理页面表格的首列和操作列 */
+/* 在表格水平滚动时固定首列和操作列，提升大数据表格的易用性 */
+.data-table .fixed-column-first {
+  position: sticky;
+  left: 40px;
+  z-index: 1;
+  background: var(--color-surface);
+  border-right: 2px solid var(--color-border);
+}
+
+.data-table thead .fixed-column-first {
+  z-index: 2;
+  background: var(--color-bg-muted);
+}
+
+.data-table .fixed-column-last {
+  position: sticky;
+  right: 0;
+  z-index: 1;
+  background: var(--color-surface);
+  border-left: 2px solid var(--color-border);
+}
+
+.data-table thead .fixed-column-last {
+  z-index: 2;
+  background: var(--color-bg-muted);
+}
+
+/* 分页 */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+  border-top: 1px solid var(--color-border);
+}
+
+.pagination-info {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.pagination-jump {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 16px;
+}
+
+.pagination-jump input {
+  width: 60px;
+  padding: 4px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.pagination-size {
+  margin-left: 8px;
+}
+
+/* 结构信息 */
+.structure-info {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.structure-section h4 {
+  margin: 0 0 12px 0;
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.code-block {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+/* SQL 查询 */
+.sql-query-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+}
+
+.sql-input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sql-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: var(--text-sm);
+  resize: vertical;
+}
+
+.sql-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.query-result h4 {
+  margin: 0 0 12px 0;
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* 按钮图标 */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--color-text-muted);
+}
+
+.btn-icon:hover {
+  background: var(--color-bg-muted);
+  color: var(--color-text);
+}
+
+.btn-icon-danger:hover {
+  background: color-mix(in srgb, var(--color-danger) 20%, var(--color-bg));
+  color: var(--color-danger);
+}
+
+/* ========== 数据库管理页面新增样式 ========== */
+
+/* 表操作菜单 */
+.table-item-actions {
+  position: relative;
+}
+
+.table-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  min-width: 140px;
+  z-index: var(--z-dropdown);
+}
+
+.table-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.table-menu-item:hover {
+  background: var(--color-bg-muted);
+}
+
+.table-menu-item.text-danger {
+  color: var(--color-danger);
+}
+
+.table-menu-item.text-danger:hover {
+  background: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface));
+}
+
+.table-menu-item svg {
+  width: 14px;
+  height: 14px;
+}
+
+.table-menu-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 4px 0;
+}
+
+/* 弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: color-mix(in srgb, var(--color-bg) 50%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal-overlay);
+}
+
+.modal-content {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow: hidden;
+}
+
+.modal-content-large {
+  max-width: 800px;
+}
+
+.modal-lg {
+  max-width: 500px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.modal-body {
+  padding: 20px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding: 16px 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+/* 表单样式 */
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group:last-child {
+  margin-bottom: 0;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.form-group input[type='text'] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: var(--color-bg);
+}
+
+.form-group input[type='text']:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.form-group input[type='text']:disabled {
+  background: var(--color-bg-muted);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
+/* 复选框样式 */
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.checkbox-label input[type='checkbox'] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* 单选框样式 */
+.radio-group {
+  display: flex;
+  gap: 16px;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+}
+
+.radio-label input[type='radio'] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* 索引列选择列表 */
+.index-checkbox-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.index-checkbox-list .checkbox-label {
+  padding: 6px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+}
+
+.index-checkbox-list .checkbox-label:hover {
+  background: var(--color-bg-muted);
+}
+
+.index-checkbox-list .checkbox-label input[type='checkbox']:checked + span {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+/* 辅助类 */
+/* ==================== 智能配置弹窗 ==================== */
+/* 注意：智能配置弹窗样式已拆分到 frontend/src/components/grid-strategy/smart-config-modal/index.scss */
+
+/* ==================== 返佣收益对比组件 ==================== */
+/* 注意：返佣弹窗样式已拆分到 frontend/src/components/referral-commission-invitation/index.scss 和 frontend/src/components/grid-strategy/smart-config-modal/index.scss */
+
+/* ==================== 账户信息验证状态样式 ==================== */
+/* 注意：账户验证卡片样式已拆分到 frontend/src/components/account-validation-card/index.scss */

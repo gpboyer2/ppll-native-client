@@ -3,6 +3,7 @@
 ## 概述
 
 本项目使用 GitHub Actions 实现自动化跨平台构建，支持：
+
 - **macOS**: Intel (amd64)、Apple Silicon (arm64)、Universal
 - **Windows**: x64 (amd64)、ARM64
 
@@ -15,12 +16,14 @@
 工作流会在以下情况下自动触发：
 
 1. **推送到主分支**
+
    ```bash
    git push origin master
    git push origin develop
    ```
 
 2. **推送版本标签**
+
    ```bash
    git tag v1.0.0
    git push origin v1.0.0
@@ -36,13 +39,13 @@
 
 工作流会并行构建以下 5 个平台：
 
-| 平台 | 架构 | 产物名称 |
-|------|------|----------|
-| macOS | Intel x64 | ppll-client-v{版本}-mac-intel-x64.dmg |
-| macOS | Apple ARM | ppll-client-v{版本}-mac-apple-arm64.dmg |
-| macOS | Universal | ppll-client-v{版本}-mac-universal.dmg |
-| Windows | x64 | ppll-client-v{版本}-win-x64.exe |
-| Windows | ARM64 | ppll-client-v{版本}-win-arm64.exe |
+| 平台    | 架构      | 产物名称                                |
+| ------- | --------- | --------------------------------------- |
+| macOS   | Intel x64 | ppll-client-v{版本}-mac-intel-x64.dmg   |
+| macOS   | Apple ARM | ppll-client-v{版本}-mac-apple-arm64.dmg |
+| macOS   | Universal | ppll-client-v{版本}-mac-universal.dmg   |
+| Windows | x64       | ppll-client-v{版本}-win-x64.exe         |
+| Windows | ARM64     | ppll-client-v{版本}-win-arm64.exe       |
 
 ## 快速开始
 
@@ -129,8 +132,8 @@ git push origin v1.0.0
 
 ```yaml
 env:
-  GO_VERSION: '1.21'    # Go 版本
-  NODE_VERSION: '22'    # Node.js 版本
+  GO_VERSION: '1.21' # Go 版本
+  NODE_VERSION: '22' # Node.js 版本
 ```
 
 如需修改版本，编辑 `build.yml` 中的这些值。
@@ -154,7 +157,7 @@ strategy:
 - name: 上传构建产物
   uses: actions/upload-artifact@v4
   with:
-    retention-days: 30  # 保留 30 天
+    retention-days: 30 # 保留 30 天
 ```
 
 修改 `retention-days` 可调整保留时间。
@@ -189,6 +192,7 @@ OUTPUT_FILE="build/ppll-client-v${VERSION}-${{ matrix.suffix }}.dmg"
 ### Q4: Windows 构建很慢怎么办？
 
 这是正常现象，Windows 构建比 macOS 慢约 20-30%。可以考虑：
+
 - 使用缓存加速依赖安装
 - 减少 Windows 平台构建数量
 
@@ -233,7 +237,7 @@ git commit -m "docs: 更新文档 [skip ci]"
 ```yaml
 on:
   schedule:
-    - cron: '0 2 * * *'  # 每天凌晨 2 点运行
+    - cron: '0 2 * * *' # 每天凌晨 2 点运行
 ```
 
 ### 矩阵策略优化
@@ -242,7 +246,7 @@ on:
 
 ```yaml
 strategy:
-  max-parallel: 2  # 最多同时运行 2 个任务
+  max-parallel: 2 # 最多同时运行 2 个任务
   matrix:
     include:
       # ...
@@ -251,6 +255,7 @@ strategy:
 ## 最佳实践
 
 1. **标签命名规范**
+
    ```bash
    # 推荐
    git tag v1.0.0
@@ -263,6 +268,7 @@ strategy:
    ```
 
 2. **本地测试后再推送**
+
    ```bash
    # 1. 本地测试构建
    ./build-platforms.sh
@@ -276,6 +282,7 @@ strategy:
    - 要求 PR 必须通过 CI 检查才能合并
 
 4. **定期更新依赖**
+
    ```bash
    # 更新 Go 依赖
    go get -u ./...

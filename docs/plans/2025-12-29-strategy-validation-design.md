@@ -43,6 +43,7 @@
 ### 交易所规则缓存层
 
 利用现有的 `binance-store`：
+
 - 缓存币安 exchangeInfo 数据
 - 提供 `getTradingPairRules(symbol)` 方法
 - 支持手动刷新机制
@@ -56,25 +57,25 @@
 ```typescript
 // 交易对规则接口
 interface TradingPairRules {
-  symbol: string;
-  minQty: string;         // 最小交易数量
-  maxQty: string;         // 最大交易数量
-  qtyPrecision: number;   // 数量精度
-  minPrice: string;       // 最小价格
-  maxPrice: string;       // 最大价格
-  pricePrecision: number; // 价格精度
-  tickSize: string;       // 价格步长
-  minNotional: string;    // 最小名义价值
-  maxLeverage: number;    // 最大杠杆倍数
+  symbol: string
+  minQty: string // 最小交易数量
+  maxQty: string // 最大交易数量
+  qtyPrecision: number // 数量精度
+  minPrice: string // 最小价格
+  maxPrice: string // 最大价格
+  pricePrecision: number // 价格精度
+  tickSize: string // 价格步长
+  minNotional: string // 最小名义价值
+  maxLeverage: number // 最大杠杆倍数
 }
 
 // 验证结果接口
 interface ValidationResult {
-  valid: boolean;
-  field: string;
-  message: string;
-  suggestion?: any;
-  severity?: 'error' | 'warning';
+  valid: boolean
+  field: string
+  message: string
+  suggestion?: any
+  severity?: 'error' | 'warning'
 }
 ```
 
@@ -100,37 +101,41 @@ interface ValidationResult {
 ```javascript
 // utils/strategy-validator.js
 const validateStrategyParams = catchAsync(async (req, res, next) => {
-  const { api_key, api_secret } = req.apiCredentials;
-  const { trading_pair, grid_trade_quantity, grid_price_difference, leverage } = req.body;
+  const { api_key, api_secret } = req.apiCredentials
+  const { trading_pair, grid_trade_quantity, grid_price_difference, leverage } = req.body
 
   // 1. 获取交易对规则
-  const exchangeInfo = await binanceExchangeInfoService.getExchangeInfo({ api_key, api_secret });
-  const symbolInfo = exchangeInfo.symbols.find(s => s.symbol === trading_pair);
+  const exchangeInfo = await binanceExchangeInfoService.getExchangeInfo({ api_key, api_secret })
+  const symbolInfo = exchangeInfo.symbols.find((s) => s.symbol === trading_pair)
 
   if (!symbolInfo) {
-    return res.apiError(res, `交易对 ${trading_pair} 不存在或不可用`, 400);
+    return res.apiError(res, `交易对 ${trading_pair} 不存在或不可用`, 400)
   }
 
   // 2. 验证交易数量
-  const lotSizeFilter = symbolInfo.filters.find(f => f.filterType === 'LOT_SIZE');
+  const lotSizeFilter = symbolInfo.filters.find((f) => f.filterType === 'LOT_SIZE')
   if (grid_trade_quantity && grid_trade_quantity < Number(lotSizeFilter.minQty)) {
-    return res.apiError(res, {
-      message: `交易数量不能小于最小值 ${lotSizeFilter.minQty}`,
-      field: 'grid_trade_quantity',
-      suggestion: lotSizeFilter.minQty
-    }, 400);
+    return res.apiError(
+      res,
+      {
+        message: `交易数量不能小于最小值 ${lotSizeFilter.minQty}`,
+        field: 'grid_trade_quantity',
+        suggestion: lotSizeFilter.minQty
+      },
+      400
+    )
   }
 
   // 3. 验证其他字段...
-  next();
-});
+  next()
+})
 ```
 
 ### 路由集成
 
 ```javascript
-router.post('/create', validateStrategyParams, gridStrategyController.create);
-router.post('/update', validateStrategyParams, gridStrategyController.update);
+router.post('/create', validateStrategyParams, gridStrategyController.create)
+router.post('/update', validateStrategyParams, gridStrategyController.update)
 ```
 
 ---
@@ -193,21 +198,25 @@ router.post('/update', validateStrategyParams, gridStrategyController.update);
 ## 八、实施计划
 
 ### 阶段一：后端验证（优先）
+
 1. 创建 `utils/strategy-validator.js`
 2. 在 `grid-strategy.controller.js` 集成验证中间件
 3. 测试：创建不符合规则的策略
 
 ### 阶段二：前端验证工具
+
 1. 创建 `utils/strategy-validation.ts`
 2. 从 `binance-store` 获取交易所规则
 3. 实现各字段验证逻辑
 
 ### 阶段三：前端 UI 集成
+
 1. 修改 `edit.tsx` 添加验证状态
 2. 添加实时验证提示组件
 3. 实现智能建议按钮
 
 ### 阶段四：测试
+
 - 数量小于/超过限制
 - 价格差价不符合 tickSize
 - 杠杆超过限制

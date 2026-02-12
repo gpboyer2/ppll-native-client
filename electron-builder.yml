@@ -1,0 +1,84 @@
+appId: com.ppll.native-client
+productName: PPLL量化交易终端
+directories:
+  output: dist
+  buildResources: build
+files:
+  - out/**/*
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.{js,ts,mjs,cjs}'
+  - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
+  - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+asarUnpack:
+  - resources/**
+  - src/main/backend/node_modules/{sqlite3,better-sqlite3}/**
+extraResources:
+  - from: src/main/backend
+    to: backend
+    filter:
+      - '**/*'
+      - '!node_modules/**'
+      - '!**/test/**'
+      - '!**/logs/**'
+      - '!**/cache/**'
+      - '!**/out/**'
+      - '!**/*.md'
+copyright: Copyright 2025 PPLL Team
+win:
+  executableName: ppll-native-client
+  icon: build/icon.ico
+  legalTrademarks: Copyright 2025 PPLL Team
+  requestedExecutionLevel: asInvoker
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - arm64
+nsis:
+  artifactName: ${name}-${version}-${arch}-setup.${ext}
+  shortcutName: PPLL量化交易终端
+  uninstallDisplayName: PPLL量化交易终端
+  createDesktopShortcut: always
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  perMachine: false
+  runAfterFinish: false
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+mac:
+  identity: null
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    - NSCameraUsageDescription: Application requests access to the device's camera.
+    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
+    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
+  notarize: false
+  hardenedRuntime: false
+  icon: build/icon.icns
+  category: public.app-category.finance
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+dmg:
+  artifactName: ${name}-${version}-${arch}.${ext}
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  executableName: ppll-native-client
+  maintainer: ppll
+  category: Finance
+  icon: build/icon.png
+appImage:
+  artifactName: ${name}-${version}-${arch}.${ext}
+npmRebuild: true
+publish:
+  provider: github
+  owner: ppll
+  repo: ppll-native-client

@@ -7,30 +7,35 @@ PPLL Native Client 是 PPLL 量化交易生态系统的专业桌面客户端，�
 ## 核心特性
 
 ### 🚀 原生性能体验
+
 - 基于 Wails 框架的跨平台桌面应用
 - Go 后端提供高性能并发处理
 - React + TypeScript 前端提供现代化用户界面
 - 支持多窗口同时操作，提高交易效率
 
 ### 💼 专业量化交易功能
+
 - **网格策略管理**：双向网格（LONG/SHORT）策略实时监控
 - **实时价格监控**：毫秒级价格更新，WebSocket 实时推送
 - **风险控制工具**：止损止盈、仓位管理、风险预警
 - **交易执行引擎**：高性能订单处理，支持高频交易需求
 
 ### 📊 高级数据分析
+
 - **专业图表系统**：K线图、深度图、技术指标分析
 - **多时间维度**：支持1分钟到1周的不同周期分析
 - **策略回测**：历史数据回测，优化策略参数
 - **收益分析**：实时收益统计、资金流向分析
 
 ### 🛡️ 安全与隐私
+
 - **本地密钥存储**：与 Quantum Bandit 系统集成
 - **数据加密传输**：端到端加密，保护交易隐私
 - **离线缓存**：关键数据本地存储，网络断开仍可查看
 - **权限管理**：细粒度权限控制，确保账户安全
 
 ### 🌐 多平台支持
+
 - **Windows**：Windows 10/11 x64
 - **macOS**：macOS 10.15+ (Intel/Apple Silicon)
 - **Linux**：主流发行版支持
@@ -38,10 +43,12 @@ PPLL Native Client 是 PPLL 量化交易生态系统的专业桌面客户端，�
 ## 技术架构
 
 ### 桌面端技术栈
+
 - **Go 1.21+**：桌面客户端框架、系统调用、配置存储
 - **Wails v2**：跨平台桌面应用框架
 
 ### 后端技术栈
+
 - **Node.js 16+**：业务逻辑处理
 - **Express.js**：Web 框架
 - **Sequelize**：ORM 数据库操作
@@ -49,6 +56,7 @@ PPLL Native Client 是 PPLL 量化交易生态系统的专业桌面客户端，�
 - **SQLite**：本地数据存储（完全由 NodeJS 端管理）
 
 ### 前端技术栈
+
 - **React 18**：现代化 UI 框架
 - **TypeScript**：类型安全开发
 - **Zustand**：轻量级状态管理
@@ -56,6 +64,7 @@ PPLL Native Client 是 PPLL 量化交易生态系统的专业桌面客户端，�
 - **ECharts**：专业数据可视化
 
 ### 系统集成
+
 - **PPLL Server**：连接核心交易服务
 - **PPLL Asset Watcher**：资产监控数据
 - **PPLL Quantum Bandit**：密钥管理系统
@@ -64,6 +73,7 @@ PPLL Native Client 是 PPLL 量化交易生态系统的专业桌面客户端，�
 ## 安装与配置
 
 ### 系统要求
+
 - Node.js 16.16.0+
 - Go 1.21+
 - Git
@@ -71,12 +81,14 @@ PPLL Native Client 是 PPLL 量化交易生态系统的专业桌面客户端，�
 ### 开发环境搭建
 
 1. **克隆项目**
+
 ```bash
 git clone https://github.com/gpboyer2/ppll-native-client.git
 cd ppll-native-client
 ```
 
 2. **安装依赖**
+
 ```bash
 # 安装前端依赖
 npm install
@@ -91,6 +103,7 @@ go build
 ```
 
 3. **配置环境**
+
 ```bash
 # 复制配置文件
 cp config.example.json config.json
@@ -152,30 +165,35 @@ ppll-native-client/
 ## 核心功能模块
 
 ### 1. 交易面板
+
 - 实时价格展示
 - 快速下单/平仓
 - 订单簿深度显示
 - 成交历史记录
 
 ### 2. 策略管理
+
 - 网格策略创建/编辑
 - 参数动态调整
 - 策略性能监控
 - 批量策略操作
 
 ### 3. 资产管理
+
 - 账户余额总览
 - 持仓分布统计
 - 资金流水记录
 - 盈亏分析报告
 
 ### 4. 风控中心
+
 - 实时风险监控
 - 预警设置管理
 - 强制平仓保护
 - 风险事件记录
 
 ### 5. 数据分析
+
 - K线图表分析
 - 技术指标计算
 - 策略回测报告
@@ -186,6 +204,7 @@ ppll-native-client/
 ### 添加新功能
 
 1. **后端 API**
+
 ```go
 // 在 backend/handlers/ 添加新的处理器
 func NewAPIHandler() *APIHandler {
@@ -199,6 +218,7 @@ func (h *APIHandler) HandleRequest(ctx context.Context, data string) (string, er
 ```
 
 2. **前端组件**
+
 ```typescript
 // 在 frontend/src/components/ 添加新组件
 import React from 'react';
@@ -232,15 +252,19 @@ export const NewComponent: React.FC = () => {
 ## 常见问题
 
 ### Q: 如何配置 API 密钥？
+
 A: 编辑 `config.json` 文件，填入 Binance API Key 和 Secret。
 
 ### Q: 支持哪些交易所？
+
 A: 目前主要支持 Binance，后续会逐步支持其他主流交易所。
 
 ### Q: 如何离线使用？
+
 A: 应用会缓存必要的数据，断网情况下仍可查看历史数据，但交易功能需要网络连接。
 
 ### Q: 数据存储在哪里？
+
 A: 本地数据存储在 SQLite 数据库中，配置文件存储在用户目录下。
 
 ---
@@ -252,23 +276,24 @@ A: 本地数据存储在 SQLite 数据库中，配置文件存储在用户目录
 ## 🚀 快速开始
 
 **第一次使用？** 请阅读：
+
 - 📖 [快速开始指南](workflows/README.md) - 5 分钟上手
 
 ## 📚 文档导航
 
 ### 入门文档
 
-| 文档 | 说明 | 适合人群 |
-|------|------|---------|
-| [快速开始](workflows/README.md) | 5 分钟上手指南 | 新手 |
-| [私有项目问答](PRIVATE_PROJECT_GUIDE.md) | 常见问题解答 | 所有用户 |
+| 文档                                     | 说明           | 适合人群 |
+| ---------------------------------------- | -------------- | -------- |
+| [快速开始](workflows/README.md)          | 5 分钟上手指南 | 新手     |
+| [私有项目问答](PRIVATE_PROJECT_GUIDE.md) | 常见问题解答   | 所有用户 |
 
 ### 进阶文档
 
-| 文档 | 说明 | 适合人群 |
-|------|------|---------|
-| [工作流程可视化](ACTIONS_WORKFLOW.md) | 完整流程图和说明 | 想深入了解的用户 |
-| [完整使用教程](GITHUB_ACTIONS_GUIDE.md) | 从入门到精通 | 所有用户 |
+| 文档                                    | 说明             | 适合人群         |
+| --------------------------------------- | ---------------- | ---------------- |
+| [工作流程可视化](ACTIONS_WORKFLOW.md)   | 完整流程图和说明 | 想深入了解的用户 |
+| [完整使用教程](GITHUB_ACTIONS_GUIDE.md) | 从入门到精通     | 所有用户         |
 
 ## 🎯 按场景查找
 
@@ -320,15 +345,19 @@ A: 本地数据存储在 SQLite 数据库中，配置文件存储在用户目录
 ## 🔥 常见问题速查
 
 ### Q: 私有项目能用吗？
+
 **A:** 能！功能和公开项目完全相同 → [详见](PRIVATE_PROJECT_GUIDE.md)
 
 ### Q: 需要付费吗？
+
 **A:** 不需要！免费额度完全够用 → [详见](PRIVATE_PROJECT_GUIDE.md)
 
 ### Q: 构建要多久？
+
 **A:** 12-15 分钟（5个平台并行） → [详见](PRIVATE_PROJECT_GUIDE.md)
 
 ### Q: 怎么收到通知？
+
 **A:** GitHub 自动发送邮件通知，无需配置！
 
 ## 🎓 学习路径

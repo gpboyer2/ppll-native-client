@@ -25,6 +25,7 @@ cd ppll-native-client
 ```
 
 脚本会自动：
+
 - 检查 Go、Node.js、Wails 环境
 - 安装前端依赖
 - 启动 Wails 开发服务器
@@ -46,13 +47,14 @@ npm run node:dev
 
 ### 依赖要求
 
-| 工具 | 版本 | 说明 |
-|------|------|------|
-| Go | 1.20+ | 后端语言 |
-| Node.js | 16+ | 运行时环境 |
-| Wails | v2 | 桌面应用框架 |
+| 工具    | 版本  | 说明         |
+| ------- | ----- | ------------ |
+| Go      | 1.20+ | 后端语言     |
+| Node.js | 16+   | 运行时环境   |
+| Wails   | v2    | 桌面应用框架 |
 
 安装 Wails：
+
 ```bash
 go install github.com/wailsapp/wails/v2/cmd/wails@latest
 ```
@@ -68,6 +70,7 @@ go install github.com/wailsapp/wails/v2/cmd/wails@latest
 **使用场景**: 日常开发时启动应用
 
 **使用方法**:
+
 ```bash
 # 完整启动（首次使用推荐，执行环境检查）
 ./start-mac.sh
@@ -80,12 +83,14 @@ go install github.com/wailsapp/wails/v2/cmd/wails@latest
 ```
 
 **功能说明**:
+
 - 自动检查 Go、Node.js、Wails 环境
 - 自动安装前端依赖（如果需要）
 - 启动 Wails 开发服务器（支持热重载）
 - 日志输出到 `process-monitoring/` 目录，格式为 `yyyyMMddHH0000/`
 
 **依赖要求**:
+
 - Go 1.20+
 - Node.js 16+
 - Wails v2
@@ -97,11 +102,13 @@ go install github.com/wailsapp/wails/v2/cmd/wails@latest
 **用途**: 重置代码、安装依赖、准备开发环境
 
 **使用场景**:
+
 - 首次设置开发环境
 - 切换分支后需要重新安装依赖
 - 需要重置开发环境时
 
 **使用方法**:
+
 ```bash
 # 使用默认配置（pnpm + master 分支）
 ./prepare-dev.sh
@@ -117,6 +124,7 @@ go install github.com/wailsapp/wails/v2/cmd/wails@latest
 ```
 
 **功能说明**:
+
 - 切换到指定分支并拉取最新代码
 - 安装 Go 依赖
 - 安装前端依赖（支持 npm/pnpm）
@@ -132,21 +140,25 @@ go install github.com/wailsapp/wails/v2/cmd/wails@latest
 **用途**: 配置 Gitee 和 GitHub 双仓库
 
 **使用场景**:
+
 - 首次设置项目时
 - 需要重新配置远程仓库
 
 **使用方法**:
+
 ```bash
 ./setup-dual-repo.sh
 ```
 
 **功能说明**:
+
 - 交互式添加 GitHub 远程仓库
 - 保持 origin 为 Gitee（用于日常开发）
 - github 远程仓库用于发布版本和触发构建
 - 自动测试连接并提供使用指南
 
 **配置后使用**:
+
 ```bash
 # 日常开发 - 推送到 Gitee
 git push origin master
@@ -167,21 +179,25 @@ git push origin master && git push github master
 **用途**: 同时推送代码到 Gitee 和 GitHub
 
 **使用场景**:
+
 - 需要同步代码到两个仓库
 - 发布版本时推送到 GitHub
 
 **使用方法**:
+
 ```bash
 ./push-dual-repo.sh
 ```
 
 **功能说明**:
+
 - 交互式选择推送目标（Gitee/GitHub/两者）
 - 自动检测未提交的更改
 - 支持代理配置（用于连接 GitHub）
 - 彩色输出显示推送状态
 
 **支持的操作**:
+
 - 仅推送到 Gitee（快速）
 - 仅推送到 GitHub（发布）
 - 同时推送到两个仓库
@@ -195,11 +211,13 @@ git push origin master && git push github master
 **用途**: 在本地构建 macOS 和 Windows 应用并打标签
 
 **使用场景**:
+
 - 需要快速构建本地应用包
 - 内部测试或小规模分发
 - 不需要触发 GitHub Actions
 
 **使用方法**:
+
 ```bash
 # 使用默认配置（自动生成版本标签）
 ./local-release-build.sh
@@ -215,12 +233,14 @@ git push origin master && git push github master
 ```
 
 **功能说明**:
+
 - 自动生成版本标签（格式：`build-分支-包管理器-时间`）
 - 调用 `build-platforms.sh` 执行多平台构建
 - 提交构建产物到 Git
 - 推送到指定分支并创建标签
 
 **生成的标签示例**:
+
 - `build-prod-p-20241227-143000`（master + pnpm）
 - `build-dev-n-20241227-143000`（develop + npm）
 
@@ -231,22 +251,26 @@ git push origin master && git push github master
 **用途**: 通过创建版本标签触发 GitHub Actions 多平台构建
 
 **使用场景**:
+
 - 正式发布软件版本
 - 面向公众用户的发布
 - 需要生成 GitHub Release 页面
 
 **使用方法**:
+
 ```bash
 ./github-release-build.sh
 ```
 
 **功能说明**:
+
 - 交互式输入版本号（推荐使用语义化版本）
 - 自动更新 `wails.json` 中的版本号
 - 创建版本标签并推送到 GitHub
 - 触发 GitHub Actions 自动构建多平台版本
 
 **构建产物**:
+
 - macOS Intel (x64) - .dmg
 - macOS Apple Silicon (arm64) - .dmg
 - macOS Universal - .dmg
@@ -256,6 +280,7 @@ git push origin master && git push github master
 **预计构建时间**: 10-20 分钟
 
 **查看构建进度**:
+
 ```bash
 # GitHub Actions 页面
 https://github.com/gpboyer2/ppll-native-client/actions
@@ -271,11 +296,13 @@ https://github.com/gpboyer2/ppll-native-client/releases
 **用途**: 构建所有平台的发布包（本地执行）
 
 **使用场景**:
+
 - 需要本地构建特定平台的应用
 - 测试构建流程
 - 被 `local-release-build.sh` 调用
 
 **使用方法**:
+
 ```bash
 # 使用默认配置（pnpm + master）
 ./build-platforms.sh
@@ -288,6 +315,7 @@ https://github.com/gpboyer2/ppll-native-client/releases
 ```
 
 **构建平台**:
+
 - macOS Intel (x64)
 - macOS Apple Silicon (arm64)
 - macOS Universal
@@ -295,10 +323,12 @@ https://github.com/gpboyer2/ppll-native-client/releases
 - Windows ARM64
 
 **输出文件**:
+
 - macOS: `build/ppll-client-v{version}-mac-*.dmg`
 - Windows: `build/ppll-client-v{version}-win-*.exe`
 
 **注意事项**:
+
 - macOS 构建需要 macOS 环境
 - Windows 构建需要 Windows 环境
 - 跨平台构建需要使用 GitHub Actions
@@ -307,15 +337,15 @@ https://github.com/gpboyer2/ppll-native-client/releases
 
 ### 脚本使用总结
 
-| 脚本 | 使用频率 | 使用场景 | 输出 |
-|------|---------|---------|------|
-| start-mac.sh | 高 | 每日开发 | 启动开发服务器 |
-| prepare-dev.sh | 中 | 环境设置 | 安装依赖 |
-| setup-dual-repo.sh | 低 | 首次配置 | 配置远程仓库 |
-| push-dual-repo.sh | 高 | 发布版本 | 推送代码 |
-| local-release-build.sh | 中 | 本地构建 | 应用安装包 |
-| github-release-build.sh | 中 | 正式发布 | 触发 CI/CD |
-| build-platforms.sh | 低 | 本地构建 | 应用安装包 |
+| 脚本                    | 使用频率 | 使用场景 | 输出           |
+| ----------------------- | -------- | -------- | -------------- |
+| start-mac.sh            | 高       | 每日开发 | 启动开发服务器 |
+| prepare-dev.sh          | 中       | 环境设置 | 安装依赖       |
+| setup-dual-repo.sh      | 低       | 首次配置 | 配置远程仓库   |
+| push-dual-repo.sh       | 高       | 发布版本 | 推送代码       |
+| local-release-build.sh  | 中       | 本地构建 | 应用安装包     |
+| github-release-build.sh | 中       | 正式发布 | 触发 CI/CD     |
+| build-platforms.sh      | 低       | 本地构建 | 应用安装包     |
 
 **推荐工作流程**:
 
