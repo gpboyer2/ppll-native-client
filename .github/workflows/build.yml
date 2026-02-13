@@ -12,6 +12,9 @@ env:
 jobs:
   get-version:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ppll-natice-client
     outputs:
       version: ${{ steps.get_version.outputs.version }}
       tag_name: ${{ steps.get_version.outputs.tag_name }}
@@ -36,6 +39,9 @@ jobs:
   build-windows:
     needs: get-version
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ppll-natice-client
     strategy:
       matrix:
         arch: [x64, ia32]
@@ -57,11 +63,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: 安装根目录依赖
-        run: npm ci
-
-      - name: 安装后端依赖
-        working-directory: src/main/backend
+      - name: 安装依赖
         run: npm ci
 
       - name: 构建应用
@@ -77,16 +79,19 @@ jobs:
         with:
           name: windows-${{ matrix.arch }}
           path: |
-            dist/*.exe
-            dist/*.zip
-            dist/*.yml
-            dist/*.blockmap
+            ppll-natice-client/dist/*.exe
+            ppll-natice-client/dist/*.zip
+            ppll-natice-client/dist/*.yml
+            ppll-natice-client/dist/*.blockmap
           if-no-files-found: ignore
 
-  # Windows arm64（单独 job，和参考项目一致）
+  # Windows arm64
   build-windows-arm64:
     needs: get-version
     runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: ppll-natice-client
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -105,11 +110,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: 安装根目录依赖
-        run: npm ci
-
-      - name: 安装后端依赖
-        working-directory: src/main/backend
+      - name: 安装依赖
         run: npm ci
 
       - name: 构建应用
@@ -125,16 +126,19 @@ jobs:
         with:
           name: windows-arm64
           path: |
-            dist/*.exe
-            dist/*.zip
-            dist/*.yml
-            dist/*.blockmap
+            ppll-natice-client/dist/*.exe
+            ppll-natice-client/dist/*.zip
+            ppll-natice-client/dist/*.yml
+            ppll-natice-client/dist/*.blockmap
           if-no-files-found: ignore
 
   # macOS x64 + arm64
   build-macos:
     needs: get-version
     runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: ppll-natice-client
     strategy:
       matrix:
         arch: [x64, arm64]
@@ -156,11 +160,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: 安装根目录依赖
-        run: npm ci
-
-      - name: 安装后端依赖
-        working-directory: src/main/backend
+      - name: 安装依赖
         run: npm ci
 
       - name: 构建应用
@@ -177,16 +177,19 @@ jobs:
         with:
           name: macos-${{ matrix.arch }}
           path: |
-            dist/*.dmg
-            dist/*.zip
-            dist/*.yml
-            dist/*.blockmap
+            ppll-natice-client/dist/*.dmg
+            ppll-natice-client/dist/*.zip
+            ppll-natice-client/dist/*.yml
+            ppll-natice-client/dist/*.blockmap
           if-no-files-found: ignore
 
   # Linux x64 + arm64 + armv7l
   build-linux:
     needs: get-version
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ppll-natice-client
     strategy:
       matrix:
         arch: [x64, arm64, armv7l]
@@ -208,11 +211,7 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
 
-      - name: 安装根目录依赖
-        run: npm ci
-
-      - name: 安装后端依赖
-        working-directory: src/main/backend
+      - name: 安装依赖
         run: npm ci
 
       - name: 构建应用
@@ -233,12 +232,12 @@ jobs:
         with:
           name: linux-${{ matrix.arch }}
           path: |
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.snap
-            dist/*.tar.gz
-            dist/*.yml
-            dist/*.blockmap
+            ppll-natice-client/dist/*.AppImage
+            ppll-natice-client/dist/*.deb
+            ppll-natice-client/dist/*.snap
+            ppll-natice-client/dist/*.tar.gz
+            ppll-natice-client/dist/*.yml
+            ppll-natice-client/dist/*.blockmap
           if-no-files-found: ignore
 
   # 创建 Release
