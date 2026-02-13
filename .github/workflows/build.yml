@@ -8,7 +8,7 @@ on:
 
 # 设置工作目录
 env:
-  WORKING_DIR: ppll-natice-client
+  WORKING_DIR: ppll-native-client
 
 jobs:
   # 获取版本号
@@ -172,7 +172,6 @@ jobs:
         working-directory: ${{ env.WORKING_DIR }}
         run: npx electron-builder --mac --${{ matrix.arch }} -p never
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 上传构建产物
