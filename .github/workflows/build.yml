@@ -6,6 +6,10 @@ on:
       - 'v*'
   workflow_dispatch:
 
+# 设置工作目录
+env:
+  WORKING_DIR: ppll-native-client
+
 jobs:
   # 获取版本号
   get-version:
@@ -19,6 +23,7 @@ jobs:
 
       - name: 从package.json获取版本号
         id: get_version
+        working-directory: ${{ env.WORKING_DIR }}
         run: |
           VERSION=$(node -p "require('./package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -54,15 +59,18 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
 
       - name: 安装依赖
+        working-directory: ${{ env.WORKING_DIR }}
         run: npm ci
 
       - name: 构建
+        working-directory: ${{ env.WORKING_DIR }}
         run: npm run build
 
       - name: 打包Windows ${{ matrix.arch }}
+        working-directory: ${{ env.WORKING_DIR }}
         run: npx electron-builder --win --${{ matrix.arch }} -p never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -72,10 +80,10 @@ jobs:
         with:
           name: windows-${{ matrix.arch }}
           path: |
-            dist/*.exe
-            dist/*.zip
-            dist/*.yml
-            dist/*.blockmap
+            ${{ env.WORKING_DIR }}/dist/*.exe
+            ${{ env.WORKING_DIR }}/dist/*.zip
+            ${{ env.WORKING_DIR }}/dist/*.yml
+            ${{ env.WORKING_DIR }}/dist/*.blockmap
           if-no-files-found: ignore
 
   # Windows arm64
@@ -99,15 +107,18 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
 
       - name: 安装依赖
+        working-directory: ${{ env.WORKING_DIR }}
         run: npm ci
 
       - name: 构建
+        working-directory: ${{ env.WORKING_DIR }}
         run: npm run build
 
       - name: 打包Windows ARM64
+        working-directory: ${{ env.WORKING_DIR }}
         run: npx electron-builder --win --arm64 -p never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -117,10 +128,10 @@ jobs:
         with:
           name: windows-arm64
           path: |
-            dist/*.exe
-            dist/*.zip
-            dist/*.yml
-            dist/*.blockmap
+            ${{ env.WORKING_DIR }}/dist/*.exe
+            ${{ env.WORKING_DIR }}/dist/*.zip
+            ${{ env.WORKING_DIR }}/dist/*.yml
+            ${{ env.WORKING_DIR }}/dist/*.blockmap
           if-no-files-found: ignore
 
   # macOS x64 + arm64
@@ -147,15 +158,18 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
 
       - name: 安装依赖
+        working-directory: ${{ env.WORKING_DIR }}
         run: npm ci
 
       - name: 构建
+        working-directory: ${{ env.WORKING_DIR }}
         run: npm run build
 
       - name: 打包macOS ${{ matrix.arch }}
+        working-directory: ${{ env.WORKING_DIR }}
         run: npx electron-builder --mac --${{ matrix.arch }} -p never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -165,10 +179,10 @@ jobs:
         with:
           name: macos-${{ matrix.arch }}
           path: |
-            dist/*.dmg
-            dist/*.zip
-            dist/*.yml
-            dist/*.blockmap
+            ${{ env.WORKING_DIR }}/dist/*.dmg
+            ${{ env.WORKING_DIR }}/dist/*.zip
+            ${{ env.WORKING_DIR }}/dist/*.yml
+            ${{ env.WORKING_DIR }}/dist/*.blockmap
           if-no-files-found: ignore
 
   # Linux x64 + arm64 + armv7l
@@ -199,15 +213,18 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
 
       - name: 安装依赖
+        working-directory: ${{ env.WORKING_DIR }}
         run: npm ci
 
       - name: 构建
+        working-directory: ${{ env.WORKING_DIR }}
         run: npm run build
 
       - name: 打包Linux ${{ matrix.arch }}
+        working-directory: ${{ env.WORKING_DIR }}
         run: |
           if [ "${{ matrix.arch }}" = "x64" ]; then
             npx electron-builder --linux --${{ matrix.arch }} -p never
@@ -222,12 +239,12 @@ jobs:
         with:
           name: linux-${{ matrix.arch }}
           path: |
-            dist/*.AppImage
-            dist/*.deb
-            dist/*.snap
-            dist/*.tar.gz
-            dist/*.yml
-            dist/*.blockmap
+            ${{ env.WORKING_DIR }}/dist/*.AppImage
+            ${{ env.WORKING_DIR }}/dist/*.deb
+            ${{ env.WORKING_DIR }}/dist/*.snap
+            ${{ env.WORKING_DIR }}/dist/*.tar.gz
+            ${{ env.WORKING_DIR }}/dist/*.yml
+            ${{ env.WORKING_DIR }}/dist/*.blockmap
           if-no-files-found: ignore
 
   # 创建Release
