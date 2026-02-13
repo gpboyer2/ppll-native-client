@@ -1,0 +1,26 @@
+{
+    "watch": [
+        "controller",
+        "service",
+        "route",
+        "utils",
+        "models",
+        "plugin",
+        "middleware",
+        "app.js"
+    ],
+    "ignore": [
+        "node_modules",
+        "test",
+        "logs",
+        "*.test.js",
+        ".git",
+        "migrations"
+    ],
+    "ext": "js,json",
+    "env": {
+        "NODE_ENV": "development"
+    },
+    "verbose": true,
+    "colours": true
+}

@@ -1,0 +1,187 @@
+import { create } from 'zustand'
+import { subscribeWithSelector } from 'zustand/middleware'
+
+// localStorage 适配器
+class LocalStorageAdapter {
+  async getItem(key: string): Promise<string | null> {
+    try {
+      return localStorage.getItem(key)
+    } catch (error) {
+      console.warn(`localStorage 获取失败 [${key}]:`, error)
+      return null
+    }
+  }
+
+  async setItem(key: string, value: string): Promise<void> {
+    try {
+      localStorage.setItem(key, value)
+    } catch (error) {
+      console.error(`localStorage 保存失败 [${key}]:`, error)
+      throw error
+    }
+  }
+
+  async removeItem(key: string): Promise<void> {
+    try {
+      localStorage.removeItem(key)
+    } catch (error) {
+      console.error(`localStorage 删除失败 [${key}]:`, error)
+      throw error
+    }
+  }
+}
+
+// 持久化配置
+interface PersistConfig {
+  key: string
+  serialize?: (state: any) => string
+  deserialize?: (str: string) => any
+  partialize?: (state: any) => any
+  onRehydrateStorage?: (state: any) => void
+  skipHydration?: boolean
+}
+
+// Store 定义函数类型
+type StoreDefinition<T> = (set: any, get: any) => T
+
+/**
+ * 创建持久化 Store - Pinia-like API
+ *
+ * @param key 持久化存储的键名
+ * @param storeDefinition Store 定义函数，接收 set 和 get 参数，返回包含 state 和 actions 的对象
+ * @param config 持久化配置选项
+ * @returns Zustand store hook
+ *
+ * @example
+ * ```typescript
+ * const useUserStore = createPersistedStore(
+ *   'user-settings',
+ *   (set, get) => ({
+ *     name: '',
+ *     age: 0,
+ *     setName: (name: string) => set((state) => ({ ...state, name })),
+ *     setAge: (age: number) => set((state) => ({ ...state, age })),
+ *   })
+ * );
+ * ```
+ */
+export function createPersistedStore<T extends Record<string, any>>(
+  key: string,
+  storeDefinition: StoreDefinition<T>,
+  config: Omit<PersistConfig, 'key'> = {}
+) {
+  const persistConfig: PersistConfig = {
+    key,
+    serialize: JSON.stringify,
+    deserialize: JSON.parse,
+    partialize: (state) => {
+      // 默认只持久化非函数属性（即 state，不包括 actions）
+      const result: any = {}
+      for (const [k, v] of Object.entries(state)) {
+        if (typeof v !== 'function') {
+          result[k] = v
+        }
+      }
+      return result
+    },
+    ...config
+  }
+
+  const storage = new LocalStorageAdapter()
+
+  // 创建 Zustand store
+  const useStore = create<T>()(
+    subscribeWithSelector((set, get) => {
+      // 执行 store 定义函数，传入 set 和 get
+      const store = storeDefinition(set, get)
+
+      return store
+    })
+  )
+
+  // 持久化逻辑
+  let hasHydrated = false
+
+  // 从存储中恢复状态
+  const hydrateStore = async () => {
+    if (persistConfig.skipHydration || hasHydrated) return
+
+    try {
+      const storedValue = await storage.getItem(persistConfig.key)
+      if (storedValue) {
+        const parsedState = persistConfig.deserialize!(storedValue)
+        const currentState = useStore.getState()
+
+        // 只恢复 state，保留 actions
+        const stateToRestore: any = {}
+        for (const [key, value] of Object.entries(parsedState)) {
+          if (typeof currentState[key] !== 'function') {
+            stateToRestore[key] = value
+          }
+        }
+
+        useStore.setState(stateToRestore, false)
+
+        if (persistConfig.onRehydrateStorage) {
+          persistConfig.onRehydrateStorage(useStore.getState())
+        }
+      }
+    } catch (error) {
+      console.error(`恢复状态失败 [${persistConfig.key}]:`, error)
+    } finally {
+      hasHydrated = true
+    }
+  }
+
+  // 保存状态到存储
+  const persistState = async (state: T) => {
+    try {
+      const stateToPersist = persistConfig.partialize!(state)
+      const serializedState = persistConfig.serialize!(stateToPersist)
+      await storage.setItem(persistConfig.key, serializedState)
+    } catch (error) {
+      console.error(`持久化状态失败 [${persistConfig.key}]:`, error)
+    }
+  }
+
+  // 订阅状态变化并自动持久化
+  useStore.subscribe(
+    (state) => state,
+    (state) => {
+      if (hasHydrated) {
+        persistState(state)
+      }
+    },
+    {
+      equalityFn: (a, b) => {
+        // 只比较非函数属性
+        const aState = persistConfig.partialize!(a)
+        const bState = persistConfig.partialize!(b)
+        return JSON.stringify(aState) === JSON.stringify(bState)
+      }
+    }
+  )
+
+  // 初始化时恢复状态
+  hydrateStore()
+
+  // 扩展 store 添加持久化相关方法
+  const enhancedStore = useStore as typeof useStore & {
+    persist: {
+      rehydrate: () => Promise<void>
+      clearStorage: () => Promise<void>
+      getStorageKey: () => string
+    }
+  }
+
+  enhancedStore.persist = {
+    rehydrate: hydrateStore,
+    clearStorage: () => storage.removeItem(persistConfig.key),
+    getStorageKey: () => persistConfig.key
+  }
+
+  return enhancedStore
+}
+
+// 导出类型
+export type { PersistConfig }
