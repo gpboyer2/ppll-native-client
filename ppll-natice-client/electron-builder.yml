@@ -27,7 +27,7 @@ extraResources:
 copyright: Copyright 2025 PPLL Team
 win:
   executableName: ppll-native-client
-  icon: build/icon.ico
+  icon: resources/icon.ico
   legalTrademarks: Copyright 2025 PPLL Team
   requestedExecutionLevel: asInvoker
 nsis:
@@ -39,8 +39,8 @@ nsis:
   allowToChangeInstallationDirectory: true
   perMachine: false
   runAfterFinish: false
-  installerIcon: build/icon.ico
-  uninstallerIcon: build/icon.ico
+  installerIcon: resources/icon.ico
+  uninstallerIcon: resources/icon.ico
 mac:
   identity: null
   entitlementsInherit: build/entitlements.mac.plist
@@ -51,7 +51,7 @@ mac:
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
   hardenedRuntime: false
-  icon: build/icon.icns
+  icon: resources/icon.icns
   category: public.app-category.finance
 dmg:
   artifactName: ${name}-${version}-${arch}.${ext}
@@ -62,7 +62,7 @@ linux:
   executableName: ppll-native-client
   maintainer: ppll
   category: Finance
-  icon: build/icon.png
+  icon: resources/icon.png
 deb:
   artifactName: ${name}-${version}-${arch}.${ext}
 appImage:
