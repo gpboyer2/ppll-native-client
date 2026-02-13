@@ -1,0 +1,26 @@
+{
+    "eventType": "continuous_kline",
+    "eventTime": 1712037329770,
+    "symbol": "1000FLOKIUSDT",
+    "contractType": "PERPETUAL",
+    "kline": {
+        "startTime": 1712037300000,
+        "endTime": 1712037359999,
+        "interval": "1m",
+        "firstTradeId": 4326779681204,
+        "lastTradeId": 4326782222393,
+        "open": 0.9717314262271,
+        "close": 0.67621558,
+        "high": 0,
+        "low": 0.46112044685186,
+        "volume": 114418,
+        "trades": 183,
+        "final": false,
+        "quoteVolume": 24722.90928,
+        "volumeActive": 68839,
+        "quoteVolumeActive": 14873.84595,
+        "ignored": 0
+    },
+    "wsMarket": "usdm",
+    "wsKey": "usdm_continuousKline_1000flokiusdt_1m"
+}

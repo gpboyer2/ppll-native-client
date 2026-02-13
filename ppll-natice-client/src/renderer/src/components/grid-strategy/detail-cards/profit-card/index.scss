@@ -1,0 +1,88 @@
+.profit-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.profit-main {
+  flex: 1;
+}
+
+.profit-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.profit-value {
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.profit-value.positive {
+  color: var(--color-success);
+}
+
+.profit-value.negative {
+  color: var(--color-error);
+}
+
+.profit-unit {
+  font-size: 14px;
+  font-weight: 500;
+  margin-left: 4px;
+}
+
+.profit-rate {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.profit-rate.positive {
+  color: var(--color-success);
+}
+
+.profit-rate.negative {
+  color: var(--color-error);
+}
+
+.profit-divider {
+  width: 1px;
+  height: 60px;
+  background-color: var(--color-border);
+}
+
+.profit-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.profit-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.profit-stat-item svg {
+  color: var(--color-text-muted);
+}
+
+.stat-label {
+  color: var(--color-text-muted);
+}
+
+.stat-value {
+  color: var(--color-text);
+  font-weight: 600;
+  margin-left: auto;
+}

@@ -1,0 +1,235 @@
+.developer-console-page {
+  padding: 16px 0;
+
+  .loading-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .loading-content {
+    text-align: center;
+  }
+
+  .loading-spinner {
+    width: 32px;
+    height: 32px;
+    margin: 0 auto 12px;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+
+  .page-title {
+    margin: 0;
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .auto-refresh-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: var(--text-sm);
+    cursor: pointer;
+  }
+
+  .auto-refresh-checkbox {
+    cursor: pointer;
+  }
+
+  .restart-section {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .restart-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .info-item-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .info-item:last-child {
+    border-bottom: none;
+  }
+
+  .info-label {
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+  }
+
+  .info-value {
+    font-family:
+      Monaco,
+      Menlo,
+      Ubuntu Mono,
+      monospace;
+    color: var(--color-text);
+    font-size: var(--text-sm);
+  }
+
+  .info-value-inline {
+    font-family:
+      Monaco,
+      Menlo,
+      Ubuntu Mono,
+      monospace;
+    font-size: var(--text-xs);
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .info-value-path {
+    font-family: monospace;
+    font-size: var(--text-xs);
+    max-width: 70%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .info-value-path-short {
+    font-family: monospace;
+    font-size: var(--text-xs);
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .info-value-monospace {
+    font-family: monospace;
+    font-size: var(--text-xs);
+  }
+
+  .info-status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: var(--text-xs);
+    font-weight: 600;
+  }
+
+  .info-status.running {
+    background: color-mix(in srgb, var(--color-success) 20%, var(--color-bg));
+    color: var(--color-success);
+  }
+
+  .info-status.stopped {
+    background: color-mix(in srgb, var(--color-danger) 20%, var(--color-bg));
+    color: var(--color-danger);
+  }
+
+  .info-status.healthy {
+    background: color-mix(in srgb, var(--color-success) 20%, var(--color-bg));
+    color: var(--color-success);
+  }
+
+  .info-status.unhealthy {
+    background: color-mix(in srgb, var(--color-danger) 20%, var(--color-bg));
+    color: var(--color-danger);
+  }
+
+  .log-viewer-card {
+    margin-top: 16px;
+  }
+
+  .log-viewer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .log-max-lines-hint {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+  }
+
+  .log-tab-group {
+    display: flex;
+    gap: 4px;
+  }
+
+  .log-viewer-content {
+    padding: 0;
+  }
+
+  .log-viewer-box {
+    background: var(--color-bg);
+    padding: 12px;
+    font-family:
+      Monaco,
+      Menlo,
+      Ubuntu Mono,
+      monospace;
+    font-size: var(--text-xs);
+    height: 400px;
+    overflow: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .log-line {
+    margin-bottom: 2px;
+  }
+
+  .last-update {
+    margin-top: 12px;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+  }
+
+  .last-update-icon {
+    vertical-align: middle;
+  }
+
+  .tab-item {
+    padding: 6px 12px;
+    border: none;
+    background: none;
+    color: var(--color-text-muted);
+    font-size: var(--text-sm);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s;
+  }
+
+  .tab-item:hover {
+    background: var(--color-bg-muted);
+    color: var(--color-text);
+  }
+
+  .tab-item.active {
+    background: color-mix(in srgb, var(--color-primary) 15%, var(--color-surface));
+    color: var(--color-primary);
+  }
+}

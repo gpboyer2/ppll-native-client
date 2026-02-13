@@ -1,0 +1,14 @@
+{
+    "0": {
+        "apiKey": "Wx1DIVc4cM5l1mhZLMeTOb2cjB86OrcWh3qrX5NRZoKeN0Gj5zEjUIG3vO782Rok",
+        "apiSecret": "wKJBlo6l4hxmcibT6VDddChFHCW3BGeYQQs78co8VCUMqOjhlNSlswMTFdjBlAij",
+        "tradingPair": "ARUSDT",
+        "leverage": "20",
+        "grid_price_difference": 0.1,
+        "gridTradeQuantity": 3,
+        "isAboveOpenPrice": false,
+        "pollingIntervalSecond": "5",
+        "pollingInterval": 5000,
+        "positionSide": "LONG"
+    }
+}

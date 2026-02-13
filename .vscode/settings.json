@@ -1,0 +1,120 @@
+{
+  // Disable the ESlint flat config support for ESLint 8.x compatibility
+  "eslint.experimental.useFlatConfig": false,
+  "files.exclude": {
+    "._*": true,
+    "**/._*": true,
+    "**/dist": true
+  },
+  "search.exclude": {
+    "._*": true,
+    "**/._*": true,
+    "**/dist": true,
+    "**/node_modules": true,
+    "**/logs": true,
+    "**/logs/**": true,
+    "nodejs-server/logs": true,
+    "nodejs-server/logs/**": true,
+    "frontend/dist": true
+  },
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  // Auto fix and format on save
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always"
+  },
+  "editor.formatOnSave": true,
+  // Silent the stylistic rules in you IDE, but still auto fix them
+  "eslint.rules.customizations": [
+    {
+      "rule": "style/*",
+      "severity": "off"
+    },
+    {
+      "rule": "*-indent",
+      "severity": "off"
+    },
+    {
+      "rule": "*-spacing",
+      "severity": "off"
+    },
+    {
+      "rule": "*-spaces",
+      "severity": "off"
+    },
+    {
+      "rule": "*-order",
+      "severity": "off"
+    },
+    {
+      "rule": "*-dangle",
+      "severity": "off"
+    },
+    {
+      "rule": "*-newline",
+      "severity": "off"
+    },
+    {
+      "rule": "*quotes",
+      "severity": "off"
+    },
+    {
+      "rule": "*semi",
+      "severity": "off"
+    }
+  ],
+  // Enable eslint for all supported languages
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "vue",
+    "html",
+    "markdown",
+    "json",
+    "jsonc",
+    "yaml"
+  ],
+  "Codegeex.RepoIndex": true,
+  "editor.tabSize": 2,
+  "cSpell.words": [
+    "bybit",
+    "persistedstate",
+    "unplugin",
+    "vant"
+  ],
+  // Vue file formatting configuration (optional for developers)
+  "[vue]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  // Vue formatting settings for single attribute per line
+  "volar.format.initialIndent": {
+    "html": true
+  },
+  "vue.format.template.initialIndent": true,
+  "html.format.wrapAttributes": "force",
+  "html.format.wrapLineLength": 80,
+  "html.format.indentInnerHtml": true,
+  "html.format.preserveNewLines": false,
+  "html.format.maxPreserveNewLines": 1,
+  "html.format.wrapAttributesIndentSize": 2,
+  "html.format.endWithNewline": true,
+  "html.format.templating": true,
+  "volar.format.options": {
+    "tabSize": 2,
+    "useTabs": false,
+    "semi": false,
+    "singleQuote": true,
+    "htmlWhitespaceSensitivity": "ignore",
+    "singleAttributePerLine": true,
+    "bracketSameLine": false,
+    "vueIndentScriptAndStyle": true,
+    "bracketSpacing": true
+  },
+  "volar.format.template": {
+    "singleAttributePerLine": true,
+    "closingBracketSameLine": false
+  },
+  "Codegeex.CommitMessageStyle": "ConventionalCommits",
+  "Codegeex.CommitMessage.LanguagePreference": "中文"
+}

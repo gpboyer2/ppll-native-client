@@ -1,0 +1,33 @@
+{
+    "editor.formatOnSave": true,
+    "terminal.integrated.defaultProfile.windows": "Git Bash",
+    "files.exclude": {
+        "**/._*": true,
+        "._*": true
+    },
+    "gitHistory.hideCommitViewExplorer": true,
+    "gitHistory.includeRemoteBranches": true,
+    "gitHistory.alwaysPromptRepositoryPicker": true,
+    "gitHistory.editorTitleButtonOpenRepo": false,
+    "Codegeex.RepoIndex": true,
+    "cSpell.words": [
+        "apikey",
+        "bingx",
+        "bitget",
+        "bitmex",
+        "bybit",
+        "coinank",
+        "coinex",
+        "coinm",
+        "cummulative",
+        "ETHUSDT",
+        "fapi",
+        "HIFIUSDT",
+        "LONGTEXT",
+        "Strategys",
+        "usdm"
+    ],
+    "editor.tabSize": 2,
+    // Disable the ESlint flat config support for ESLint 8.x compatibility
+    "eslint.experimental.useFlatConfig": false
+}

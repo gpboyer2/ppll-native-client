@@ -1,0 +1,73 @@
+/* ============================================
+   Mantine Modal 组件样式
+   使用浅色主题，与项目深色主题区分
+   ============================================ */
+
+/* Mantine Modal 根容器 - 强制浅色主题变量 */
+.mantine-Modal-root {
+  --mantine-color-body: #ffffff;
+  --mantine-color-text: #1e2329;
+}
+
+/* Modal 内容区 - 白色背景，浅色阴影 */
+.mantine-Modal-content {
+  background-color: #ffffff !important;
+  border: 1px solid #e6e8ea !important;
+  color: #1e2329 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Paper 组件阴影覆盖 */
+.mantine-Paper-root {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Modal 头部 */
+.mantine-Modal-header {
+  background-color: #ffffff !important;
+  border-bottom-color: #e6e8ea !important;
+}
+
+/* Modal 标题 */
+.mantine-Modal-title {
+  color: #1e2329 !important;
+}
+
+/* Modal 内容区 */
+.mantine-Modal-body {
+  color: #707a8a !important;
+}
+
+/* Modal 关闭按钮 */
+.mantine-Modal-close {
+  color: #707a8a !important;
+  background-color: transparent !important;
+}
+
+.mantine-Modal-close:hover {
+  background-color: rgba(0, 0, 0, 0.06) !important;
+  color: #1e2329 !important;
+}
+
+/* Modal 遮罩层 */
+.mantine-Modal-overlay {
+  background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ============================================
+   Modal 组件内部使用的样式类
+   ============================================ */
+
+/* 按钮操作区 */
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+/* 内容文本 */
+.modal-content {
+  margin: 0;
+  color: #707a8a;
+}
