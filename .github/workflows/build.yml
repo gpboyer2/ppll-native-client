@@ -18,10 +18,10 @@ jobs:
       version: ${{ steps.get_version.outputs.version }}
       tag_name: ${{ steps.get_version.outputs.tag_name }}
     steps:
-      - name: Checkout
+      - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: Get version from package.json
+      - name: 从package.json获取版本号
         id: get_version
         working-directory: ${{ env.WORKING_DIR }}
         run: |
@@ -35,6 +35,7 @@ jobs:
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
           echo "Version: $VERSION, Tag: $TAG_NAME"
 
+  # Windows x64 + ia32
   build-windows:
     needs: get-version
     runs-on: windows-latest
@@ -42,39 +43,39 @@ jobs:
       matrix:
         arch: [x64, ia32]
     steps:
-      - name: Checkout
+      - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: 设置Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install setuptools (for node-gyp)
+      - name: 安装setuptools（用于node-gyp）
         run: pip install setuptools
 
-      - name: Setup Node.js
+      - name: 设置Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
           cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
 
-      - name: Install dependencies
+      - name: 安装依赖
         working-directory: ${{ env.WORKING_DIR }}
         run: npm ci
 
-      - name: Build
+      - name: 构建
         working-directory: ${{ env.WORKING_DIR }}
         run: npm run build
 
-      - name: Package Windows ${{ matrix.arch }}
+      - name: 打包Windows ${{ matrix.arch }}
         working-directory: ${{ env.WORKING_DIR }}
         run: npx electron-builder --win --${{ matrix.arch }} -p never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload artifacts
+      - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
           name: windows-${{ matrix.arch }}
@@ -85,43 +86,44 @@ jobs:
             ${{ env.WORKING_DIR }}/dist/*.blockmap
           if-no-files-found: ignore
 
+  # Windows arm64
   build-windows-arm64:
     needs: get-version
     runs-on: windows-latest
     steps:
-      - name: Checkout
+      - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: 设置Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install setuptools (for node-gyp)
+      - name: 安装setuptools（用于node-gyp）
         run: pip install setuptools
 
-      - name: Setup Node.js
+      - name: 设置Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
           cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
 
-      - name: Install dependencies
+      - name: 安装依赖
         working-directory: ${{ env.WORKING_DIR }}
         run: npm ci
 
-      - name: Build
+      - name: 构建
         working-directory: ${{ env.WORKING_DIR }}
         run: npm run build
 
-      - name: Package Windows ARM64
+      - name: 打包Windows ARM64
         working-directory: ${{ env.WORKING_DIR }}
         run: npx electron-builder --win --arm64 -p never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload artifacts
+      - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
           name: windows-arm64
@@ -132,6 +134,7 @@ jobs:
             ${{ env.WORKING_DIR }}/dist/*.blockmap
           if-no-files-found: ignore
 
+  # macOS x64 + arm64
   build-macos:
     needs: get-version
     runs-on: macos-latest
@@ -139,40 +142,40 @@ jobs:
       matrix:
         arch: [x64, arm64]
     steps:
-      - name: Checkout
+      - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: 设置Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install setuptools (for node-gyp)
+      - name: 安装setuptools（用于node-gyp）
         run: pip install setuptools
 
-      - name: Setup Node.js
+      - name: 设置Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
           cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
 
-      - name: Install dependencies
+      - name: 安装依赖
         working-directory: ${{ env.WORKING_DIR }}
         run: npm ci
 
-      - name: Build
+      - name: 构建
         working-directory: ${{ env.WORKING_DIR }}
         run: npm run build
 
-      - name: Package macOS ${{ matrix.arch }}
+      - name: 打包macOS ${{ matrix.arch }}
         working-directory: ${{ env.WORKING_DIR }}
         run: npx electron-builder --mac --${{ matrix.arch }} -p never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload artifacts
+      - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
           name: macos-${{ matrix.arch }}
@@ -183,6 +186,7 @@ jobs:
             ${{ env.WORKING_DIR }}/dist/*.blockmap
           if-no-files-found: ignore
 
+  # Linux x64 + arm64 + armv7l
   build-linux:
     needs: get-version
     runs-on: ubuntu-latest
@@ -190,37 +194,37 @@ jobs:
       matrix:
         arch: [x64, arm64, armv7l]
     steps:
-      - name: Checkout
+      - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: Setup Python
+      - name: 设置Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install setuptools (for node-gyp)
+      - name: 安装setuptools（用于node-gyp）
         run: pip install setuptools
 
-      - name: Install snapcraft (for x64 snap build)
+      - name: 安装snapcraft（用于x64 snap构建）
         if: matrix.arch == 'x64'
         run: sudo snap install snapcraft --classic
 
-      - name: Setup Node.js
+      - name: 设置Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'npm'
           cache-dependency-path: ${{ env.WORKING_DIR }}/package-lock.json
 
-      - name: Install dependencies
+      - name: 安装依赖
         working-directory: ${{ env.WORKING_DIR }}
         run: npm ci
 
-      - name: Build
+      - name: 构建
         working-directory: ${{ env.WORKING_DIR }}
         run: npm run build
 
-      - name: Package Linux ${{ matrix.arch }}
+      - name: 打包Linux ${{ matrix.arch }}
         working-directory: ${{ env.WORKING_DIR }}
         run: |
           if [ "${{ matrix.arch }}" = "x64" ]; then
@@ -231,7 +235,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload artifacts
+      - name: 上传构建产物
         uses: actions/upload-artifact@v4
         with:
           name: linux-${{ matrix.arch }}
@@ -244,6 +248,7 @@ jobs:
             ${{ env.WORKING_DIR }}/dist/*.blockmap
           if-no-files-found: ignore
 
+  # 创建Release
   release:
     needs: [get-version, build-windows, build-windows-arm64, build-macos, build-linux]
     if: startsWith(github.ref, 'refs/tags/v')
@@ -251,18 +256,18 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Checkout
+      - name: 检出代码
         uses: actions/checkout@v4
 
-      - name: Download all artifacts
+      - name: 下载所有构建产物
         uses: actions/download-artifact@v4
         with:
           path: artifacts
 
-      - name: Display structure of downloaded files
+      - name: 显示下载文件结构
         run: ls -R artifacts
 
-      - name: Deduplicate update metadata files
+      - name: 清理重复的元数据文件
         run: |
           find artifacts -name "builder-debug.yml" -delete 2>/dev/null || true
 
@@ -281,10 +286,10 @@ jobs:
           find artifacts -name "latest-linux-arm.yml" | head -1 | xargs -I {} cp {} artifacts/latest-linux-arm.yml 2>/dev/null || true
           find artifacts -path "*/linux-*/*" -name "latest-linux-arm.yml" -delete 2>/dev/null || true
 
-          echo "After deduplication:"
+          echo "去重后的文件:"
           find artifacts -name "*.yml" -type f
 
-      - name: Create Release
+      - name: 创建Release
         uses: softprops/action-gh-release@v1
         with:
           name: PPLL Client v${{ needs.get-version.outputs.version }}
