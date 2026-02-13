@@ -1,5 +1,0 @@
-ignoredBuiltDependencies:
-    - "@scarf/scarf"
-    - bcrypt
-    - msgpackr-extract
-    - unrs-resolver
